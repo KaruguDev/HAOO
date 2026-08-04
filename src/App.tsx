@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import {
   Leaf,
   Globe,
@@ -110,6 +110,9 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ];
 
+const CONTACT_FORM_ENDPOINT = 'https://formsubmit.co/info@zero-paperhub.com';
+const CONTACT_SUCCESS_URL = 'https://www.zero-paperhub.com/?contact=success#contact';
+
 const VALUES = [
   { icon: Lightbulb, label: 'Innovation with Purpose' },
   { icon: Users, label: 'Customer-Centricity' },
@@ -139,12 +142,28 @@ const SERVICES = [
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactSubmitted] = useState(
+    () => new URLSearchParams(window.location.search).get('contact') === 'success'
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (contactSubmitted) {
+      window.history.replaceState({}, '', `${window.location.pathname}#contact`);
+    }
+  }, [contactSubmitted]);
+
+  const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (event.currentTarget.checkValidity()) {
+      setContactSubmitting(true);
+    }
+  };
 
   const aboutSection = useInView();
   const missionSection = useInView();
@@ -478,37 +497,80 @@ export default function App() {
             </div>
 
             {/* Form */}
-            <form className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-5">
+            <form
+              action={CONTACT_FORM_ENDPOINT}
+              method="POST"
+              onSubmit={handleContactSubmit}
+              className="relative bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-5"
+            >
+              <input type="hidden" name="_subject" value="New website enquiry — ZERO-PAPER HUB" />
+              <input type="hidden" name="_template" value="table" />
+              <input type="hidden" name="_next" value={CONTACT_SUCCESS_URL} />
+              <input type="hidden" name="_url" value="https://www.zero-paperhub.com/#contact" />
+              <input
+                type="hidden"
+                name="_autoresponse"
+                value="Thank you for contacting ZERO-PAPER HUB. We have received your message and will respond as soon as possible."
+              />
+
+              <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                <label htmlFor="contact-website">Leave this field blank</label>
+                <input
+                  id="contact-website"
+                  type="text"
+                  name="_honey"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
+              {contactSubmitted && (
+                <div
+                  role="status"
+                  className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+                >
+                  <CheckCircle2 size={19} className="mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-bold">Message sent successfully</div>
+                    <p className="mt-0.5 text-green-700">Thank you. Our team will get back to you shortly.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">First Name</label>
-                  <input type="text" placeholder="Jane"
+                  <label htmlFor="contact-first-name" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">First Name</label>
+                  <input id="contact-first-name" type="text" name="first_name" placeholder="Jane" autoComplete="given-name" required minLength={2} maxLength={60}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Last Name</label>
-                  <input type="text" placeholder="Doe"
+                  <label htmlFor="contact-last-name" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Last Name</label>
+                  <input id="contact-last-name" type="text" name="last_name" placeholder="Doe" autoComplete="family-name" required minLength={2} maxLength={60}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
-                <input type="email" placeholder="jane@company.com"
+                <label htmlFor="contact-email" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+                <input id="contact-email" type="email" name="email" placeholder="jane@company.com" autoComplete="email" required maxLength={254}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Organization</label>
-                <input type="text" placeholder="Your company name"
+                <label htmlFor="contact-organization" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Organization <span className="normal-case font-normal text-gray-400">(optional)</span></label>
+                <input id="contact-organization" type="text" name="organization" placeholder="Your company name" autoComplete="organization" maxLength={120}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Message</label>
-                <textarea rows={4} placeholder="Tell us about your workflow challenges..."
+                <label htmlFor="contact-message" className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Message</label>
+                <textarea id="contact-message" name="message" rows={4} placeholder="Tell us about your workflow challenges..." required minLength={10} maxLength={3000}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition resize-none" />
               </div>
-              <button type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-700 to-green-600 text-white font-bold text-sm shadow-md shadow-green-200 hover:shadow-lg hover:from-green-600 hover:to-green-500 transition-all duration-200">
-                Send Message
+              <div className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs leading-relaxed text-gray-500">
+                <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-green-700" />
+                <span>Protected by reCAPTCHA and an automated spam trap. Your details are used only to respond to this enquiry.</span>
+              </div>
+              <button type="submit" disabled={contactSubmitting}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-700 to-green-600 text-white font-bold text-sm shadow-md shadow-green-200 hover:shadow-lg hover:from-green-600 hover:to-green-500 transition-all duration-200 disabled:cursor-wait disabled:opacity-70">
+                {contactSubmitting ? 'Sending…' : 'Send Message'}
               </button>
             </form>
           </div>
