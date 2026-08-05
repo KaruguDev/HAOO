@@ -175,11 +175,11 @@ export default function App() {
     <div className="font-sans text-gray-800 bg-white overflow-x-hidden">
 
       {/* NAV */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <a href="#" className="flex items-center group">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-2.5 md:py-3' : 'bg-transparent py-3 md:py-5'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+          <a href="#" className="flex min-w-0 items-center group" aria-label="Zero-Paper Hub home">
             <img src="/zero-paper_hub_hi-def.png" alt="Zero-Paper Hub"
-              className={`h-20 w-auto rounded-lg object-contain transition-all duration-300 ${scrolled ? 'bg-white/95 p-1.5 shadow-sm' : 'bg-white/95 p-1.5'}`} />
+              className={`h-14 sm:h-16 md:h-20 max-w-full w-auto rounded-lg object-contain transition-all duration-300 ${scrolled ? 'bg-white/95 p-1 sm:p-1.5 shadow-sm' : 'bg-white/95 p-1 sm:p-1.5'}`} />
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -195,7 +195,7 @@ export default function App() {
             </a>
           </nav>
 
-          <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-700' : 'text-white'}`}>
+          <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden flex-shrink-0 p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-700' : 'text-white'}`}>
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
