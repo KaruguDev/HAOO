@@ -1,7 +1,7 @@
 # Domain Pitfalls
 
 **Domain:** Privacy-first product marketing, lead qualification, email delivery, and assisted/self-onboarding funnel on a static React/Vite/GitHub Pages site
-**Project:** Zero-Paper Hub — HAOO launch journey
+**Project:** ZERO-PAPER HUB — HAOO launch journey
 **Researched:** 2026-08-29
 **Overall confidence:** MEDIUM (current primary documentation cross-checked with the existing codebase; legal conclusions require Kenyan counsel or a qualified data-protection review)
 
@@ -33,7 +33,7 @@ These mistakes can invalidate the success metric, expose prospect data, silently
 
 **What goes wrong:** A localStorage UUID, fingerprint, full URL, form field, free-text value, or analytics custom property makes an identifiable or linkable history. On form submission, the implementation silently attaches the visitor's full browsing history to their name and contact details even though the page presents analytics as anonymous or aggregate.
 
-**Why it happens:** The requirement to include “engagement context” with a submitted lead is interpreted as a request for person-level surveillance. Developers also assume “pseudonymous” means anonymous; it does not when Zero-Paper Hub can map the identifier back to a lead.
+**Why it happens:** The requirement to include “engagement context” with a submitted lead is interpreted as a request for person-level surveillance. Developers also assume “pseudonymous” means anonymous; it does not when ZERO-PAPER HUB can map the identifier back to a lead.
 
 **Consequences:** Privacy notices become inaccurate; a privacy-first vendor configuration may be violated; data subject access/deletion and retention obligations expand; third-party and cross-border processing risks increase; URL or custom-property reports can expose PII to more staff than the mailbox alone.
 
@@ -61,7 +61,7 @@ These mistakes can invalidate the success metric, expose prospect data, silently
 **Prevention:**
 
 - Treat FormSubmit as a provisional external processor and document its owner, privacy terms, data location/transfer implications, activation dependency, reserved fields, spam controls, retention behavior, and recovery owner.
-- Use the HAOO recipient identity, not the general Zero-Paper Hub inbox. Activate the exact production recipient and production-domain form before launch.
+- Use the HAOO recipient identity, not the general ZERO-PAPER HUB inbox. Activate the exact production recipient and production-domain form before launch.
 - Keep every submitted control's stable `name`; keep the honeypot; add a server-independent submission identifier only if it is random, non-identifying, and useful for duplicate/support reconciliation.
 - Design the UI so “sending” means only a browser attempt. Show a truthful recovery path if navigation/submission fails and keep direct HAOO phone/WhatsApp/email alternatives visible.
 - Do not rely on `_autoresponse` as consent for marketing or proof the enquiry was reviewed. Avoid putting sensitive context in `_subject`, `_next`, source URLs, or other values likely to propagate into headers/logs.

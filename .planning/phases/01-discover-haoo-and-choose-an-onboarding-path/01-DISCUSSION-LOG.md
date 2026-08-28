@@ -55,13 +55,13 @@
 
 | Decision | Options considered | Selected |
 |----------|--------------------|----------|
-| Visual identity | HAOO-led within Zero-Paper Hub shell; Mostly Zero-Paper Hub; Full HAOO takeover | HAOO-led within Zero-Paper Hub shell |
-| Explicit relationship | “A Zero-Paper Hub product”; Visual connection only; Company-first introduction | “A Zero-Paper Hub product” |
+| Visual identity | HAOO-led within ZERO-PAPER HUB shell; Mostly ZERO-PAPER HUB; Full HAOO takeover | HAOO-led within ZERO-PAPER HUB shell |
+| Explicit relationship | “A ZERO-PAPER HUB product”; Visual connection only; Company-first introduction | “A ZERO-PAPER HUB product” |
 | Product-page navigation | HAOO page sections; Existing company navigation; Minimal header | HAOO page sections |
 | Home-page presentation | Featured launch product; Compact product card; Large promotional banner | Featured launch product |
 
 **User's choices:** The recommended first option was selected for all four decisions.
-**Notes:** HAOO should feel distinct and product-led without losing its visible connection and return path to the parent company site.
+**Notes:** HAOO should feel distinct and product-led without losing its visible connection and return path to the parent company site. The user subsequently clarified that the displayed brand must be written as `ZERO-PAPER HUB` at all times.
 
 ---
 

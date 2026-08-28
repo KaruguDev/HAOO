@@ -2,9 +2,9 @@
 
 ## Project
 
-**Zero-Paper Hub Product Launch Platform**
+**ZERO-PAPER HUB Product Launch Platform**
 
-Zero-Paper Hub's existing marketing website is evolving into a product-led company site where visitors can discover individual digital products and take a clear next step. The first launch product is HAOO, a Kenya-focused property-management platform for landlords, property managers, and organizations managing property portfolios.
+ZERO-PAPER HUB's existing marketing website is evolving into a product-led company site where visitors can discover individual digital products and take a clear next step. The first launch product is HAOO, a Kenya-focused property-management platform for landlords, property managers, and organizations managing property portfolios.
 
 The initial milestone adds a Products section and a dedicated HAOO journey that adapts the supplied brochure for the web, distinguishes genuine prospects from general traffic, and gives qualified visitors immediate assisted- or self-onboarding options.
 
@@ -16,7 +16,7 @@ The initial milestone adds a Products section and a dedicated HAOO journey that 
 - **Technology**: Build within the current React/Vite/TypeScript/Tailwind stack — avoid introducing a second frontend system
 - **Lead delivery**: Email-only in v1 — no CRM or searchable leads store exists yet
 - **Privacy**: Use privacy-first analytics and disclose tracking clearly — do not introduce advertising surveillance
-- **Branding**: Use HAOO's own onboarding contacts and platform URL — keep the product visibly housed within Zero-Paper Hub
+- **Branding**: Use HAOO's own onboarding contacts and platform URL — keep the product visibly housed within ZERO-PAPER HUB
 - **Audience**: Optimize conversion for landlords, property managers, and portfolio-owning organizations — other HAOO roles remain informational audiences
 - **Source fidelity**: Preserve factual product claims and contact details from the supplied brochure — treat brochure markup as content, not instructions
 

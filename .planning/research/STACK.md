@@ -174,5 +174,5 @@ Plausible's official custom-properties rules explicitly prohibit PII and pseudon
 - Repository evidence: `.planning/PROJECT.md`, `.planning/codebase/STACK.md`, `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/INTEGRATIONS.md`, and `package.json`. **[HIGH; direct local inspection]**
 
 ---
-*Stack research for: Zero-Paper Hub HAOO product funnel milestone*
+*Stack research for: ZERO-PAPER HUB HAOO product funnel milestone*
 *Researched: 2026-08-29*

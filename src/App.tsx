@@ -72,7 +72,7 @@ Location: Nexus Business Centre, Eastern Bypass, Ruiru
 Email: info@zero-paperhub.com
 Website: www.zero-paperhub.com
 
-© 2026 Zero-Paper Hub. All rights reserved.
+© 2026 ZERO-PAPER HUB. All rights reserved.
 `;
 
   const blob = new Blob([content], { type: 'text/plain' });
@@ -177,8 +177,8 @@ export default function App() {
       {/* NAV */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-2.5 md:py-3' : 'bg-transparent py-3 md:py-5'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
-          <a href="#" className="flex min-w-0 items-center group" aria-label="Zero-Paper Hub home">
-            <img src="/zero-paper_hub_hi-def.png" alt="Zero-Paper Hub"
+          <a href="#" className="flex min-w-0 items-center group" aria-label="ZERO-PAPER HUB home">
+            <img src="/zero-paper_hub_hi-def.png" alt="ZERO-PAPER HUB"
               className={`h-14 sm:h-16 md:h-20 max-w-full w-auto rounded-lg object-contain transition-all duration-300 ${scrolled ? 'bg-white/95 p-1 sm:p-1.5 shadow-sm' : 'bg-white/95 p-1 sm:p-1.5'}`} />
           </a>
 
@@ -582,7 +582,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <a href="#" className="flex items-center">
-              <img src="/zero-paper_hub_hi-def.png" alt="Zero-Paper Hub"
+              <img src="/zero-paper_hub_hi-def.png" alt="ZERO-PAPER HUB"
                 className="h-16 w-auto rounded-lg object-contain bg-white/95 p-1.5" />
             </a>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-green-300">
@@ -591,11 +591,11 @@ export default function App() {
               ))}
             </div>
             <div className="text-green-500 text-xs text-center">
-              &copy; 2026 Zero-Paper Hub. All rights reserved.
+              &copy; 2026 ZERO-PAPER HUB. All rights reserved.
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-green-900 text-center text-green-600 text-xs">
-            Zero-Paper Hub &middot; Strategic Digital Workflows &middot; Digital. Paperless. Impact.
+            ZERO-PAPER HUB &middot; Strategic Digital Workflows &middot; Digital. Paperless. Impact.
           </div>
         </div>
       </footer>

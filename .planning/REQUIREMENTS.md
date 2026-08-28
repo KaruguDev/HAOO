@@ -1,4 +1,4 @@
-# Requirements: Zero-Paper Hub Product Launch Platform
+# Requirements: ZERO-PAPER HUB Product Launch Platform
 
 **Defined:** 2026-08-29
 **Core Value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
@@ -7,7 +7,7 @@
 
 ### Product Discovery
 
-- [ ] **PROD-01**: Visitor can discover HAOO from a Products section on the Zero-Paper Hub home page
+- [ ] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
 - [ ] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
 - [ ] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
 - [ ] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
@@ -78,7 +78,7 @@
 | Searchable lead database or dashboard in v1 | User chose email-only delivery until a leads list or CRM is selected |
 | Advertising pixels, remarketing, fingerprinting, or cross-site profiling | Conflicts with the approved privacy-first measurement strategy |
 | Predictive lead scoring or automatic prospect rejection | No validated sales data or transparent decision policy exists |
-| Checkout or subscription purchase on Zero-Paper Hub | HAOO pricing and commercial packaging are not yet defined |
+| Checkout or subscription purchase on ZERO-PAPER HUB | HAOO pricing and commercial packaging are not yet defined |
 | Embedded HAOO account creation | Self-onboarding remains owned by `manage.haoo.online` |
 | PDF-only product experience | Responsive semantic HTML is the primary accessible experience |
 | Server-side secrets in the static website | GitHub Pages serves all bundled values publicly |

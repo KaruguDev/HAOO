@@ -1,7 +1,7 @@
 # Feature Landscape
 
 **Domain:** Privacy-first B2B product-marketing, lead-qualification, email-delivery, and onboarding funnel for a static company website
-**Project:** Zero-Paper Hub — HAOO product launch
+**Project:** ZERO-PAPER HUB — HAOO product launch
 **Researched:** 2026-08-29
 **Overall confidence:** MEDIUM-HIGH — product facts are grounded in the supplied brochure and project brief; accessibility, privacy, attribution, and delivery findings are grounded in current primary sources. Funnel prioritization is an evidence-informed product recommendation rather than a measured HAOO baseline.
 
@@ -24,11 +24,11 @@ Features users expect. Missing means the journey feels incomplete, untrustworthy
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
 | Reusable Products discovery section | Visitors need a clear route from the company site to HAOO, and the portfolio must accommodate future products without another landing-page rewrite. | Medium | Use a data-driven product card/list model with name, concise promise, audience, image/logo, status, and destination. Launch with HAOO; do not fabricate empty product slots. |
-| Stable HAOO destination and navigation | Campaign links, repeat visits, sharing, browser history, and future products require a durable product URL rather than only a transient modal or scroll position. | Medium | Provide direct-entry behavior and a clear path back to Zero-Paper Hub. Preserve company nav context while making HAOO visibly distinct. |
+| Stable HAOO destination and navigation | Campaign links, repeat visits, sharing, browser history, and future products require a durable product URL rather than only a transient modal or scroll position. | Medium | Provide direct-entry behavior and a clear path back to ZERO-PAPER HUB. Preserve company nav context while making HAOO visibly distinct. |
 | Responsive web adaptation of the brochure | A print tri-fold is not usable as the primary mobile product experience. Visitors must be able to scan the value proposition and capabilities without zooming a PDF. | Medium | Recompose into semantic sections: hero, audience/problem, outcomes, capabilities, workflow, brochure, qualification, and onboarding. Do not reproduce the three fixed paper columns. |
 | Clear audience and value proposition | Prospects must know immediately whether HAOO is relevant to their portfolio and what operational problem it solves. | Low | Lead with Kenya property decision-makers; retain tenant/agent benefits lower in the story. Keep copy factual and plain-language. |
 | Scannable capability and workflow explanation | B2B visitors need enough product substance to decide whether to engage. | Medium | Present the six brochure capability groups plus the three-step onboarding story. Use responsive cards, meaningful headings, real text, and restrained imagery. |
-| Honest product/portfolio relationship | Visitors need to understand that HAOO is a Zero-Paper Hub product while using HAOO's own contacts and platform. | Low | Use a consistent “HAOO by/in the Zero-Paper Hub portfolio” relationship without merging the two contact identities. |
+| Honest product/portfolio relationship | Visitors need to understand that HAOO is a ZERO-PAPER HUB product while using HAOO's own contacts and platform. | Low | Use a consistent “HAOO by/in the ZERO-PAPER HUB portfolio” relationship without merging the two contact identities. |
 | Clear CTA hierarchy | Prospects vary in readiness and should not have to hunt for a next step. | Low | Primary contextual CTA: “Discuss HAOO” or “Find your onboarding path.” Keep “Start with HAOO” and assisted contacts visible as alternatives; repeat CTAs after meaningful content sections. |
 | Original brochure preview and download | The milestone explicitly preserves the supplied artifact, and some prospects will want a shareable/printable overview. | Medium | Offer an inline preview where supported, a visible “Open brochure” fallback, and a direct PDF download with file type/size. Preview failure must not block reading the web content. |
 | Short qualification form | The team needs structured business context, not a generic message, to distinguish a prospect from general site traffic. | Medium | Collect name, email and/or phone, role, organization (allow “individual/none”), portfolio-size band, location, onboarding timing, preferred contact channel, and optional note. Use ranges/options instead of demanding exact unit counts. |
@@ -37,7 +37,7 @@ Features users expect. Missing means the journey feels incomplete, untrustworthy
 | HAOO-specific email delivery | Product enquiries must reach the correct team and be distinguishable in the inbox. | Medium | Deliver to the activated HAOO FormSubmit endpoint, set a descriptive subject, reply-to the prospect where available, use a readable field order, include source/context, and test first-use email activation before release. |
 | Spam and abuse resistance | Public static forms attract automated submissions. | Medium | Keep FormSubmit's anti-bot protection unless accessibility testing shows a blocker; add a honeypot and conservative client-side rate/duplicate-submit protection. Treat client validation as UX, not security. |
 | Assisted onboarding choices | High-consideration B2B prospects expect a human route, especially when migrating an existing portfolio. | Low | Provide semantic `tel:`, `mailto:`, and WhatsApp links using HAOO contacts. Explain what each channel does and likely next step; never hide them behind qualification. |
-| Direct self-onboarding route | Ready prospects must be able to proceed immediately to the existing HAOO application. | Low | Link clearly to `https://manage.haoo.online`; label it as leaving the Zero-Paper Hub site. Record the outbound click before navigation without delaying or blocking navigation. |
+| Direct self-onboarding route | Ready prospects must be able to proceed immediately to the existing HAOO application. | Low | Link clearly to `https://manage.haoo.online`; label it as leaving the ZERO-PAPER HUB site. Record the outbound click before navigation without delaying or blocking navigation. |
 | Mobile-first responsive behavior | Kenyan prospects commonly arrive from messaging/social links and may act by phone or WhatsApp. | Medium | Use readable content widths, responsive grids, non-overlapping sticky/floating elements, large tap targets, and test common narrow widths plus landscape and zoom. Phone/WhatsApp actions should be especially easy on mobile. |
 | WCAG 2.2 AA baseline | Product discovery, documents, forms, and contact choices must work with keyboard, screen reader, magnification, reduced motion, and touch. | High | Semantic landmarks/headings, skip navigation, keyboard access, visible unobscured focus, sufficient contrast, useful alt text, 24px-minimum target sizing/spacing (prefer ~44px for key CTAs), reduced-motion support, no focus traps, and logical DOM order. |
 | Privacy notice at collection points | The qualification form and persistent engagement measurement process personal or potentially identifiable context and use a third-party form processor. | Medium | Before collection, explain purposes, fields, recipients/processors, contact, voluntariness, retention approach, rights, and any cross-border safeguards. Link the full notice beside the form and tracking choice. |
@@ -51,7 +51,7 @@ Features users expect. Missing means the journey feels incomplete, untrustworthy
 
 ## Differentiators
 
-Features that are not strictly required for a product page but materially improve HAOO's conversion quality and Zero-Paper Hub's future product platform.
+Features that are not strictly required for a product page but materially improve HAOO's conversion quality and ZERO-PAPER HUB's future product platform.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
@@ -186,7 +186,7 @@ Although measurement is listed fourth for rollout, its event names, consent rule
 
 ### Project and product sources (HIGH confidence)
 
-- Zero-Paper Hub project brief: `.planning/PROJECT.md` (read 2026-08-29).
+- ZERO-PAPER HUB project brief: `.planning/PROJECT.md` (read 2026-08-29).
 - Canonical HAOO brochure source: `/home/paul/Documents/Vibe Coding Projects/lipa_nyumba/marketing/haoo-brochure/brochure.html` (read 2026-08-29).
 - Canonical HAOO brochure PDF: `/home/paul/Documents/Vibe Coding Projects/lipa_nyumba/marketing/haoo-brochure/HAOO-Marketing-Brochure.pdf` (content checked against the HTML on 2026-08-29).
 - Brochure production notes: `/home/paul/Documents/Vibe Coding Projects/lipa_nyumba/marketing/haoo-brochure/README.md` (read 2026-08-29).
@@ -203,8 +203,8 @@ Although measurement is listed fourth for rollout, its event names, consent rule
 ## Research Gaps and Validation Flags
 
 - Confirm the chosen analytics provider, hosting location, retention controls, consent mode, and data-processing terms before implementation. The feature contract is provider-neutral.
-- Confirm whether FormSubmit's current processing locations and terms meet Zero-Paper Hub's transfer/safeguard requirements; its public feature documentation alone is not a legal/vendor assessment.
+- Confirm whether FormSubmit's current processing locations and terms meet ZERO-PAPER HUB's transfer/safeguard requirements; its public feature documentation alone is not a legal/vendor assessment.
 - Confirm the precise operational definition of “qualified” with the HAOO team (for example, role, portfolio band, and timing). Do not encode thresholds until the team agrees how emails will be handled.
-- Confirm whether `manage.haoo.online` accepts approved campaign parameters and whether they are needed; otherwise attribute the outbound click on Zero-Paper Hub only.
+- Confirm whether `manage.haoo.online` accepts approved campaign parameters and whether they are needed; otherwise attribute the outbound click on ZERO-PAPER HUB only.
 - Confirm brochure PDF accessibility expectations. The responsive HTML must carry the accessible product story even if the preserved print PDF is not fully tagged.
 - Establish baseline event volume and inbox follow-up practice after launch before adding scoring, experiments, or automation.

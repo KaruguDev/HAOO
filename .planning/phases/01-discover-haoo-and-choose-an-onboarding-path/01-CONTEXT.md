@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Ship the first complete visitor journey from the Zero-Paper Hub home page to a stable, brochure-faithful HAOO product page, where a prospect can understand the product and immediately choose direct assisted contact or external self-onboarding. This phase includes product discovery, responsive product content, brochure preview/open/download, product metadata, and resilient onboarding links. Qualification forms, analytics, engagement storage, reporting, CRM capabilities, pricing, and changes to the HAOO application belong to later phases or v2.
+Ship the first complete visitor journey from the ZERO-PAPER HUB home page to a stable, brochure-faithful HAOO product page, where a prospect can understand the product and immediately choose direct assisted contact or external self-onboarding. This phase includes product discovery, responsive product content, brochure preview/open/download, product metadata, and resilient onboarding links. Qualification forms, analytics, engagement storage, reporting, CRM capabilities, pricing, and changes to the HAOO application belong to later phases or v2.
 
 </domain>
 
@@ -32,10 +32,11 @@ Ship the first complete visitor journey from the Zero-Paper Hub home page to a s
 - **D-12:** Frame assisted onboarding as a friendly consultation: invite prospects to describe their properties and receive help choosing the best way to start. Do not imply that a demo is the only next step or that visitors have already committed to onboarding.
 
 ### Brand Relationship
-- **D-13:** Make the product page HAOO-led within the familiar Zero-Paper Hub shell. Preserve recognizable company navigation/structure while allowing HAOO’s blue identity, imagery, and product voice to lead.
-- **D-14:** Explicitly label HAOO as “A Zero-Paper Hub product” near the HAOO identity and repeat that relationship subtly in the footer.
-- **D-15:** Product-page navigation should prioritize HAOO sections—benefits, capabilities, brochure, and onboarding—while retaining a clear route back to Zero-Paper Hub.
-- **D-16:** Present HAOO as the featured launch product in the home-page Products section, using a prominent branded card with the core outcome, intended audience, and a clear “Explore HAOO” action. The section and product-page shell must still accommodate future products.
+- **D-13:** Make the product page HAOO-led within the familiar ZERO-PAPER HUB shell. Preserve recognizable company navigation/structure while allowing HAOO’s blue identity, imagery, and product voice to lead.
+- **D-14:** The displayed brand name must always be written in uppercase as `ZERO-PAPER HUB`, including titles, copy, metadata, accessible labels, and product endorsements.
+- **D-15:** Explicitly label HAOO as “A ZERO-PAPER HUB product” near the HAOO identity and repeat that relationship subtly in the footer.
+- **D-16:** Product-page navigation should prioritize HAOO sections—benefits, capabilities, brochure, and onboarding—while retaining a clear route back to ZERO-PAPER HUB.
+- **D-17:** Present HAOO as the featured launch product in the home-page Products section, using a prominent branded card with the core outcome, intended audience, and a clear “Explore HAOO” action. The section and product-page shell must still accommodate future products.
 
 ### the agent's Discretion
 No decisions were explicitly delegated. Downstream agents retain discretion over component boundaries, static-route implementation, exact spacing and typography, responsive breakpoint values, and restrained interaction details, provided they preserve the decisions above and existing accessibility conventions.
@@ -91,7 +92,7 @@ No decisions were explicitly delegated. Downstream agents retain discretion over
 
 - Opening direction: “Run the business—not the paperwork.”
 - Assisted-onboarding invitation: “Tell us about your properties and we’ll help you choose the best way to get started.”
-- Product endorsement: “A Zero-Paper Hub product.”
+- Product endorsement: “A ZERO-PAPER HUB product.”
 - Home-page product action: “Explore HAOO.”
 - HAOO contacts remain `+254 702 188 044`, `info@haoo.online`, WhatsApp, and `manage.haoo.online` as defined by the brochure and requirements.
 

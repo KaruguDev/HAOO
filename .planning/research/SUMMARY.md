@@ -1,13 +1,13 @@
 # Project Research Summary
 
-**Project:** Zero-Paper Hub Product Launch Platform
+**Project:** ZERO-PAPER HUB Product Launch Platform
 **Domain:** Privacy-first static B2B product-marketing, lead-qualification, email-delivery, and onboarding funnel
 **Researched:** 2026-08-29
 **Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-Zero-Paper Hub is evolving from a single-page company website into a reusable product-launch platform, beginning with HAOO. Experts would keep this milestone static and product-led: add a durable HAOO page, adapt the brochure into accessible responsive HTML, retain the original PDF as supplementary collateral, and offer qualification, assisted contact, and direct self-onboarding without gating the product story. The existing React 18, TypeScript 5.5, Vite 5.4, Tailwind 3.4, and GitHub Pages stack is sufficient; the smallest sound architecture is a Vite multi-page application with a physical `/products/haoo/` entry and clear page, feature, and service boundaries.
+ZERO-PAPER HUB is evolving from a single-page company website into a reusable product-launch platform, beginning with HAOO. Experts would keep this milestone static and product-led: add a durable HAOO page, adapt the brochure into accessible responsive HTML, retain the original PDF as supplementary collateral, and offer qualification, assisted contact, and direct self-onboarding without gating the product story. The existing React 18, TypeScript 5.5, Vite 5.4, Tailwind 3.4, and GitHub Pages stack is sufficient; the smallest sound architecture is a Vite multi-page application with a physical `/products/haoo/` entry and clear page, feature, and service boundaries.
 
 The recommended funnel separates three concerns. Plausible records only coarse aggregate events through a typed allowlist; a guarded first-party engagement store keeps bounded counts, flags, and date bands without a visitor ID; and FormSubmit receives contact and qualification data plus a disclosed human-readable engagement summary only after voluntary submission. HAOO phone, WhatsApp, email, and `manage.haoo.online` remain normal links that work when analytics or storage is blocked. This produces useful directional attribution without creating a person-level analytics join, database, CRM, server runtime, or client-side secret.
 

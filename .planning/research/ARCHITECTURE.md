@@ -1,6 +1,6 @@
 # Architecture Research: HAOO Product Funnel
 
-**Project:** Zero-Paper Hub Product Launch Platform  
+**Project:** ZERO-PAPER HUB Product Launch Platform
 **Research type:** Architecture  
 **Researched:** 2026-08-29  
 **Overall confidence:** HIGH for repository-specific decisions; MEDIUM for external-service behavior pending production account activation and verification
