@@ -62,7 +62,7 @@ export default function ProductPage({ product }: ProductPageProps) {
 
                 <div className="rounded-2xl border border-[#DBE2FF] bg-[#18275F] p-6">
                   <h2 className="mb-3 text-[28px] font-semibold leading-[1.2]">Ready to begin?</h2>
-                  <p className="mb-5 text-base leading-6 text-[#DBE2FF]">Continue to HAOO's secure platform for self-onboarding.</p>
+                  <p className="mb-5 text-base leading-6 text-[#DBE2FF]">Continue to HAOO's platform for self-onboarding.</p>
                   <a
                     href={product.contacts.selfOnboardingHref}
                     className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-white px-4 py-3 text-center text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#18275F]"
