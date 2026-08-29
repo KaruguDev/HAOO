@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(import.meta.dirname, '../..');
+const DIST = resolve(ROOT, 'dist');
 const SOURCE_HTML = resolve(ROOT, 'products/haoo/index.html');
 const BUILT_HTML = resolve(ROOT, 'dist/products/haoo/index.html');
 const PUBLIC_PDF = resolve(ROOT, 'public/products/haoo/HAOO-Marketing-Brochure.pdf');
@@ -15,6 +16,26 @@ const PRODUCT_URL = 'https://www.zero-paperhub.com/products/haoo/';
 const PRODUCT_IMAGE = `${PRODUCT_URL}brochure-preview.png`;
 const PUBLIC_PREVIEW = resolve(ROOT, 'public/products/haoo/brochure-preview.png');
 const PREVIEW_SHA256 = '7e62c3b75a0bc7ba70c400b4ec63e93cbe51701da051127ba212be7c578c8087';
+const PDF_ALTERNATE_LINK =
+  '<link rel="alternate" type="application/pdf" href="/products/haoo/HAOO-Marketing-Brochure.pdf" title="HAOO Marketing Brochure (PDF)" />';
+const PRODUCT_ASSETS = [
+  '/products/haoo/HAOO-Marketing-Brochure.pdf',
+  '/products/haoo/brochure-preview.png',
+  '/products/haoo/haoo-hero.png',
+  '/products/haoo/haoo-logo.png',
+];
+
+/** Phase 1 product source files — the static boundary later phases may observe but not breach. */
+const PRODUCT_SOURCES = [
+  'src/pages/ProductPage.tsx',
+  'src/components/BrochurePanel.tsx',
+  'src/components/OnboardingChoices.tsx',
+  'src/components/ProductHeader.tsx',
+  'src/components/ProductsSection.tsx',
+  'src/products/haoo.ts',
+  'src/products/registry.ts',
+  'src/products/types.ts',
+];
 
 function readText(path: string) {
   return existsSync(path) ? readFileSync(path, 'utf8') : '';
@@ -24,6 +45,24 @@ function sha256(path: string) {
   return existsSync(path)
     ? createHash('sha256').update(readFileSync(path)).digest('hex')
     : '';
+}
+
+function listFiles(dir: string): string[] {
+  if (!existsSync(dir)) {
+    return [];
+  }
+
+  return readdirSync(dir).flatMap((entry) => {
+    const full = join(dir, entry);
+    return statSync(full).isDirectory() ? listFiles(full) : [full];
+  });
+}
+
+function builtBundleText() {
+  return listFiles(resolve(DIST, 'assets'))
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => readFileSync(file, 'utf8'))
+    .join('\n');
 }
 
 describe('Phase 1 static build contracts', () => {
@@ -74,5 +113,64 @@ describe('Phase 1 static build contracts', () => {
     expect(sha256(PUBLIC_PDF)).toBe(PDF_SHA256);
     expect(sha256(BUILT_PDF)).toBe(PDF_SHA256);
     expect(readText(BUILT_HTML)).toContain('/products/haoo/HAOO-Marketing-Brochure.pdf');
+  });
+
+  it('declares the original brochure as a static alternate of the product document', () => {
+    for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
+      expect(html).toContain(PDF_ALTERNATE_LINK);
+    }
+  });
+
+  it('copies every referenced product asset into the uploaded artifact', () => {
+    const bundle = builtBundleText();
+
+    for (const assetPath of PRODUCT_ASSETS) {
+      expect(existsSync(resolve(ROOT, `public${assetPath}`))).toBe(true);
+      expect(existsSync(resolve(DIST, assetPath.slice(1)))).toBe(true);
+      expect(bundle).toContain(assetPath);
+    }
+  });
+
+  it('resolves every root-relative product reference inside the artifact', () => {
+    const references = new Set(
+      [...`${readText(BUILT_HTML)}\n${builtBundleText()}`
+        .matchAll(/\/products\/haoo\/[A-Za-z0-9._-]+/g)]
+        .map(([reference]) => reference),
+    );
+
+    expect(references.size).toBeGreaterThan(0);
+    for (const reference of references) {
+      expect(existsSync(resolve(DIST, reference.slice(1)))).toBe(true);
+    }
+  });
+
+  it('uploads exactly the built dist tree that the Pages workflow deploys', () => {
+    const workflow = readText(resolve(ROOT, '.github/workflows/deploy.yml'));
+
+    expect(workflow).toContain('path: ./dist');
+    expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('www.zero-paperhub.com');
+  });
+
+  it('keeps the Phase 1 product surface free of tracking, storage, injection, and backend seams', () => {
+    for (const relativePath of PRODUCT_SOURCES) {
+      const source = readText(resolve(ROOT, relativePath));
+
+      expect(source).not.toBe('');
+      for (const forbidden of [
+        /dangerouslySetInnerHTML/,
+        /localStorage|sessionStorage|document\.cookie|indexedDB/,
+        /gtag\(|dataLayer|analytics\./,
+        /\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/,
+        /formsubmit|FormData|<form\b/,
+        /react-router|createBrowserRouter/,
+        /document\.referrer|navigator\.userAgent|window\.location/,
+        /supabase/i,
+      ]) {
+        expect(source).not.toMatch(forbidden);
+      }
+    }
+
+    expect(existsSync(resolve(ROOT, 'components.json'))).toBe(false);
+    expect(existsSync(resolve(ROOT, 'src/components/ui'))).toBe(false);
   });
 });

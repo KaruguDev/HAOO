@@ -284,6 +284,23 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(downloadLink.hasAttribute('disabled')).toBe(false);
   });
 
+  it('protects every new-tab navigation from opener control and labels it visibly', () => {
+    const { container } = renderPage();
+
+    const newTabLinks = Array.from(container.querySelectorAll('a[target="_blank"]'));
+    expect(newTabLinks.length).toBeGreaterThan(0);
+    for (const link of newTabLinks) {
+      const rel = (link.getAttribute('rel') ?? '').split(/\s+/);
+      expect(rel).toContain('noopener');
+      expect(rel).not.toContain('opener');
+      expect((link.textContent ?? '').trim().length).toBeGreaterThan(0);
+    }
+
+    const brochure = brochureRegion();
+    expect(within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE })
+      .getAttribute('target')).toBeNull();
+  });
+
   it('publishes the exact supplied logo and hero media with reserved space', () => {
     const { container } = renderPage();
 
