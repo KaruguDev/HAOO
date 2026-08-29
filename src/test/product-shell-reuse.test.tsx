@@ -1,0 +1,124 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import ProductPage from '../pages/ProductPage';
+import {
+  brochureFallbackBody,
+  brochureLead,
+  contentAnchorId,
+  mobileNavigationId,
+  mobileSectionsNavLabel,
+  navigationToggleLabel,
+  parentRelationshipLine,
+  sectionsNavLabel,
+  selfOnboardingActionLabel,
+  selfOnboardingLead,
+  skipToContentLabel,
+  whatsappActionLabel,
+} from '../products/copy';
+import type { ProductDefinition } from '../products/types';
+
+function syntheticProduct(
+  overrides: Partial<ProductDefinition> = {},
+): ProductDefinition {
+  return {
+    slug: 'zenith',
+    name: 'ZENITH',
+    relationship: 'A ZERO-PAPER HUB product',
+    outcome: 'Keep every operation in view.',
+    audienceLead: 'For teams coordinating a growing service operation.',
+    audiences: ['Operators'],
+    pains: ['Disconnected records hide the next action.'],
+    benefits: ['Bring work and reporting into one clear view.'],
+    capabilities: [{ title: 'Operations', description: 'Coordinate everyday work.' }],
+    journey: [{ title: 'Start clearly', description: 'Set up the operation in one place.' }],
+    featureCaveat: 'Feature availability may vary by subscription plan.',
+    marketClaim: 'Designed for practical service operations.',
+    assistedInvitation: 'Tell us about your operation and we will help you begin.',
+    media: {},
+    contacts: {
+      phoneDisplay: '+254 700 000 000',
+      phoneNumber: '254700000000',
+      phoneHref: 'tel:+254700000000',
+      email: 'hello@zenith.example',
+      emailHref: 'mailto:hello@zenith.example',
+      whatsappStarterText: 'Hello ZENITH, I would like help getting started.',
+      whatsappHref: 'https://wa.me/254700000000',
+      selfOnboardingDisplay: 'manage.zenith.example',
+      selfOnboardingHref: 'https://manage.zenith.example/',
+    },
+    brochure: {
+      pdfHref: '/products/zenith/brochure.pdf',
+      previewImageHref: '',
+      previewImageAlt: 'ZENITH brochure preview',
+      previewImageWidth: 1200,
+      previewImageHeight: 800,
+      downloadName: 'ZENITH-brochure.pdf',
+      expectationLabel: 'PDF · 1 MB',
+    },
+    ...overrides,
+  };
+}
+
+describe('Phase 1 product shell reuse contracts', () => {
+  it('renders a synthetic product through every product-named shell surface', () => {
+    const product = syntheticProduct();
+    const { container } = render(<ProductPage product={product} />);
+
+    expect(screen.getByRole('link', { name: 'Skip to ZENITH content' }).getAttribute('href'))
+      .toBe('#zenith-content');
+    expect(screen.getByRole('navigation', { name: 'ZENITH sections' })).toBeTruthy();
+    const toggle = screen.getByRole('button', { name: 'Open ZENITH navigation' });
+    fireEvent.click(toggle);
+    expect(screen.getByRole('navigation', { name: 'ZENITH mobile sections' })).toBeTruthy();
+    expect(screen.getAllByRole('link', { name: 'Chat with ZENITH on WhatsApp' }))
+      .toHaveLength(3);
+    expect(screen.getAllByText("Continue to ZENITH's platform for self-onboarding."))
+      .toHaveLength(3);
+    expect(screen.getAllByRole('link', { name: 'Start with ZENITH' })).toHaveLength(3);
+    expect(screen.getByText(/complete ZENITH explanation/)).toBeTruthy();
+    expect(screen.getByText('ZENITH is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(container.textContent).not.toContain('HAOO');
+  });
+
+  it('reproduces every shipped product-name string byte for byte', () => {
+    expect(skipToContentLabel('HAOO')).toBe('Skip to HAOO content');
+    expect(sectionsNavLabel('HAOO')).toBe('HAOO sections');
+    expect(mobileSectionsNavLabel('HAOO')).toBe('HAOO mobile sections');
+    expect(navigationToggleLabel('HAOO', false)).toBe('Open HAOO navigation');
+    expect(navigationToggleLabel('HAOO', true)).toBe('Close HAOO navigation');
+    expect(whatsappActionLabel('HAOO')).toBe('Chat with HAOO on WhatsApp');
+    expect(selfOnboardingLead('HAOO'))
+      .toBe("Continue to HAOO's platform for self-onboarding.");
+    expect(selfOnboardingActionLabel('HAOO')).toBe('Start with HAOO');
+    expect(brochureLead('HAOO')).toBe(
+      'The overview above is the complete HAOO explanation. Open or download the original brochure PDF if you prefer the printed document.',
+    );
+    expect(brochureFallbackBody('HAOO')).toBe(
+      'You can still open the HAOO brochure in a new tab or download the PDF.',
+    );
+    expect(parentRelationshipLine('HAOO')).toBe('HAOO is a ZERO-PAPER HUB product');
+    expect(contentAnchorId('haoo')).toBe('haoo-content');
+    expect(mobileNavigationId('haoo')).toBe('haoo-mobile-navigation');
+  });
+
+  it('fails closed when a product identity is empty', () => {
+    const nameBuilders = [
+      skipToContentLabel,
+      sectionsNavLabel,
+      mobileSectionsNavLabel,
+      whatsappActionLabel,
+      selfOnboardingLead,
+      selfOnboardingActionLabel,
+      brochureLead,
+      brochureFallbackBody,
+      parentRelationshipLine,
+    ];
+
+    for (const builder of nameBuilders) {
+      expect(() => builder('  ')).toThrow('Product name must not be empty');
+    }
+    expect(() => navigationToggleLabel('', false)).toThrow('Product name must not be empty');
+    expect(() => contentAnchorId('')).toThrow('Product slug must not be empty');
+    expect(() => mobileNavigationId(' ')).toThrow('Product slug must not be empty');
+  });
+});
