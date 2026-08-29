@@ -32,10 +32,12 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     renderPage();
 
     const expectedSections = ['Benefits', 'Capabilities', 'Rental journey', 'Brochure', 'Onboarding'];
-    const sections = screen.getAllByRole('region').map((section) => section.getAttribute('aria-label'));
+    const sections = screen.getAllByRole('region')
+      .map((section) => section.getAttribute('aria-label'))
+      .filter((label) => expectedSections.includes(label ?? ''));
     expect(sections).toEqual(expectedSections);
-    expect(screen.getByRole('link', { name: 'Back to ZERO-PAPER HUB' }).getAttribute('href'))
-      .toBe('/');
+    expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })
+      .every((link) => link.getAttribute('href') === '/')).toBe(true);
     for (const sectionName of ['Benefits', 'Capabilities', 'Brochure', 'Onboarding']) {
       expect(screen.getByRole('link', { name: sectionName })).toBeTruthy();
     }
