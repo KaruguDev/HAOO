@@ -18,6 +18,8 @@ import {
   ChevronDown,
   Download,
 } from 'lucide-react';
+import ProductPage from './pages/ProductPage';
+import { HAOO_PRODUCT } from './products/haoo';
 
 function downloadCompanyProfile() {
   const content = `ZERO-PAPER HUB
@@ -139,7 +141,7 @@ const SERVICES = [
   },
 ];
 
-export default function App() {
+function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [contactSubmitting, setContactSubmitting] = useState(false);
@@ -255,6 +257,25 @@ export default function App() {
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
           <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center pt-2">
             <div className="w-1 h-2.5 rounded-full bg-white/50" />
+          </div>
+        </div>
+      </section>
+
+      <section id="products" className="bg-white py-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-8 md:flex md:items-center md:justify-between md:gap-8">
+            <div className="max-w-2xl">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-700">Featured product</p>
+              <h2 className="mb-3 text-3xl font-bold text-green-900">HAOO</h2>
+              <p className="mb-3 text-xl font-semibold text-blue-950">{HAOO_PRODUCT.outcome}</p>
+              <p className="text-gray-600">For landlords and property managers.</p>
+            </div>
+            <a
+              href="/products/haoo/"
+              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-blue-700 px-6 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 md:mt-0"
+            >
+              Explore HAOO <ArrowRight size={17} aria-hidden="true" />
+            </a>
           </div>
         </div>
       </section>
@@ -602,4 +623,12 @@ export default function App() {
 
     </div>
   );
+}
+
+export default function App() {
+  if (document.body.dataset.page === 'haoo-product') {
+    return <ProductPage product={HAOO_PRODUCT} />;
+  }
+
+  return <HomePage />;
 }
