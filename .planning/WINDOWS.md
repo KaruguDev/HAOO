@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 5
 waived_count: 0
 fixed_count: 0
-total_count: 4
-last_updated: 2026-08-29T09:32:59.971Z
+total_count: 5
+last_updated: 2026-08-29T09:42:36.668Z
 ---
 
 # Broken Windows Ledger
@@ -19,6 +19,7 @@ last_updated: 2026-08-29T09:32:59.971Z
 | 2 | 01 | stub | src/components/ProductsSection.tsx | 10 | Wave 0 ProductsSection intentionally renders only a placeholder landmark until Plan 01-04. | open |  | 2026-08-29T09:32:59.636Z |  |
 | 3 | 01 | stub | src/pages/ProductPage.tsx | 10 | Wave 0 ProductPage intentionally renders only compile-safe placeholder landmarks until Plans 01-02, 01-03, and 01-05. | open |  | 2026-08-29T09:32:59.797Z |  |
 | 4 | 01 | deviation | vitest.config.ts | 1 | Added the existing React Vite plugin to Vitest and rejected React-is-not-defined output so infrastructure failures cannot satisfy expected RED. | open |  | 2026-08-29T09:32:59.971Z |  |
+| 5 | 01 | deviation | src/pages/ProductPage.tsx | 65 | Removed an unsupported security characterization from the self-onboarding copy to preserve brochure source fidelity. | open |  | 2026-08-29T09:42:36.668Z |  |
 
 ````json
 [
@@ -68,6 +69,18 @@ last_updated: 2026-08-29T09:32:59.971Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-29T09:32:59.971Z",
+    "resolved_at": null
+  },
+  {
+    "id": 5,
+    "kind": "deviation",
+    "phase": "01",
+    "file": "src/pages/ProductPage.tsx",
+    "line": 65,
+    "description": "Removed an unsupported security characterization from the self-onboarding copy to preserve brochure source fidelity.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-29T09:42:36.668Z",
     "resolved_at": null
   }
 ]

@@ -8,19 +8,19 @@
 ### Product Discovery
 
 - [ ] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
-- [ ] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
+- [x] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
 - [ ] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
 - [ ] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
-- [ ] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the product page
+- [x] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the product page
 - [ ] **PROD-06**: HAOO content and contact details are sourced from centralized product data that can support future products without duplicating the page shell
 
 ### Onboarding Paths
 
-- [ ] **ONBD-01**: Prospect can contact HAOO through a visible click-to-call link for `+254 702 188 044`
-- [ ] **ONBD-02**: Prospect can start a WhatsApp conversation with HAOO through a visible link using non-personal generic starter text
-- [ ] **ONBD-03**: Prospect can email `info@haoo.online` through a visible mail link
-- [ ] **ONBD-04**: Prospect can self-onboard through a visible link to `manage.haoo.online`
-- [ ] **ONBD-05**: Assisted and self-service onboarding paths remain available regardless of analytics, browser storage, PDF embedding, or form-provider availability
+- [x] **ONBD-01**: Prospect can contact HAOO through a visible click-to-call link for `+254 702 188 044`
+- [x] **ONBD-02**: Prospect can start a WhatsApp conversation with HAOO through a visible link using non-personal generic starter text
+- [x] **ONBD-03**: Prospect can email `info@haoo.online` through a visible mail link
+- [x] **ONBD-04**: Prospect can self-onboard through a visible link to `manage.haoo.online`
+- [x] **ONBD-05**: Assisted and self-service onboarding paths remain available regardless of analytics, browser storage, PDF embedding, or form-provider availability
 
 ### Qualification and Delivery
 
@@ -90,16 +90,16 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROD-01 | Phase 1 | Pending |
-| PROD-02 | Phase 1 | Pending |
+| PROD-02 | Phase 1 | Complete |
 | PROD-03 | Phase 1 | Pending |
 | PROD-04 | Phase 1 | Pending |
-| PROD-05 | Phase 1 | Pending |
+| PROD-05 | Phase 1 | Complete |
 | PROD-06 | Phase 1 | Pending |
-| ONBD-01 | Phase 1 | Pending |
-| ONBD-02 | Phase 1 | Pending |
-| ONBD-03 | Phase 1 | Pending |
-| ONBD-04 | Phase 1 | Pending |
-| ONBD-05 | Phase 1 | Pending |
+| ONBD-01 | Phase 1 | Complete |
+| ONBD-02 | Phase 1 | Complete |
+| ONBD-03 | Phase 1 | Complete |
+| ONBD-04 | Phase 1 | Complete |
+| ONBD-05 | Phase 1 | Complete |
 | LEAD-01 | Phase 2 | Pending |
 | LEAD-02 | Phase 2 | Pending |
 | LEAD-03 | Phase 2 | Pending |
@@ -123,6 +123,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | QUAL-06 | Phase 1 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 32 total
 - Mapped to phases: 32
 - Unmapped: 0

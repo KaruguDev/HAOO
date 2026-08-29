@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Discover HAOO and Choose an Onboarding Path
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-08-29T09:34:47.266Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-08-29T09:43:43.167Z"
 last_activity: 2026-08-29
 last_activity_desc: Phase 01 execution started
-state_head: 9ce023b485a6c2ac2726e6bfc430350df37e4ca0
+state_head: 1db923b4ff7e22f12be3226331f8e8c21d874d46
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-08-29 — Phase 01 execution started
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 10 min | 3 tasks | 13 files |
+| Phase 01 P02 | 5 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 4]: Reports describe observable events literally and do not claim delivery or completed onboarding without external evidence.
 - [Phase 01]: Use only the four human-approved exact development releases and preserve the existing React 18/Vite 5 runtime stack.
 - [Phase 01]: Accept expected RED only when all four named behavior markers appear and no known infrastructure-failure signature is present.
+- [Phase 01]: Select the HAOO composition from the physical document body marker while retaining the shared React bootstrap and avoiding a runtime router. — A physical Vite MPA entry provides direct static navigation and crawler-visible source metadata.
+- [Phase 01]: Derive the WhatsApp URL only from fixed compile-time product data. — This preserves exact decoded starter text and prevents visitor or analytics context from entering the destination.
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T09:34:47.250Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-08-29T09:43:43.148Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
