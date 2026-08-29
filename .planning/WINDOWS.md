@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 4
 waived_count: 0
-fixed_count: 0
+fixed_count: 2
 total_count: 6
-last_updated: 2026-08-29T10:22:12.183Z
+last_updated: 2026-08-29T10:44:29.827Z
 ---
 
 # Broken Windows Ledger
@@ -17,10 +17,10 @@ last_updated: 2026-08-29T10:22:12.183Z
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 01 | stub | src/products/haoo.ts | 10 | Wave 0 HAOO_PRODUCT intentionally contains typed placeholder facts and empty story collections until Plans 01-02 and 01-03. | open |  | 2026-08-29T09:32:59.474Z |  |
 | 2 | 01 | stub | src/components/ProductsSection.tsx | 10 | Wave 0 ProductsSection intentionally renders only a placeholder landmark until Plan 01-04. | open |  | 2026-08-29T09:32:59.636Z |  |
-| 3 | 01 | stub | src/pages/ProductPage.tsx | 10 | Wave 0 ProductPage intentionally renders only compile-safe placeholder landmarks until Plans 01-02, 01-03, and 01-05. | open |  | 2026-08-29T09:32:59.797Z |  |
+| 3 | 01 | stub | src/pages/ProductPage.tsx | 10 | Wave 0 ProductPage intentionally renders only compile-safe placeholder landmarks until Plans 01-02, 01-03, and 01-05. | fixed |  | 2026-08-29T09:32:59.797Z | 2026-08-29T10:44:29.662Z |
 | 4 | 01 | deviation | vitest.config.ts | 1 | Added the existing React Vite plugin to Vitest and rejected React-is-not-defined output so infrastructure failures cannot satisfy expected RED. | open |  | 2026-08-29T09:32:59.971Z |  |
 | 5 | 01 | deviation | src/pages/ProductPage.tsx | 65 | Removed an unsupported security characterization from the self-onboarding copy to preserve brochure source fidelity. | open |  | 2026-08-29T09:42:36.668Z |  |
-| 6 | 01 | stub | src/products/haoo.ts |  | HAOO_PRODUCT.brochure pdfHref/downloadName/expectationLabel remain placeholders pending plan 01-05 | open |  | 2026-08-29T10:22:12.183Z |  |
+| 6 | 01 | stub | src/products/haoo.ts |  | HAOO_PRODUCT.brochure pdfHref/downloadName/expectationLabel remain placeholders pending plan 01-05 | fixed |  | 2026-08-29T10:22:12.183Z | 2026-08-29T10:44:29.827Z |
 
 ````json
 [
@@ -55,10 +55,10 @@ last_updated: 2026-08-29T10:22:12.183Z
     "file": "src/pages/ProductPage.tsx",
     "line": 10,
     "description": "Wave 0 ProductPage intentionally renders only compile-safe placeholder landmarks until Plans 01-02, 01-03, and 01-05.",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-29T09:32:59.797Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-29T10:44:29.662Z"
   },
   {
     "id": 4,
@@ -91,10 +91,10 @@ last_updated: 2026-08-29T10:22:12.183Z
     "file": "src/products/haoo.ts",
     "line": null,
     "description": "HAOO_PRODUCT.brochure pdfHref/downloadName/expectationLabel remain placeholders pending plan 01-05",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-29T10:22:12.183Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-29T10:44:29.827Z"
   }
 ]
 ````

@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Discover HAOO and Choose an Onboarding Path
-status: executing
-stopped_at: "Halted at 01-05 Task 3 (checkpoint:human-verify, gate=blocking-human) — Tasks 1-2 complete and committed"
-last_updated: "2026-08-29T10:36:35.987Z"
+status: verifying
+stopped_at: Completed 01-05-PLAN.md — Phase 01 execution complete (5/5 plans)
+last_updated: "2026-08-29T10:47:04.650Z"
 last_activity: 2026-08-29
-last_activity_desc: Phase 01 execution started
-state_head: a2a6df7aab231da3be411f1026595a3beab2545d
+last_activity_desc: Phase 01 execution complete (5/5 plans); QUAL-04 proven on production
+state_head: 381deb6db2823e1054bbf6009b06df0c7cd74ee3
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
+Phase: 01 (Discover HAOO and Choose an Onboarding Path) — READY FOR VERIFICATION
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-08-29 — Phase 01 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-08-29 — Phase 01 execution complete; QUAL-04 proven on the production host
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P02 | 5 min | 2 tasks | 6 files |
 | Phase 01 P03 | 12 min | 3 tasks | 9 files |
 | Phase 01 P04 | 18 min | 2 tasks | 9 files |
+| Phase 01 P05 | 16 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Products navigation is derived from registry presence via productsNavLink() rather than a copied HAOO condition — Couples the nav item and the #products landmark to one source of truth so an empty collection can never leave a dangling anchor
 - [Phase 01]: Home-card preview media facts (href, alt, intrinsic size) live in HAOO_PRODUCT.brochure — Keeps ProductsSection free of HAOO literals, reserves aspect-ratio space from data, and makes the optional-media contract testable by emptying the href
 - [Phase 01]: Product social image metadata now points at the published /products/haoo/brochure-preview.png — The previous og:image and twitter:image referenced preview-outside.png, which no plan publishes; this plan publishes the supplied preview, so the reference was aligned to the real asset
+- [Phase 01]: Brochure recovery copy maps one-to-one onto states and is never duplicated in the DOM — The object child fallback owns unsupported embedding and the compact panel owns absent/failed preview media; both strings coexisting would make every getByText in the contract ambiguous
+- [Phase 01]: Open and Download render once as siblings outside the brochure embed, not duplicated per layout — Keeps accessible names unique and satisfies D-07 in every layout and failure state without duplicating anchors across the responsive branches
+- [Phase 01]: Brochure control independence is proven structurally rather than by activation — BrochurePanel holds only a preview-error flag and the controls read and write nothing; the contract asserts control outerHTML is byte-identical after six interleaved activations, which proves the component rather than jsdom navigation behavior
+- [Phase 01]: The original brochure is declared as a static link rel=alternate type=application/pdf in the product document head — Satisfies the Wave 0 built-HTML reference contract and makes the brochure reachable with JavaScript unavailable, matching the phase progressive-enhancement posture
 
 ### Pending Todos
 
@@ -92,7 +97,7 @@ None yet.
 - Privacy/legal ownership must approve notice, storage, retention, processor, and Kenya Data Protection Act decisions before production collection.
 - HAOO mailbox ownership and FormSubmit activation must be available for the Phase 5 production delivery check.
 - Analytics account/configuration may be absent; the product journey must remain launchable with the no-op measurement path.
-- QUAL-04 production-host proof is blocked at 01-05 Task 3 (blocking-human): an authorized GitHub Pages deployment must land, then both https://www.zero-paperhub.com/products/haoo/ and its brochure PDF must be proven by direct navigation, hard refresh, and checksum. Phase 1 is not complete until this checkpoint is answered.
+- Stale broken-windows entries 1 and 2 still read `open` although the code resolving them shipped in 01-02/01-03 and 01-04; phase verification should mark them `fixed` before `/gsd-ship`.
 
 ## Deferred Items
 
@@ -104,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T10:36:19.504Z
-Stopped at: Halted at 01-05 Task 3 (checkpoint:human-verify, gate=blocking-human) — Tasks 1-2 complete and committed
-Resume file: .planning/phases/01-discover-haoo-and-choose-an-onboarding-path/01-05-PLAN.md
+Last session: 2026-08-29T10:46:37.450Z
+Stopped at: Completed 01-05-PLAN.md — Phase 01 execution complete (5/5 plans)
+Resume file: None
