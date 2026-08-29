@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { HAOO_PRODUCT } from '../products/haoo';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
@@ -94,6 +95,10 @@ function builtBundleText() {
     .join('\n');
 }
 
+function noScriptMarkup(html: string) {
+  return html.match(/<noscript>([\s\S]*?)<\/noscript>/i)?.[1] ?? '';
+}
+
 describe('Phase 1 build artifact freshness', () => {
   it('requires every production build output to exist', () => {
     const missingOutputs = BUILD_OUTPUTS.filter((path) => !existsSync(path));
@@ -173,6 +178,56 @@ describe('Phase 1 static build contracts', () => {
   it('declares the original brochure as a static alternate of the product document', () => {
     for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
       expect(html).toContain(PDF_ALTERNATE_LINK);
+    }
+  });
+
+  it('publishes centralized onboarding destinations without requiring JavaScript', () => {
+    const expectedHrefs = [
+      HAOO_PRODUCT.contacts.whatsappHref,
+      HAOO_PRODUCT.contacts.phoneHref,
+      HAOO_PRODUCT.contacts.emailHref,
+      HAOO_PRODUCT.contacts.selfOnboardingHref,
+      HAOO_PRODUCT.brochure.pdfHref,
+    ];
+
+    for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
+      const markup = noScriptMarkup(html);
+      expect(markup).not.toBe('');
+
+      const hrefs = [...markup.matchAll(/href="([^"]+)"/g)].map(([, href]) => href);
+      expect(hrefs).toEqual(expectedHrefs);
+      expect(markup).toContain('HAOO is a ZERO-PAPER HUB product.');
+      expect(markup).toContain(HAOO_PRODUCT.assistedInvitation);
+      expect(markup).toContain('These contact links leave the ZERO-PAPER HUB product page.');
+      expect(markup).toContain(
+        `The self-onboarding link opens ${HAOO_PRODUCT.contacts.selfOnboardingDisplay} outside ZERO-PAPER HUB.`,
+      );
+
+      const whatsappUrl = new URL(hrefs[0]);
+      const decodedStarterText = whatsappUrl.searchParams.get('text');
+      expect([...decodedStarterText ?? '']).toEqual([
+        ...HAOO_PRODUCT.contacts.whatsappStarterText,
+      ]);
+      expect([...whatsappUrl.searchParams.keys()]).toEqual(['text']);
+    }
+  });
+
+  it('keeps the no-script fallback free of active or tracked markup', () => {
+    const forbiddenPatterns = [
+      /<script\b/i,
+      /\son[a-z]+\s*=/i,
+      /<form\b/i,
+      /\sstyle\s*=/i,
+      /utm_/i,
+    ];
+
+    for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
+      const markup = noScriptMarkup(html);
+      expect(markup).not.toBe('');
+
+      for (const forbidden of forbiddenPatterns) {
+        expect(markup).not.toMatch(forbidden);
+      }
     }
   });
 
