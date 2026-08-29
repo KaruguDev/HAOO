@@ -1,0 +1,41 @@
+export interface ProductStoryItem {
+  readonly title: string;
+  readonly description: string;
+}
+
+export interface ProductContacts {
+  readonly phoneDisplay: string;
+  readonly phoneNumber: string;
+  readonly phoneHref: string;
+  readonly email: string;
+  readonly emailHref: string;
+  readonly whatsappStarterText: string;
+  readonly whatsappHref: string;
+  readonly selfOnboardingDisplay: string;
+  readonly selfOnboardingHref: string;
+}
+
+export interface ProductBrochure {
+  readonly pdfHref: string;
+  readonly previewImageHref: string;
+  readonly downloadName: string;
+  readonly expectationLabel: string;
+}
+
+export interface ProductDefinition {
+  readonly slug: string;
+  readonly name: string;
+  readonly relationship: string;
+  readonly outcome: string;
+  readonly audienceLead: string;
+  readonly audiences: readonly string[];
+  readonly pains: readonly string[];
+  readonly benefits: readonly string[];
+  readonly capabilities: readonly ProductStoryItem[];
+  readonly journey: readonly ProductStoryItem[];
+  readonly featureCaveat: string;
+  readonly marketClaim: string;
+  readonly assistedInvitation: string;
+  readonly contacts: ProductContacts;
+  readonly brochure: ProductBrochure;
+}
