@@ -33,7 +33,9 @@
 - Google Fonts Inter - loaded remotely by `@import` in `src/index.css`.
 
 **Testing:**
-- Not detected. `package.json` has no test script or test framework dependency.
+- Vitest 3.2.4 with jsdom 26.1.0 - Vite-compatible unit, component, and build-contract runner configured in `vitest.config.ts`.
+- React Testing Library 16.3.2 and DOM Testing Library 10.4.1 - semantic role/name queries with explicit cleanup in `src/test/setup.ts`.
+- `npm test` runs the suite once; `npm run test:phase1:red` verifies the intentional Wave 0 behavior-level RED state while rejecting infrastructure failures.
 
 **Build/Dev:**
 - TypeScript 5.5.3 - strict type checking through `npm run typecheck` and `tsconfig.app.json`/`tsconfig.node.json`.
@@ -56,7 +58,7 @@
 - Application entry: `src/main.tsx` imports `src/App.tsx` and `src/index.css`.
 - Production output: Vite writes the static bundle to `dist/` (ignored by `.gitignore`).
 - Public assets: `public/zero-paper_hub_hi-def.png`, `public/image.png`, and `public/marketing/` are copied as static files and referenced with root-relative URLs.
-- Useful commands: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`, and `npm run typecheck`.
+- Useful commands: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`, `npm run typecheck`, `npm test`, and `npm run test:phase1:red`.
 
 ---
 *Technology stack analysis: 2026-08-29*
