@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Discover HAOO and Choose an Onboarding Path
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-08-29T10:07:10.490Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-29T10:22:11.992Z"
 last_activity: 2026-08-29
 last_activity_desc: Phase 01 execution started
-state_head: ae821ef8d926a72d844ae9a4ad8951b5caf6e733
+state_head: ea896150013f8316bdde7494d8c17143a55e7070
 progress:
   total_phases: 5
   completed_phases: 0
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-08-29 — Phase 01 execution started
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 10 min | 3 tasks | 13 files |
 | Phase 01 P02 | 5 min | 2 tasks | 6 files |
 | Phase 01 P03 | 12 min | 3 tasks | 9 files |
+| Phase 01 P04 | 18 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Derive the WhatsApp URL only from fixed compile-time product data. — This preserves exact decoded starter text and prevents visitor or analytics context from entering the destination.
 - [Phase 01]: HAOO page renders all brochure capability and journey copy verbatim; only the pain and benefit summaries are condensed, and each is assembled from brochure phrases.
 - [Phase 01]: Product media paths live in centralized product data (HAOO_PRODUCT.media), keeping ProductPage.tsx a product-agnostic shell and making the partial-media contract testable.
+- [Phase 01]: Products navigation is derived from registry presence via productsNavLink() rather than a copied HAOO condition — Couples the nav item and the #products landmark to one source of truth so an empty collection can never leave a dangling anchor
+- [Phase 01]: Home-card preview media facts (href, alt, intrinsic size) live in HAOO_PRODUCT.brochure — Keeps ProductsSection free of HAOO literals, reserves aspect-ratio space from data, and makes the optional-media contract testable by emptying the href
+- [Phase 01]: Product social image metadata now points at the published /products/haoo/brochure-preview.png — The previous og:image and twitter:image referenced preview-outside.png, which no plan publishes; this plan publishes the supplied preview, so the reference was aligned to the real asset
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T10:04:50.793Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-08-29T10:21:47.370Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
