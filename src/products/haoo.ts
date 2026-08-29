@@ -72,6 +72,20 @@ export const HAOO_PRODUCT: ProductDefinition = {
   featureCaveat: 'Feature availability may vary by subscription plan.',
   marketClaim: 'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
   assistedInvitation: 'Tell us about your properties and we\'ll help you choose the best way to get started.',
+  media: {
+    logo: {
+      href: '/products/haoo/haoo-logo.png',
+      alt: '',
+      width: 362,
+      height: 176,
+    },
+    hero: {
+      href: '/products/haoo/haoo-hero.png',
+      alt: 'Property manager outside a modern apartment building',
+      width: 1122,
+      height: 1402,
+    },
+  },
   contacts: {
     phoneDisplay: '+254 702 188 044',
     phoneNumber: PHONE_NUMBER,

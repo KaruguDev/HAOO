@@ -3,6 +3,18 @@ export interface ProductStoryItem {
   readonly description: string;
 }
 
+export interface ProductImage {
+  readonly href: string;
+  readonly alt: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface ProductMedia {
+  readonly logo?: ProductImage;
+  readonly hero?: ProductImage;
+}
+
 export interface ProductContacts {
   readonly phoneDisplay: string;
   readonly phoneNumber: string;
@@ -36,6 +48,7 @@ export interface ProductDefinition {
   readonly featureCaveat: string;
   readonly marketClaim: string;
   readonly assistedInvitation: string;
+  readonly media: ProductMedia;
   readonly contacts: ProductContacts;
   readonly brochure: ProductBrochure;
 }

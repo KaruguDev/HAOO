@@ -39,14 +39,45 @@ export default function ProductPage({ product }: ProductPageProps) {
 
       <main id="haoo-content">
         <section className="bg-[#18275F] py-12 text-white md:py-16">
-          <div className={`${containerClasses} grid gap-8 lg:grid-cols-2`}>
-            <div className="max-w-[620px] lg:col-span-2">
-              <p className="mb-4 text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
-              <p className="mb-2 text-sm font-semibold leading-[1.4]">{product.name}</p>
-              <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
-              <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
+          <div className={`${containerClasses} grid gap-8 lg:grid-cols-3 lg:items-start`}>
+            <div className="lg:col-span-2">
+              <div className="max-w-[620px]">
+                <div className="mb-4 flex flex-wrap items-center gap-4">
+                  {product.media.logo ? (
+                    <span className="inline-flex items-center rounded-lg bg-white px-4 py-2">
+                      <img
+                        src={product.media.logo.href}
+                        alt={product.media.logo.alt}
+                        width={product.media.logo.width}
+                        height={product.media.logo.height}
+                        loading="eager"
+                        decoding="async"
+                        className="h-8 w-auto"
+                      />
+                    </span>
+                  ) : null}
+                  <p className="text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
+                </div>
+                <p className="mb-2 text-sm font-semibold leading-[1.4]">{product.name}</p>
+                <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
+                <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
+              </div>
               <OnboardingChoices product={product} position="opening" />
             </div>
+
+            {product.media.hero ? (
+              <div className="lg:col-span-1">
+                <img
+                  src={product.media.hero.href}
+                  alt={product.media.hero.alt}
+                  width={product.media.hero.width}
+                  height={product.media.hero.height}
+                  loading="eager"
+                  decoding="async"
+                  className="aspect-[4/3] w-full rounded-2xl object-cover object-bottom lg:aspect-[4/5]"
+                />
+              </div>
+            ) : null}
           </div>
         </section>
 

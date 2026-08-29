@@ -158,6 +158,46 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(within(brochure).getByText('PDF · 2.1 MB')).toBeTruthy();
   });
 
+  it('publishes the exact supplied logo and hero media with reserved space', () => {
+    const { container } = renderPage();
+
+    const logo = container.querySelector('img[src="/products/haoo/haoo-logo.png"]');
+    expect(logo).not.toBeNull();
+    expect(logo!.getAttribute('alt')).toBe('');
+    expect(logo!.getAttribute('width')).toBe('362');
+    expect(logo!.getAttribute('height')).toBe('176');
+
+    const hero = screen.getByRole('img', {
+      name: 'Property manager outside a modern apartment building',
+    });
+    expect(hero.getAttribute('src')).toBe('/products/haoo/haoo-hero.png');
+    expect(hero.getAttribute('width')).toBe('1122');
+    expect(hero.getAttribute('height')).toBe('1402');
+    expect(hero.className).toContain('aspect-[4/3]');
+    expect(hero.className).toContain('lg:aspect-[4/5]');
+    expect(hero.className).toContain('object-cover');
+    expect(hero.parentElement?.textContent).toBe('');
+
+    const [whatsapp] = screen.getAllByRole('link', { name: 'Chat with HAOO on WhatsApp' });
+    expect(whatsapp.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeGreaterThan(0);
+  });
+
+  it('keeps every fact and action available when partial media is omitted', () => {
+    render(<ProductPage product={{ ...HAOO_PRODUCT, media: {} }} />);
+
+    expect(screen.queryAllByRole('img')).toHaveLength(0);
+    expect(screen.getByRole('heading', { level: 1, name: HAOO_PRODUCT.outcome })).toBeTruthy();
+    expect(screen.getByText(HAOO_PRODUCT.audienceLead)).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText(HAOO_PRODUCT.marketClaim)).toBeTruthy();
+    for (const [name, href] of ONBOARDING_LINKS) {
+      const links = screen.getAllByRole('link', { name });
+      expect(links).toHaveLength(3);
+      expect(links.every((link) => link.getAttribute('href') === href)).toBe(true);
+    }
+  });
+
   it('exposes accessible mobile navigation and unclipped native actions', () => {
     renderPage();
 
