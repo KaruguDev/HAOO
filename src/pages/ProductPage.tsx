@@ -7,6 +7,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
+import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
 import type { ProductDefinition } from '../products/types';
@@ -26,6 +27,7 @@ const CAPABILITY_ICONS: Record<string, LucideIcon> = {
   'Vacancy marketplace': Store,
   'Reports & communication': BarChart3,
 };
+const BROCHURE_LEAD = 'The overview above is the complete HAOO explanation. Open or download the original brochure PDF if you prefer the printed document.';
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
 export default function ProductPage({ product }: ProductPageProps) {
@@ -159,7 +161,9 @@ export default function ProductPage({ product }: ProductPageProps) {
 
         <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className="text-[28px] font-semibold leading-[1.2]">Brochure</h2>
+            <h2 className={headingClasses}>Brochure</h2>
+            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{BROCHURE_LEAD}</p>
+            <BrochurePanel brochure={product.brochure} productName={product.name} />
           </div>
         </section>
 

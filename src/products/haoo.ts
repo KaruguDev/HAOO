@@ -98,12 +98,12 @@ export const HAOO_PRODUCT: ProductDefinition = {
     selfOnboardingHref: 'https://manage.haoo.online/',
   },
   brochure: {
-    pdfHref: '#brochure-pending',
+    pdfHref: '/products/haoo/HAOO-Marketing-Brochure.pdf',
     previewImageHref: '/products/haoo/brochure-preview.png',
     previewImageAlt: 'HAOO property-management brochure preview',
     previewImageWidth: 1287,
     previewImageHeight: 909,
-    downloadName: 'brochure-pending.pdf',
-    expectationLabel: 'PDF details pending',
+    downloadName: 'HAOO-Marketing-Brochure.pdf',
+    expectationLabel: 'PDF · 2.1 MB',
   },
 };
