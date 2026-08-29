@@ -1,5 +1,12 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import {
+  mobileNavigationId,
+  mobileSectionsNavLabel,
+  navigationToggleLabel,
+  sectionsNavLabel,
+} from '../products/copy';
+import type { ProductDefinition } from '../products/types';
 
 const PRODUCT_LINKS = [
   { label: 'Benefits', href: '#benefits' },
@@ -9,14 +16,14 @@ const PRODUCT_LINKS = [
 ] as const;
 
 interface ProductHeaderProps {
-  readonly productName: string;
+  readonly product: ProductDefinition;
 }
 
 const focusClasses = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
-export default function ProductHeader({ productName }: ProductHeaderProps) {
+export default function ProductHeader({ product }: ProductHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuId = 'haoo-mobile-navigation';
+  const menuId = mobileNavigationId(product.slug);
 
   return (
     <header className="border-b border-[#DFE4F0] bg-white">
@@ -28,9 +35,9 @@ export default function ProductHeader({ productName }: ProductHeaderProps) {
           Back to ZERO-PAPER HUB
         </a>
 
-        <span className="ml-auto text-sm font-semibold leading-[1.4] text-[#18275F]">{productName}</span>
+        <span className="ml-auto text-sm font-semibold leading-[1.4] text-[#18275F]">{product.name}</span>
 
-        <nav aria-label="HAOO sections" className="hidden items-center gap-4 md:flex">
+        <nav aria-label={sectionsNavLabel(product.name)} className="hidden items-center gap-4 md:flex">
           {PRODUCT_LINKS.map((link) => (
             <a key={link.href} href={link.href} className={`inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#18275F] hover:text-[#4054C6] ${focusClasses}`}>
               {link.label}
@@ -40,7 +47,7 @@ export default function ProductHeader({ productName }: ProductHeaderProps) {
 
         <button
           type="button"
-          aria-label={menuOpen ? 'Close HAOO navigation' : 'Open HAOO navigation'}
+          aria-label={navigationToggleLabel(product.name, menuOpen)}
           aria-controls={menuId}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
@@ -50,7 +57,7 @@ export default function ProductHeader({ productName }: ProductHeaderProps) {
         </button>
       </div>
 
-      <nav id={menuId} aria-label="HAOO mobile sections" hidden={!menuOpen} className="border-t border-[#DFE4F0] bg-white px-4 pb-4 sm:px-6 md:hidden">
+      <nav id={menuId} aria-label={mobileSectionsNavLabel(product.name)} hidden={!menuOpen} className="border-t border-[#DFE4F0] bg-white px-4 pb-4 sm:px-6 md:hidden">
         <div className="flex flex-col gap-1 pt-2">
           {PRODUCT_LINKS.map((link) => (
             <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className={`inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#18275F] hover:bg-[#E9EDFF] hover:text-[#4054C6] ${focusClasses}`}>

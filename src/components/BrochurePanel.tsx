@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Download, ExternalLink } from 'lucide-react';
+import { brochureFallbackBody } from '../products/copy';
 import type { ProductBrochure } from '../products/types';
 
 interface BrochurePanelProps {
@@ -14,7 +15,6 @@ interface BrochurePanelProps {
  * Open and Download controls.
  */
 const FALLBACK_HEADING = 'Brochure preview unavailable';
-const FALLBACK_BODY = 'You can still open the HAOO brochure in a new tab or download the PDF.';
 const PREVIEW_ERROR =
   "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
 const NEW_TAB_DISCLOSURE = 'Opening the brochure leaves this page in a new browser tab.';
@@ -58,7 +58,7 @@ export default function BrochurePanel({ brochure, productName }: BrochurePanelPr
           >
             <div className={surfaceClasses}>
               <h3 className="mb-2 text-[28px] font-semibold leading-[1.2]">{FALLBACK_HEADING}</h3>
-              <p className="text-base font-normal leading-6 text-[#5F6B84]">{FALLBACK_BODY}</p>
+              <p className="text-base font-normal leading-6 text-[#5F6B84]">{brochureFallbackBody(productName)}</p>
             </div>
           </object>
         </div>

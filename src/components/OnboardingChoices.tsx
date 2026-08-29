@@ -1,4 +1,9 @@
 import { ArrowUpRight, Mail, MessageCircle, Phone } from 'lucide-react';
+import {
+  selfOnboardingActionLabel,
+  selfOnboardingLead,
+  whatsappActionLabel,
+} from '../products/copy';
 import type { ProductDefinition } from '../products/types';
 
 export type OnboardingPosition = 'opening' | 'mid-page' | 'closing';
@@ -27,7 +32,7 @@ export default function OnboardingChoices({ product, position }: OnboardingChoic
         <p className="mb-6 text-base font-normal leading-6 text-[#5F6B84]">{product.assistedInvitation}</p>
         <a href={product.contacts.whatsappHref} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#4054C6] px-4 py-3 text-center text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] ${focusLight}`}>
           <MessageCircle aria-hidden="true" size={18} />
-          Chat with HAOO on WhatsApp
+          {whatsappActionLabel(product.name)}
         </a>
         <div className="mt-4 grid gap-1">
           <a href={product.contacts.phoneHref} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
@@ -44,9 +49,9 @@ export default function OnboardingChoices({ product, position }: OnboardingChoic
 
       <div className={`rounded-2xl border p-6 md:p-8 ${onDark ? 'border-[#DBE2FF] bg-[#18275F] text-white' : 'border-[#DFE4F0] bg-[#E9EDFF] text-[#18275F]'}`}>
         <h2 className="mb-4 text-[28px] font-semibold leading-[1.2]">Ready to begin?</h2>
-        <p className={`mb-6 text-base font-normal leading-6 ${onDark ? 'text-[#DBE2FF]' : 'text-[#5F6B84]'}`}>Continue to HAOO&apos;s platform for self-onboarding.</p>
+        <p className={`mb-6 text-base font-normal leading-6 ${onDark ? 'text-[#DBE2FF]' : 'text-[#5F6B84]'}`}>{selfOnboardingLead(product.name)}</p>
         <a href={product.contacts.selfOnboardingHref} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-center text-sm font-semibold leading-[1.4] ${onDark ? `border-white text-white hover:bg-white/10 ${focusDark}` : `border-[#4054C6] text-[#4054C6] hover:bg-white ${focusLight}`}`}>
-          Start with HAOO
+          {selfOnboardingActionLabel(product.name)}
           <ArrowUpRight aria-hidden="true" size={18} />
         </a>
         <p className={`mt-4 text-sm font-normal leading-[1.4] ${onDark ? 'text-[#DBE2FF]' : 'text-[#5F6B84]'}`}>Opens {product.contacts.selfOnboardingDisplay} outside ZERO-PAPER HUB.</p>

@@ -10,6 +10,12 @@ import {
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
+import {
+  brochureLead,
+  contentAnchorId,
+  parentRelationshipLine,
+  skipToContentLabel,
+} from '../products/copy';
 import type { ProductDefinition } from '../products/types';
 
 interface ProductPageProps {
@@ -27,19 +33,20 @@ const CAPABILITY_ICONS: Record<string, LucideIcon> = {
   'Vacancy marketplace': Store,
   'Reports & communication': BarChart3,
 };
-const BROCHURE_LEAD = 'The overview above is the complete HAOO explanation. Open or download the original brochure PDF if you prefer the printed document.';
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
 export default function ProductPage({ product }: ProductPageProps) {
+  const mainContentId = contentAnchorId(product.slug);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">
-      <a href="#haoo-content" className="sr-only z-50 rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
-        Skip to HAOO content
+      <a href={`#${mainContentId}`} className="sr-only z-50 rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
+        {skipToContentLabel(product.name)}
       </a>
 
-      <ProductHeader productName={product.name} />
+      <ProductHeader product={product} />
 
-      <main id="haoo-content">
+      <main id={mainContentId}>
         <section className="bg-[#18275F] py-12 text-white md:py-16">
           <div className={`${containerClasses} grid gap-8 lg:grid-cols-3 lg:items-start`}>
             <div className="lg:col-span-2">
@@ -162,7 +169,7 @@ export default function ProductPage({ product }: ProductPageProps) {
         <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={headingClasses}>Brochure</h2>
-            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{BROCHURE_LEAD}</p>
+            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
             <BrochurePanel brochure={product.brochure} productName={product.name} />
           </div>
         </section>
@@ -176,7 +183,7 @@ export default function ProductPage({ product }: ProductPageProps) {
 
       <footer className="border-t border-[#DFE4F0] bg-white py-6">
         <div className={`${containerClasses} flex flex-col gap-4 text-sm font-semibold leading-[1.4] sm:flex-row sm:items-center sm:justify-between`}>
-          <p>HAOO is a ZERO-PAPER HUB product</p>
+          <p>{parentRelationshipLine(product.name)}</p>
           <div className="flex flex-wrap gap-2">
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.emailHref}>{product.contacts.email}</a>
