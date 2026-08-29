@@ -34,11 +34,21 @@ This milestone turns the existing company landing page into a product-led site b
   5. HAOO renders from centralized product content and contacts within a reusable product-page shell that can present a future product without copying the page structure.
 
 **Plans**: TBD
+**Wave 1**
 
 - [x] 01-01-PLAN.md
 - [x] 01-02-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 01-03-PLAN.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 01-04-PLAN.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 01-05-PLAN.md
 
 **UI hint**: yes
