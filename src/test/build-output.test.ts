@@ -9,6 +9,10 @@ const BUILT_HTML = resolve(ROOT, 'dist/products/haoo/index.html');
 const PUBLIC_PDF = resolve(ROOT, 'public/products/haoo/HAOO-Marketing-Brochure.pdf');
 const BUILT_PDF = resolve(ROOT, 'dist/products/haoo/HAOO-Marketing-Brochure.pdf');
 const PDF_SHA256 = '38d5ad8e7497c65c4fa2d374e7ed5e8d81ab79f3b25d1e0daa73321d45b9e7a6';
+const PRODUCT_TITLE = 'HAOO Property Management | ZERO-PAPER HUB';
+const PRODUCT_DESCRIPTION = 'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.';
+const PRODUCT_URL = 'https://www.zero-paperhub.com/products/haoo/';
+const PRODUCT_IMAGE = `${PRODUCT_URL}preview-outside.png`;
 
 function readText(path: string) {
   return existsSync(path) ? readFileSync(path, 'utf8') : '';
@@ -28,15 +32,19 @@ describe('Phase 1 static build contracts', () => {
 
   it('contains exact source and built canonical/social metadata', () => {
     for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
-      expect(html).toContain('<title>HAOO Property Management | ZERO-PAPER HUB</title>');
-      expect(html).toContain(
-        'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.',
-      );
-      expect(html).toContain('rel="canonical" href="https://www.zero-paperhub.com/products/haoo/"');
+      expect(html).toContain(`<title>${PRODUCT_TITLE}</title>`);
+      expect(html).toContain(`name="description" content="${PRODUCT_DESCRIPTION}"`);
+      expect(html).toContain(`rel="canonical" href="${PRODUCT_URL}"`);
+      expect(html).toContain('property="og:type" content="website"');
+      expect(html).toContain(`property="og:title" content="${PRODUCT_TITLE}"`);
+      expect(html).toContain(`property="og:description" content="${PRODUCT_DESCRIPTION}"`);
       expect(html).toContain('property="og:site_name" content="ZERO-PAPER HUB"');
-      expect(html).toContain('property="og:url" content="https://www.zero-paperhub.com/products/haoo/"');
-      expect(html).toMatch(/property="og:image" content="https:\/\/www\.zero-paperhub\.com\/products\/haoo\/.+"/);
-      expect(html).toMatch(/name="twitter:image" content="https:\/\/www\.zero-paperhub\.com\/products\/haoo\/.+"/);
+      expect(html).toContain(`property="og:url" content="${PRODUCT_URL}"`);
+      expect(html).toContain(`property="og:image" content="${PRODUCT_IMAGE}"`);
+      expect(html).toContain('name="twitter:card" content="summary_large_image"');
+      expect(html).toContain(`name="twitter:title" content="${PRODUCT_TITLE}"`);
+      expect(html).toContain(`name="twitter:description" content="${PRODUCT_DESCRIPTION}"`);
+      expect(html).toContain(`name="twitter:image" content="${PRODUCT_IMAGE}"`);
       expect(html).not.toContain('bolt.new/static/og_default.png');
     }
   });
