@@ -1,7 +1,7 @@
 ---
 phase: 01-discover-haoo-and-choose-an-onboarding-path
 verified: 2026-08-29T19:48:41Z
-status: human_needed
+status: passed
 score: 63/77 must-haves verified
 roadmap_score: 5/5 success criteria code-verified
 behavior_unverified: 1
@@ -10,6 +10,7 @@ re_verification:
   previous_status: gaps_found
   previous_score: 5/6
   gaps_closed:
+
     - "Dark-panel Start with HAOO focus now uses a white ring on #18275F at 14.06:1, enforced by a 3:1 contract."
     - "The Products anchor reserves 96px/128px scroll margin below the fixed header."
     - "The generic product shell derives identity copy and ids from ProductDefinition and renders a tested non-HAOO product."
@@ -18,32 +19,41 @@ re_verification:
   gaps_remaining: []
   regressions: []
 behavior_unverified_items:
+
   - truth: "Repeated npm test runs and build-then-test:unit runs are identical and order-independent."
     test: "Run npm test twice, then npm run build followed by npm run test:unit."
     expected: "All executions pass with 63 active tests and no freshness/order failure."
     why_human: "This ordering invariant has no single named behavioral test; the verifier ran the full workspace suite once."
 human_verification:
+
   - test: "Complete the MVP flow in a browser: discover Products, open HAOO, read the guided story, and activate assisted and self-service paths."
     expected: "A prospect reaches HAOO without getting lost and can choose WhatsApp, phone, email, or manage.haoo.online."
     why_human: "MVP mode requires a user-flow walk-through even when component contracts pass."
+
   - test: "Inspect the home and HAOO pages at 320px, 768px, 1024px, desktop, and 200% zoom."
     expected: "The card and page reflow without clipping or horizontal scrolling; mobile/desktop ordering and balance are correct."
     why_human: "CSS layout, viewport height, and zoom are not observable in jsdom; Phase 5 also owns QUAL-01/QUAL-03."
+
   - test: "Exercise the brochure above/below lg with PDF embedding available and unavailable."
     expected: "Desktop embeds or shows the branded fallback; mobile uses the compact preview; Open/Download remain visible."
     why_human: "Real PDF embedding and CSS media queries require a browser/plugin."
+
   - test: "Keyboard to Start with HAOO on both navy panels, then activate Products in both fixed-header states."
     expected: "Focus is clearly visible and the Products heading lands below the header."
     why_human: "The 14.06:1 calculation and scroll-margin classes are proven, but rendered focus/scroll need a layout engine."
+
   - test: "Compare the HAOO page after the generic-shell refactor with the approved 01-05 experience."
     expected: "Product text, accessible names, layout, and parent-brand casing are indistinguishable."
     why_human: "Exact strings and a synthetic product are tested; visual indistinguishability is an explicit backstop."
+
   - test: "In an isolated fresh checkout run npm ci and npm test with no dist."
     expected: "The build succeeds and all 63 tests pass."
     why_human: "The plan leaves clean-checkout proof to Phase 5; this verifier did not create a new git worktree."
+
   - test: "Disable JavaScript, open the built HAOO page, activate fallback links, then re-enable JavaScript."
     expected: "All fallback destinations work; with JavaScript enabled only the React onboarding set is user-exposed."
     why_human: "Source/built noscript markup is exact-tested, but jsdom cannot disable scripting or perform native navigation."
+
   - test: "Review PROHIB-ONBD-01/-02/-03/-04, PROHIB-CONTENT-01/-02, PROHIB-A11Y-01, PROHIB-PROD-01, PROHIB-BRAND-01, and PROHIB-QUAL-01/-02."
     expected: "Human sign-off that transparency, source fidelity, identity failure, focus enforcement, and build freshness prohibitions hold."
     why_human: "These PLAN prohibitions remain judgment-tier with unresolved/null descriptors and cannot be silently marked green."

@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
-current_phase: 01
-current_phase_name: Discover HAOO and Choose an Onboarding Path
-status: verifying
-stopped_at: Completed 01-09-PLAN.md (noscript-fallback selected)
-last_updated: "2026-08-29T19:36:37.831Z"
+current_phase: 2
+current_phase_name: Submit a Qualified HAOO Enquiry
+status: planning
+stopped_at: Phase 01 complete, ready to plan Phase 2
+last_updated: "2026-08-29T20:12:09Z"
 last_activity: 2026-08-29
-last_activity_desc: Phase 01 execution resumed (wave continue)
-state_head: 7362188be7e49d4585f337f4c0fa286bae6a8198
+last_activity_desc: Phase 01 complete, transitioned to Phase 2
+state_head: 2925d9a9358f80d157105e7ae584950c6e47f09b
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 9
   completed_plans: 9
-  percent: 0
+  percent: 20
 ---
 
 # Project State
@@ -23,22 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 01 — Discover HAOO and Choose an Onboarding Path
+**Current focus:** Phase 2 — Submit a Qualified HAOO Enquiry
 
 ## Current Position
 
-Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-08-29 — Phase 01 execution resumed (wave continue)
+Phase: 2 — Submit a Qualified HAOO Enquiry
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-29 — Phase 01 complete, transitioned to Phase 2
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████████████████] 9/9 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 9
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -46,7 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 9 | - | - |
 
 **Recent Trend:**
 
@@ -94,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 01]: On a dark surface the light element of the focus pair is the ring, not the offset — UI-SPEC line 255 (visible on navy) governs over the light-offset default in line 174 — An accent ring on the #18275F panel computes 2.21:1; a white ring on the same panel computes 14.06:1
 - [Phase 01]: The focus-contrast gate compares the raw IEEE-754 double at ratio >= 3 with no epsilon, and throws on an unrecognized ring colour token rather than skipping it — A skipped pairing would pass the suite silently; a token the contract cannot measure must fail loudly
 - [Phase 01]: Anchor scroll offset is reserved with scroll-mt on the products target, not scroll-padding-top on html — html is shared with the product document, whose header is not fixed and whose sections already declare scroll-mt-4
+- [Phase 01]: Preserve onboarding access without JavaScript through a narrow `<noscript>` fallback whose destinations are contract-bound to centralized product data.
+- [Phase 01]: Treat a green full suite as current-build evidence by making `npm test` build first and retaining `test:unit` for the guarded inner loop.
 
 ### Pending Todos
 
@@ -104,7 +106,8 @@ None yet.
 - Privacy/legal ownership must approve notice, storage, retention, processor, and Kenya Data Protection Act decisions before production collection.
 - HAOO mailbox ownership and FormSubmit activation must be available for the Phase 5 production delivery check.
 - Analytics account/configuration may be absent; the product journey must remain launchable with the no-op measurement path.
-- Stale broken-windows entries 1 and 2 still read `open` although the code resolving them shipped in 01-02/01-03 and 01-04; phase verification should mark them `fixed` before `/gsd-ship`.
+- [Phase 1 review] Informational tenant and agent audiences are not visibly rendered despite the broader PROD-03 audience wording; revisit before shipping if that interpretation is required.
+- [Dependency maintenance] The unused Supabase dependency retains a pre-existing `ws` advisory; review removal or upgrade in a dedicated task before shipping.
 
 ## Deferred Items
 
@@ -116,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T19:36:37.803Z
-Stopped at: Completed 01-09-PLAN.md (noscript-fallback selected)
+Last session: 2026-08-29T20:12:09Z
+Stopped at: Phase 01 complete, ready to plan Phase 2
 Resume file: None

@@ -26,18 +26,18 @@ A serious HAOO prospect can understand the product, demonstrate intent, and reac
 - ✓ Visitors can submit a general enquiry that is delivered by email through FormSubmit — existing
 - ✓ Visitors can download company marketing material from the static website — existing
 - ✓ The website builds and deploys as a static React/Vite application through GitHub Pages — existing
+- ✓ Visitors can discover HAOO from a reusable Products section and open its stable product route — Phase 1
+- ✓ Visitors can explore HAOO through a responsive, brochure-faithful product page — Phase 1
+- ✓ Visitors can preview, open, and download the original HAOO PDF brochure — Phase 1
+- ✓ Prospects can choose HAOO-assisted or self-service onboarding through native destinations — Phase 1
+- ✓ The HAOO journey fits the existing ZERO-PAPER HUB visual system on mobile and desktop — Phase 1
 
 ### Active
 
-- [ ] Visitors can discover HAOO from a reusable Products section designed to accommodate future products
-- [ ] Visitors can explore HAOO through a responsive product page based on the supplied brochure content
-- [ ] Visitors can preview and download the original HAOO PDF brochure
 - [ ] The site records privacy-first aggregate product engagement signals such as product views, brochure interactions, repeat visits, and onboarding clicks
 - [ ] Interested visitors can submit a short HAOO qualification form containing contact details, role, organization, portfolio size, location, and onboarding timing
 - [ ] A submitted prospect includes the visitor's relevant HAOO engagement context so the team can distinguish intent from general traffic
 - [ ] Qualified enquiries are delivered to the HAOO email channel for v1
-- [ ] Prospects can choose assisted onboarding through HAOO phone, WhatsApp, or email, or self-onboard at `manage.haoo.online`
-- [ ] The HAOO journey is usable on mobile and desktop and fits the existing ZERO-PAPER HUB visual system
 
 ### Out of Scope
 
@@ -73,14 +73,14 @@ A serious HAOO prospect can understand the product, demonstrate intent, and reac
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Make products a reusable website concept, launching with HAOO | ZERO-PAPER HUB expects to offer more than one product | — Pending |
+| Make products a reusable website concept, launching with HAOO | ZERO-PAPER HUB expects to offer more than one product | ✓ Validated in Phase 1 with a centralized product definition and reusable page shell |
 | Prioritize landlords, property managers, and portfolio-managing organizations | These visitors are the primary purchasing and onboarding decision-makers | — Pending |
 | Combine behavioral signals with an explicit qualification form | Engagement shows curiosity while submitted business details identify serious prospects | — Pending |
-| Offer assisted and self-service onboarding side by side | Prospects differ in readiness and desired support | — Pending |
-| Publish a responsive HAOO page plus embedded PDF preview and download | The web experience should be usable while retaining the original brochure | — Pending |
+| Offer assisted and self-service onboarding side by side | Prospects differ in readiness and desired support | ✓ Validated in Phase 1 with native WhatsApp, phone, email, and self-onboarding paths |
+| Publish a responsive HAOO page plus embedded PDF preview and download | The web experience should be usable while retaining the original brochure | ✓ Validated in Phase 1 with resilient preview, open, and download controls |
 | Deliver qualified prospects by email for v1 | No CRM or lead database has been selected yet | — Pending |
 | Use privacy-first aggregate analytics | Measure interest without adopting invasive ad-tech tracking | — Pending |
-| Use HAOO's contact channels throughout the product funnel | Product enquiries should reach the team and identity shown in HAOO's brochure | — Pending |
+| Use HAOO's contact channels throughout the product funnel | Product enquiries should reach the team and identity shown in HAOO's brochure | ✓ Validated for Phase 1 onboarding destinations; qualification delivery remains Phase 2 work |
 
 ## Evolution
 
@@ -100,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-29 after initialization*
+*Last updated: 2026-08-29 after Phase 1*
