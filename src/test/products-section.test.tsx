@@ -60,3 +60,34 @@ describe('Phase 1 Products collection contracts', () => {
     expect(screen.getByRole('link', { name: 'Explore HAOO' })).toBeTruthy();
   });
 });
+
+describe('Phase 1 featured product card contract', () => {
+  it('renders the locked featured card order, supplied preview, and one native action', () => {
+    render(<ProductsSection products={[HAOO_PRODUCT]} />);
+
+    const card = screen.getByRole('article');
+
+    const order = Array.from(card.querySelectorAll('h3, p, a'))
+      .map((element) => element.textContent?.trim());
+    expect(order).toEqual([
+      'Featured product',
+      HAOO_PRODUCT.name,
+      HAOO_PRODUCT.relationship,
+      HAOO_PRODUCT.outcome,
+      HAOO_PRODUCT.audienceLead,
+      `Explore ${HAOO_PRODUCT.name}`,
+    ]);
+
+    expect(within(card).getAllByRole('link')).toHaveLength(1);
+    expect(card.querySelectorAll('button')).toHaveLength(0);
+    expect(card.getAttribute('onclick')).toBeNull();
+
+    expect(HAOO_PRODUCT.brochure.previewImageHref).toBe('/products/haoo/brochure-preview.png');
+    const preview = within(card).getByRole('img', {
+      name: 'HAOO property-management brochure preview',
+    });
+    expect(preview.getAttribute('src')).toBe(HAOO_PRODUCT.brochure.previewImageHref);
+    expect(preview.getAttribute('width')).toBe('1287');
+    expect(preview.getAttribute('height')).toBe('909');
+  });
+});
