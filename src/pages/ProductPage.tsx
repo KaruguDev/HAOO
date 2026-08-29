@@ -16,7 +16,7 @@ import {
   parentRelationshipLine,
   skipToContentLabel,
 } from '../products/copy';
-import type { ProductDefinition } from '../products/types';
+import type { ProductCapabilityIcon, ProductDefinition } from '../products/types';
 
 interface ProductPageProps {
   readonly product: ProductDefinition;
@@ -25,13 +25,13 @@ interface ProductPageProps {
 const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
 const headingClasses = 'text-[28px] font-semibold leading-[1.2]';
 const bodyClasses = 'text-base font-normal leading-6 text-[#5F6B84]';
-const CAPABILITY_ICONS: Record<string, LucideIcon> = {
-  'Rent & payments': Wallet,
-  'Properties & units': Building2,
-  'Leases & screening': ClipboardCheck,
-  Maintenance: Wrench,
-  'Vacancy marketplace': Store,
-  'Reports & communication': BarChart3,
+const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
+  payments: Wallet,
+  properties: Building2,
+  leases: ClipboardCheck,
+  maintenance: Wrench,
+  marketplace: Store,
+  reports: BarChart3,
 };
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
@@ -111,13 +111,13 @@ export default function ProductPage({ product }: ProductPageProps) {
             <h2 className={headingClasses}>Benefits</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8">
               <div className="max-w-[680px]">
-                <h3 className={`mb-4 ${headingClasses}`}>The paperwork problem</h3>
+                <h3 className={`mb-4 ${headingClasses}`}>{product.painHeading}</h3>
                 {product.pains.map((pain) => (
                   <p key={pain} className={`mb-4 last:mb-0 ${bodyClasses}`}>{pain}</p>
                 ))}
               </div>
               <div className="max-w-[680px]">
-                <h3 className={`mb-4 ${headingClasses}`}>Less chasing. More control.</h3>
+                <h3 className={`mb-4 ${headingClasses}`}>{product.benefitHeading}</h3>
                 {product.benefits.map((benefit) => (
                   <p key={benefit} className={`mb-4 last:mb-0 ${bodyClasses}`}>{benefit}</p>
                 ))}
@@ -130,8 +130,8 @@ export default function ProductPage({ product }: ProductPageProps) {
           <div className={containerClasses}>
             <h2 className={headingClasses}>Capabilities</h2>
             <ul className="mt-6 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
-              {product.capabilities.map(({ title, description }) => {
-                const Icon = CAPABILITY_ICONS[title] ?? Building2;
+              {product.capabilities.map(({ title, description, icon }) => {
+                const Icon = CAPABILITY_ICONS[icon];
 
                 return (
                   <li
@@ -155,8 +155,8 @@ export default function ProductPage({ product }: ProductPageProps) {
 
         <section className="py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>Rental journey</h2>
-            <section aria-label="Rental journey" className="mt-6">
+            <h2 className={headingClasses}>{product.journeyHeading}</h2>
+            <section aria-label={product.journeyHeading} className="mt-6">
               <ol className="grid max-w-[680px] list-none gap-6 p-0">
                 {product.journey.map(({ title, description }, index) => (
                   <li key={title} className="grid grid-cols-[44px_1fr] gap-4">

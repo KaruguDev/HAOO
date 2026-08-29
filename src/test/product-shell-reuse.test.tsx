@@ -62,9 +62,16 @@ function syntheticProduct(
     outcome: 'Keep every operation in view.',
     audienceLead: 'For teams coordinating a growing service operation.',
     audiences: ['Operators'],
+    painHeading: 'Where coordination breaks down',
+    benefitHeading: 'A calmer operating rhythm',
+    journeyHeading: 'Service workflow',
     pains: ['Disconnected records hide the next action.'],
     benefits: ['Bring work and reporting into one clear view.'],
-    capabilities: [{ title: 'Operations', description: 'Coordinate everyday work.' }],
+    capabilities: [{
+      title: 'Operations',
+      description: 'Coordinate everyday work.',
+      icon: 'reports',
+    }],
     journey: [{ title: 'Start clearly', description: 'Set up the operation in one place.' }],
     featureCaveat: 'Feature availability may vary by subscription plan.',
     marketClaim: 'Designed for practical service operations.',
@@ -110,9 +117,15 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(screen.getAllByText("Continue to ZENITH's platform for self-onboarding."))
       .toHaveLength(3);
     expect(screen.getAllByRole('link', { name: 'Start with ZENITH' })).toHaveLength(3);
+    expect(screen.getByRole('heading', { name: product.painHeading })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: product.benefitHeading })).toBeTruthy();
+    expect(screen.getByRole('region', { name: product.journeyHeading })).toBeTruthy();
     expect(screen.getByText(/complete ZENITH explanation/)).toBeTruthy();
     expect(screen.getByText('ZENITH is a ZERO-PAPER HUB product')).toBeTruthy();
     expect(container.textContent).not.toContain('HAOO');
+    expect(container.textContent).not.toContain('The paperwork problem');
+    expect(container.textContent).not.toContain('Less chasing. More control.');
+    expect(container.textContent).not.toContain('Rental journey');
   });
 
   it('reproduces every shipped product-name string byte for byte', () => {

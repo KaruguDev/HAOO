@@ -13,6 +13,9 @@ export const HAOO_PRODUCT: ProductDefinition = {
   outcome: 'Run the business—not the paperwork.',
   audienceLead: 'For landlords and property managers who want one clear view of their properties, rent, leases, maintenance, and communication.',
   audiences: ['Landlords', 'Property managers', 'Tenants', 'Agents'],
+  painHeading: 'The paperwork problem',
+  benefitHeading: 'Less chasing. More control.',
+  journeyHeading: 'Rental journey',
   pains: [
     'Scattered spreadsheets, paper trails and message threads make it harder to see what needs attention.',
   ],
@@ -25,26 +28,32 @@ export const HAOO_PRODUCT: ProductDefinition = {
       title: 'Rent & payments',
       description:
         'Track balances, digital payment workflows and tenant receipts\u2014including M-Pesa.',
+      icon: 'payments',
     },
     {
       title: 'Properties & units',
       description: 'Organise portfolios, occupancy, vacancies and property details.',
+      icon: 'properties',
     },
     {
       title: 'Leases & screening',
       description: 'Support tenant applications, screening and digital lease workflows.',
+      icon: 'leases',
     },
     {
       title: 'Maintenance',
       description: 'Capture issues, assign work and keep progress visible to the right people.',
+      icon: 'maintenance',
     },
     {
       title: 'Vacancy marketplace',
       description: 'Publish available homes and receive tenant applications online.',
+      icon: 'marketplace',
     },
     {
       title: 'Reports & communication',
       description: 'Turn activity into insight and keep stakeholders informed.',
+      icon: 'reports',
     },
   ],
   journey: [

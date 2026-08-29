@@ -3,6 +3,18 @@ export interface ProductStoryItem {
   readonly description: string;
 }
 
+export type ProductCapabilityIcon =
+  | 'payments'
+  | 'properties'
+  | 'leases'
+  | 'maintenance'
+  | 'marketplace'
+  | 'reports';
+
+export interface ProductCapability extends ProductStoryItem {
+  readonly icon: ProductCapabilityIcon;
+}
+
 export interface ProductImage {
   readonly href: string;
   readonly alt: string;
@@ -44,9 +56,12 @@ export interface ProductDefinition {
   readonly outcome: string;
   readonly audienceLead: string;
   readonly audiences: readonly string[];
+  readonly painHeading: string;
+  readonly benefitHeading: string;
+  readonly journeyHeading: string;
   readonly pains: readonly string[];
   readonly benefits: readonly string[];
-  readonly capabilities: readonly ProductStoryItem[];
+  readonly capabilities: readonly ProductCapability[];
   readonly journey: readonly ProductStoryItem[];
   readonly featureCaveat: string;
   readonly marketClaim: string;
