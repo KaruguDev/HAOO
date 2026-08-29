@@ -1,3 +1,12 @@
+import {
+  BarChart3,
+  Building2,
+  ClipboardCheck,
+  type LucideIcon,
+  Store,
+  Wallet,
+  Wrench,
+} from 'lucide-react';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
 import type { ProductDefinition } from '../products/types';
@@ -7,6 +16,16 @@ interface ProductPageProps {
 }
 
 const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
+const headingClasses = 'text-[28px] font-semibold leading-[1.2]';
+const bodyClasses = 'text-base font-normal leading-6 text-[#5F6B84]';
+const CAPABILITY_ICONS: Record<string, LucideIcon> = {
+  'Rent & payments': Wallet,
+  'Properties & units': Building2,
+  'Leases & screening': ClipboardCheck,
+  Maintenance: Wrench,
+  'Vacancy marketplace': Store,
+  'Reports & communication': BarChart3,
+};
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
 export default function ProductPage({ product }: ProductPageProps) {
@@ -33,19 +52,73 @@ export default function ProductPage({ product }: ProductPageProps) {
 
         <section id="benefits" aria-label="Benefits" className="scroll-mt-4 py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className="text-[28px] font-semibold leading-[1.2]">Benefits</h2>
+            <h2 className={headingClasses}>Benefits</h2>
+            <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8">
+              <div className="max-w-[680px]">
+                <h3 className={`mb-4 ${headingClasses}`}>The paperwork problem</h3>
+                {product.pains.map((pain) => (
+                  <p key={pain} className={`mb-4 last:mb-0 ${bodyClasses}`}>{pain}</p>
+                ))}
+              </div>
+              <div className="max-w-[680px]">
+                <h3 className={`mb-4 ${headingClasses}`}>Less chasing. More control.</h3>
+                {product.benefits.map((benefit) => (
+                  <p key={benefit} className={`mb-4 last:mb-0 ${bodyClasses}`}>{benefit}</p>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="capabilities" aria-label="Capabilities" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className="text-[28px] font-semibold leading-[1.2]">Capabilities</h2>
+            <h2 className={headingClasses}>Capabilities</h2>
+            <ul className="mt-6 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
+              {product.capabilities.map(({ title, description }) => {
+                const Icon = CAPABILITY_ICONS[title] ?? Building2;
+
+                return (
+                  <li
+                    key={title}
+                    className="rounded-2xl border border-[#DFE4F0] bg-[#FBFCFF] p-6 transition-transform duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none md:p-8"
+                  >
+                    <span className="mb-4 inline-flex size-11 items-center justify-center rounded-lg bg-[#4054C6] text-white">
+                      <Icon aria-hidden="true" size={20} />
+                    </span>
+                    <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                    <p className={bodyClasses}>{description}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-6 max-w-[680px] text-sm font-normal leading-[1.4] text-[#5F6B84]">
+              {product.featureCaveat}
+            </p>
           </div>
         </section>
 
-        <section aria-label="Rental journey" className="py-12 md:py-16">
+        <section className="py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className="text-[28px] font-semibold leading-[1.2]">Rental journey</h2>
+            <h2 className={headingClasses}>Rental journey</h2>
+            <section aria-label="Rental journey" className="mt-6">
+              <ol className="grid max-w-[680px] list-none gap-6 p-0">
+                {product.journey.map(({ title, description }, index) => (
+                  <li key={title} className="grid grid-cols-[44px_1fr] gap-4">
+                    <span
+                      aria-hidden="true"
+                      className="flex size-11 items-center justify-center rounded-full bg-[#4054C6] text-sm font-semibold leading-[1.4] text-white"
+                    >
+                      {index + 1}
+                    </span>
+                    <div>
+                      <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                      <p className={bodyClasses}>{description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+            <p className={`mt-8 max-w-[680px] ${bodyClasses}`}>{product.marketClaim}</p>
           </div>
         </section>
 

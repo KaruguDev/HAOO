@@ -13,10 +13,62 @@ export const HAOO_PRODUCT: ProductDefinition = {
   outcome: 'Run the business—not the paperwork.',
   audienceLead: 'For landlords and property managers who want one clear view of their properties, rent, leases, maintenance, and communication.',
   audiences: ['Landlords', 'Property managers', 'Tenants', 'Agents'],
-  pains: [],
-  benefits: [],
-  capabilities: [],
-  journey: [],
+  pains: [
+    'Scattered spreadsheets, paper trails and message threads make it harder to see what needs attention.',
+  ],
+  benefits: [
+    'Keep the people, money and work around every property connected in one shared source of truth.',
+    'See occupancy, payments, requests and portfolio reporting with less chasing and more control.',
+  ],
+  capabilities: [
+    {
+      title: 'Rent & payments',
+      description:
+        'Track balances, digital payment workflows and tenant receipts\u2014including M-Pesa.',
+    },
+    {
+      title: 'Properties & units',
+      description: 'Organise portfolios, occupancy, vacancies and property details.',
+    },
+    {
+      title: 'Leases & screening',
+      description: 'Support tenant applications, screening and digital lease workflows.',
+    },
+    {
+      title: 'Maintenance',
+      description: 'Capture issues, assign work and keep progress visible to the right people.',
+    },
+    {
+      title: 'Vacancy marketplace',
+      description: 'Publish available homes and receive tenant applications online.',
+    },
+    {
+      title: 'Reports & communication',
+      description: 'Turn activity into insight and keep stakeholders informed.',
+    },
+  ],
+  journey: [
+    {
+      title: 'Fill vacancies with confidence',
+      description:
+        'Present available homes clearly and give prospective tenants a simple path to apply.',
+    },
+    {
+      title: 'Move in with clarity',
+      description:
+        'Keep tenant information, screening and lease workflows organised from the start.',
+    },
+    {
+      title: 'Make every month easier',
+      description:
+        'Give tenants a convenient place for payments, receipts, utilities and requests.',
+    },
+    {
+      title: 'Grow with visibility',
+      description:
+        'Use connected records and reports to manage more units without losing the human touch.',
+    },
+  ],
   featureCaveat: 'Feature availability may vary by subscription plan.',
   marketClaim: 'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
   assistedInvitation: 'Tell us about your properties and we\'ll help you choose the best way to get started.',
