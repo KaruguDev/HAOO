@@ -81,6 +81,19 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     )).toBeTruthy();
   });
 
+  it('renders every centralized audience as visible semantic content', () => {
+    renderPage();
+
+    const audienceRegion = screen.getByRole('region', { name: /audience|supports/i });
+    const audienceList = within(audienceRegion).getByRole('list');
+    const audienceItems = within(audienceList).getAllByRole('listitem');
+
+    expect(audienceItems).toHaveLength(HAOO_PRODUCT.audiences.length);
+    for (const audience of HAOO_PRODUCT.audiences) {
+      expect(within(audienceList).getByText(audience, { exact: true })).toBeTruthy();
+    }
+  });
+
   it('renders exact capability and rental journey descriptions without outcome guarantees (source fidelity)', () => {
     const { container } = renderPage();
 
