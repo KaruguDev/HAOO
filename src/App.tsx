@@ -21,7 +21,8 @@ import {
 import ProductPage from './pages/ProductPage';
 import ProductsSection from './components/ProductsSection';
 import { HAOO_PRODUCT } from './products/haoo';
-import { PRODUCTS } from './products/registry';
+import { PRODUCTS, productsNavLink } from './products/registry';
+import type { ProductDefinition } from './products/types';
 
 function downloadCompanyProfile() {
   const content = `ZERO-PAPER HUB
@@ -114,6 +115,30 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ];
 
+const MOBILE_MENU_ID = 'home-mobile-navigation';
+
+const focusRingClasses =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2';
+
+/**
+ * Product discovery is derived from collection presence, so the navigation entry
+ * and the Products landmark can never disagree about whether products exist.
+ */
+function homeNavLinks(products: readonly ProductDefinition[]) {
+  const productsLink = productsNavLink(products);
+  if (!productsLink) {
+    return NAV_LINKS;
+  }
+
+  const valuesIndex = NAV_LINKS.findIndex((link) => link.href === '#values');
+  const insertAt = valuesIndex < 0 ? NAV_LINKS.length : valuesIndex;
+  return [
+    ...NAV_LINKS.slice(0, insertAt),
+    { label: productsLink.label, href: productsLink.href },
+    ...NAV_LINKS.slice(insertAt),
+  ];
+}
+
 const CONTACT_FORM_ENDPOINT = 'https://formsubmit.co/info@zero-paperhub.com';
 const CONTACT_SUCCESS_URL = 'https://www.zero-paperhub.com/?contact=success#contact';
 
@@ -143,7 +168,12 @@ const SERVICES = [
   },
 ];
 
-function HomePage() {
+interface HomePageProps {
+  readonly products?: readonly ProductDefinition[];
+}
+
+export function HomePage({ products = PRODUCTS }: HomePageProps) {
+  const navLinks = homeNavLinks(products);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [contactSubmitting, setContactSubmitting] = useState(false);
@@ -186,39 +216,51 @@ function HomePage() {
               className={`h-14 sm:h-16 md:h-20 max-w-full w-auto rounded-lg object-contain transition-all duration-300 ${scrolled ? 'bg-white/95 p-1 sm:p-1.5 shadow-sm' : 'bg-white/95 p-1 sm:p-1.5'}`} />
           </a>
 
-          <nav className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map(l => (
+          <nav aria-label="Primary" className="hidden md:flex items-center gap-8">
+            {navLinks.map(l => (
               <a key={l.label} href={l.href}
-                className={`text-sm font-medium tracking-wide transition-colors duration-200 hover:text-green-400 ${scrolled ? 'text-gray-600' : 'text-white/90'}`}>
+                className={`inline-flex min-h-11 items-center rounded-lg text-sm font-medium tracking-wide transition-colors duration-200 hover:text-green-400 ${focusRingClasses} ${scrolled ? 'text-gray-600' : 'text-white/90'}`}>
                 {l.label}
               </a>
             ))}
             <a href="#contact"
-              className="ml-2 px-5 py-2 rounded-full bg-green-600 text-white text-sm font-semibold shadow hover:bg-green-500 transition-colors duration-200">
+              className={`ml-2 inline-flex min-h-11 items-center rounded-full bg-green-600 px-5 text-white text-sm font-semibold shadow hover:bg-green-500 transition-colors duration-200 ${focusRingClasses}`}>
               Get Started
             </a>
           </nav>
 
-          <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden flex-shrink-0 p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-700' : 'text-white'}`}>
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-controls={MOBILE_MENU_ID}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={`md:hidden inline-flex size-11 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${focusRingClasses} ${scrolled ? 'text-gray-700' : 'text-white'}`}
+          >
+            {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
           </button>
         </div>
 
         {/* Mobile menu */}
-        <div className={`md:hidden transition-all duration-300 overflow-hidden ${menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
-            {NAV_LINKS.map(l => (
+        <nav
+          id={MOBILE_MENU_ID}
+          aria-label="Primary mobile"
+          hidden={!menuOpen}
+          className="md:hidden"
+        >
+          <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-2">
+            {navLinks.map(l => (
               <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)}
-                className="text-gray-700 font-medium text-sm hover:text-green-700 transition-colors">
+                className={`inline-flex min-h-11 items-center rounded-lg text-gray-700 font-medium text-sm hover:text-green-700 transition-colors ${focusRingClasses}`}>
                 {l.label}
               </a>
             ))}
             <a href="#contact" onClick={() => setMenuOpen(false)}
-              className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-semibold text-center">
+              className={`inline-flex min-h-11 items-center justify-center rounded-full bg-green-600 px-5 text-white text-sm font-semibold ${focusRingClasses}`}>
               Get Started
             </a>
           </div>
-        </div>
+        </nav>
       </header>
 
       {/* HERO */}
@@ -404,7 +446,7 @@ function HomePage() {
         </div>
       </section>
 
-      <ProductsSection products={PRODUCTS} />
+      <ProductsSection products={products} />
 
       {/* VALUES STRIP */}
       <section id="values" className="py-20 bg-gradient-to-br from-green-900 via-green-800 to-blue-900">
