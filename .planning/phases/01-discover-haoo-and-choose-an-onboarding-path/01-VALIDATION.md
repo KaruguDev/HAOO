@@ -1,15 +1,16 @@
 ---
 phase: 01
 slug: discover-haoo-and-choose-an-onboarding-path
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-08-29
+audited: 2026-08-29
 ---
 
 # Phase 01 — Validation Strategy
 
-> Per-phase validation contract for feedback sampling during execution.
+> Retrospective Nyquist audit of the completed HAOO discovery and onboarding phase.
 
 ---
 
@@ -18,77 +19,90 @@ created: 2026-08-29
 | Property | Value |
 |----------|-------|
 | **Framework** | Vitest 3.2.4, jsdom 26.1.0, React Testing Library 16.3.2 |
-| **Config file** | `vitest.config.ts` — Wave 0 installs |
-| **Quick run command** | `npm run test:unit -- --run src/test/haoo-page.test.tsx` |
-| **Full suite command** | `npm run typecheck && npm run lint && npm test` |
-| **Estimated runtime** | ~30 seconds |
+| **Config file** | `vitest.config.ts` |
+| **Setup file** | `src/test/setup.ts` |
+| **Quick run command** | `npm run test:unit -- --run <test-file>` |
+| **Full suite command** | `npm test` (production build followed by Vitest) |
+| **Static checks** | `npm run typecheck && npm run lint` |
+| **Baseline before audit** | 63 tests passing across 6 files |
+| **Post-audit state** | 63 passing, 1 newly generated PROD-03 contract failing |
 
-`npm test` now runs the production build before the Vitest runner, superseding the Wave 0 checklist's runner-only description. `npm run test:unit` is the sub-30-second inner loop. The `01-RESEARCH.md` Validation Architecture requirement still holds because component and contract suites other than `src/test/build-output.test.ts` remain independent of `dist/`.
+`npm test` builds before running the suite, so build-output checks evaluate current `dist/` artifacts. `test:unit` remains the guarded inner-loop command.
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run the directly affected test file with `npm run test:unit` plus `npm run typecheck`
-- **After every plan wave:** Run `npm run lint && npm test`
-- **Before `$gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** 30 seconds for the affected-test loop
+- **After every task commit:** Run the directly affected test file with `npm run test:unit` plus `npm run typecheck`.
+- **After every plan wave:** Run `npm run lint && npm test`.
+- **Before verification/deployment:** Run `npm test && npm run typecheck && npm run lint`.
+- **Max feedback latency:** Under 30 seconds for the affected-test loop.
 
 ---
 
-## Per-Task Verification Map
+## Requirement Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD-W0-01 | TBD | 0 | Test foundation | T-01-01 | Exact-pinned dependencies and no unsafe postinstall | tooling | `npm run test:unit -- --run` | ❌ W0 | ⬜ pending |
-| TBD-01 | TBD | TBD | PROD-01 | — | Native product link requires no script/provider | component | `npm run test:unit -- --run src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-02 | TBD | TBD | PROD-02 | — | Physical nested HTML exists independently of SPA fallback | build contract | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-03 | TBD | TBD | PROD-03 | T-01-02 | Brochure facts render as React text nodes, never injected source HTML | component/contract | `npm run test:unit -- --run src/test/haoo-page.test.tsx src/test/haoo-content.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-04 | TBD | TBD | PROD-04 | T-01-03 | PDF fallback and independent Open/Download anchors remain available | component/build | `npm test -- --run src/test/haoo-page.test.tsx src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-05 | TBD | TBD | PROD-05 | T-01-04 | Metadata uses fixed HTTPS canonical/social values | build contract | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-06 | TBD | TBD | PROD-06 | — | Contacts and destinations have one typed source of truth | unit/contract | `npm run test:unit -- --run src/test/haoo-content.test.ts src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-07 | TBD | TBD | ONBD-01 | T-01-04 | Fixed `tel:+254702188044` destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-08 | TBD | TBD | ONBD-02 | T-01-04 | Fixed digits-only WhatsApp destination and generic encoded starter text | unit/component | `npm run test:unit -- --run src/test/haoo-content.test.ts src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-09 | TBD | TBD | ONBD-03 | T-01-04 | Fixed `mailto:info@haoo.online` destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-10 | TBD | TBD | ONBD-04 | T-01-04 | Fixed HTTPS self-onboarding destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-11 | TBD | TBD | ONBD-05 | T-01-05 | Native links have no analytics, storage, form, or PDF precondition | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-12 | TBD | TBD | QUAL-04 | — | Built product route and PDF asset are directly servable | build contract/smoke | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-13 | TBD | TBD | QUAL-06 | — | Exact brochure claims, contacts, brand casing, and PDF checksum are preserved | unit/build contract | `npm test -- --run src/test/haoo-content.test.ts src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
+| Requirement | Owning Plans | Automated Evidence | Status |
+|-------------|--------------|--------------------|--------|
+| PROD-01 | 01-04 | `src/test/products-section.test.tsx` — collection states, Products navigation, landmark order, native route | ✅ covered |
+| PROD-02 | 01-02, 01-08 | `src/test/build-output.test.ts` — physical nested document, emitted references, fresh build output | ✅ covered |
+| PROD-03 | 01-03 | Story, benefits, capabilities, journey, semantics, media failure, and source fidelity are covered; `src/test/haoo-page.test.tsx#renders every centralized audience as visible semantic content` exposes the missing rendered audience collection | ⚠ partial — implementation gap |
+| PROD-04 | 01-05, 01-08 | `src/test/haoo-page.test.tsx` and `src/test/build-output.test.ts` — preview/fallback, independent Open/Download, exact PDF bytes | ✅ covered |
+| PROD-05 | 01-02, 01-08 | `src/test/build-output.test.ts` — source/built title, canonical, description, and social metadata | ✅ covered |
+| PROD-06 | 01-02, 01-04, 01-07 | `src/test/product-shell-reuse.test.tsx`, content contracts, and collection tests — typed central data and synthetic product shell reuse | ✅ covered |
+| ONBD-01 | 01-02, 01-09 | Page and no-script contracts assert visible `tel:+254702188044` navigation | ✅ covered |
+| ONBD-02 | 01-02, 01-09 | Content and no-script contracts assert digits-only WhatsApp destination, exact decoded starter text, and one query parameter | ✅ covered |
+| ONBD-03 | 01-02, 01-09 | Page and no-script contracts assert visible `mailto:info@haoo.online` navigation | ✅ covered |
+| ONBD-04 | 01-02, 01-09 | Page and no-script contracts assert visible `https://manage.haoo.online/` navigation and departure disclosure | ✅ covered |
+| ONBD-05 | 01-02, 01-05, 01-09 | Native-link, static-boundary, PDF-fallback, and no-script contracts reject optional-system gating | ✅ covered |
+| QUAL-04 | 01-02, 01-05, 01-08 | Fresh physical build/asset contracts plus production `curl` checks for the HAOO page and PDF | ✅ covered |
+| QUAL-06 | 01-01, 01-03, 01-05 | Exact content ledger, native destinations, uppercase brand, supplied-media hashes, and PDF SHA-256 | ✅ covered |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-- [ ] Install exact test packages: `vitest@3.2.4`, `jsdom@26.1.0`, `@testing-library/react@16.3.2`, and their required peer packages after package-legitimacy review.
-- [ ] Add `vitest.config.ts` with `environment: 'jsdom'` and `setupFiles: ['./src/test/setup.ts']`.
-- [ ] Add `src/test/setup.ts` with explicit Testing Library cleanup from Vitest `afterEach`.
-- [ ] Add package script `test: vitest run`.
-- [ ] Add `src/test/products-section.test.tsx` for PROD-01 and PROD-06.
-- [ ] Add `src/test/haoo-page.test.tsx` for PROD-03, PROD-04, and ONBD-01 through ONBD-05.
-- [ ] Add `src/test/haoo-content.test.ts` for centralized facts, link grammar, uppercase `ZERO-PAPER HUB`, and QUAL-06.
-- [ ] Add `src/test/build-output.test.ts` for the physical route, metadata, published assets, and PDF checksum.
+**Coverage summary:** 12 requirements covered; 1 requirement partial; 0 requirements missing.
 
 ---
 
-## Manual-Only Verifications
+## Escalated Validation Gap
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Browser renders the embedded PDF on a capable desktop browser and shows the branded fallback when embedding is unavailable | PROD-04 | Browser PDF support cannot be represented reliably by jsdom | Open the built HAOO page in a desktop browser; verify the object preview and both controls, then disable PDF handling or inspect fallback content and verify both controls remain usable. |
-| Local preview serves direct product and PDF URLs successfully | QUAL-04 | Requires an HTTP server process and browser/server boundary | Run `npm run build && npm run preview`, then request `/products/haoo/` and the published brochure path and verify HTTP success plus correct content types. |
-| Product and social-image crop remain usable at supported viewport widths | PROD-03, PROD-05 | Visual composition requires rendered-browser inspection | Inspect the HAOO page and metadata preview asset at representative mobile and desktop widths; confirm no essential text/action is clipped. |
+| Gap ID | Requirement | Generated Test | Result | Root Cause | Required Resolution |
+|--------|-------------|----------------|--------|------------|---------------------|
+| NYQ-PROD-03 | PROD-03 | `src/test/haoo-page.test.tsx#renders every centralized audience as visible semantic content` | Fails: 1 failed, 19 passed in focused file | `ProductPage` renders `product.audienceLead` but never reads `product.audiences`; no labeled audience region/list exists and `Agents` has zero rendered matches | Render the centralized four-item audience collection as semantic visible content, then rerun the focused test and this audit |
+
+The Nyquist auditor exhausted 3/3 permitted iterations and escalated this as an implementation defect. The validation workflow did not modify implementation files.
+
+---
+
+## Manual-Only Complements
+
+These browser judgments complement automated contracts; they are not substitutes for the unresolved PROD-03 DOM contract.
+
+| Behavior | Requirement | Evidence |
+|----------|-------------|----------|
+| Responsive layout, zoom, and fixed-header anchor landing | PROD-01, PROD-03 | Phase 01 UAT tests 2 and 4 passed |
+| Real PDF embedding/fallback behavior | PROD-04 | Phase 01 UAT test 3 passed |
+| No-JavaScript fallback activation and native destinations | ONBD-05 | Phase 01 UAT test 7 passed |
+| Deployed HAOO and brochure routes | QUAL-04 | Production smoke checks returned HTTP 200 after deployment |
+
+---
+
+## Validation Audit 2026-08-29
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 13 |
+| Gaps found | 1 |
+| Resolved | 0 |
+| Escalated | 1 |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30 seconds
+- [ ] All Phase 01 requirements have passing automated behavior verification
+- [x] Sampling continuity: no three consecutive implementation tasks lack automated verification
+- [x] Wave 0 test infrastructure and planned contract files exist
+- [x] No watch-mode flags are used in verification commands
+- [x] Affected-test feedback latency remains under 30 seconds
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated partial — implementation gap NYQ-PROD-03 remains open
