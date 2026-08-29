@@ -90,6 +90,22 @@ export default function ProductPage({ product }: ProductPageProps) {
           </div>
         </section>
 
+        <section aria-labelledby="audiences-heading" className="border-b border-[#DFE4F0] bg-white py-10">
+          <div className={containerClasses}>
+            <h2 id="audiences-heading" className={headingClasses}>Who {product.name} supports</h2>
+            <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4">
+              {product.audiences.map((audience) => (
+                <li
+                  key={audience}
+                  className="rounded-xl border border-[#DFE4F0] bg-[#FBFCFF] px-5 py-4 text-base font-semibold leading-6 text-[#18275F]"
+                >
+                  {audience}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section id="benefits" aria-label="Benefits" className="scroll-mt-4 py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={headingClasses}>Benefits</h2>
