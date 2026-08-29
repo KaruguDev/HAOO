@@ -6,6 +6,8 @@ import { HAOO_PRODUCT } from '../products/haoo';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
+const SOURCE_ROOT_HTML = resolve(ROOT, 'index.html');
+const BUILT_ROOT_HTML = resolve(ROOT, 'dist/index.html');
 const SOURCE_HTML = resolve(ROOT, 'products/haoo/index.html');
 const BUILT_HTML = resolve(ROOT, 'dist/products/haoo/index.html');
 const PUBLIC_PDF = resolve(ROOT, 'public/products/haoo/HAOO-Marketing-Brochure.pdf');
@@ -15,6 +17,10 @@ const PRODUCT_TITLE = 'HAOO Property Management | ZERO-PAPER HUB';
 const PRODUCT_DESCRIPTION = 'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.';
 const PRODUCT_URL = 'https://www.zero-paperhub.com/products/haoo/';
 const PRODUCT_IMAGE = `${PRODUCT_URL}brochure-preview.png`;
+const ROOT_TITLE = 'ZERO-PAPER HUB | Strategic Digital Workflows';
+const ROOT_DESCRIPTION = 'ZERO-PAPER HUB builds strategic digital products and workflows that help organizations work clearly and grow.';
+const ROOT_URL = 'https://www.zero-paperhub.com/';
+const ROOT_IMAGE = `${ROOT_URL}zero-paper_hub_hi-def.png`;
 const PUBLIC_PREVIEW = resolve(ROOT, 'public/products/haoo/brochure-preview.png');
 const PREVIEW_SHA256 = '7e62c3b75a0bc7ba70c400b4ec63e93cbe51701da051127ba212be7c578c8087';
 const PDF_ALTERNATE_LINK =
@@ -148,6 +154,28 @@ describe('Phase 1 static build contracts', () => {
       expect(html).toContain(`name="twitter:image" content="${PRODUCT_IMAGE}"`);
       expect(html).not.toContain('bolt.new/static/og_default.png');
     }
+  });
+
+  it('publishes first-party root canonical and social metadata', () => {
+    for (const html of [readText(SOURCE_ROOT_HTML), readText(BUILT_ROOT_HTML)]) {
+      expect(html).toContain(ROOT_TITLE);
+      expect(html).toContain(`name="description" content="${ROOT_DESCRIPTION}"`);
+      expect(html).toContain(`rel="canonical" href="${ROOT_URL}"`);
+      expect(html).toContain('property="og:type" content="website"');
+      expect(html).toContain(`property="og:title" content="${ROOT_TITLE}"`);
+      expect(html).toContain(`property="og:description" content="${ROOT_DESCRIPTION}"`);
+      expect(html).toContain(`property="og:url" content="${ROOT_URL}"`);
+      expect(html).toContain(`property="og:image" content="${ROOT_IMAGE}"`);
+      expect(html).toContain('property="og:site_name" content="ZERO-PAPER HUB"');
+      expect(html).toContain('name="twitter:card" content="summary_large_image"');
+      expect(html).toContain(`name="twitter:title" content="${ROOT_TITLE}"`);
+      expect(html).toContain(`name="twitter:description" content="${ROOT_DESCRIPTION}"`);
+      expect(html).toContain(`name="twitter:image" content="${ROOT_IMAGE}"`);
+      expect(html).not.toContain('bolt.new');
+    }
+
+    expect(existsSync(resolve(ROOT, 'public/zero-paper_hub_hi-def.png'))).toBe(true);
+    expect(existsSync(resolve(ROOT, 'dist/zero-paper_hub_hi-def.png'))).toBe(true);
   });
 
   it('references emitted scripts, styles, and product assets from built HTML', () => {
