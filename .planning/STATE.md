@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 Phase: 2 — Submit a Qualified HAOO Enquiry
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-29 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-08-30 - Completed quick task 260830-16r: Update .gitignore to exclude local GSD runtime state and generated planning research cache files
 
 Progress: [████████████████████] 9/9 plans (100%)
 
@@ -108,6 +108,12 @@ None yet.
 - Analytics account/configuration may be absent; the product journey must remain launchable with the no-op measurement path.
 - [Phase 1 review] Informational tenant and agent audiences are not visibly rendered despite the broader PROD-03 audience wording; revisit before shipping if that interpretation is required.
 - [Dependency maintenance] The unused Supabase dependency retains a pre-existing `ws` advisory; review removal or upgrade in a dedicated task before shipping.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260830-16r | Update .gitignore to exclude local GSD runtime state and generated planning research cache files | 2026-08-30 | c5cce39 | [260830-16r-update-gitignore-to-exclude-local-gsd-ru](./quick/260830-16r-update-gitignore-to-exclude-local-gsd-ru/) |
 
 ## Deferred Items
 
