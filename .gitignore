@@ -21,3 +21,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Local GSD runtime and generated research cache
+.gsd/
+.planning/research/.cache/
