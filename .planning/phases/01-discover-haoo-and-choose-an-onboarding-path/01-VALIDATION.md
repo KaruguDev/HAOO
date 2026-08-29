@@ -19,16 +19,18 @@ created: 2026-08-29
 |----------|-------|
 | **Framework** | Vitest 3.2.4, jsdom 26.1.0, React Testing Library 16.3.2 |
 | **Config file** | `vitest.config.ts` — Wave 0 installs |
-| **Quick run command** | `npm test -- --run src/test/haoo-page.test.tsx` |
-| **Full suite command** | `npm run typecheck && npm run lint && npm run build && npm test` |
+| **Quick run command** | `npm run test:unit -- --run src/test/haoo-page.test.tsx` |
+| **Full suite command** | `npm run typecheck && npm run lint && npm test` |
 | **Estimated runtime** | ~30 seconds |
+
+`npm test` now runs the production build before the Vitest runner, superseding the Wave 0 checklist's runner-only description. `npm run test:unit` is the sub-30-second inner loop. The `01-RESEARCH.md` Validation Architecture requirement still holds because component and contract suites other than `src/test/build-output.test.ts` remain independent of `dist/`.
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run the directly affected test file plus `npm run typecheck`
-- **After every plan wave:** Run `npm run lint && npm run build && npm test`
+- **After every task commit:** Run the directly affected test file with `npm run test:unit` plus `npm run typecheck`
+- **After every plan wave:** Run `npm run lint && npm test`
 - **Before `$gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 30 seconds for the affected-test loop
 
@@ -38,19 +40,19 @@ created: 2026-08-29
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD-W0-01 | TBD | 0 | Test foundation | T-01-01 | Exact-pinned dependencies and no unsafe postinstall | tooling | `npm test -- --run` | ❌ W0 | ⬜ pending |
-| TBD-01 | TBD | TBD | PROD-01 | — | Native product link requires no script/provider | component | `npm test -- --run src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-02 | TBD | TBD | PROD-02 | — | Physical nested HTML exists independently of SPA fallback | build contract | `npm run build && npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-03 | TBD | TBD | PROD-03 | T-01-02 | Brochure facts render as React text nodes, never injected source HTML | component/contract | `npm test -- --run src/test/haoo-page.test.tsx src/test/haoo-content.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-04 | TBD | TBD | PROD-04 | T-01-03 | PDF fallback and independent Open/Download anchors remain available | component/build | `npm run build && npm test -- --run src/test/haoo-page.test.tsx src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-05 | TBD | TBD | PROD-05 | T-01-04 | Metadata uses fixed HTTPS canonical/social values | build contract | `npm run build && npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
-| TBD-06 | TBD | TBD | PROD-06 | — | Contacts and destinations have one typed source of truth | unit/contract | `npm test -- --run src/test/haoo-content.test.ts src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-07 | TBD | TBD | ONBD-01 | T-01-04 | Fixed `tel:+254702188044` destination | component | `npm test -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-08 | TBD | TBD | ONBD-02 | T-01-04 | Fixed digits-only WhatsApp destination and generic encoded starter text | unit/component | `npm test -- --run src/test/haoo-content.test.ts src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-09 | TBD | TBD | ONBD-03 | T-01-04 | Fixed `mailto:info@haoo.online` destination | component | `npm test -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-10 | TBD | TBD | ONBD-04 | T-01-04 | Fixed HTTPS self-onboarding destination | component | `npm test -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-11 | TBD | TBD | ONBD-05 | T-01-05 | Native links have no analytics, storage, form, or PDF precondition | component | `npm test -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD-12 | TBD | TBD | QUAL-04 | — | Built product route and PDF asset are directly servable | build contract/smoke | `npm run build && npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
+| TBD-W0-01 | TBD | 0 | Test foundation | T-01-01 | Exact-pinned dependencies and no unsafe postinstall | tooling | `npm run test:unit -- --run` | ❌ W0 | ⬜ pending |
+| TBD-01 | TBD | TBD | PROD-01 | — | Native product link requires no script/provider | component | `npm run test:unit -- --run src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-02 | TBD | TBD | PROD-02 | — | Physical nested HTML exists independently of SPA fallback | build contract | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
+| TBD-03 | TBD | TBD | PROD-03 | T-01-02 | Brochure facts render as React text nodes, never injected source HTML | component/contract | `npm run test:unit -- --run src/test/haoo-page.test.tsx src/test/haoo-content.test.ts` | ❌ W0 | ⬜ pending |
+| TBD-04 | TBD | TBD | PROD-04 | T-01-03 | PDF fallback and independent Open/Download anchors remain available | component/build | `npm test -- --run src/test/haoo-page.test.tsx src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
+| TBD-05 | TBD | TBD | PROD-05 | T-01-04 | Metadata uses fixed HTTPS canonical/social values | build contract | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
+| TBD-06 | TBD | TBD | PROD-06 | — | Contacts and destinations have one typed source of truth | unit/contract | `npm run test:unit -- --run src/test/haoo-content.test.ts src/test/products-section.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-07 | TBD | TBD | ONBD-01 | T-01-04 | Fixed `tel:+254702188044` destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-08 | TBD | TBD | ONBD-02 | T-01-04 | Fixed digits-only WhatsApp destination and generic encoded starter text | unit/component | `npm run test:unit -- --run src/test/haoo-content.test.ts src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-09 | TBD | TBD | ONBD-03 | T-01-04 | Fixed `mailto:info@haoo.online` destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-10 | TBD | TBD | ONBD-04 | T-01-04 | Fixed HTTPS self-onboarding destination | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-11 | TBD | TBD | ONBD-05 | T-01-05 | Native links have no analytics, storage, form, or PDF precondition | component | `npm run test:unit -- --run src/test/haoo-page.test.tsx` | ❌ W0 | ⬜ pending |
+| TBD-12 | TBD | TBD | QUAL-04 | — | Built product route and PDF asset are directly servable | build contract/smoke | `npm test -- --run src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
 | TBD-13 | TBD | TBD | QUAL-06 | — | Exact brochure claims, contacts, brand casing, and PDF checksum are preserved | unit/build contract | `npm test -- --run src/test/haoo-content.test.ts src/test/build-output.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

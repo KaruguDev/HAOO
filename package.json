@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run",
     "test:phase1:red": "node scripts/assert-phase1-red.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
