@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
+import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import {
@@ -15,7 +18,39 @@ import {
   skipToContentLabel,
   whatsappActionLabel,
 } from '../products/copy';
+import { PRODUCTS } from '../products/registry';
 import type { ProductDefinition } from '../products/types';
+
+const ROOT = resolve(import.meta.dirname, '../..');
+const GENERIC_PRODUCT_SOURCES = [
+  'src/pages/ProductPage.tsx',
+  'src/components/ProductHeader.tsx',
+  'src/components/OnboardingChoices.tsx',
+  'src/components/BrochurePanel.tsx',
+  'src/components/ProductsSection.tsx',
+  'src/products/copy.ts',
+  'src/products/types.ts',
+] as const;
+
+function withoutComments(source: string) {
+  const scanner = ts.createScanner(
+    ts.ScriptTarget.Latest,
+    true,
+    ts.LanguageVariant.JSX,
+    source,
+  );
+  const tokens: string[] = [];
+
+  for (
+    let token = scanner.scan();
+    token !== ts.SyntaxKind.EndOfFileToken;
+    token = scanner.scan()
+  ) {
+    tokens.push(scanner.getTokenText());
+  }
+
+  return tokens.join(' ');
+}
 
 function syntheticProduct(
   overrides: Partial<ProductDefinition> = {},
@@ -120,5 +155,46 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(() => navigationToggleLabel('', false)).toThrow('Product name must not be empty');
     expect(() => contentAnchorId('')).toThrow('Product slug must not be empty');
     expect(() => mobileNavigationId(' ')).toThrow('Product slug must not be empty');
+  });
+
+  it('derives product-named shell surfaces for every registered product', () => {
+    expect(PRODUCTS.length).toBeGreaterThan(0);
+
+    for (const product of PRODUCTS) {
+      const view = render(<ProductPage product={product} />);
+
+      expect(screen.getByRole('link', { name: skipToContentLabel(product.name) })).toBeTruthy();
+      expect(screen.getByRole('navigation', { name: sectionsNavLabel(product.name) }))
+        .toBeTruthy();
+      const toggle = screen.getByRole('button', {
+        name: navigationToggleLabel(product.name, false),
+      });
+      fireEvent.click(toggle);
+      expect(screen.getByRole('navigation', { name: mobileSectionsNavLabel(product.name) }))
+        .toBeTruthy();
+      expect(screen.getAllByRole('link', { name: selfOnboardingActionLabel(product.name) }))
+        .toHaveLength(3);
+      expect(screen.getByText(parentRelationshipLine(product.name))).toBeTruthy();
+
+      view.unmount();
+    }
+  });
+
+  it('rejects product-name literals in product-generic executable source', () => {
+    let scanned = 0;
+    const productName = PRODUCTS[0].name;
+    const productNamePattern = new RegExp(productName, 'i');
+
+    for (const relativePath of GENERIC_PRODUCT_SOURCES) {
+      const source = readFileSync(resolve(ROOT, relativePath), 'utf8');
+      scanned += 1;
+      expect(withoutComments(source), relativePath).not.toMatch(productNamePattern);
+    }
+
+    expect(scanned).toBeGreaterThan(0);
+    expect(withoutComments(`// ${productName}\nconst safe = true;`))
+      .not.toMatch(productNamePattern);
+    expect(withoutComments(`const product = '${productName}';`))
+      .toMatch(productNamePattern);
   });
 });

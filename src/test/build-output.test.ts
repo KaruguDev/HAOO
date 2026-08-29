@@ -33,6 +33,7 @@ const PRODUCT_SOURCES = [
   'src/components/ProductHeader.tsx',
   'src/components/ProductsSection.tsx',
   'src/products/haoo.ts',
+  'src/products/copy.ts',
   'src/products/registry.ts',
   'src/products/types.ts',
 ];
