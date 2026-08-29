@@ -10,8 +10,19 @@ const ONBOARDING_LINKS = [
   ['Start with HAOO', 'https://manage.haoo.online/'],
 ] as const;
 
+const OPEN_BROCHURE = /Open brochure.*new tab/i;
+const DOWNLOAD_BROCHURE = 'Download brochure';
+const FALLBACK_HEADING = 'Brochure preview unavailable';
+const FALLBACK_BODY = 'You can still open the HAOO brochure in a new tab or download the PDF.';
+const PREVIEW_ERROR =
+  "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
+
 function renderPage() {
   return render(<ProductPage product={HAOO_PRODUCT} />);
+}
+
+function brochureRegion() {
+  return screen.getByRole('region', { name: 'Brochure' });
 }
 
 describe('Phase 1 semantic HAOO page contracts', () => {
@@ -158,6 +169,121 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(within(brochure).getByText('PDF · 2.1 MB')).toBeTruthy();
   });
 
+  it('publishes the original brochure PDF facts from centralized product data', () => {
+    expect(HAOO_PRODUCT.brochure.pdfHref).toBe('/products/haoo/HAOO-Marketing-Brochure.pdf');
+    expect(HAOO_PRODUCT.brochure.downloadName).toBe('HAOO-Marketing-Brochure.pdf');
+    expect(HAOO_PRODUCT.brochure.expectationLabel).toBe('PDF · 2.1 MB');
+    expect(HAOO_PRODUCT.brochure.previewImageAlt).toBe('HAOO property-management brochure preview');
+  });
+
+  it('places the brochure after the complete guided overview and before the final onboarding block', () => {
+    renderPage();
+
+    const journey = screen.getByRole('region', { name: 'Rental journey' });
+    const brochure = brochureRegion();
+    const onboarding = screen.getByRole('region', { name: 'Onboarding' });
+
+    expect(journey.compareDocumentPosition(brochure) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeGreaterThan(0);
+    expect(brochure.compareDocumentPosition(onboarding) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeGreaterThan(0);
+  });
+
+  it('renders a compact preview below lg, a lg-only PDF object, and controls outside the object', () => {
+    renderPage();
+
+    const brochure = brochureRegion();
+    const preview = within(brochure).getByRole('img', {
+      name: HAOO_PRODUCT.brochure.previewImageAlt,
+    });
+    expect(preview.getAttribute('src')).toBe(HAOO_PRODUCT.brochure.previewImageHref);
+    expect(preview.getAttribute('width')).toBe('1287');
+    expect(preview.getAttribute('height')).toBe('909');
+    expect(preview.parentElement?.className).toContain('lg:hidden');
+
+    const pdfObject = brochure.querySelector('object[type="application/pdf"]');
+    expect(pdfObject).not.toBeNull();
+    expect(pdfObject!.getAttribute('data')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(pdfObject!.parentElement?.className).toContain('hidden');
+    expect(pdfObject!.parentElement?.className).toContain('lg:block');
+    expect(pdfObject!.textContent).toContain(FALLBACK_HEADING);
+    expect(pdfObject!.textContent).toContain(FALLBACK_BODY);
+
+    const openLink = within(brochure).getByRole('link', { name: OPEN_BROCHURE });
+    const downloadLink = within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE });
+    expect(pdfObject!.contains(openLink)).toBe(false);
+    expect(pdfObject!.contains(downloadLink)).toBe(false);
+    expect(pdfObject!.contains(preview)).toBe(false);
+    expect(openLink.getAttribute('target')).toBe('_blank');
+    expect(downloadLink.getAttribute('download')).toBe(HAOO_PRODUCT.brochure.downloadName);
+    expect(downloadLink.getAttribute('target')).toBeNull();
+  });
+
+  it('renders the exact preview error copy and keeps both controls when brochure media is absent', () => {
+    render(
+      <ProductPage
+        product={{
+          ...HAOO_PRODUCT,
+          brochure: { ...HAOO_PRODUCT.brochure, previewImageHref: '' },
+        }}
+      />,
+    );
+
+    const brochure = brochureRegion();
+    expect(within(brochure).getByText(PREVIEW_ERROR)).toBeTruthy();
+    expect(within(brochure).queryByRole('img')).toBeNull();
+    expect(within(brochure).getByRole('link', { name: OPEN_BROCHURE })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE })
+      .hasAttribute('download')).toBe(true);
+    expect(within(brochure).getByText(HAOO_PRODUCT.brochure.expectationLabel)).toBeTruthy();
+  });
+
+  it('falls back to the exact error copy when the supplied preview image fails to load', () => {
+    renderPage();
+
+    const brochure = brochureRegion();
+    fireEvent.error(within(brochure).getByRole('img', {
+      name: HAOO_PRODUCT.brochure.previewImageAlt,
+    }));
+
+    expect(within(brochure).getByText(PREVIEW_ERROR)).toBeTruthy();
+    expect(within(brochure).queryByRole('img')).toBeNull();
+    expect(within(brochure).getByRole('link', { name: OPEN_BROCHURE })).toBeTruthy();
+    expect(within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE })).toBeTruthy();
+  });
+
+  it('keeps Open and Download independent under repeated, interrupted, and concurrent activation', () => {
+    renderPage();
+
+    const brochure = brochureRegion();
+    const controls = within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE }).parentElement!;
+    const before = controls.outerHTML;
+    const preventNavigation = (event: Event) => event.preventDefault();
+
+    document.addEventListener('click', preventNavigation);
+    try {
+      for (let round = 0; round < 3; round += 1) {
+        fireEvent.click(within(brochure).getByRole('link', { name: OPEN_BROCHURE }));
+        fireEvent.click(within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE }));
+        fireEvent.click(within(brochure).getByRole('link', { name: OPEN_BROCHURE }));
+      }
+    } finally {
+      document.removeEventListener('click', preventNavigation);
+    }
+
+    expect(controls.outerHTML).toBe(before);
+
+    const openLink = within(brochure).getByRole('link', { name: OPEN_BROCHURE });
+    const downloadLink = within(brochure).getByRole('link', { name: DOWNLOAD_BROCHURE });
+    expect(openLink.getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(downloadLink.getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(openLink.getAttribute('aria-disabled')).toBeNull();
+    expect(downloadLink.getAttribute('aria-disabled')).toBeNull();
+    expect(openLink.hasAttribute('disabled')).toBe(false);
+    expect(downloadLink.hasAttribute('disabled')).toBe(false);
+  });
+
   it('publishes the exact supplied logo and hero media with reserved space', () => {
     const { container } = renderPage();
 
@@ -184,7 +310,15 @@ describe('Phase 1 semantic HAOO page contracts', () => {
   });
 
   it('keeps every fact and action available when partial media is omitted', () => {
-    render(<ProductPage product={{ ...HAOO_PRODUCT, media: {} }} />);
+    render(
+      <ProductPage
+        product={{
+          ...HAOO_PRODUCT,
+          media: {},
+          brochure: { ...HAOO_PRODUCT.brochure, previewImageHref: '' },
+        }}
+      />,
+    );
 
     expect(screen.queryAllByRole('img')).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 1, name: HAOO_PRODUCT.outcome })).toBeTruthy();
@@ -196,6 +330,11 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       expect(links).toHaveLength(3);
       expect(links.every((link) => link.getAttribute('href') === href)).toBe(true);
     }
+
+    expect(screen.getByRole('link', { name: OPEN_BROCHURE }).getAttribute('href'))
+      .toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(screen.getByRole('link', { name: DOWNLOAD_BROCHURE }).hasAttribute('download'))
+      .toBe(true);
   });
 
   it('exposes accessible mobile navigation and unclipped native actions', () => {
