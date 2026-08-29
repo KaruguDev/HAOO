@@ -59,12 +59,66 @@ function listFiles(dir: string): string[] {
   });
 }
 
+const BUILD_INPUTS = [
+  ...listFiles(resolve(ROOT, 'src')).filter(
+    (path) => !path.startsWith(`${resolve(ROOT, 'src/test')}/`),
+  ),
+  ...listFiles(resolve(ROOT, 'public')),
+  resolve(ROOT, 'index.html'),
+  SOURCE_HTML,
+  resolve(ROOT, 'vite.config.ts'),
+  resolve(ROOT, 'package.json'),
+];
+const BUILD_OUTPUTS = [
+  BUILT_HTML,
+  resolve(DIST, 'index.html'),
+  ...listFiles(resolve(DIST, 'assets')),
+];
+
+function newestInput() {
+  return BUILD_INPUTS
+    .map((path) => ({ path, mtimeMs: statSync(path).mtimeMs }))
+    .reduce((newest, input) => (input.mtimeMs > newest.mtimeMs ? input : newest));
+}
+
+function oldestOutput() {
+  return BUILD_OUTPUTS
+    .map((path) => ({ path, mtimeMs: statSync(path).mtimeMs }))
+    .reduce((oldest, output) => (output.mtimeMs < oldest.mtimeMs ? output : oldest));
+}
+
 function builtBundleText() {
   return listFiles(resolve(DIST, 'assets'))
     .filter((file) => file.endsWith('.js'))
     .map((file) => readFileSync(file, 'utf8'))
     .join('\n');
 }
+
+describe('Phase 1 build artifact freshness', () => {
+  it('requires every production build output to exist', () => {
+    const missingOutputs = BUILD_OUTPUTS.filter((path) => !existsSync(path));
+
+    expect(
+      missingOutputs,
+      `Missing build output ${missingOutputs[0] ?? BUILT_HTML}. Run npm run build before asserting against dist/products/haoo/index.html.`,
+    ).toEqual([]);
+  });
+
+  it('scans a non-empty set of production build inputs', () => {
+    expect(BUILD_INPUTS.length).toBeGreaterThan(0);
+    expect(BUILD_INPUTS.every((path) => existsSync(path))).toBe(true);
+  });
+
+  it('rejects outputs older than the newest production build input', () => {
+    const input = newestInput();
+    const output = oldestOutput();
+
+    expect(
+      output.mtimeMs,
+      `Stale build output ${output.path} (${new Date(output.mtimeMs).toISOString()}) is older than build input ${input.path} (${new Date(input.mtimeMs).toISOString()}). Run npm run build.`,
+    ).toBeGreaterThanOrEqual(input.mtimeMs);
+  });
+});
 
 describe('Phase 1 static build contracts', () => {
   it('[phase1-red:build] emits a physical nested HAOO document', () => {
