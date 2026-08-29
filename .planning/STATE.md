@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Discover HAOO and Choose an Onboarding Path
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-08-29T09:43:43.167Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-08-29T10:07:10.490Z"
 last_activity: 2026-08-29
 last_activity_desc: Phase 01 execution started
-state_head: 1db923b4ff7e22f12be3226331f8e8c21d874d46
+state_head: ae821ef8d926a72d844ae9a4ad8951b5caf6e733
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-08-29 — Phase 01 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 01 P01 | 10 min | 3 tasks | 13 files |
 | Phase 01 P02 | 5 min | 2 tasks | 6 files |
+| Phase 01 P03 | 12 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Accept expected RED only when all four named behavior markers appear and no known infrastructure-failure signature is present.
 - [Phase 01]: Select the HAOO composition from the physical document body marker while retaining the shared React bootstrap and avoiding a runtime router. — A physical Vite MPA entry provides direct static navigation and crawler-visible source metadata.
 - [Phase 01]: Derive the WhatsApp URL only from fixed compile-time product data. — This preserves exact decoded starter text and prevents visitor or analytics context from entering the destination.
+- [Phase 01]: HAOO page renders all brochure capability and journey copy verbatim; only the pain and benefit summaries are condensed, and each is assembled from brochure phrases.
+- [Phase 01]: Product media paths live in centralized product data (HAOO_PRODUCT.media), keeping ProductPage.tsx a product-agnostic shell and making the partial-media contract testable.
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T09:43:43.148Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-08-29T10:04:50.793Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
