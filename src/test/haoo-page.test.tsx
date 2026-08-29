@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { HAOO_PRODUCT } from '../products/haoo';
@@ -116,5 +116,22 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       document.documentElement.clientWidth,
     );
+  });
+
+  it('keeps navigation accessibility and all onboarding placements tied to one product', () => {
+    renderPage();
+
+    const menu = screen.getByRole('button', { name: 'Open HAOO navigation' });
+    fireEvent.click(menu);
+    expect(menu.getAttribute('aria-expanded')).toBe('true');
+
+    const mobileNavigation = document.getElementById(menu.getAttribute('aria-controls')!);
+    expect(mobileNavigation).not.toBeNull();
+    fireEvent.click(within(mobileNavigation!).getByRole('link', { name: 'Benefits' }));
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+
+    expect(screen.getAllByRole('region', { name: /onboarding choices/i })).toHaveLength(3);
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(2);
   });
 });
