@@ -21,7 +21,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 ### Phase 1: Discover HAOO and Choose an Onboarding Path
 
-**Goal**: Visitors can move from the Zero-Paper Hub home page to a stable, brochure-faithful HAOO page and immediately choose assisted or self-service onboarding.
+**Goal**: As a landlord or property manager, I want to move from the ZERO-PAPER HUB home page to a stable, brochure-faithful HAOO page and immediately choose assisted or self-service onboarding, so that I can start with HAOO through the path I prefer.
 **Mode:** mvp
 **Depends on**: Nothing (first phase)
 **Requirements**: PROD-01, PROD-02, PROD-03, PROD-04, PROD-05, PROD-06, ONBD-01, ONBD-02, ONBD-03, ONBD-04, ONBD-05, QUAL-04, QUAL-06
