@@ -9,7 +9,7 @@ interface OnboardingChoicesProps {
 }
 
 const focusLight = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
-const focusDark = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#18275F]';
+const focusDark = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#18275F]';
 
 const POSITION_LABELS: Record<OnboardingPosition, string> = {
   opening: 'Opening onboarding choices',
