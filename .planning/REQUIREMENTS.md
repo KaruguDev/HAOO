@@ -16,11 +16,11 @@
 
 ### Onboarding Paths
 
-- [ ] **ONBD-01**: Prospect can contact HAOO through a visible click-to-call link for `+254 702 188 044`
-- [ ] **ONBD-02**: Prospect can start a WhatsApp conversation with HAOO through a visible link using non-personal generic starter text
-- [ ] **ONBD-03**: Prospect can email `info@haoo.online` through a visible mail link
-- [ ] **ONBD-04**: Prospect can self-onboard through a visible link to `manage.haoo.online`
-- [ ] **ONBD-05**: Assisted and self-service onboarding paths remain available regardless of analytics, browser storage, PDF embedding, or form-provider availability
+- [x] **ONBD-01**: Prospect can contact HAOO through a visible click-to-call link for `+254 702 188 044`
+- [x] **ONBD-02**: Prospect can start a WhatsApp conversation with HAOO through a visible link using non-personal generic starter text
+- [x] **ONBD-03**: Prospect can email `info@haoo.online` through a visible mail link
+- [x] **ONBD-04**: Prospect can self-onboard through a visible link to `manage.haoo.online`
+- [x] **ONBD-05**: Assisted and self-service onboarding paths remain available regardless of analytics, browser storage, PDF embedding, or form-provider availability
 
 ### Qualification and Delivery
 
@@ -95,11 +95,11 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | PROD-04 | Phase 1 | Complete |
 | PROD-05 | Phase 1 | Complete |
 | PROD-06 | Phase 1 | Gaps Found |
-| ONBD-01 | Phase 1 | Gaps Found |
-| ONBD-02 | Phase 1 | Gaps Found |
-| ONBD-03 | Phase 1 | Gaps Found |
-| ONBD-04 | Phase 1 | Gaps Found |
-| ONBD-05 | Phase 1 | Gaps Found |
+| ONBD-01 | Phase 1 | Complete |
+| ONBD-02 | Phase 1 | Complete |
+| ONBD-03 | Phase 1 | Complete |
+| ONBD-04 | Phase 1 | Complete |
+| ONBD-05 | Phase 1 | Complete |
 | LEAD-01 | Phase 2 | Pending |
 | LEAD-02 | Phase 2 | Pending |
 | LEAD-03 | Phase 2 | Pending |

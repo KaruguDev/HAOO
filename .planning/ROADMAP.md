@@ -38,7 +38,7 @@ This milestone turns the existing company landing page into a product-led site b
 - [x] 01-06-PLAN.md
 - [x] 01-07-PLAN.md
 - [x] 01-08-PLAN.md
-- [ ] 01-09-PLAN.md
+- [x] 01-09-PLAN.md
 
 **Wave 1**
 
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Discover HAOO and Choose an Onboarding Path | 8/9 | In Progress|  |
+| 1. Discover HAOO and Choose an Onboarding Path | 9/9 | In Progress|  |
 | 2. Submit a Qualified HAOO Enquiry | 0/TBD | Not started | - |
 | 3. Build Privacy-Bounded Engagement Context | 0/TBD | Not started | - |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 0/TBD | Not started | - |
