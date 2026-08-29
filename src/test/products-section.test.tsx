@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { HomePage } from '../App';
 import ProductsSection from '../components/ProductsSection';
 import { HAOO_PRODUCT } from '../products/haoo';
-import { PRODUCTS_NAV_LABEL } from '../products/registry';
+import { PRODUCTS_NAV_LABEL, PRODUCTS_SECTION_ID } from '../products/registry';
 import type { ProductDefinition } from '../products/types';
 
 function product(overrides: Partial<ProductDefinition>): ProductDefinition {
@@ -148,6 +148,18 @@ describe('Phase 1 Products discovery navigation contracts', () => {
     expect(screen.queryByRole('region', { name: PRODUCTS_NAV_LABEL })).toBeNull();
     expect(document.querySelector('#products')).toBeNull();
     expect(screen.getAllByRole('link', { name: 'Services' }).length).toBeGreaterThan(0);
+  });
+
+  it('lands the Products heading below the fixed home header rather than behind it', () => {
+    render(<HomePage products={[HAOO_PRODUCT]} />);
+
+    const products = document.getElementById(PRODUCTS_SECTION_ID);
+    expect(products).not.toBeNull();
+
+    // The fixed home header measures up to 80px below md and up to 120px at md+,
+    // so the anchor target reserves 96px and 128px of scroll margin respectively.
+    expect(products!.className).toContain('scroll-mt-24');
+    expect(products!.className).toContain('md:scroll-mt-32');
   });
 
   it('closes the mobile menu after a visitor selects Products', () => {
