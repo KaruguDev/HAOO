@@ -12,7 +12,9 @@ const PDF_SHA256 = '38d5ad8e7497c65c4fa2d374e7ed5e8d81ab79f3b25d1e0daa73321d45b9
 const PRODUCT_TITLE = 'HAOO Property Management | ZERO-PAPER HUB';
 const PRODUCT_DESCRIPTION = 'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.';
 const PRODUCT_URL = 'https://www.zero-paperhub.com/products/haoo/';
-const PRODUCT_IMAGE = `${PRODUCT_URL}preview-outside.png`;
+const PRODUCT_IMAGE = `${PRODUCT_URL}brochure-preview.png`;
+const PUBLIC_PREVIEW = resolve(ROOT, 'public/products/haoo/brochure-preview.png');
+const PREVIEW_SHA256 = '7e62c3b75a0bc7ba70c400b4ec63e93cbe51701da051127ba212be7c578c8087';
 
 function readText(path: string) {
   return existsSync(path) ? readFileSync(path, 'utf8') : '';
@@ -58,6 +60,12 @@ describe('Phase 1 static build contracts', () => {
     for (const assetPath of assetPaths) {
       expect(existsSync(resolve(ROOT, `dist${assetPath}`))).toBe(true);
     }
+  });
+
+  it('publishes the supplied social/preview image referenced by the product metadata', () => {
+    expect(existsSync(PUBLIC_PREVIEW)).toBe(true);
+    expect(sha256(PUBLIC_PREVIEW)).toBe(PREVIEW_SHA256);
+    expect(readText(SOURCE_HTML)).toContain(PRODUCT_IMAGE);
   });
 
   it('publishes the original brochure bytes at the public and built paths', () => {

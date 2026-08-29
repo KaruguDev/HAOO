@@ -30,6 +30,9 @@ export interface ProductContacts {
 export interface ProductBrochure {
   readonly pdfHref: string;
   readonly previewImageHref: string;
+  readonly previewImageAlt: string;
+  readonly previewImageWidth: number;
+  readonly previewImageHeight: number;
   readonly downloadName: string;
   readonly expectationLabel: string;
 }

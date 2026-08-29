@@ -99,7 +99,10 @@ export const HAOO_PRODUCT: ProductDefinition = {
   },
   brochure: {
     pdfHref: '#brochure-pending',
-    previewImageHref: '#preview-pending',
+    previewImageHref: '/products/haoo/brochure-preview.png',
+    previewImageAlt: 'HAOO property-management brochure preview',
+    previewImageWidth: 1287,
+    previewImageHeight: 909,
     downloadName: 'brochure-pending.pdf',
     expectationLabel: 'PDF details pending',
   },
