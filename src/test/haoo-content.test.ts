@@ -16,6 +16,20 @@ const EXPECTED_JOURNEY = [
   'Make every month easier',
   'Grow with visibility',
 ];
+const EXPECTED_CAPABILITY_DESCRIPTIONS = [
+  'Track balances, digital payment workflows and tenant receipts—including M-Pesa.',
+  'Organise portfolios, occupancy, vacancies and property details.',
+  'Support tenant applications, screening and digital lease workflows.',
+  'Capture issues, assign work and keep progress visible to the right people.',
+  'Publish available homes and receive tenant applications online.',
+  'Turn activity into insight and keep stakeholders informed.',
+];
+const EXPECTED_JOURNEY_DESCRIPTIONS = [
+  'Present available homes clearly and give prospective tenants a simple path to apply.',
+  'Keep tenant information, screening and lease workflows organised from the start.',
+  'Give tenants a convenient place for payments, receipts, utilities and requests.',
+  'Use connected records and reports to manage more units without losing the human touch.',
+];
 const EXPECTED_WHATSAPP_TEXT =
   'Hello HAOO, I would like help choosing the best way to get started.';
 
@@ -61,5 +75,19 @@ describe('Phase 1 centralized HAOO content contracts', () => {
     expect(HAOO_PRODUCT.contacts.email).toBe('info@haoo.online');
     expect(HAOO_PRODUCT.contacts.emailHref).toBe('mailto:info@haoo.online');
     expect(HAOO_PRODUCT.contacts.selfOnboardingHref).toBe('https://manage.haoo.online/');
+  });
+
+  it('keeps the pain-to-benefit story, capabilities, and rental journey source faithful', () => {
+    expect(HAOO_PRODUCT.pains).toEqual([
+      'Scattered spreadsheets, paper trails and message threads make it harder to see what needs attention.',
+    ]);
+    expect(HAOO_PRODUCT.benefits).toEqual([
+      'Keep the people, money and work around every property connected in one shared source of truth.',
+      'See occupancy, payments, requests and portfolio reporting with less chasing and more control.',
+    ]);
+    expect(HAOO_PRODUCT.capabilities.map(({ description }) => description))
+      .toEqual(EXPECTED_CAPABILITY_DESCRIPTIONS);
+    expect(HAOO_PRODUCT.journey.map(({ description }) => description))
+      .toEqual(EXPECTED_JOURNEY_DESCRIPTIONS);
   });
 });

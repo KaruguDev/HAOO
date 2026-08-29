@@ -43,6 +43,61 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     }
   });
 
+  it('renders the pain-before-benefit story with the exact caveat and market source fidelity', () => {
+    renderPage();
+
+    const benefits = screen.getByRole('region', { name: 'Benefits' });
+    const paragraphs = Array.from(benefits.querySelectorAll('p'))
+      .map((node) => node.textContent ?? '');
+
+    expect(HAOO_PRODUCT.pains.length).toBeGreaterThan(0);
+    expect(HAOO_PRODUCT.benefits.length).toBeGreaterThan(0);
+    for (const claim of [...HAOO_PRODUCT.pains, ...HAOO_PRODUCT.benefits]) {
+      expect(paragraphs).toContain(claim);
+    }
+
+    const lastPain = Math.max(...HAOO_PRODUCT.pains.map((pain) => paragraphs.indexOf(pain)));
+    const firstBenefit = Math.min(
+      ...HAOO_PRODUCT.benefits.map((benefit) => paragraphs.indexOf(benefit)),
+    );
+    expect(lastPain).toBeLessThan(firstBenefit);
+
+    const capabilities = screen.getByRole('region', { name: 'Capabilities' });
+    expect(within(capabilities)
+      .getByText('Feature availability may vary by subscription plan.')).toBeTruthy();
+    expect(screen.getByText(
+      'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
+    )).toBeTruthy();
+  });
+
+  it('renders exact capability and rental journey descriptions without outcome guarantees (source fidelity)', () => {
+    const { container } = renderPage();
+
+    expect(HAOO_PRODUCT.capabilities).toHaveLength(6);
+    expect(HAOO_PRODUCT.journey).toHaveLength(4);
+
+    const capabilities = screen.getByRole('region', { name: 'Capabilities' });
+    for (const { description } of HAOO_PRODUCT.capabilities) {
+      expect(within(capabilities).getByText(description)).toBeTruthy();
+    }
+
+    const journey = screen.getByRole('region', { name: 'Rental journey' });
+    for (const { description } of HAOO_PRODUCT.journey) {
+      expect(within(journey).getByText(description)).toBeTruthy();
+    }
+
+    const pageText = container.textContent ?? '';
+    for (const forbidden of [
+      /guarantee/i,
+      /risk[- ]free/i,
+      /never vacant/i,
+      /always paid/i,
+      /ensures? (?:rent|payment|tenants|occupancy)/i,
+    ]) {
+      expect(pageText).not.toMatch(forbidden);
+    }
+  });
+
   it('renders all six brochure capability groups as textual cards', () => {
     renderPage();
 
