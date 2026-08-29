@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
 current_phase: 01
-current_phase_name: discover-haoo-and-choose-an-onboarding-path
+current_phase_name: Discover HAOO and Choose an Onboarding Path
 status: executing
-stopped_at: Completed 01-05-PLAN.md — Phase 01 execution complete (5/5 plans)
-last_updated: "2026-08-29T18:35:54.185Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-08-29T19:23:10.069Z"
 last_activity: 2026-08-29
-last_activity_desc: Phase 01 execution complete (5/5 plans); QUAL-04 proven on production
-state_head: bf851ac9afa976af7423bd0518b601332ba0bd41
+last_activity_desc: Phase 01 execution resumed (wave continue)
+state_head: 412fc03155b6314b1e33efcc1275078ffe0c5136
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 7
   percent: 0
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 01 (discover-haoo-and-choose-an-onboarding-path) — READY TO EXECUTE
-Plan: 5 of 5
+Phase: 01 (Discover HAOO and Choose an Onboarding Path) — EXECUTING
+Plan: 8 of 9
 Status: Ready to execute
-Last activity: 2026-08-29 — Phase 01 execution complete; QUAL-04 proven on the production host
+Last activity: 2026-08-29 — Phase 01 execution resumed (wave continue)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 12 min | 3 tasks | 9 files |
 | Phase 01 P04 | 18 min | 2 tasks | 9 files |
 | Phase 01 P05 | 16 min | 3 tasks | 7 files |
+| Phase 01 P06 | 7 min | 2 tasks | 4 files |
+| Phase 01 P07 | 4 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -87,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Open and Download render once as siblings outside the brochure embed, not duplicated per layout — Keeps accessible names unique and satisfies D-07 in every layout and failure state without duplicating anchors across the responsive branches
 - [Phase 01]: Brochure control independence is proven structurally rather than by activation — BrochurePanel holds only a preview-error flag and the controls read and write nothing; the contract asserts control outerHTML is byte-identical after six interleaved activations, which proves the component rather than jsdom navigation behavior
 - [Phase 01]: The original brochure is declared as a static link rel=alternate type=application/pdf in the product document head — Satisfies the Wave 0 built-HTML reference contract and makes the brochure reachable with JavaScript unavailable, matching the phase progressive-enhancement posture
+- [Phase 01]: On a dark surface the light element of the focus pair is the ring, not the offset — UI-SPEC line 255 (visible on navy) governs over the light-offset default in line 174 — An accent ring on the #18275F panel computes 2.21:1; a white ring on the same panel computes 14.06:1
+- [Phase 01]: The focus-contrast gate compares the raw IEEE-754 double at ratio >= 3 with no epsilon, and throws on an unrecognized ring colour token rather than skipping it — A skipped pairing would pass the suite silently; a token the contract cannot measure must fail loudly
+- [Phase 01]: Anchor scroll offset is reserved with scroll-mt on the products target, not scroll-padding-top on html — html is shared with the product document, whose header is not fixed and whose sections already declare scroll-mt-4
 
 ### Pending Todos
 
@@ -109,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T10:46:37.450Z
-Stopped at: Completed 01-05-PLAN.md — Phase 01 execution complete (5/5 plans)
+Last session: 2026-08-29T19:23:10.047Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None

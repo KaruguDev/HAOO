@@ -7,7 +7,7 @@
 
 ### Product Discovery
 
-- [ ] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
+- [x] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
 - [ ] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
 - [ ] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
 - [ ] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
@@ -89,7 +89,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROD-01 | Phase 1 | Gaps Found |
+| PROD-01 | Phase 1 | Complete |
 | PROD-02 | Phase 1 | Gaps Found |
 | PROD-03 | Phase 1 | Gaps Found |
 | PROD-04 | Phase 1 | Gaps Found |

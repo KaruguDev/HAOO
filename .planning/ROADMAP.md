@@ -34,6 +34,12 @@ This milestone turns the existing company landing page into a product-led site b
   5. HAOO renders from centralized product content and contacts within a reusable product-page shell that can present a future product without copying the page structure.
 
 **Plans**: TBD
+
+- [x] 01-06-PLAN.md
+- [x] 01-07-PLAN.md
+- [ ] 01-08-PLAN.md
+- [ ] 01-09-PLAN.md
+
 **Wave 1**
 
 - [x] 01-01-PLAN.md
@@ -124,7 +130,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Discover HAOO and Choose an Onboarding Path | 5/5 | In Progress|  |
+| 1. Discover HAOO and Choose an Onboarding Path | 7/9 | In Progress|  |
 | 2. Submit a Qualified HAOO Enquiry | 0/TBD | Not started | - |
 | 3. Build Privacy-Bounded Engagement Context | 0/TBD | Not started | - |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 0/TBD | Not started | - |
