@@ -2,7 +2,7 @@
 phase: 01
 slug: discover-haoo-and-choose-an-onboarding-path
 status: validated
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-29
 audited: 2026-08-29
@@ -25,7 +25,7 @@ audited: 2026-08-29
 | **Full suite command** | `npm test` (production build followed by Vitest) |
 | **Static checks** | `npm run typecheck && npm run lint` |
 | **Baseline before audit** | 63 tests passing across 6 files |
-| **Post-audit state** | 63 passing, 1 newly generated PROD-03 contract failing |
+| **Post-audit state** | 65 tests passing across 6 files; production build, typecheck, and lint passing |
 
 `npm test` builds before running the suite, so build-output checks evaluate current `dist/` artifacts. `test:unit` remains the guarded inner-loop command.
 
@@ -46,7 +46,7 @@ audited: 2026-08-29
 |-------------|--------------|--------------------|--------|
 | PROD-01 | 01-04 | `src/test/products-section.test.tsx` — collection states, Products navigation, landmark order, native route | ✅ covered |
 | PROD-02 | 01-02, 01-08 | `src/test/build-output.test.ts` — physical nested document, emitted references, fresh build output | ✅ covered |
-| PROD-03 | 01-03 | Story, benefits, capabilities, journey, semantics, media failure, and source fidelity are covered; `src/test/haoo-page.test.tsx#renders every centralized audience as visible semantic content` exposes the missing rendered audience collection | ⚠ partial — implementation gap |
+| PROD-03 | 01-03 | `src/test/haoo-page.test.tsx` — story, benefits, capabilities, journey, semantics, media failure, source fidelity, and every centralized audience rendered as visible semantic content | ✅ covered |
 | PROD-04 | 01-05, 01-08 | `src/test/haoo-page.test.tsx` and `src/test/build-output.test.ts` — preview/fallback, independent Open/Download, exact PDF bytes | ✅ covered |
 | PROD-05 | 01-02, 01-08 | `src/test/build-output.test.ts` — source/built title, canonical, description, and social metadata | ✅ covered |
 | PROD-06 | 01-02, 01-04, 01-07 | `src/test/product-shell-reuse.test.tsx`, content contracts, and collection tests — typed central data and synthetic product shell reuse | ✅ covered |
@@ -58,23 +58,23 @@ audited: 2026-08-29
 | QUAL-04 | 01-02, 01-05, 01-08 | Fresh physical build/asset contracts plus production `curl` checks for the HAOO page and PDF | ✅ covered |
 | QUAL-06 | 01-01, 01-03, 01-05 | Exact content ledger, native destinations, uppercase brand, supplied-media hashes, and PDF SHA-256 | ✅ covered |
 
-**Coverage summary:** 12 requirements covered; 1 requirement partial; 0 requirements missing.
+**Coverage summary:** 13 requirements covered; 0 requirements partial; 0 requirements missing.
 
 ---
 
-## Escalated Validation Gap
+## Resolved Validation Gap
 
-| Gap ID | Requirement | Generated Test | Result | Root Cause | Required Resolution |
-|--------|-------------|----------------|--------|------------|---------------------|
-| NYQ-PROD-03 | PROD-03 | `src/test/haoo-page.test.tsx#renders every centralized audience as visible semantic content` | Fails: 1 failed, 19 passed in focused file | `ProductPage` renders `product.audienceLead` but never reads `product.audiences`; no labeled audience region/list exists and `Agents` has zero rendered matches | Render the centralized four-item audience collection as semantic visible content, then rerun the focused test and this audit |
+| Gap ID | Requirement | Generated Test | Result | Root Cause | Resolution |
+|--------|-------------|----------------|--------|------------|------------|
+| NYQ-PROD-03 | PROD-03 | `src/test/haoo-page.test.tsx#renders every centralized audience as visible semantic content` | Passes: focused contract 1/1; full suite 65/65 | `ProductPage` rendered `product.audienceLead` but did not render `product.audiences` | Commit `ea60c3e` added a labeled semantic audience region and rendered all four centralized audience entries |
 
-The Nyquist auditor exhausted 3/3 permitted iterations and escalated this as an implementation defect. The validation workflow did not modify implementation files.
+The initial Nyquist audit escalated this implementation defect after exhausting 3/3 permitted iterations. The subsequent code-review fix resolved it, and this re-audit verified the generated contract plus all project quality gates.
 
 ---
 
 ## Manual-Only Complements
 
-These browser judgments complement automated contracts; they are not substitutes for the unresolved PROD-03 DOM contract.
+These browser judgments complement the now-complete automated contracts.
 
 | Behavior | Requirement | Evidence |
 |----------|-------------|----------|
@@ -94,15 +94,50 @@ These browser judgments complement automated contracts; they are not substitutes
 | Resolved | 0 |
 | Escalated | 1 |
 
+## Validation Re-Audit 2026-08-29
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 13 |
+| Open gaps found | 0 |
+| Previously escalated gaps resolved | 1 |
+| Escalated | 0 |
+
+Verification commands:
+
+- `npm run test:unit -- --run src/test/haoo-page.test.tsx -t "renders every centralized audience"` — 1/1 focused contract passed
+- `npm test` — production build passed; 65/65 tests passed across 6 files
+- `npm run typecheck` — passed
+- `npm run lint` — passed
+
+---
+
+## Validation Audit 2026-08-29 (coverage re-verification)
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 13 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Independent re-verification of every claim in the Requirement Verification Map against the live test suite. All 13 Phase 01 requirements map to named, passing behavioral contracts across the six files in `src/test/`; no requirement is asserted only by a manual step.
+
+Verification commands:
+
+- `npm run test:unit -- --run` — 65/65 tests passed across 6 files
+- `npm run typecheck` — passed
+- `npm run lint` — passed
+
 ---
 
 ## Validation Sign-Off
 
-- [ ] All Phase 01 requirements have passing automated behavior verification
+- [x] All Phase 01 requirements have passing automated behavior verification
 - [x] Sampling continuity: no three consecutive implementation tasks lack automated verification
 - [x] Wave 0 test infrastructure and planned contract files exist
 - [x] No watch-mode flags are used in verification commands
 - [x] Affected-test feedback latency remains under 30 seconds
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** validated partial — implementation gap NYQ-PROD-03 remains open
+**Approval:** validated — Phase 01 is Nyquist-compliant
