@@ -540,22 +540,19 @@ ASVS 5.0.0 is the latest stable OWASP ASVS release and is the relevant baseline 
 | A1 | [ASSUMED] `https://www.zero-paperhub.com/products/haoo/` is the intended absolute canonical URL. | Metadata | Medium; repository CNAME and existing absolute URLs use `www`, but the product owner should confirm if canonical host policy changes. |
 | A2 | [ASSUMED] The generic WhatsApp starter text proposed here is acceptable product voice. | Architecture Pattern 4 | Low; it contains no personal data and can be copy-edited without architectural change. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Final canonical/product social copy**
    - What we know: the canonical host in repository content is `www.zero-paperhub.com`, and D-14 requires uppercase `ZERO-PAPER HUB`. [VERIFIED: `CNAME:1`; `src/App.tsx:113-114`; locked D-14]
-   - What's unclear: exact title/description text and whether the canonical host policy could change.
-   - Recommendation: planner should specify copy from locked story language and use `https://www.zero-paperhub.com/products/haoo/`; make a final content review task explicit.
+   - Resolution: use `https://www.zero-paperhub.com/products/haoo/` as the Phase 1 canonical URL and the exact UI-SPEC title/description copy. A future host-policy change requires an explicit metadata update; it is not an unresolved Phase 1 decision. **RESOLVED**
 
 2. **Social image crop**
    - What we know: `preview-outside.png` is a supplied `1287x909` landscape brochure preview and `haoo-hero.png` is `1122x1402` portrait. [VERIFIED: source image probes on 2026-08-29]
-   - What's unclear: whether a bespoke 1.91:1 social crop is desired.
-   - Recommendation: use the supplied landscape preview in Phase 1 rather than inventing a new asset; visual review can approve crop behavior.
+   - Resolution: use the supplied landscape/product artwork with the crop behavior specified by `01-UI-SPEC.md`; do not generate or invent a new social image in Phase 1. **RESOLVED**
 
 3. **External-channel ownership**
    - What we know: brochure source fixes the phone/email/platform values, and the platform returned HTTP 200. [VERIFIED: Canonical Content Ledger; curl probe]
-   - What's unclear: whether phone, WhatsApp, and mailbox ownership can be operationally tested before launch.
-   - Recommendation: keep exact source values in automated tests and add manual channel checks to the later deployed release phase; Phase 1 should not block link construction on provider confirmation.
+   - Resolution: Phase 1 preserves and tests the exact brochure-sourced destinations. Operational ownership, production analytics, and end-to-end provider/channel delivery are explicitly deferred to Phases 3–5 and do not block Phase 1 link construction. **RESOLVED**
 
 ## Sources
 
