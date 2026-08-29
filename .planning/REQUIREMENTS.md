@@ -8,10 +8,10 @@
 ### Product Discovery
 
 - [x] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
-- [ ] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
+- [x] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
 - [ ] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
-- [ ] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
-- [ ] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the product page
+- [x] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
+- [x] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the product page
 - [ ] **PROD-06**: HAOO content and contact details are sourced from centralized product data that can support future products without duplicating the page shell
 
 ### Onboarding Paths
@@ -48,7 +48,7 @@
 - [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
 - [ ] **QUAL-02**: Visitor can navigate product content, brochure controls, form fields, validation messages, and onboarding links by keyboard with visible focus
 - [ ] **QUAL-03**: HAOO page preserves semantic heading order, descriptive link and control names, zoom support, reduced-motion behavior, and an HTML equivalent for brochure information
-- [ ] **QUAL-04**: Direct navigation and browser refresh work for `/products/haoo/` and the published brochure asset on the production host
+- [x] **QUAL-04**: Direct navigation and browser refresh work for `/products/haoo/` and the published brochure asset on the production host
 - [ ] **QUAL-05**: Build, typecheck, lint, automated contract/component tests, and required deployed manual checks pass before launch
 - [ ] **QUAL-06**: Published HAOO claims, phone number, email address, and onboarding URL match the supplied brochure source material
 
@@ -90,10 +90,10 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROD-01 | Phase 1 | Complete |
-| PROD-02 | Phase 1 | Gaps Found |
+| PROD-02 | Phase 1 | Complete |
 | PROD-03 | Phase 1 | Gaps Found |
-| PROD-04 | Phase 1 | Gaps Found |
-| PROD-05 | Phase 1 | Gaps Found |
+| PROD-04 | Phase 1 | Complete |
+| PROD-05 | Phase 1 | Complete |
 | PROD-06 | Phase 1 | Gaps Found |
 | ONBD-01 | Phase 1 | Gaps Found |
 | ONBD-02 | Phase 1 | Gaps Found |
@@ -118,7 +118,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | QUAL-01 | Phase 5 | Pending |
 | QUAL-02 | Phase 5 | Pending |
 | QUAL-03 | Phase 5 | Pending |
-| QUAL-04 | Phase 1 | Gaps Found |
+| QUAL-04 | Phase 1 | Complete |
 | QUAL-05 | Phase 5 | Pending |
 | QUAL-06 | Phase 1 | Gaps Found |
 
