@@ -1,0 +1,100 @@
+import { StrictMode } from 'react';
+import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import ProductPage from '../pages/ProductPage';
+import { HAOO_PRODUCT } from '../products/haoo';
+
+const CONTEXT_KEY = 'zph.haoo.ctx.v1';
+
+afterEach(() => {
+  window.history.replaceState({}, '', '/products/haoo/');
+  window.localStorage.clear();
+  vi.restoreAllMocks();
+});
+
+describe('Phase 3 HAOO page-view measurement tracer', () => {
+  it('traces one privacy-bounded HAOO page view', () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/products/haoo/?utm_source=Partner&utm_medium=EMAIL&utm_campaign=Launch-2026&utm_term=private',
+    );
+    const eventSink = vi.fn();
+
+    render(
+      <StrictMode>
+        <ProductPage
+          product={HAOO_PRODUCT}
+          measurementAdapters={{ eventSink }}
+        />
+      </StrictMode>,
+    );
+
+    expect(eventSink).toHaveBeenCalledTimes(1);
+    expect(eventSink).toHaveBeenCalledWith('haoo_page_view');
+    expect(window.location.pathname).toBe('/products/haoo/');
+    expect(window.location.search).toBe('');
+
+    const context = JSON.parse(window.localStorage.getItem(CONTEXT_KEY) ?? 'null');
+    expect(context).toEqual({
+      version: 1,
+      visitBand: 'first',
+      lastSeenBand: 'today',
+      flags: {
+        brochureViewed: false,
+        brochureDownloaded: false,
+        qualifyStarted: false,
+        assistedContact: false,
+        selfOnboarding: false,
+      },
+      visitOrdinal: 1,
+      lastSeenDay: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+    });
+    expect(Object.keys(context)).toEqual([
+      'version',
+      'visitBand',
+      'lastSeenBand',
+      'flags',
+      'visitOrdinal',
+      'lastSeenDay',
+    ]);
+  });
+
+  it('keeps the journey usable when browser measurement APIs throw', () => {
+    const storageDescriptor = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    const replaceState = window.history.replaceState;
+
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new DOMException('Storage is blocked', 'SecurityError');
+      },
+    });
+    window.history.replaceState = vi.fn(() => {
+      throw new DOMException('History is blocked', 'SecurityError');
+    });
+
+    try {
+      render(
+        <StrictMode>
+          <ProductPage product={HAOO_PRODUCT} />
+        </StrictMode>,
+      );
+
+      expect(screen.getByRole('heading', {
+        level: 1,
+        name: 'Run the business—not the paperwork.',
+      })).toBeTruthy();
+      expect(screen.getAllByRole('link', { name: 'Chat with HAOO on WhatsApp' }))
+        .toHaveLength(3);
+      expect(screen.getAllByRole('link', { name: 'Start with HAOO' })
+        .every((link) => link.getAttribute('href') === 'https://manage.haoo.online/'))
+        .toBe(true);
+    } finally {
+      if (storageDescriptor) {
+        Object.defineProperty(window, 'localStorage', storageDescriptor);
+      }
+      window.history.replaceState = replaceState;
+    }
+  });
+});
