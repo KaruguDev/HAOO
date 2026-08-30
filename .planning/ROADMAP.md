@@ -115,7 +115,23 @@ This milestone turns the existing company landing page into a product-led site b
   3. Allowlisted campaign parameters are normalized before use and cannot introduce personal information into analytics or lead context.
   4. Visitor can still read the HAOO page, use brochure controls, submit the form, and follow every onboarding route when analytics scripts or browser storage are blocked or unavailable.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Prove the product-configured no-op page-view tracer and measurement capability boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — Complete exhaustive event, campaign, bounded-context, expiry, and failure contracts.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-03-PLAN.md — Instrument brochure, form, assisted-contact, and self-onboarding actions.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-04-PLAN.md — Ship the approved disclosure, visitor clear control, and footer discovery path.
 **UI hint**: yes
 
 ### Phase 4: Report and Enrich the HAOO Funnel Truthfully
