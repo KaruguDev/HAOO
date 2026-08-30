@@ -24,6 +24,12 @@ import type { ProductQualifyForm, QualifyField } from '../products/types';
 
 const QUALIFY = HAOO_PRODUCT.qualify;
 const SECTION_NAME = 'Send your details';
+const REQUIRED_FIELDS_NOTE = 'All fields are required unless marked optional.';
+const COLLECTION_PURPOSE =
+  'We use these details only to reply to you about HAOO onboarding. We never sell them or add you to a mailing list.';
+const COLLECTION_CONTEXT =
+  'When you send this form, a short summary of how you used this HAOO page is included with your details. It is coarse and anonymous — it never includes your message text, exact portfolio numbers, or any identifier that follows you across sites.';
+const DISCLOSURE_ID = 'qualify-collection-note';
 /** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
 const EXPECTED_BODY_KEYS = [
   'Email address',
@@ -228,6 +234,60 @@ afterEach(() => {
 });
 
 describe('Phase 2 qualified enquiry tracer contracts', () => {
+  it('discloses what is collected and what is required', async () => {
+    let resolveRequest: ((value: { ok: boolean }) => void) | undefined;
+    const fetchSpy = stubFetch(
+      () => new Promise<{ ok: boolean }>((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
+
+    renderPage();
+    const section = within(qualifySection());
+    const disclosure = qualifySection().querySelector(`#${DISCLOSURE_ID}`);
+    const button = submitControl();
+
+    expect(section.getByText(REQUIRED_FIELDS_NOTE)).toBeTruthy();
+    expect(QUALIFY.collectionNote).toEqual({
+      purpose: COLLECTION_PURPOSE,
+      pageContext: COLLECTION_CONTEXT,
+    });
+    expect(disclosure?.textContent).toContain(COLLECTION_PURPOSE);
+    expect(disclosure?.textContent).toContain(COLLECTION_CONTEXT);
+    expect(disclosure?.nextElementSibling).toBe(button);
+    expect(button.getAttribute('aria-describedby')?.split(/\s+/)).toContain(DISCLOSURE_ID);
+
+    for (const field of QUALIFY.fields) {
+      const label = qualifySection().querySelector(`label[for="qualify-${field.name}"]`);
+
+      expect(field.label, field.name).not.toContain('(optional)');
+      expect(label?.textContent, field.name).not.toContain('*');
+      expect(label?.textContent?.includes('(optional)'), field.name)
+        .toBe(!isFieldRequired(field, emptyValues()));
+    }
+
+    fireEvent.click(button);
+    expect(qualifySection().querySelector(`#${DISCLOSURE_ID}`)).toBeTruthy();
+
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(qualifySection().querySelector(`#${DISCLOSURE_ID}`)).toBeTruthy();
+    expect(
+      within(qualifySection())
+        .getByRole('button', { name: QUALIFY_SUBMITTING_LABEL })
+        .getAttribute('aria-describedby')?.split(/\s+/),
+    ).toContain(DISCLOSURE_ID);
+
+    resolveRequest?.({ ok: false });
+    await waitFor(() =>
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed),
+    );
+    expect(qualifySection().querySelector(`#${DISCLOSURE_ID}`)).toBeTruthy();
+    expect(submitControl().getAttribute('aria-describedby')?.split(/\s+/))
+      .toContain(DISCLOSURE_ID);
+  });
+
   it('collects a name and a usable contact method', async () => {
     const fetchSpy = stubFetch(async () => ({ ok: true }));
 
@@ -354,6 +414,13 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(body.Location).toBe('Nairobi');
     expect(body['Onboarding timeframe']).toBe('Ready now');
     expect(body.Message).toBe('We manage four blocks in Kilimani.');
+
+    const forbiddenPayloadShape =
+      /engagement|context|analytics?|identifier|visitor|score|signal|summary/i;
+
+    expect(Object.keys(body).filter((key) => forbiddenPayloadShape.test(key))).toEqual([]);
+    expect(Object.values(body).filter((value) => value === COMPLETE_ENQUIRY.message))
+      .toEqual([COMPLETE_ENQUIRY.message]);
 
     // No visitor-supplied value may reach a header-shaped provider option.
     for (const option of FORBIDDEN_PROVIDER_OPTIONS) {
