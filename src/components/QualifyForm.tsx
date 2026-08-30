@@ -254,6 +254,15 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
 
 export default function QualifyForm({ contacts, productName, qualify }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
+  // The authoritative latest snapshot. `values` from the render closure is stale for any
+  // path that writes more than one field before the next render — browser autofill and
+  // password-manager fills are exactly that, and the fields carry the `autoComplete`
+  // hints that invite them. A lost write to a *required* field would at least surface as
+  // a validation error; a lost write to an optional one is simply absent from the
+  // payload, with nothing anywhere to reveal it. Every read that must see the newest
+  // value — the announcement, the reconciliation, the validator and the request body —
+  // reads this ref instead of the closure.
+  const valuesRef = useRef(values);
   const [errors, setErrors] = useState<QualifyErrors>({});
   const [submitted, setSubmitted] = useState(false);
   // Counts invalid submit attempts only. The focus move is keyed on this integer and
@@ -300,8 +309,9 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
   }, [state]);
 
   function setValue(name: string, value: string) {
-    const nextValues = { ...values, [name]: value };
+    const nextValues = { ...valuesRef.current, [name]: value };
 
+    valuesRef.current = nextValues;
     setValues(nextValues);
 
     // A requiredness rule that just started matching is announced through the region
@@ -355,7 +365,8 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
       return;
     }
 
-    const nextErrors = validateQualifyValues(values, qualify);
+    const submittedValues = valuesRef.current;
+    const nextErrors = validateQualifyValues(submittedValues, qualify);
 
     setSubmitted(true);
     setErrors(nextErrors);
@@ -387,7 +398,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify(buildSubmissionBody(values, qualify)),
+        body: JSON.stringify(buildSubmissionBody(submittedValues, qualify)),
         signal: controller.signal,
       });
 
