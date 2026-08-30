@@ -24,12 +24,12 @@
 
 ### Qualification and Delivery
 
-- [x] **LEAD-01**: Interested visitor can submit their name and at least one usable contact method through a HAOO-specific qualification form
-- [x] **LEAD-02**: Interested visitor can identify their role, organization, portfolio-size band, location, and intended onboarding timeframe using clear controlled fields
-- [x] **LEAD-03**: Visitor can see which qualification fields are required, why the information is collected, and that relevant HAOO engagement context accompanies the submission
-- [x] **LEAD-04**: A valid HAOO qualification submission is addressed to `info@haoo.online` with a recognizable HAOO-specific subject and human-readable field labels
-- [x] **LEAD-05**: Visitor receives accessible validation, submitting, success, failure, and retry guidance without losing entered values after a recoverable error
-- [x] **LEAD-06**: Qualification form applies a honeypot and provider-supported spam controls without creating a barrier for legitimate keyboard or assistive-technology users
+- [ ] **LEAD-01**: Interested visitor can submit their name and at least one usable contact method through a HAOO-specific qualification form
+- [ ] **LEAD-02**: Interested visitor can identify their role, organization, portfolio-size band, location, and intended onboarding timeframe using clear controlled fields
+- [ ] **LEAD-03**: Visitor can see which qualification fields are required, why the information is collected, and that relevant HAOO engagement context accompanies the submission
+- [ ] **LEAD-04**: A valid HAOO qualification submission is addressed to `info@haoo.online` with a recognizable HAOO-specific subject and human-readable field labels
+- [ ] **LEAD-05**: Visitor receives accessible validation, submitting, success, failure, and retry guidance without losing entered values after a recoverable error
+- [ ] **LEAD-06**: Qualification form applies a honeypot and provider-supported spam controls without creating a barrier for legitimate keyboard or assistive-technology users
 - [ ] **LEAD-07**: Release verification proves the HAOO form endpoint is activated and a uniquely tagged production submission reaches the HAOO inbox or spam folder
 
 ### Privacy-First Measurement
@@ -100,12 +100,12 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | ONBD-03 | Phase 1 | Complete |
 | ONBD-04 | Phase 1 | Complete |
 | ONBD-05 | Phase 1 | Complete |
-| LEAD-01 | Phase 2 | Complete |
-| LEAD-02 | Phase 2 | Complete |
-| LEAD-03 | Phase 2 | Complete |
-| LEAD-04 | Phase 2 | Complete |
-| LEAD-05 | Phase 2 | Complete |
-| LEAD-06 | Phase 2 | Complete |
+| LEAD-01 | Phase 2 | Gaps Found |
+| LEAD-02 | Phase 2 | Gaps Found |
+| LEAD-03 | Phase 2 | Gaps Found |
+| LEAD-04 | Phase 2 | Gaps Found |
+| LEAD-05 | Phase 2 | Gaps Found |
+| LEAD-06 | Phase 2 | Gaps Found |
 | LEAD-07 | Phase 5 | Pending |
 | MEAS-01 | Phase 4 | Pending |
 | MEAS-02 | Phase 3 | Pending |
