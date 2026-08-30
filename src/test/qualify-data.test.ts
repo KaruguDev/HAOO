@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { RESERVED_EMAIL_LABELS } from '../components/QualifyForm';
 import {
   CONTACT_CHANNEL_OPTIONS,
   HAOO_PRODUCT,
@@ -206,6 +207,13 @@ describe('HAOO qualification product data', () => {
     // uniqueness on the label as well as on the name.
     const emailLabels = qualify.fields.map((field) => field.emailLabel);
     expect(new Set(emailLabels).size).toBe(emailLabels.length);
+
+    // Uniqueness against each other is not enough: a label colliding with a provider
+    // option or with the derived source note would overwrite it, and the header-shaped
+    // options would carry a visitor-supplied value.
+    for (const field of qualify.fields) {
+      expect(RESERVED_EMAIL_LABELS.has(field.emailLabel), field.emailLabel).toBe(false);
+    }
   });
 
   it('groups only field names that exist, with no field left unplaced or duplicated', () => {

@@ -6,6 +6,7 @@ import QualifyForm, {
   buildSubmissionBody,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
+  RESERVED_EMAIL_LABELS,
   QUALIFY_STATUS_MESSAGES,
   QUALIFY_SUBMIT_LABEL,
   QUALIFY_SUBMITTING_LABEL,
@@ -461,6 +462,43 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
         expect(value, key).not.toBe('');
       }
     }
+  });
+
+  it('refuses to build a body for a field claiming a reserved email label', () => {
+    const values = { ...emptyValues(), ...requiredValues(), hijack: 'attacker@example.com' };
+
+    // A visitor-supplied value reaching `_cc` would carbon-copy the enquiry to an
+    // arbitrary mailbox; reaching `Source` or a spam control would overwrite it. The
+    // prohibition is a property of this function, not of the current product's data.
+    for (const reservedLabel of RESERVED_EMAIL_LABELS) {
+      const hijacked: ProductQualifyForm = {
+        ...QUALIFY,
+        fields: [
+          ...QUALIFY.fields,
+          {
+            name: 'hijack',
+            label: 'Hijack',
+            emailLabel: reservedLabel,
+            control: 'text',
+            required: false,
+            requiredMessage: 'Unreachable',
+          },
+        ],
+      };
+
+      expect(() => buildSubmissionBody(values, hijacked), reservedLabel)
+        .toThrowError(/reserved email label/);
+    }
+
+    expect(RESERVED_EMAIL_LABELS.size).toBeGreaterThanOrEqual(
+      FORBIDDEN_PROVIDER_OPTIONS.length,
+    );
+    for (const option of FORBIDDEN_PROVIDER_OPTIONS) {
+      expect(RESERVED_EMAIL_LABELS.has(option), option).toBe(true);
+    }
+
+    // The shipped product still builds, so the guard is a contract and not a blocker.
+    expect(() => buildSubmissionBody(values, QUALIFY)).not.toThrow();
   });
 
   it('renders every qualification option', () => {

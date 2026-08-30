@@ -118,10 +118,31 @@ function requirednessAnnouncement(
 }
 
 /**
+ * Every key this function owns: the provider options it seeds, the derived `Source` note
+ * it appends, and the header-shaped options it must never emit. A product field claiming
+ * any of them would either overwrite a spam control, destroy the source note, or — for
+ * `_cc`, `_next`, `_autoresponse` and `_replyto` — route a *visitor-supplied* value into
+ * a provider option that redirects or replies to mail.
+ */
+export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
+  '_subject',
+  '_template',
+  '_captcha',
+  '_honey',
+  '_cc',
+  '_next',
+  '_autoresponse',
+  '_replyto',
+  'Source',
+]);
+
+/**
  * Pure provider-request descriptor. Emits only the provider options this product needs
  * plus one readable key per supplied field. `_cc`, `_next`, `_autoresponse` and
- * `_replyto` are never emitted under any condition: the recipient is fixed in build
- * data and no visitor-supplied value may reach a header-shaped option.
+ * `_replyto` are never emitted under any condition, and that prohibition is enforced
+ * here against `RESERVED_EMAIL_LABELS` rather than inferred from the current product's
+ * data: a misconfigured field fails the request loudly instead of quietly handing a
+ * header-shaped option to a visitor.
  */
 export function buildSubmissionBody(
   values: QualifyValues,
@@ -135,6 +156,12 @@ export function buildSubmissionBody(
   };
 
   for (const field of qualify.fields) {
+    if (RESERVED_EMAIL_LABELS.has(field.emailLabel)) {
+      throw new Error(
+        `Field "${field.name}" uses reserved email label "${field.emailLabel}"`,
+      );
+    }
+
     const value = (values[field.name] ?? '').trim();
 
     if (value !== '') {
