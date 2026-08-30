@@ -54,4 +54,12 @@ Activating the endpoint and confirming live mail for `info@haoo.online` — subm
 
 ### Spam handling
 
-FormSubmit's reCAPTCHA is disabled for this form, so the reCAPTCHA filtering described for the contact form above does not apply to it. The form carries an off-screen honeypot field and browser validation.
+FormSubmit's reCAPTCHA is disabled for this form — the page sends `_captcha: 'false'` in the request body — so the reCAPTCHA filtering described for the contact form above does not apply to it.
+
+The form carries an off-screen honeypot field and browser validation. **Neither is inbox protection.** Both live in the page, while the endpoint is inlined into the world-readable bundle: anyone can post to it directly with `_captcha: 'false'` and an empty `_honey`, never load the page, and reach the inbox. The honeypot deters naive page-scraping bots only, and its field name and off-screen offset are a widely fingerprinted pattern.
+
+Closing that gap is a prerequisite of the Phase 5 `LEAD-07` activation above. One of the following must be chosen and recorded before the endpoint carries live mail:
+
+- re-enable FormSubmit's reCAPTCHA for this form, or
+- front the submission with a challenge the server verifies (Cloudflare Turnstile or equivalent), or
+- move submission to a first-party function that holds the provider address server-side.
