@@ -2,7 +2,8 @@ import { StrictMode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
-import { HAOO_PRODUCT } from '../products/haoo';
+import { createMeasurement } from '../measurement';
+import { HAOO_MEASUREMENT, HAOO_PRODUCT } from '../products/haoo';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
 
@@ -96,5 +97,34 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
       }
       window.history.replaceState = replaceState;
     }
+  });
+
+  it('rejects empty, null, normalized, and unknown event names at runtime', () => {
+    const eventSink = vi.fn();
+    const measurement = createMeasurement(HAOO_MEASUREMENT, { eventSink });
+    const dynamicTrack = measurement.track as (event: unknown) => boolean;
+
+    expect(dynamicTrack('')).toBe(false);
+    expect(dynamicTrack(null)).toBe(false);
+    expect(dynamicTrack('HAOO_PAGE_VIEW')).toBe(false);
+    expect(dynamicTrack('haoo_page_vie\u212A')).toBe(false);
+    expect(eventSink).not.toHaveBeenCalled();
+  });
+
+  it('keeps only a unique, whole-value-valid bounded campaign in page memory', () => {
+    const location = {
+      href: 'https://www.zero-paperhub.com/products/haoo/?utm_source=%20Partner%20&utm_medium=email&utm_campaign=launch-2026&utm_campaign=duplicate&utm_content=creative&utm_term=private',
+    };
+    const history = { state: null, replaceState: vi.fn() };
+    const measurement = createMeasurement(HAOO_MEASUREMENT, { location, history });
+
+    measurement.initialize();
+
+    expect(measurement.readCampaign()).toEqual({
+      utm_source: 'partner',
+      utm_medium: 'email',
+    });
+    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/products/haoo/');
+    expect(JSON.stringify(measurement.readContext())).not.toContain('utm_');
   });
 });

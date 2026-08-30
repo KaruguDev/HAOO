@@ -1,4 +1,9 @@
-import type { ProductDefinition, QualifyOption } from './types';
+import type {
+  MeasurementProvider,
+  ProductDefinition,
+  ProductMeasurement,
+  QualifyOption,
+} from './types';
 import {
   qualifyCollectionNotePageContext,
   qualifyCollectionNoteProcessor,
@@ -6,6 +11,41 @@ import {
 } from './copy';
 
 export type { ProductDefinition } from './types';
+
+export const HAOO_MEASUREMENT_EVENTS = [
+  'haoo_page_view',
+  'haoo_brochure_preview',
+  'haoo_brochure_open',
+  'haoo_brochure_download',
+  'haoo_qualify_start',
+  'haoo_qualify_submit',
+  'haoo_assisted_whatsapp',
+  'haoo_assisted_phone',
+  'haoo_assisted_email',
+  'haoo_self_onboarding',
+] as const;
+
+export type HaooMeasurementEvent = (typeof HAOO_MEASUREMENT_EVENTS)[number];
+
+export function resolveMeasurementProvider(configuredValue?: string): MeasurementProvider {
+  return configuredValue?.trim().toLowerCase() === 'none' ? 'none' : 'none';
+}
+
+export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
+  productKey: 'haoo',
+  storageKey: 'zph.haoo.ctx.v1',
+  schemaVersion: 1,
+  events: HAOO_MEASUREMENT_EVENTS,
+  pageViewEvent: 'haoo_page_view',
+  interactionFlags: [
+    'brochureViewed',
+    'brochureDownloaded',
+    'qualifyStarted',
+    'assistedContact',
+    'selfOnboarding',
+  ],
+  provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
+};
 
 const WHATSAPP_STARTER_TEXT =
   'Hello HAOO, I would like help choosing the best way to get started.';
@@ -445,4 +485,5 @@ export const HAOO_PRODUCT: ProductDefinition = {
       { legend: 'Getting started', fieldNames: ['timeframe', 'message'] },
     ],
   },
+  measurement: HAOO_MEASUREMENT,
 };

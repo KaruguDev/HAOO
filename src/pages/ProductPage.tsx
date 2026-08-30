@@ -7,6 +7,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
@@ -18,9 +19,14 @@ import {
   skipToContentLabel,
 } from '../products/copy';
 import type { ProductCapabilityIcon, ProductDefinition } from '../products/types';
+import {
+  createMeasurement,
+  type MeasurementAdapters,
+} from '../measurement';
 
 interface ProductPageProps {
   readonly product: ProductDefinition;
+  readonly measurementAdapters?: MeasurementAdapters<string>;
 }
 
 const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
@@ -40,8 +46,22 @@ const QUALIFY_SUB_LEAD =
   "Prefer writing to chatting? Share a few details and we'll reply with the onboarding path that fits your portfolio. This is not a sign-up \u2014 you can still start on your own at any time.";
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
-export default function ProductPage({ product }: ProductPageProps) {
+export default function ProductPage({ product, measurementAdapters }: ProductPageProps) {
   const mainContentId = contentAnchorId(product.slug);
+  const measurementRef = useRef<ReturnType<typeof createMeasurement>>();
+  const pageViewRecorded = useRef(false);
+
+  if (!measurementRef.current) {
+    measurementRef.current = createMeasurement(product.measurement, measurementAdapters);
+  }
+
+  useEffect(() => {
+    if (pageViewRecorded.current) return;
+
+    pageViewRecorded.current = true;
+    measurementRef.current?.initialize();
+    measurementRef.current?.track(product.measurement.pageViewEvent);
+  }, [product.measurement.pageViewEvent]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">

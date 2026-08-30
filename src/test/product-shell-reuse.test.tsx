@@ -111,6 +111,21 @@ function syntheticProduct(
       fields: HAOO_PRODUCT.qualify.fields,
       groups: HAOO_PRODUCT.qualify.groups,
     },
+    measurement: {
+      productKey: 'zenith',
+      storageKey: 'zph.zenith.ctx.v1',
+      schemaVersion: 1,
+      events: ['zenith_page_view'],
+      pageViewEvent: 'zenith_page_view',
+      interactionFlags: [
+        'brochureViewed',
+        'brochureDownloaded',
+        'qualifyStarted',
+        'assistedContact',
+        'selfOnboarding',
+      ],
+      provider: 'none',
+    },
     ...overrides,
   };
 }

@@ -101,6 +101,18 @@ export interface ProductQualifyForm {
   readonly groups: readonly QualifyFieldGroup[];
 }
 
+export type MeasurementProvider = 'none';
+
+export interface ProductMeasurement<EventName extends string = string> {
+  readonly productKey: string;
+  readonly storageKey: string;
+  readonly schemaVersion: number;
+  readonly events: readonly EventName[];
+  readonly pageViewEvent: EventName;
+  readonly interactionFlags: readonly string[];
+  readonly provider: MeasurementProvider;
+}
+
 export interface ProductDefinition {
   readonly slug: string;
   readonly name: string;
@@ -122,4 +134,5 @@ export interface ProductDefinition {
   readonly contacts: ProductContacts;
   readonly brochure: ProductBrochure;
   readonly qualify: ProductQualifyForm;
+  readonly measurement: ProductMeasurement;
 }
