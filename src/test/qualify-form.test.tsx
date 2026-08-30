@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import QualifyForm, {
@@ -1005,5 +1007,262 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
     fireEvent.change(role, { target: { value: 'Landlord' } });
 
     expect(within(qualifySection()).queryByRole('alert')).toBeNull();
+  });
+});
+
+describe('Phase 2 conditional contact-channel contracts', () => {
+  const CHANNEL = 'preferredChannel';
+  const PHONE = 'phone';
+  const PHONE_REQUIRED_MESSAGE =
+    'Enter a phone number so we can reach you on the channel you chose';
+  const PHONE_FORMAT_MESSAGE = 'Enter a phone number using digits, spaces, or +';
+  const REACHABLE_CHANNELS = ['WhatsApp', 'Phone call'];
+
+  function announcement(channel: string) {
+    return `A phone number is now required because you asked us to reach you by ${channel}.`;
+  }
+
+  function labelFor(fieldName: string) {
+    return qualifySection().querySelector(`label[for="qualify-${fieldName}"]`) as HTMLElement;
+  }
+
+  it('leaves the phone field optional until a channel requires it', () => {
+    stubFetch(async () => ({ ok: true }));
+    renderPage();
+
+    const phone = controlByName(PHONE) as HTMLInputElement;
+
+    expect(phone.required).toBe(false);
+    expect(phone.getAttribute('aria-required')).toBe('false');
+    expect(labelFor(PHONE).textContent).toContain('(optional)');
+    expect(statusRegion().textContent).toBe('');
+
+    // A channel that does not need a phone number leaves every surface alone.
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
+
+    expect((controlByName(PHONE) as HTMLInputElement).required).toBe(false);
+    expect(labelFor(PHONE).textContent).toContain('(optional)');
+    expect(statusRegion().textContent).toBe('');
+  });
+
+  it('makes phone required in every surface for the channels that need it', () => {
+    for (const channel of REACHABLE_CHANNELS) {
+      cleanup();
+      stubFetch(async () => ({ ok: true }));
+      renderPage();
+
+      fireEvent.change(controlByName(CHANNEL), { target: { value: channel } });
+
+      const phone = controlByName(PHONE) as HTMLInputElement;
+
+      expect(phone.required, channel).toBe(true);
+      expect(phone.getAttribute('aria-required'), channel).toBe('true');
+      expect(labelFor(PHONE).textContent, channel).toBe('Phone number');
+      expect(labelFor(PHONE).textContent, channel).not.toContain('(optional)');
+      expect(statusRegion().textContent, channel).toBe(announcement(channel));
+      // One region, still the same node - never a second live region and never a role
+      // swapped onto an already-mounted element.
+      expect(within(qualifySection()).getAllByRole('status'), channel).toHaveLength(1);
+    }
+  });
+
+  it('reports the locked message when a required phone is empty', () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillControls({ ...requiredValues(), preferredChannel: 'Phone call' });
+    fireEvent.click(submitControl());
+
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+    expect(inlineError(PHONE).textContent).toBe(`Error: ${PHONE_REQUIRED_MESSAGE}`);
+    expect(summaryLinkTexts()).toEqual([PHONE_REQUIRED_MESSAGE]);
+    expect(controlByName(PHONE).getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('reverses requiredness and clears the phone error when the channel changes back', async () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillControls({ ...requiredValues(), preferredChannel: 'WhatsApp' });
+    fireEvent.click(submitControl());
+
+    expect(inlineError(PHONE).textContent).toBe(`Error: ${PHONE_REQUIRED_MESSAGE}`);
+
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
+
+    // All four surfaces reverse together, and the error goes with them.
+    expect(qualifySection().querySelector(`#qualify-${PHONE}-error`)).toBeNull();
+    expect((controlByName(PHONE) as HTMLInputElement).required).toBe(false);
+    expect(controlByName(PHONE).getAttribute('aria-required')).toBe('false');
+    expect(labelFor(PHONE).textContent).toContain('(optional)');
+    expect(statusRegion().textContent).toBe('');
+    expect(within(qualifySection()).queryByRole('alert')).toBeNull();
+
+    fireEvent.click(submitControl());
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(parseRequest(fetchSpy).body).not.toHaveProperty('Phone number');
+  });
+
+  it('keeps a typed phone number through every requiredness change', () => {
+    stubFetch(async () => ({ ok: true }));
+    renderPage();
+
+    fireEvent.change(controlByName(PHONE), { target: { value: '+254 702 188 044' } });
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'WhatsApp' } });
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Phone call' } });
+
+    expect(statusRegion().textContent).toBe(announcement('Phone call'));
+
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
+
+    expect((controlByName(PHONE) as HTMLInputElement).value).toBe('+254 702 188 044');
+  });
+
+  it('accepts permissive phone formats and rejects disallowed characters', () => {
+    const base = { ...emptyValues(), ...requiredValues() };
+
+    for (const accepted of ['+254 702 188 044', '0702188044', '(020) 555-0199']) {
+      expect(validateQualifyValues({ ...base, phone: accepted }, QUALIFY), accepted)
+        .toEqual({});
+    }
+    for (const rejected of ['call me maybe', '0702-188-044 ext. 4', 'zero seven']) {
+      expect(validateQualifyValues({ ...base, phone: rejected }, QUALIFY), rejected)
+        .toEqual({ phone: PHONE_FORMAT_MESSAGE });
+    }
+
+    // Conditional requiredness reaches the pure validator, not just the markup.
+    expect(validateQualifyValues({ ...base, preferredChannel: 'WhatsApp' }, QUALIFY))
+      .toEqual({ phone: PHONE_REQUIRED_MESSAGE });
+    expect(
+      validateQualifyValues(
+        { ...base, preferredChannel: 'Phone call', phone: '0702188044' },
+        QUALIFY,
+      ),
+    ).toEqual({});
+
+    // The visitor's own formatting reaches the inbox unrewritten - no E.164 normalising.
+    expect(
+      buildSubmissionBody({ ...base, phone: '(020) 555-0199' }, QUALIFY)['Phone number'],
+    ).toBe('(020) 555-0199');
+  });
+
+  it('drives a synthetic product conditional requiredness from configuration alone', async () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const dependent: QualifyField = {
+      name: 'siteAddress',
+      label: 'Site address',
+      emailLabel: 'Site address',
+      control: 'text',
+      required: false,
+      requiredMessage: 'Enter the site address',
+      autoComplete: 'off',
+      maxLength: 120,
+      requiredWhen: {
+        field: 'contactMode',
+        values: ['Site visit'],
+        message: 'A site address is now required because you asked for a {value}.',
+      },
+    };
+    const syntheticQualify: ProductQualifyForm = {
+      ...QUALIFY,
+      fields: [
+        {
+          name: 'contactMode',
+          label: 'How should we meet?',
+          emailLabel: 'Meeting mode',
+          control: 'select',
+          required: true,
+          requiredMessage: 'Select how we should meet',
+          autoComplete: 'off',
+          placeholderOption: 'Select a mode',
+          options: [
+            { value: 'Site visit', label: 'Site visit' },
+            { value: 'Video call', label: 'Video call' },
+          ],
+        },
+        dependent,
+      ],
+      groups: [{ legend: 'About your visit', fieldNames: ['contactMode', 'siteAddress'] }],
+    };
+
+    // The descriptor alone decides requiredness - no product knowledge in the component.
+    expect(isFieldRequired(dependent, {})).toBe(false);
+    expect(isFieldRequired(dependent, { contactMode: 'Video call' })).toBe(false);
+    expect(isFieldRequired(dependent, { contactMode: 'Site visit' })).toBe(true);
+    expect(
+      validateQualifyValues({ contactMode: 'Site visit', siteAddress: '' }, syntheticQualify),
+    ).toEqual({ siteAddress: 'Enter the site address' });
+
+    const { container } = render(
+      <QualifyForm
+        qualify={syntheticQualify}
+        contacts={HAOO_PRODUCT.contacts}
+        productName="ZENITH"
+      />,
+    );
+    const scoped = within(container);
+    const mode = container.querySelector('#qualify-contactMode') as HTMLSelectElement;
+    const address = () => container.querySelector('#qualify-siteAddress') as HTMLInputElement;
+    const addressLabel = () =>
+      container.querySelector('label[for="qualify-siteAddress"]') as HTMLElement;
+
+    expect(address().required).toBe(false);
+    expect(addressLabel().textContent).toContain('(optional)');
+
+    fireEvent.change(mode, { target: { value: 'Video call' } });
+
+    expect(address().required).toBe(false);
+    expect(scoped.getByRole('status').textContent).toBe('');
+
+    fireEvent.change(mode, { target: { value: 'Site visit' } });
+
+    expect(address().required).toBe(true);
+    expect(address().getAttribute('aria-required')).toBe('true');
+    expect(addressLabel().textContent).toBe('Site address');
+    expect(scoped.getByRole('status').textContent)
+      .toBe('A site address is now required because you asked for a Site visit.');
+    expect(scoped.getAllByRole('status')).toHaveLength(1);
+
+    fireEvent.click(scoped.getByRole('button', { name: QUALIFY_SUBMIT_LABEL }));
+
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+    expect(container.querySelector('#qualify-siteAddress-error')?.textContent)
+      .toBe('Error: Enter the site address');
+
+    fireEvent.change(mode, { target: { value: 'Video call' } });
+
+    expect(container.querySelector('#qualify-siteAddress-error')).toBeNull();
+    expect(address().required).toBe(false);
+    expect(addressLabel().textContent).toContain('(optional)');
+    expect(scoped.getByRole('status').textContent).toBe('');
+
+    fireEvent.click(scoped.getByRole('button', { name: QUALIFY_SUBMIT_LABEL }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps conditional-requiredness literals out of the generic component', () => {
+    const source = readFileSync(
+      resolve(import.meta.dirname, '../components/QualifyForm.tsx'),
+      'utf8',
+    );
+
+    // The component reads a descriptor; it never recognises this product's controller
+    // field, dependent field, or trigger option values.
+    for (const literal of [CHANNEL, ...REACHABLE_CHANNELS]) {
+      expect(source, literal).not.toContain(literal);
+    }
+    expect(source, PHONE).not.toMatch(/phone/i);
+
+    // The descriptor itself is product data.
+    const phoneField = QUALIFY.fields.find((field) => field.name === PHONE);
+
+    expect(phoneField?.requiredWhen).toEqual({
+      field: CHANNEL,
+      values: REACHABLE_CHANNELS,
+      message: 'A phone number is now required because you asked us to reach you by {value}.',
+    });
+    expect(phoneField?.formatPattern).toBe('^\\+?[0-9 ()-]+$');
   });
 });
