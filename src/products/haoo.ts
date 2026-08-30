@@ -335,8 +335,12 @@ export const HAOO_PRODUCT: ProductDefinition = {
         // required in the native attribute, in `aria-required`, in the derived label
         // suffix, in the validator, and in the announcement below — all from this one
         // place (D-15). `{value}` is replaced by the chosen channel at announcement time.
-        // `formatPattern` is deliberately permissive: it accepts the way people in Kenya
-        // actually write their numbers and never rewrites what the visitor typed.
+        // `formatPattern` is deliberately permissive about punctuation: it accepts the
+        // way people in Kenya actually write their numbers and never rewrites what the
+        // visitor typed. The leading lookahead is the one thing it is strict about — at
+        // least seven digits must appear somewhere in the value, so a value made only of
+        // separators (`-`, `()`, `+-`) cannot satisfy the conditional-required gate and
+        // reach the inbox as an uncallable number.
         name: 'phone',
         label: 'Phone number',
         emailLabel: 'Phone number',
@@ -346,7 +350,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
           'Enter a phone number so we can reach you on the channel you chose',
         autoComplete: 'tel',
         maxLength: 30,
-        formatPattern: '^\\+?[0-9 ()-]+$',
+        formatPattern: '^(?=(?:[^0-9]*[0-9]){7,})\\+?[0-9 ()-]+$',
         formatMessage: 'Enter a phone number using digits, spaces, or +',
         lengthMessage: 'Shorten your phone number to 30 characters or fewer',
         requiredWhen: {

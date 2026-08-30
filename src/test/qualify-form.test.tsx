@@ -1336,7 +1336,17 @@ describe('Phase 2 conditional contact-channel contracts', () => {
       expect(validateQualifyValues({ ...base, phone: accepted }, QUALIFY), accepted)
         .toEqual({});
     }
-    for (const rejected of ['call me maybe', '0702-188-044 ext. 4', 'zero seven']) {
+    // A value made only of separators has no digits to call, so the format rule rejects
+    // it rather than letting it satisfy the conditional-required gate.
+    for (const rejected of [
+      'call me maybe',
+      '0702-188-044 ext. 4',
+      'zero seven',
+      '-',
+      '()',
+      '( )  -',
+      '+-',
+    ]) {
       expect(validateQualifyValues({ ...base, phone: rejected }, QUALIFY), rejected)
         .toEqual({ phone: PHONE_FORMAT_MESSAGE });
     }
@@ -1473,6 +1483,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
       values: REACHABLE_CHANNELS,
       message: 'A phone number is now required because you asked us to reach you by {value}.',
     });
-    expect(phoneField?.formatPattern).toBe('^\\+?[0-9 ()-]+$');
+    expect(phoneField?.formatPattern)
+      .toBe('^(?=(?:[^0-9]*[0-9]){7,})\\+?[0-9 ()-]+$');
   });
 });

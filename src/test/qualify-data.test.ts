@@ -552,7 +552,9 @@ describe('HAOO qualification product data', () => {
     for (const accepted of ['+254 702 188 044', '0702188044', '(020) 123-4567']) {
       expect(phonePattern.test(accepted), accepted).toBe(true);
     }
-    for (const rejected of ['call me', 'ext. 12']) {
+    // Separator-only values carry zero digits, so they must not satisfy the format rule:
+    // `phone` is escalated to required exactly when the visitor asks to be called back.
+    for (const rejected of ['call me', 'ext. 12', '-', '()', '( )  -', '+-', '020 123']) {
       expect(phonePattern.test(rejected), rejected).toBe(false);
     }
   });
