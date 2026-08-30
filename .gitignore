@@ -20,7 +20,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Vite loads .env.<mode> by build mode, so every mode file is the natural place a
+# developer drops VITE_HAOO_FORM_ENDPOINT while testing the deploy configuration --
+# and anything that lands beside it. Ignore the whole family, keep the checked-in
+# example.
 .env
+.env.*
+!.env.example
 
 # Local GSD runtime and generated research cache
 .gsd/
