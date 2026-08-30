@@ -17,6 +17,7 @@ const FALLBACK_BODY = 'You can still open the HAOO brochure in a new tab or down
 const PREVIEW_ERROR =
   "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
 const QUALIFY_ENTRY_LABEL = 'Send your details instead';
+const NAV_ORDER = ['Benefits', 'Capabilities', 'Brochure', 'Send details', 'Onboarding'];
 
 function renderPage() {
   return render(<ProductPage product={HAOO_PRODUCT} />);
@@ -445,6 +446,51 @@ describe('Phase 2 written-enquiry entry points', () => {
       const links = screen.getAllByRole('link', { name });
       expect(links).toHaveLength(3);
       expect(links.every((link) => link.getAttribute('href') === href)).toBe(true);
+    }
+  });
+});
+
+describe('Phase 2 product navigation', () => {
+  it('exposes the qualification entry in the desktop navigation in page order', () => {
+    renderPage();
+
+    const desktop = screen.getByRole('navigation', { name: 'HAOO sections' });
+    expect(within(desktop).getAllByRole('link')
+      .map((link) => link.textContent)).toEqual(NAV_ORDER);
+    expect(within(desktop).getByRole('link', { name: 'Send details' })
+      .getAttribute('href')).toBe('#qualify');
+  });
+
+  it('exposes the same entry once in the mobile disclosure menu', () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open HAOO navigation' }));
+    const mobile = screen.getByRole('navigation', { name: 'HAOO mobile sections' });
+    expect(within(mobile).getAllByRole('link')
+      .map((link) => link.textContent)).toEqual(NAV_ORDER);
+    expect(within(mobile).getByRole('link', { name: 'Send details' })
+      .getAttribute('href')).toBe('#qualify');
+  });
+
+  it('points both navigation presentations at the single qualify section', () => {
+    const { container } = renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open HAOO navigation' }));
+    const navLinks = Array.from(container.querySelectorAll('nav a[href="#qualify"]'));
+    expect(navLinks).toHaveLength(2);
+    expect(container.querySelectorAll('[id="qualify"]')).toHaveLength(1);
+    expect(container.querySelectorAll('a[href="#qualify"]')).toHaveLength(5);
+  });
+
+  it('keeps every navigation destination an in-page fragment of an existing section', () => {
+    const { container } = renderPage();
+
+    const desktop = screen.getByRole('navigation', { name: 'HAOO sections' });
+    for (const link of within(desktop).getAllByRole('link')) {
+      const href = link.getAttribute('href') ?? '';
+      expect(href.startsWith('#')).toBe(true);
+      expect(container.querySelectorAll(`[id="${href.slice(1)}"]`)).toHaveLength(1);
+      expect(link.getAttribute('target')).toBeNull();
     }
   });
 });
