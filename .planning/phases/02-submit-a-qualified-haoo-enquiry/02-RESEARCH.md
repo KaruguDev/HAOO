@@ -775,27 +775,32 @@ it('posts a readable, correctly-addressed payload once the form is valid', async
 | A7 | The `#qualify` section's `aria-label` will not collide with the `expectedSections` ordering assertion in `haoo-page.test.tsx:45-49` | Pitfalls / Component Responsibilities | That test filters `getAllByRole('region')` to a fixed five-name list, so a new label is ignored — but a label of `Benefits`/`Capabilities`/`Rental journey`/`Brochure`/`Onboarding` would corrupt the order assertion |
 | A8 | `_template: 'table'` is the right formatting choice for a ten-field enquiry | Pattern 1 | Cosmetic only; the alternative (`basic`) is a one-character change |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does FormSubmit honour underscore options and spaced keys in a JSON AJAX body?** (A1, A2)
+   - **RESOLVED disposition:** Phase 2 implements the documented JSON request contract and pure payload builder; Phase 5 `LEAD-07` owns live verification of subject, table formatting, readable labels, and actual mailbox delivery.
    - What we know: the AJAX endpoint accepts `Content-Type: application/json` with an arbitrary flat object [VERIFIED: formsubmit.co/documentation]; CORS permits it from this origin [VERIFIED: live `OPTIONS` probe returning `access-control-allow-origin: *`].
    - What's unclear: whether the provider's option parser reads underscore keys from JSON identically to form-encoded fields, and how it renders keys containing spaces.
    - Recommendation: implement per Pattern 1 with readable keys; add "verify subject line, table formatting, and field labels in the received email" to the Phase 5 LEAD-07 checklist; keep `buildSubmissionBody` a pure function so switching to `snake_case` keys is a one-line change with no component edits.
 
 2. **Exact Kenyan county spelling.** (A4)
+   - **RESOLVED disposition:** Plan 02-02 retains a blocking human county checkpoint before the option data is implemented and pinned.
    - What we know: the 47-name list and order are stable across sources; the KLRC First Schedule page could not be reached (307 redirect to an unrelated host, not followed).
    - What's unclear: hyphen/en-dash/apostrophe forms for four names.
    - Recommendation: `checkpoint:human-verify` on the option list before the implementing task; the values are exported data so review is a single file read.
 
 3. **Which VITE variable name, and secret vs variable?** (A6)
+   - **RESOLVED disposition:** Use `VITE_HAOO_FORM_ENDPOINT` as the selected GitHub Actions repository variable with the documented readable-address fallback; it is public build configuration, not a secret.
    - Recommendation: `VITE_HAOO_FORM_ENDPOINT` as a repository *variable*, with a documented fallback constant. Name it in the plan so the workflow diff and the source read agree.
 
 4. **Does the disclosure sentence (D-25) need privacy/legal review before merge?**
+   - **RESOLVED disposition:** Plan 02-06 retains the privacy/legal decision checkpoint, whose owner selects whether approval gates merge or production activation and may supply replacement wording; no compliance conclusion is inferred.
    - What we know: STATE.md § Blockers records "Privacy/legal ownership must approve notice, storage, retention, processor, and Kenya Data Protection Act decisions before production collection" [VERIFIED: .planning/STATE.md:106]. Phase 2 introduces the first collection of personal data on this site.
    - What's unclear: whether that approval gates *merge* or gates *production activation* (which is LEAD-07 / Phase 5).
    - Recommendation: treat the wording as a `checkpoint:human-verify` item in Phase 2 and the activation as the Phase 5 gate. Do **not** let research or planning assert any Kenya DPA 2019 compliance position — no such determination has been made and inventing one would be a false verified claim.
 
 5. **Should the general contact form in `src/App.tsx` be migrated to the AJAX pattern too?**
+   - **RESOLVED disposition:** No; general-contact migration is outside Phase 2's boundary and remains unplanned.
    - Recommendation: no. It is outside the phase boundary stated in CONTEXT.md § Phase Boundary, and D-01 explicitly scopes the departure to the HAOO form. Flag as a candidate for the backlog, not this phase.
 
 ## Environment Availability

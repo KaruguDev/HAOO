@@ -73,7 +73,32 @@ This milestone turns the existing company landing page into a product-led site b
   4. Visitor receives accessible validation, submitting, return, failure, and retry guidance and retains entered values after a recoverable client-side error.
   5. Legitimate keyboard and assistive-technology users can complete the form while a honeypot and provider-supported spam controls discourage automated submissions.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Prove the seven-file product-data-to-FormSubmit enquiry tracer end to end.
+
+**Wave 2**
+
+- [ ] 02-07-PLAN.md — Pin endpoint resolution and register the tracer with inherited focus and generic-source guards.
+
+**Wave 3**
+
+- [ ] 02-02-PLAN.md — Expand the tracer to the complete controlled qualification field set.
+- [ ] 02-03-PLAN.md — Add form entry points to onboarding blocks and product navigation.
+
+**Wave 4**
+
+- [ ] 02-04-PLAN.md — Implement accessible validation, correction, and conditional phone requiredness.
+
+**Wave 5**
+
+- [ ] 02-05-PLAN.md — Add success, provider-failure, retry, and no-JavaScript recovery states.
+
+**Wave 6**
+
+- [ ] 02-06-PLAN.md — Add approved collection disclosure and enforce the no-summary boundary.
 **UI hint**: yes
 
 ### Phase 3: Build Privacy-Bounded Engagement Context
