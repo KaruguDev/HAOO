@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 7
 waived_count: 0
 fixed_count: 2
-total_count: 8
-last_updated: 2026-08-30T08:19:24.116Z
+total_count: 9
+last_updated: 2026-08-30T08:27:54.452Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,7 @@ last_updated: 2026-08-30T08:19:24.116Z
 | 6 | 01 | stub | src/products/haoo.ts |  | HAOO_PRODUCT.brochure pdfHref/downloadName/expectationLabel remain placeholders pending plan 01-05 | fixed |  | 2026-08-29T10:22:12.183Z | 2026-08-29T10:44:29.827Z |
 | 7 | 02 | stub | src/products/haoo.ts |  | phone.formatPattern and phone.formatMessage ship as configuration but no validator reads them until plan 02-04 wires the permissive phone format | open |  | 2026-08-30T08:19:23.966Z |  |
 | 8 | 02 | stub | src/products/haoo.ts |  | organization.requiredMessage and message.requiredMessage are unreachable copy demanded by the non-optional QualifyField.requiredMessage shape; both fields are permanently optional | open |  | 2026-08-30T08:19:24.116Z |  |
+| 9 | 02 | lint-warning | src/components/QualifyForm.tsx | 28 | react-refresh/only-export-components: QualifyForm.tsx exports helpers beside the component (4 warnings, pre-existing from 02-01, lint exits 0) | open |  | 2026-08-30T08:27:54.452Z |  |
 
 ````json
 [
@@ -120,6 +121,18 @@ last_updated: 2026-08-30T08:19:24.116Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-30T08:19:24.116Z",
+    "resolved_at": null
+  },
+  {
+    "id": 9,
+    "kind": "lint-warning",
+    "phase": "02",
+    "file": "src/components/QualifyForm.tsx",
+    "line": 28,
+    "description": "react-refresh/only-export-components: QualifyForm.tsx exports helpers beside the component (4 warnings, pre-existing from 02-01, lint exits 0)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T08:27:54.452Z",
     "resolved_at": null
   }
 ]
