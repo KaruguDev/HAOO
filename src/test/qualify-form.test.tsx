@@ -159,6 +159,38 @@ function parseRequest(spy: ReturnType<typeof vi.fn>) {
   };
 }
 
+/**
+ * A control addressed by configured field name rather than accessible name. Conditional
+ * requiredness rewrites the accessible name — the `(optional)` suffix is derived, not
+ * stored — so a label-based lookup would break precisely where the rule is under test.
+ */
+function controlByName(fieldName: string): HTMLElement {
+  const node = qualifySection().querySelector(`#qualify-${fieldName}`);
+
+  if (!node) {
+    throw new Error(`Expected a control for "${fieldName}".`);
+  }
+
+  return node as HTMLElement;
+}
+
+/** Fills by configured field name, in configured DOM order. */
+function fillControls(values: Record<string, string>) {
+  for (const field of QUALIFY.fields) {
+    const value = values[field.name];
+
+    if (value === undefined) {
+      continue;
+    }
+
+    fireEvent.change(controlByName(field.name), { target: { value } });
+  }
+}
+
+function summaryContainer() {
+  return within(qualifySection()).getByRole('alert').parentElement as HTMLElement;
+}
+
 function inlineError(fieldName: string) {
   const node = qualifySection().querySelector(`#qualify-${fieldName}-error`);
 
@@ -806,5 +838,172 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
         QUALIFY,
       ),
     ).toEqual({ portfolioBand: 'Select how many units you manage' });
+  });
+});
+
+describe('Phase 2 qualified enquiry correction contracts', () => {
+  it('keeps validation quiet until the first submit attempt', () => {
+    stubFetch(async () => ({ ok: true }));
+    renderPage();
+
+    const name = controlByName('name');
+
+    // Typing, emptying and leaving a required field is not a complaint-worthy event
+    // before the visitor has ever asked to submit (D-22).
+    fireEvent.change(name, { target: { value: 'J' } });
+    fireEvent.blur(name);
+    fireEvent.change(name, { target: { value: '' } });
+    fireEvent.blur(name);
+    fireEvent.change(controlByName('email'), { target: { value: 'not-an-email' } });
+    fireEvent.blur(controlByName('email'));
+    fireEvent.blur(controlByName('county'));
+
+    expect(within(qualifySection()).queryByRole('alert')).toBeNull();
+    expect(qualifySection().querySelectorAll('[id$="-error"]')).toHaveLength(0);
+    for (const field of QUALIFY.fields) {
+      expect(controlByName(field.name).getAttribute('aria-invalid'), field.name).toBeNull();
+      expect(
+        controlByName(field.name).getAttribute('aria-describedby') ?? '',
+        field.name,
+      ).not.toContain('-error');
+    }
+  });
+
+  it('clears one field validation message as it is corrected and retains entered values', () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillControls({ name: 'Jane Wanjiru', county: 'Nairobi' });
+    fireEvent.click(submitControl());
+
+    expect(summaryLinkTexts()).toEqual([
+      'Enter your email address',
+      'Select how we should reach you',
+      'Select your role',
+      'Select how many units you manage',
+      'Select when you would like to start',
+    ]);
+
+    // Correcting one field removes only that field's entry — and does not steal focus
+    // from the control the visitor is working in.
+    const role = controlByName('role');
+
+    role.focus();
+    fireEvent.change(role, { target: { value: 'Landlord' } });
+
+    expect(document.activeElement).toBe(role);
+    expect(summaryLinkTexts()).toEqual([
+      'Enter your email address',
+      'Select how we should reach you',
+      'Select how many units you manage',
+      'Select when you would like to start',
+    ]);
+    expect(qualifySection().querySelector('#qualify-role-error')).toBeNull();
+    expect(role.getAttribute('aria-invalid')).toBeNull();
+
+    // Every other message, and every entered value, is untouched.
+    expect(inlineError('email').textContent).toBe('Error: Enter your email address');
+    expect((controlByName('name') as HTMLInputElement).value).toBe('Jane Wanjiru');
+    expect((controlByName('county') as HTMLSelectElement).value).toBe('Nairobi');
+
+    // A field made invalid after the first attempt updates its message in place, in
+    // both surfaces, byte-identically.
+    fireEvent.change(controlByName('email'), { target: { value: 'nope' } });
+
+    expect(inlineError('email').textContent)
+      .toBe('Error: Enter an email address in the format name@example.com');
+    expect(summaryLinkTexts()[0])
+      .toBe('Enter an email address in the format name@example.com');
+
+    fireEvent.change(controlByName('email'), { target: { value: 'jane@example.com' } });
+
+    expect(qualifySection().querySelector('#qualify-email-error')).toBeNull();
+    expect(summaryLinkTexts()).toEqual([
+      'Select how we should reach you',
+      'Select how many units you manage',
+      'Select when you would like to start',
+    ]);
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('re-announces the problem summary on a repeat invalid submit', () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fireEvent.click(submitControl());
+
+    const before = summaryLinkTexts();
+
+    expect(document.activeElement).toBe(summaryContainer());
+
+    // The visitor moves away without fixing anything: the error set is unchanged, so a
+    // second attempt must still move focus back rather than silently doing nothing.
+    controlByName('name').focus();
+    expect(document.activeElement).not.toBe(summaryContainer());
+
+    fireEvent.click(submitControl());
+
+    expect(summaryLinkTexts()).toEqual(before);
+    expect(document.activeElement).toBe(summaryContainer());
+    expect(within(qualifySection()).getAllByRole('alert')).toHaveLength(1);
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('links every summary problem to its control in configured DOM order', () => {
+    stubFetch(async () => ({ ok: true }));
+    renderPage();
+    fireEvent.click(submitControl());
+
+    const links = Array.from(summaryContainer().querySelectorAll('a'));
+    const invalidNames = QUALIFY.fields
+      .filter((field) => field.required)
+      .map((field) => field.name);
+
+    expect(links.map((link) => link.getAttribute('href')))
+      .toEqual(invalidNames.map((fieldName) => `#qualify-${fieldName}`));
+    for (const [index, fieldName] of invalidNames.entries()) {
+      const control = controlByName(fieldName);
+
+      expect(control.id, fieldName).toBe(`qualify-${fieldName}`);
+      expect(control.getAttribute('aria-invalid'), fieldName).toBe('true');
+      expect(control.getAttribute('aria-describedby'), fieldName)
+        .toContain(`qualify-${fieldName}-error`);
+      expect(links[index].textContent, fieldName)
+        .toBe(inlineError(fieldName).textContent?.replace('Error: ', ''));
+    }
+  });
+
+  it('rejects manipulated and over-bound values in the same validation pass', () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillControls(requiredValues());
+
+    // A rogue option appended to a native select, and a value pushed past the native
+    // maxLength: neither reaches the network.
+    const role = controlByName('role') as HTMLSelectElement;
+    const rogue = document.createElement('option');
+
+    rogue.value = 'Administrator';
+    rogue.textContent = 'Administrator';
+    role.append(rogue);
+    fireEvent.change(role, { target: { value: 'Administrator' } });
+    fireEvent.change(controlByName('name'), { target: { value: 'a'.repeat(81) } });
+    fireEvent.click(submitControl());
+
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+    expect(summaryLinkTexts()).toEqual([
+      'Shorten your full name to 80 characters or fewer',
+      'Select your role',
+    ]);
+    expect(inlineError('name').textContent)
+      .toBe('Error: Shorten your full name to 80 characters or fewer');
+    expect(inlineError('role').textContent).toBe('Error: Select your role');
+
+    // Correcting them clears both, and only then does a request go out.
+    fireEvent.change(controlByName('name'), { target: { value: 'Jane Wanjiru' } });
+    fireEvent.change(role, { target: { value: 'Landlord' } });
+
+    expect(within(qualifySection()).queryByRole('alert')).toBeNull();
   });
 });
