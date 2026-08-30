@@ -115,6 +115,17 @@ function syntheticProduct(
   };
 }
 
+/**
+ * Product names are data, never patterns. `HAOO` is inert today, but a future `Q.ai`,
+ * `Zero+` or `Flow (Beta)` would either throw at compile time or — worse — silently
+ * change this guard's meaning: `Q.ai` matches `Qxai`, and a name containing `.*` would
+ * match every file and pass vacuously. This test is the only enforcement of the reuse
+ * contract, so product data must not be able to weaken it.
+ */
+function escapeRegExp(literal: string) {
+  return literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 describe('Phase 1 product shell reuse contracts', () => {
   it('renders a synthetic product through every product-named shell surface', () => {
     const product = syntheticProduct();
@@ -215,7 +226,7 @@ describe('Phase 1 product shell reuse contracts', () => {
   it('rejects product-name literals in product-generic executable source', () => {
     let scanned = 0;
     const productName = PRODUCTS[0].name;
-    const productNamePattern = new RegExp(productName, 'i');
+    const productNamePattern = new RegExp(escapeRegExp(productName), 'i');
 
     for (const relativePath of GENERIC_PRODUCT_SOURCES) {
       const source = readFileSync(resolve(ROOT, relativePath), 'utf8');
@@ -228,5 +239,14 @@ describe('Phase 1 product shell reuse contracts', () => {
       .not.toMatch(productNamePattern);
     expect(withoutComments(`const product = '${productName}';`))
       .toMatch(productNamePattern);
+
+    // The escape is load-bearing, not decorative: an unescaped metacharacter-carrying
+    // name would silently widen this guard rather than fail loudly.
+    const riskyName = 'Q.ai (Beta)+';
+    const riskyPattern = new RegExp(escapeRegExp(riskyName), 'i');
+
+    expect(riskyPattern.test(riskyName)).toBe(true);
+    expect(riskyPattern.test('Qxai (Beta)')).toBe(false);
+    expect(new RegExp(escapeRegExp('.*'), 'i').test('anything at all')).toBe(false);
   });
 });
