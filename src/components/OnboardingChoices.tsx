@@ -1,5 +1,6 @@
 import { ArrowUpRight, Mail, MessageCircle, Phone } from 'lucide-react';
 import {
+  qualifyEntryPointLabel,
   selfOnboardingActionLabel,
   selfOnboardingLead,
   whatsappActionLabel,
@@ -45,6 +46,9 @@ export default function OnboardingChoices({ product, position }: OnboardingChoic
           </a>
         </div>
         <p className="mt-4 text-sm font-normal leading-[1.4] text-[#5F6B84]">These contact links leave the ZERO-PAPER HUB product page.</p>
+        <a href="#qualify" className={`mt-4 inline-flex min-h-11 items-center rounded-lg px-2 text-left text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
+          {qualifyEntryPointLabel(product.name)}
+        </a>
       </div>
 
       <div className={`rounded-2xl border p-6 md:p-8 ${onDark ? 'border-[#DBE2FF] bg-[#18275F] text-white' : 'border-[#DFE4F0] bg-[#E9EDFF] text-[#18275F]'}`}>

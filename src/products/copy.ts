@@ -26,6 +26,18 @@ export function whatsappActionLabel(productName: string) {
   return `Chat with ${requireIdentity(productName, 'name')} on WhatsApp`;
 }
 
+/**
+ * The written-enquiry alternative offered beside the assisted contacts. The visible
+ * label is locked by the UI-SPEC and carries no product name, but the identity is
+ * still guarded here so a shell rendered for a nameless product fails closed exactly
+ * like every other copy builder rather than silently shipping an orphan link.
+ */
+export function qualifyEntryPointLabel(productName: string) {
+  requireIdentity(productName, 'name');
+
+  return 'Send your details instead';
+}
+
 export function selfOnboardingLead(productName: string) {
   return `Continue to ${requireIdentity(productName, 'name')}'s platform for self-onboarding.`;
 }
