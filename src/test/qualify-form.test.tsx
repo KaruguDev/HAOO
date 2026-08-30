@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import QualifyForm, {
   buildSubmissionBody,
   isFieldRequired,
+  QUALIFY_REQUEST_TIMEOUT_MS,
   QUALIFY_STATUS_MESSAGES,
   QUALIFY_SUBMIT_LABEL,
   QUALIFY_SUBMITTING_LABEL,
@@ -681,6 +682,49 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(within(qualifySection()).getAllByRole('button', {
       name: 'Try sending again',
     })).toHaveLength(1);
+  });
+
+  it('treats a stalled request as a failure so the recovery panel stays reachable', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    try {
+      let stalledSignal: AbortSignal | undefined;
+      // A request that never settles on its own: only the abort ends it, which is how a
+      // captive portal, a dropped mobile connection and a hung provider all behave.
+      const fetchSpy = vi.fn((_input: unknown, init?: RequestInit) => {
+        stalledSignal = init?.signal ?? undefined;
+
+        return new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          });
+        });
+      });
+
+      vi.stubGlobal('fetch', fetchSpy);
+      renderPage();
+      fillValidEnquiry();
+      fireEvent.click(submitControl());
+
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.submitting);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(QUALIFY_REQUEST_TIMEOUT_MS);
+      });
+
+      expect(stalledSignal?.aborted).toBe(true);
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed);
+
+      const failureHeading = within(qualifySection()).getByRole('heading', {
+        name: "We couldn't send your details",
+      });
+
+      expect(document.activeElement).toBe(failureHeading);
+      // The synchronous in-flight guard was released, so the visitor can retry.
+      expect((submitControl() as HTMLButtonElement).disabled).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('renders terminal recovery copy from a synthetic product identity', async () => {

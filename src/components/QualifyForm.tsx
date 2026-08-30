@@ -38,6 +38,15 @@ export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> 
 };
 
 const QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way';
+/**
+ * Request budget. `fetch` has no default timeout in any browser, so a request that never
+ * settles — a captive portal, a dropped mobile connection, a hung provider — would
+ * otherwise hold the in-flight guard and the `submitting` state forever, and the
+ * recovery panel offering the product's direct contact routes renders only in the failed
+ * state. A stall is therefore treated as a failure, so recovery stays reachable on
+ * exactly the network conditions those routes exist for.
+ */
+export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
 const HONEYPOT_NAME = '_honey';
 const COLLECTION_NOTE_ID = 'qualify-collection-note';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -311,6 +320,9 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
     inFlightRef.current = true;
     setState('submitting');
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
+
     try {
       const response = await fetch(qualify.endpoint, {
         method: 'POST',
@@ -319,14 +331,18 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
           Accept: 'application/json',
         },
         body: JSON.stringify(buildSubmissionBody(values, qualify)),
+        signal: controller.signal,
       });
 
       // Terminal state comes from the response status alone. The provider body is
       // never read, so a provider body change cannot make this page claim a send.
       setState(response.ok ? 'succeeded' : 'failed');
     } catch {
+      // An abort arrives here like any other transport error, so a stalled request ends
+      // in the one state that mounts the recovery panel rather than in a dead spinner.
       setState('failed');
     } finally {
+      clearTimeout(timeout);
       inFlightRef.current = false;
     }
   }
