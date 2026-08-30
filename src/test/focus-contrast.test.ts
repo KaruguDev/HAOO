@@ -38,6 +38,7 @@ export const FOCUS_SOURCES = [
   'src/components/BrochurePanel.tsx',
   'src/components/ProductsSection.tsx',
   'src/components/QualifyForm.tsx',
+  'src/components/QualifyFallback.tsx',
 ] as const;
 
 /** Tailwind ring *width* keywords — these are not colours and carry no contrast. */

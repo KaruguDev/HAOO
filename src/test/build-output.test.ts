@@ -85,6 +85,7 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...FORM_MARKUP_FORBIDDEN,
   ],
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+  'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
 
 function readText(path: string) {
@@ -145,6 +146,12 @@ function builtBundleText() {
 
 function noScriptMarkup(html: string) {
   return html.match(/<noscript>([\s\S]*?)<\/noscript>/i)?.[1] ?? '';
+}
+
+function noScriptFormRecoveryMarkup(html: string) {
+  return noScriptMarkup(html).match(
+    /<section aria-label="HAOO qualification form recovery">([\s\S]*?)<\/section>/i,
+  )?.[1] ?? '';
 }
 
 describe('Phase 1 build artifact freshness', () => {
@@ -265,7 +272,7 @@ describe('Phase 1 static build contracts', () => {
       expect(markup).not.toBe('');
 
       const hrefs = [...markup.matchAll(/href="([^"]+)"/g)].map(([, href]) => href);
-      expect(hrefs).toEqual(expectedHrefs);
+      expect(hrefs.slice(0, expectedHrefs.length)).toEqual(expectedHrefs);
       expect(markup).toContain('HAOO is a ZERO-PAPER HUB product.');
       expect(markup).toContain(HAOO_PRODUCT.assistedInvitation);
       expect(markup).toContain('These contact links leave the ZERO-PAPER HUB product page.');
@@ -279,6 +286,48 @@ describe('Phase 1 static build contracts', () => {
         ...HAOO_PRODUCT.contacts.whatsappStarterText,
       ]);
       expect([...whatsappUrl.searchParams.keys()]).toEqual(['text']);
+    }
+  });
+
+  it('publishes one truthful no-JavaScript qualification recovery panel', () => {
+    const expectedLinks = [
+      {
+        href: HAOO_PRODUCT.contacts.whatsappHref,
+        text: 'Message HAOO on WhatsApp instead',
+      },
+      {
+        href: HAOO_PRODUCT.contacts.phoneHref,
+        text: 'Call HAOO on +254 702 188 044 instead',
+      },
+      {
+        href: HAOO_PRODUCT.contacts.emailHref,
+        text: 'Email HAOO at info@haoo.online instead',
+      },
+    ];
+
+    for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
+      const noScript = noScriptMarkup(html);
+      const recovery = noScriptFormRecoveryMarkup(html);
+
+      expect(noScript.match(/This form needs JavaScript/g) ?? []).toHaveLength(1);
+      expect(recovery).toContain(
+        'Turn on JavaScript to send your details, or reach HAOO directly — the team can take the same details over WhatsApp, by phone, or by email.',
+      );
+
+      const links = [...recovery.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
+        .map(([, href, text]) => ({ href, text }));
+
+      expect(links).toEqual(expectedLinks);
+      for (const forbidden of [
+        /<form\b/i,
+        /formsubmit/i,
+        /_next/i,
+        /captcha/i,
+        /<script\b/i,
+        /\bfetch\s*\(/i,
+      ]) {
+        expect(recovery, forbidden).not.toMatch(forbidden);
+      }
     }
   });
 
@@ -351,5 +400,28 @@ describe('Phase 1 static build contracts', () => {
 
     expect(existsSync(resolve(ROOT, 'components.json'))).toBe(false);
     expect(existsSync(resolve(ROOT, 'src/components/ui'))).toBe(false);
+  });
+
+  it('runs every inherited static prohibition against the qualification fallback', () => {
+    const relativePath = 'src/components/QualifyFallback.tsx';
+    const boundary = PRODUCT_SOURCE_BOUNDARY[relativePath];
+    const source = readText(resolve(ROOT, relativePath));
+    const inheritedGroups = [
+      ALWAYS_FORBIDDEN,
+      NETWORK_FORBIDDEN,
+      PROVIDER_FORBIDDEN,
+      FORM_MARKUP_FORBIDDEN,
+    ];
+    let scanned = 0;
+
+    expect(boundary).toBeTruthy();
+    for (const group of inheritedGroups) {
+      for (const forbidden of group) {
+        expect(boundary).toContain(forbidden);
+        expect(source, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
+        scanned += 1;
+      }
+    }
+    expect(scanned).toBe(FULL_BOUNDARY.length);
   });
 });
