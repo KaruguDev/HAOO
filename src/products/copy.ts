@@ -79,10 +79,16 @@ export function qualifyCollectionNotePurpose(productName: string) {
   return `We use these details only to reply to you about ${requireIdentity(productName, 'name')} onboarding. We never sell them or add you to a mailing list.`;
 }
 
+/**
+ * Forward-looking disclosure. The page-use summary it describes is not built yet, so the
+ * sentence is written in the future tense: a privacy notice must never describe
+ * collection that does not occur. The tense flips to present in the same change that
+ * adds the summary to the request body, so the notice and the payload land together.
+ */
 export function qualifyCollectionNotePageContext(productName: string) {
   const name = requireIdentity(productName, 'name');
 
-  return `When you send this form, a short summary of how you used this ${name} page is included with your details. It is coarse and anonymous — it never includes your message text, exact portfolio numbers, or any identifier that follows you across sites.`;
+  return `In future, a short summary of how you used this ${name} page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.`;
 }
 
 /**

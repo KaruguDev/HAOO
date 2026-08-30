@@ -27,8 +27,13 @@ const SECTION_NAME = 'Send your details';
 const REQUIRED_FIELDS_NOTE = 'All fields are required unless marked optional.';
 const COLLECTION_PURPOSE =
   'We use these details only to reply to you about HAOO onboarding. We never sell them or add you to a mailing list.';
+/**
+ * Future tense on purpose: the page-use summary is not in the payload this phase sends,
+ * and `EXPECTED_BODY_KEYS` below is the proof. A present-tense notice would describe
+ * collection that does not occur.
+ */
 const COLLECTION_CONTEXT =
-  'When you send this form, a short summary of how you used this HAOO page is included with your details. It is coarse and anonymous — it never includes your message text, exact portfolio numbers, or any identifier that follows you across sites.';
+  'In future, a short summary of how you used this HAOO page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.';
 const DISCLOSURE_ID = 'qualify-collection-note';
 /** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
 const EXPECTED_BODY_KEYS = [
