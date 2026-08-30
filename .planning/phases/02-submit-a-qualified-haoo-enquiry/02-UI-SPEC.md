@@ -412,10 +412,11 @@ Do **not** enumerate specific signals. Phase 3 defines the actual signals and re
 >   bundle with no backend and no store — and makes no claim about FormSubmit's own
 >   retention, which this project cannot verify.
 >
-> **`checkpoint:human-verify` — processor disclosure.** The second sentence is
-> legal-adjacent copy authored to satisfy the review, not supplied by the product owner.
-> Confirm the wording, and confirm that FormSubmit is the processor you intend to name
-> publicly, before this text is treated as settled.
+> **`checkpoint:human-verify` — processor disclosure: CONFIRMED 2026-08-30.** The product
+> owner reviewed the sentence and elected to keep it as written, accepting FormSubmit as
+> the processor named publicly at the point of collection. The retention claim stays scoped
+> to this site; widening it to cover FormSubmit's own retention would assert something this
+> project cannot verify and reopens WR-06.
 
 ### Confirmation panel (D-03)
 
@@ -435,11 +436,12 @@ Do **not** enumerate specific signals. Phase 3 defines the actual signals and re
 > only what the page witnessed, and re-frames the response time as the visitor's *fallback
 > trigger* rather than a delivery receipt or an unconditional promise.
 >
-> **`checkpoint:human-verify` — response-time promise.** `within one business day` is a
-> default chosen by this contract, not a value supplied upstream, and it survives the
-> rewrite in its weaker conditional form. The HAOO product owner must still confirm or
-> replace it; a promise the team cannot keep is worse than no promise. If it cannot be
-> confirmed, replace the second sentence with `We'll be in touch as soon as we can.`
+> **`checkpoint:human-verify` — response-time promise: CONFIRMED 2026-08-30.** The product
+> owner reviewed `within one business day` after the review rewrite and elected to keep it.
+> It is no longer a contract-chosen default: the wording above is approved copy. Note that
+> it survives only in the conditional form — as the visitor's fallback trigger, never as an
+> unconditional promise — and any change back to an unconditional phrasing reopens CR-01
+> and needs fresh sign-off.
 
 ### Failure panel (D-02)
 
