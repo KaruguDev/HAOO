@@ -386,25 +386,60 @@ Each string below is rendered **byte-identically** in two places: inline beside 
 
 ### Disclosure note (LEAD-03, D-25)
 
-Two sentences, always visible, immediately above the submit control:
+Three sentences, always visible, immediately above the submit control:
 
 `We use these details only to reply to you about HAOO onboarding. We never sell them or add you to a mailing list.`
 
-`When you send this form, a short summary of how you used this HAOO page is included with your details. It is coarse and anonymous — it never includes your message text, exact portfolio numbers, or any identifier that follows you across sites.`
+`Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.`
+
+`In future, a short summary of how you used this HAOO page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.`
 
 Do **not** enumerate specific signals. Phase 3 defines the actual signals and refines this wording; a detailed list shipped now could not be accurate. There is no expandable "what we collect" panel in this phase.
+
+> **Amended after the Phase 2 code review (WR-06, CR-02).** This contract originally
+> specified two sentences, and pinned the page-context sentence in the **present** tense
+> (`a short summary … is included with your details`). Both were wrong against the code
+> that ships:
+>
+> - **Tense (CR-02).** `buildSubmissionBody` emits no page-use summary in this phase, and
+>   `qualify-form.test.tsx` asserts its absence. A present-tense notice described
+>   collection that does not occur. The sentence is future-tense until the same change
+>   that adds the summary to the request body flips it — notice and payload land together.
+> - **Processor (WR-06).** The payload reaches FormSubmit, a third party, before any
+>   ZERO-PAPER HUB mailbox. Kenya's Data Protection Act 2019 expects recipients to be
+>   identified at the point of collection, as does its GDPR analogue, so the processor is
+>   now named there. The retention claim is deliberately scoped to *this site* — a static
+>   bundle with no backend and no store — and makes no claim about FormSubmit's own
+>   retention, which this project cannot verify.
+>
+> **`checkpoint:human-verify` — processor disclosure.** The second sentence is
+> legal-adjacent copy authored to satisfy the review, not supplied by the product owner.
+> Confirm the wording, and confirm that FormSubmit is the processor you intend to name
+> publicly, before this text is treated as settled.
 
 ### Confirmation panel (D-03)
 
 | Element | Copy |
 |---------|------|
 | Heading | `Your details are on their way` |
-| Body | `We've sent your name, contact details, and the answers you gave to the HAOO team. Someone will reply within one business day.` |
+| Body | `Your details were submitted. If you don't hear back within one business day, use one of the contacts below.` |
 | Alternatives lead | `Need an answer sooner?` |
 | WhatsApp link | `Message HAOO on WhatsApp instead` |
 | Phone link | `Call HAOO on +254 702 188 044 instead` |
 
-> **`checkpoint:human-verify` — response-time promise.** `within one business day` is a default chosen by this contract, not a value supplied upstream. The HAOO product owner must confirm or replace it before ship; a promise the team cannot keep is worse than no promise. If it cannot be confirmed, replace the second sentence with `We'll be in touch as soon as we can.`
+> **Amended after the Phase 2 code review (CR-01).** The original body asserted that the
+> details had been *sent to the HAOO team* and that *someone will reply within one
+> business day*. Neither claim is browser-observable: the page sees only that the provider
+> accepted the request, which is not proof a mailbox received it — and `README.md` records
+> delivery as unverified until the Phase 5 `LEAD-07` activation. The shipped body states
+> only what the page witnessed, and re-frames the response time as the visitor's *fallback
+> trigger* rather than a delivery receipt or an unconditional promise.
+>
+> **`checkpoint:human-verify` — response-time promise.** `within one business day` is a
+> default chosen by this contract, not a value supplied upstream, and it survives the
+> rewrite in its weaker conditional form. The HAOO product owner must still confirm or
+> replace it; a promise the team cannot keep is worse than no promise. If it cannot be
+> confirmed, replace the second sentence with `We'll be in touch as soon as we can.`
 
 ### Failure panel (D-02)
 
@@ -482,7 +517,7 @@ Empty-state and error-state **copy** lives in `## Copywriting Contract`; the row
 | Entry-point link | ✅ resolved — explicit | The entry-point link renders from static copy in all three OnboardingChoices positions and can never be empty or absent — it does not depend on form state or any data source. |
 | Product-nav `Send details` | ✅ resolved — explicit | The "Send details" nav entry is a static PRODUCT_LINKS member present in the desktop nav and the mobile disclosure menu at every render. It has no data-dependent empty state. |
 | Honeypot field | ✅ resolved — explicit | The honeypot input renders empty by design and an empty value is the pass condition. It is off-screen positioned (never display:none), aria-hidden and out of tab order, so its empty state is never visible or announced. |
-| Disclosure note | ✅ resolved — explicit | The disclosure note is two fixed sentences rendered on every render, always visible, never behind a toggle and never data-dependent. |
+| Disclosure note | ✅ resolved — explicit | The disclosure note is three fixed sentences rendered on every render, always visible, never behind a toggle and never data-dependent. |
 
 ### `loading` — What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?
 
@@ -549,7 +584,7 @@ Empty-state and error-state **copy** lives in `## Copywriting Contract`; the row
 | Entry-point link | ✅ resolved — explicit | A static anchor has no partial state; it renders identically whether the form is untouched, partly filled, submitted, or failed. |
 | Product-nav `Send details` | ✅ resolved — explicit | A static nav entry has no partial state; it renders identically in every form state, in both the desktop nav and the mobile menu. |
 | Honeypot field | ✅ resolved — explicit | The honeypot has exactly two states — empty (pass) and non-empty (suppress). There is no partial condition. |
-| Disclosure note | ✅ resolved — explicit | The note is two fixed sentences shown in full or not at all; it is never truncated, collapsed, or progressively disclosed. |
+| Disclosure note | ✅ resolved — explicit | The note is three fixed sentences shown in full or not at all; it is never truncated, collapsed, or progressively disclosed. |
 
 ### `overflow` — What happens when content exceeds its container — scroll, clip, wrap, or truncate?
 
@@ -598,7 +633,7 @@ Empty-state and error-state **copy** lives in `## Copywriting Contract`; the row
 | Entry-point link | ✅ resolved — explicit | No line clamp, no ellipsis, no truncation anywhere in this section — text wraps and the container grows vertically. The entry-point link text wraps to a second line rather than truncating. |
 | Product-nav `Send details` | ✅ resolved — explicit | No line clamp, no ellipsis, no truncation anywhere in this section — text wraps and the container grows vertically. "Send details" is deliberately short so the five-entry desktop nav holds without truncation; in the mobile menu it wraps. |
 | Honeypot field | ✅ resolved — explicit | The honeypot label is never visible and never rendered to sighted users, so it has no long-text presentation. It must still be a real label, not an aria-label on an unlabelled input. |
-| Disclosure note | ✅ resolved — explicit | No line clamp, no ellipsis, no truncation anywhere in this section — text wraps and the container grows vertically. The two-sentence note wraps in full; it must never be shortened, collapsed, or moved behind a toggle to save space. |
+| Disclosure note | ✅ resolved — explicit | No line clamp, no ellipsis, no truncation anywhere in this section — text wraps and the container grows vertically. The three-sentence note wraps in full; it must never be shortened, collapsed, or moved behind a toggle to save space. |
 
 ---
 
