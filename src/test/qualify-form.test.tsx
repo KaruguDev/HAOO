@@ -1468,6 +1468,31 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     expect(controlByName(PHONE).getAttribute('aria-invalid')).toBe('true');
   });
 
+  it('grows the summary the moment a dependent rule starts matching', () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    // A first invalid submit makes the summary the authoritative problem list, so from
+    // here on it has to stay complete without a second submit to reveal what it missed.
+    fillControls({ ...requiredValues(), name: '' });
+    fireEvent.click(submitControl());
+
+    expect(summaryLinkTexts()).toEqual(['Enter your full name']);
+
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'WhatsApp' } });
+
+    expect(summaryLinkTexts()).toEqual(['Enter your full name', PHONE_REQUIRED_MESSAGE]);
+    expect(inlineError(PHONE).textContent).toBe(`Error: ${PHONE_REQUIRED_MESSAGE}`);
+    expect(controlByName(PHONE).getAttribute('aria-invalid')).toBe('true');
+
+    // Reversal is still symmetric: the entry leaves with the rule that created it.
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
+
+    expect(summaryLinkTexts()).toEqual(['Enter your full name']);
+    expect(qualifySection().querySelector(`#qualify-${PHONE}-error`)).toBeNull();
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+  });
+
   it('reverses requiredness and clears the phone error when the channel changes back', async () => {
     const fetchSpy = stubFetch(async () => ({ ok: true }));
 

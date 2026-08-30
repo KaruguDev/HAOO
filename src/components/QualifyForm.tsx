@@ -319,10 +319,19 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
         delete next[name];
       }
 
-      // A field this edit stopped requiring drops its now-unreachable message too, but
-      // keeps any message it still earns on its own — and always keeps its typed value.
+      // Dependents are reconciled in both directions. A field this edit stopped
+      // requiring drops its now-unreachable message; one it just started requiring gains
+      // its message here rather than at the next submit, because the summary is
+      // presented as the authoritative problem list and must not under-report. Either
+      // way the field keeps any message it still earns on its own, and its typed value.
       for (const field of qualify.fields) {
-        if (field.requiredWhen?.field === name && !fresh[field.name]) {
+        if (field.requiredWhen?.field !== name) {
+          continue;
+        }
+
+        if (fresh[field.name]) {
+          next[field.name] = fresh[field.name];
+        } else {
           delete next[field.name];
         }
       }
