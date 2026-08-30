@@ -326,7 +326,7 @@ describe('Phase 1 static build contracts', () => {
         /<script\b/i,
         /\bfetch\s*\(/i,
       ]) {
-        expect(recovery, forbidden).not.toMatch(forbidden);
+        expect(recovery, String(forbidden)).not.toMatch(forbidden);
       }
     }
   });
