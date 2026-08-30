@@ -1,4 +1,4 @@
-import type { ProductDefinition } from './types';
+import type { ProductDefinition, QualifyOption } from './types';
 
 export type { ProductDefinition } from './types';
 
@@ -62,6 +62,110 @@ export function resolveQualifyEndpoint(configuredValue?: string): string {
 export const QUALIFY_ENDPOINT = resolveQualifyEndpoint(
   import.meta.env.VITE_HAOO_FORM_ENDPOINT,
 );
+
+/**
+ * Every closed option list ships here rather than in JSX, so a drifted option is caught
+ * by a data contract without rendering anything (D-11). `value` is derived from `label`
+ * by construction: the delivered email then carries the exact human string the visitor
+ * saw, and there is no lookup table that can fall out of step with the rendered options.
+ */
+function toOptions(labels: readonly string[]): readonly QualifyOption[] {
+  return labels.map((label) => ({ value: label, label }));
+}
+
+export const CONTACT_CHANNEL_OPTIONS: readonly QualifyOption[] = toOptions([
+  'WhatsApp',
+  'Phone call',
+  'Email',
+]);
+
+export const ROLE_OPTIONS: readonly QualifyOption[] = toOptions([
+  'Landlord',
+  'Property manager',
+  'Agency',
+  'Organization',
+  'Other',
+]);
+
+/** The first four bands carry an en dash (U+2013); `200+ units` carries no dash. */
+export const PORTFOLIO_BAND_OPTIONS: readonly QualifyOption[] = toOptions([
+  '1–5 units',
+  '6–20 units',
+  '21–50 units',
+  '51–200 units',
+  '200+ units',
+]);
+
+/** `In 1–3 months` carries an en dash (U+2013); the other three carry no dash. */
+export const TIMEFRAME_OPTIONS: readonly QualifyOption[] = toOptions([
+  'Ready now',
+  'In 1–3 months',
+  'In 3+ months',
+  'Just exploring',
+]);
+
+/**
+ * The 47 counties of the First Schedule to the Constitution of Kenya in official code
+ * order 1-47, followed by a single `Outside Kenya` bucket for non-Kenyan prospects.
+ *
+ * Four names carry punctuation that varies between published transcriptions, and these
+ * strings are written into email delivered to a real inbox, so the exact characters were
+ * confirmed by a human before ship (plan 02-02 task 1, approved as planned):
+ * `Taita–Taveta` carries an en dash (U+2013); `Tharaka-Nithi`, `Trans-Nzoia` and
+ * `Elgeyo-Marakwet` carry a plain hyphen (U+002D); `Murang’a` carries a typographic
+ * apostrophe (U+2019). `qualify-data.test.ts` pins all four by codepoint against a
+ * literal expectation, so an editor that silently re-normalises them fails the build.
+ */
+export const KENYAN_COUNTY_OPTIONS: readonly QualifyOption[] = toOptions([
+  'Mombasa',
+  'Kwale',
+  'Kilifi',
+  'Tana River',
+  'Lamu',
+  'Taita–Taveta',
+  'Garissa',
+  'Wajir',
+  'Mandera',
+  'Marsabit',
+  'Isiolo',
+  'Meru',
+  'Tharaka-Nithi',
+  'Embu',
+  'Kitui',
+  'Machakos',
+  'Makueni',
+  'Nyandarua',
+  'Nyeri',
+  'Kirinyaga',
+  'Murang’a',
+  'Kiambu',
+  'Turkana',
+  'West Pokot',
+  'Samburu',
+  'Trans-Nzoia',
+  'Uasin Gishu',
+  'Elgeyo-Marakwet',
+  'Nandi',
+  'Baringo',
+  'Laikipia',
+  'Nakuru',
+  'Narok',
+  'Kajiado',
+  'Kericho',
+  'Bomet',
+  'Kakamega',
+  'Vihiga',
+  'Bungoma',
+  'Busia',
+  'Siaya',
+  'Kisumu',
+  'Homa Bay',
+  'Migori',
+  'Kisii',
+  'Nyamira',
+  'Nairobi',
+  'Outside Kenya',
+]);
 
 export const HAOO_PRODUCT: ProductDefinition = {
   slug: 'haoo',
@@ -177,6 +281,10 @@ export const HAOO_PRODUCT: ProductDefinition = {
     subject: 'New HAOO qualification enquiry — ZERO-PAPER HUB',
     sourceNote:
       'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
+    // DOM order is also the order the labels appear in the delivered email. The
+    // preferred-channel select deliberately precedes `phone` so the requiredness rule
+    // added in plan 04 fires after the visitor chooses, never retroactively on a field
+    // they have already left behind.
     fields: [
       {
         name: 'name',
@@ -202,6 +310,34 @@ export const HAOO_PRODUCT: ProductDefinition = {
         lengthMessage: 'Shorten your email address to 254 characters or fewer',
       },
       {
+        name: 'preferredChannel',
+        label: 'How should we reach you?',
+        emailLabel: 'Preferred contact channel',
+        control: 'select',
+        required: true,
+        requiredMessage: 'Select how we should reach you',
+        autoComplete: 'off',
+        placeholderOption: 'Select a channel',
+        options: CONTACT_CHANNEL_OPTIONS,
+      },
+      {
+        // Optional at this stage. Plan 04 adds the generic `requiredWhen` descriptor that
+        // makes it required for the WhatsApp and Phone call channels; `formatPattern` is
+        // read by the same plan's validator. Neither belongs in the component.
+        name: 'phone',
+        label: 'Phone number',
+        emailLabel: 'Phone number',
+        control: 'tel',
+        required: false,
+        requiredMessage:
+          'Enter a phone number so we can reach you on the channel you chose',
+        autoComplete: 'tel',
+        maxLength: 30,
+        formatPattern: '^\\+?[0-9 ()-]+$',
+        formatMessage: 'Enter a phone number using digits, spaces, or +',
+        lengthMessage: 'Shorten your phone number to 30 characters or fewer',
+      },
+      {
         name: 'role',
         label: 'Your role',
         emailLabel: 'Role',
@@ -210,18 +346,78 @@ export const HAOO_PRODUCT: ProductDefinition = {
         requiredMessage: 'Select your role',
         autoComplete: 'off',
         placeholderOption: 'Select your role',
-        options: [
-          { value: 'Landlord', label: 'Landlord' },
-          { value: 'Property manager', label: 'Property manager' },
-          { value: 'Agency', label: 'Agency' },
-          { value: 'Organization', label: 'Organization' },
-          { value: 'Other', label: 'Other' },
-        ],
+        options: ROLE_OPTIONS,
+      },
+      {
+        // Never required, so `requiredMessage` is unreachable copy the shared field shape
+        // still demands; the reachable message for this field is `lengthMessage`.
+        name: 'organization',
+        label: 'Organization',
+        emailLabel: 'Organization',
+        control: 'text',
+        required: false,
+        requiredMessage: 'Enter your organization',
+        autoComplete: 'organization',
+        maxLength: 120,
+        lengthMessage: 'Shorten your organization to 120 characters or fewer',
+      },
+      {
+        name: 'portfolioBand',
+        label: 'How many units do you manage?',
+        emailLabel: 'Portfolio size',
+        control: 'select',
+        required: true,
+        requiredMessage: 'Select how many units you manage',
+        autoComplete: 'off',
+        placeholderOption: 'Select a range',
+        options: PORTFOLIO_BAND_OPTIONS,
+      },
+      {
+        name: 'county',
+        label: 'Where are your properties?',
+        emailLabel: 'Location',
+        control: 'select',
+        required: true,
+        requiredMessage: 'Select where your properties are',
+        autoComplete: 'address-level1',
+        placeholderOption: 'Select a county',
+        options: KENYAN_COUNTY_OPTIONS,
+      },
+      {
+        name: 'timeframe',
+        label: 'When would you like to start?',
+        emailLabel: 'Onboarding timeframe',
+        control: 'select',
+        required: true,
+        requiredMessage: 'Select when you would like to start',
+        autoComplete: 'off',
+        placeholderOption: 'Select a timeframe',
+        options: TIMEFRAME_OPTIONS,
+      },
+      {
+        // D-20 / D-26: email-only by construction. This value is never written to any
+        // measurement or engagement-summary payload, in this phase or a later one.
+        // Never required, so `requiredMessage` is unreachable copy the shared field shape
+        // still demands; the reachable message for this field is `lengthMessage`.
+        name: 'message',
+        label: 'Anything else we should know?',
+        emailLabel: 'Message',
+        control: 'textarea',
+        required: false,
+        requiredMessage: 'Enter your message',
+        autoComplete: 'off',
+        rows: 4,
+        maxLength: 1000,
+        lengthMessage: 'Shorten your message to 1000 characters or fewer',
       },
     ],
     groups: [
-      { legend: 'About you', fieldNames: ['name', 'email'] },
-      { legend: 'About your portfolio', fieldNames: ['role'] },
+      { legend: 'About you', fieldNames: ['name', 'email', 'preferredChannel', 'phone'] },
+      {
+        legend: 'About your portfolio',
+        fieldNames: ['role', 'organization', 'portfolioBand', 'county'],
+      },
+      { legend: 'Getting started', fieldNames: ['timeframe', 'message'] },
     ],
   },
 };
