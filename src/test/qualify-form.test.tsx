@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import QualifyForm, {
   buildSubmissionBody,
@@ -10,14 +10,29 @@ import QualifyForm, {
   validateQualifyValues,
 } from '../components/QualifyForm';
 import ProductPage from '../pages/ProductPage';
-import { HAOO_PRODUCT } from '../products/haoo';
-import type { ProductQualifyForm } from '../products/types';
+import {
+  CONTACT_CHANNEL_OPTIONS,
+  HAOO_PRODUCT,
+  KENYAN_COUNTY_OPTIONS,
+  PORTFOLIO_BAND_OPTIONS,
+  ROLE_OPTIONS,
+  TIMEFRAME_OPTIONS,
+} from '../products/haoo';
+import type { ProductQualifyForm, QualifyField } from '../products/types';
 
 const QUALIFY = HAOO_PRODUCT.qualify;
 const SECTION_NAME = 'Send your details';
+/** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
 const EXPECTED_BODY_KEYS = [
   'Email address',
   'Full name',
+  'Location',
+  'Message',
+  'Onboarding timeframe',
+  'Organization',
+  'Phone number',
+  'Portfolio size',
+  'Preferred contact channel',
   'Role',
   'Source',
   '_captcha',
@@ -25,12 +40,58 @@ const EXPECTED_BODY_KEYS = [
   '_subject',
   '_template',
 ];
-const FIELD_LABELS: Record<string, string> = {
-  name: 'Full name',
-  email: 'Email address',
-  role: 'Your role',
-};
 const FORBIDDEN_PROVIDER_OPTIONS = ['_cc', '_next', '_autoresponse', '_replyto'];
+const CONTROL_TAGS: Record<string, string> = {
+  text: 'INPUT',
+  email: 'INPUT',
+  tel: 'INPUT',
+  select: 'SELECT',
+  textarea: 'TEXTAREA',
+};
+const ALL_OPTION_LISTS = [
+  CONTACT_CHANNEL_OPTIONS,
+  ROLE_OPTIONS,
+  PORTFOLIO_BAND_OPTIONS,
+  KENYAN_COUNTY_OPTIONS,
+  TIMEFRAME_OPTIONS,
+];
+
+/**
+ * The accessible name of a control. The component appends ` (optional)` itself from
+ * computed requiredness, so the name is derived here rather than stored — the locked
+ * `label` strings themselves are pinned literally in `qualify-data.test.ts`.
+ */
+function accessibleLabel(field: QualifyField) {
+  return field.required ? field.label : `${field.label} (optional)`;
+}
+
+const FIELD_LABELS: Record<string, string> = Object.fromEntries(
+  QUALIFY.fields.map((field) => [field.name, accessibleLabel(field)]),
+);
+
+/** One valid answer per field, used to fill the form and the pure validators. */
+const COMPLETE_ENQUIRY: Record<string, string> = {
+  name: 'Jane Wanjiru',
+  email: 'jane@example.com',
+  preferredChannel: 'Email',
+  phone: '+254 702 188 044',
+  role: 'Landlord',
+  organization: 'Wanjiru Properties',
+  portfolioBand: '6\u201320 units',
+  county: 'Nairobi',
+  timeframe: 'Ready now',
+  message: 'We manage four blocks in Kilimani.',
+};
+
+const REQUIRED_FIELDS = QUALIFY.fields.filter((field) => field.required);
+const OPTIONAL_FIELDS = QUALIFY.fields.filter((field) => !field.required);
+
+/** Values for the required fields only — every optional field left untouched. */
+function requiredValues() {
+  return Object.fromEntries(
+    REQUIRED_FIELDS.map((field) => [field.name, COMPLETE_ENQUIRY[field.name]]),
+  ) as Record<string, string>;
+}
 
 function renderPage() {
   return render(<ProductPage product={HAOO_PRODUCT} />);
@@ -54,18 +115,30 @@ function qualifyForm(): HTMLFormElement {
   return form as HTMLFormElement;
 }
 
-function fillValidEnquiry() {
+function fillEnquiry(values: Record<string, string>) {
   const section = within(qualifySection());
 
-  fireEvent.change(section.getByLabelText('Full name'), {
-    target: { value: 'Jane Wanjiru' },
-  });
-  fireEvent.change(section.getByLabelText('Email address'), {
-    target: { value: 'jane@example.com' },
-  });
-  fireEvent.change(section.getByLabelText('Your role'), {
-    target: { value: 'Landlord' },
-  });
+  for (const field of QUALIFY.fields) {
+    const value = values[field.name];
+
+    if (value === undefined) {
+      continue;
+    }
+
+    fireEvent.change(section.getByLabelText(FIELD_LABELS[field.name]), {
+      target: { value },
+    });
+  }
+}
+
+/** The minimum submittable enquiry: every required field, no optional field. */
+function fillValidEnquiry() {
+  fillEnquiry(requiredValues());
+}
+
+/** All ten controls, so the delivered email carries all ten readable labels. */
+function fillCompleteEnquiry() {
+  fillEnquiry(COMPLETE_ENQUIRY);
 }
 
 function stubFetch(implementation: () => Promise<unknown>) {
@@ -128,12 +201,19 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const section = within(qualifySection());
 
     // Every required control is labelled and marked required — no placeholder stands
-    // in for a label, and requiredness is exposed to assistive technology.
-    for (const label of ['Full name', 'Email address', 'Your role']) {
-      const control = section.getByLabelText(label);
+    // in for a label, and requiredness is exposed to assistive technology. Every
+    // optional control is labelled too, and is marked required nowhere.
+    for (const field of REQUIRED_FIELDS) {
+      const control = section.getByLabelText(FIELD_LABELS[field.name]);
 
-      expect(control.hasAttribute('required')).toBe(true);
-      expect(control.getAttribute('aria-required')).toBe('true');
+      expect(control.hasAttribute('required'), field.name).toBe(true);
+      expect(control.getAttribute('aria-required'), field.name).toBe('true');
+    }
+    for (const field of OPTIONAL_FIELDS) {
+      const control = section.getByLabelText(FIELD_LABELS[field.name]);
+
+      expect(control.hasAttribute('required'), field.name).toBe(false);
+      expect(control.getAttribute('aria-required'), field.name).toBe('false');
     }
 
     // The browser's own submission blocking is deliberately disabled so that every
@@ -146,16 +226,39 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     // as the summary link text, in configured DOM order.
     expect(inlineError('name').textContent).toBe('Error: Enter your full name');
     expect(inlineError('email').textContent).toBe('Error: Enter your email address');
+    expect(inlineError('preferredChannel').textContent)
+      .toBe('Error: Select how we should reach you');
     expect(inlineError('role').textContent).toBe('Error: Select your role');
+    expect(inlineError('portfolioBand').textContent)
+      .toBe('Error: Select how many units you manage');
+    expect(inlineError('county').textContent)
+      .toBe('Error: Select where your properties are');
+    expect(inlineError('timeframe').textContent)
+      .toBe('Error: Select when you would like to start');
     expect(summaryLinkTexts()).toEqual([
       'Enter your full name',
       'Enter your email address',
+      'Select how we should reach you',
       'Select your role',
+      'Select how many units you manage',
+      'Select where your properties are',
+      'Select when you would like to start',
     ]);
-    for (const name of ['name', 'email', 'role']) {
-      expect(section.getByLabelText(FIELD_LABELS[name]).getAttribute('aria-invalid')).toBe('true');
-      expect(section.getByLabelText(FIELD_LABELS[name]).getAttribute('aria-describedby'))
-        .toBe(`qualify-${name}-error`);
+    for (const field of REQUIRED_FIELDS) {
+      const control = section.getByLabelText(FIELD_LABELS[field.name]);
+
+      expect(control.getAttribute('aria-invalid'), field.name).toBe('true');
+      expect(control.getAttribute('aria-describedby'), field.name)
+        .toBe(`qualify-${field.name}-error`);
+    }
+
+    // An untouched optional field is not an error and is never described by one.
+    for (const field of OPTIONAL_FIELDS) {
+      const control = section.getByLabelText(FIELD_LABELS[field.name]);
+
+      expect(control.getAttribute('aria-invalid'), field.name).toBeNull();
+      expect(qualifySection().querySelector(`#qualify-${field.name}-error`), field.name)
+        .toBeNull();
     }
     expect(fetchSpy).toHaveBeenCalledTimes(0);
 
@@ -170,9 +273,13 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(document.activeElement).not.toBe(alert);
     expect(document.activeElement).not.toBe(section.getByLabelText('Full name'));
 
-    // Nothing was invented on the visitor's behalf.
-    for (const label of ['Full name', 'Email address', 'Your role']) {
-      expect((section.getByLabelText(label) as HTMLInputElement).value).toBe('');
+    // Nothing was invented on the visitor's behalf: every control — including every
+    // select, which opens on its non-selectable empty prompt — is still blank.
+    for (const field of QUALIFY.fields) {
+      expect(
+        (section.getByLabelText(FIELD_LABELS[field.name]) as HTMLInputElement).value,
+        field.name,
+      ).toBe('');
     }
 
     fillValidEnquiry();
@@ -185,7 +292,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const fetchSpy = stubFetch(async () => ({ ok: true }));
 
     renderPage();
-    fillValidEnquiry();
+    fillCompleteEnquiry();
     fireEvent.click(submitControl());
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
@@ -196,6 +303,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json');
 
+    // LEAD-04: all ten answers arrive under their readable labels, and nothing else.
     expect(Object.keys(body).sort()).toEqual(EXPECTED_BODY_KEYS);
     expect(body._subject).toBe(QUALIFY.subject);
     expect(body._subject).toContain('HAOO');
@@ -204,12 +312,105 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(body.Source).toBe(QUALIFY.sourceNote);
     expect(body['Full name']).toBe('Jane Wanjiru');
     expect(body['Email address']).toBe('jane@example.com');
+    expect(body['Preferred contact channel']).toBe('Email');
+    expect(body['Phone number']).toBe('+254 702 188 044');
     expect(body.Role).toBe('Landlord');
+    expect(body.Organization).toBe('Wanjiru Properties');
+    expect(body['Portfolio size']).toBe('6\u201320 units');
+    expect(body.Location).toBe('Nairobi');
+    expect(body['Onboarding timeframe']).toBe('Ready now');
+    expect(body.Message).toBe('We manage four blocks in Kilimani.');
 
     // No visitor-supplied value may reach a header-shaped provider option.
     for (const option of FORBIDDEN_PROVIDER_OPTIONS) {
       expect(body).not.toHaveProperty(option);
     }
+
+    // An untouched optional field is absent from the payload entirely. Emitting it as
+    // an empty string would put a blank row in the delivered email for every question
+    // the visitor legitimately chose not to answer.
+    cleanup();
+
+    const requiredOnlySpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() => expect(requiredOnlySpy).toHaveBeenCalledTimes(1));
+
+    const requiredOnlyBody = parseRequest(requiredOnlySpy).body;
+
+    for (const field of OPTIONAL_FIELDS) {
+      expect(requiredOnlyBody, field.emailLabel).not.toHaveProperty(field.emailLabel);
+    }
+    expect(Object.keys(requiredOnlyBody).sort()).toEqual(
+      EXPECTED_BODY_KEYS.filter(
+        (key) => !OPTIONAL_FIELDS.some((field) => field.emailLabel === key),
+      ),
+    );
+    for (const [key, value] of Object.entries(requiredOnlyBody)) {
+      if (key !== '_honey') {
+        expect(value, key).not.toBe('');
+      }
+    }
+  });
+
+  it('renders every qualification option', () => {
+    stubFetch(async () => ({ ok: true }));
+    renderPage();
+
+    const section = within(qualifySection());
+
+    for (const field of QUALIFY.fields) {
+      const control = section.getByLabelText(FIELD_LABELS[field.name]);
+
+      expect(control.tagName, field.name).toBe(CONTROL_TAGS[field.control]);
+      expect(control.getAttribute('autocomplete'), field.name).toBe(field.autoComplete);
+      expect(control.hasAttribute('required'), field.name).toBe(field.required);
+
+      if (typeof field.maxLength === 'number') {
+        expect(control.getAttribute('maxlength'), field.name).toBe(String(field.maxLength));
+      } else {
+        expect(control.hasAttribute('maxlength'), field.name).toBe(false);
+      }
+
+      if (control.tagName === 'INPUT') {
+        expect(control.getAttribute('type'), field.name).toBe(field.control);
+      }
+
+      if (field.control !== 'select') {
+        continue;
+      }
+
+      const options = Array.from(control.querySelectorAll('option'));
+
+      // The leading non-selectable prompt is what makes required-select validation a
+      // `value !== ''` check: an untouched select cannot submit a real value.
+      expect(options, field.name).toHaveLength((field.options ?? []).length + 1);
+      expect(options[0].getAttribute('value'), field.name).toBe('');
+      expect(options[0].textContent, field.name).toBe(field.placeholderOption);
+      expect(options.slice(1).map((option) => option.textContent), field.name)
+        .toEqual((field.options ?? []).map((option) => option.label));
+      expect(options.slice(1).map((option) => option.getAttribute('value')), field.name)
+        .toEqual((field.options ?? []).map((option) => option.value));
+    }
+
+    // Every option from every shipped list reaches the DOM. A truncated, filtered or
+    // virtualised county list fails here rather than in a visitor's browser.
+    const rendered = Array.from(qualifySection().querySelectorAll('option'))
+      .map((option) => option.textContent);
+
+    for (const list of ALL_OPTION_LISTS) {
+      for (const option of list) {
+        expect(rendered, option.label).toContain(option.label);
+      }
+    }
+
+    const optionCount = ALL_OPTION_LISTS.reduce((total, list) => total + list.length, 0);
+
+    expect(optionCount).toBe(65);
+    expect(rendered).toHaveLength(optionCount + ALL_OPTION_LISTS.length);
   });
 
   it('announces every submission state', async () => {
@@ -271,12 +472,13 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     const section = within(qualifySection());
 
-    expect((section.getByLabelText('Full name') as HTMLInputElement).value)
-      .toBe('Jane Wanjiru');
-    expect((section.getByLabelText('Email address') as HTMLInputElement).value)
-      .toBe('jane@example.com');
-    expect((section.getByLabelText('Your role') as HTMLSelectElement).value)
-      .toBe('Landlord');
+    // Every answer survives the failure, including the chosen select values.
+    for (const field of REQUIRED_FIELDS) {
+      expect(
+        (section.getByLabelText(FIELD_LABELS[field.name]) as HTMLInputElement).value,
+        field.name,
+      ).toBe(COMPLETE_ENQUIRY[field.name]);
+    }
 
     // The control returns to its idle label so the retained values can be retried.
     expect(submitControl()).toBeTruthy();
@@ -412,10 +614,16 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     stubFetch(async () => ({ ok: true }));
     renderPage();
 
-    const groups = within(qualifySection()).getAllByRole('group');
+    const section = within(qualifySection());
+    const groups = section.getAllByRole('group');
 
+    // Native `fieldset`/`legend`, not styled prose: each group is reachable by its
+    // legend as an accessible name, and the three appear in configured DOM order.
+    expect(groups).toHaveLength(3);
     expect(groups.map((group) => group.querySelector('legend')?.textContent))
-      .toEqual(QUALIFY.groups.map((group) => group.legend));
+      .toEqual(['About you', 'About your portfolio', 'Getting started']);
+    expect(QUALIFY.groups.map((group) => section.getByRole('group', { name: group.legend })))
+      .toEqual(groups);
 
     // Every configured field belongs to exactly one group, by configured name.
     const grouped = QUALIFY.groups.flatMap((group) => group.fieldNames);
@@ -424,7 +632,16 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(new Set(grouped).size).toBe(grouped.length);
     for (const [index, group] of QUALIFY.groups.entries()) {
       for (const name of group.fieldNames) {
-        expect(groups[index].querySelector(`#qualify-${name}`)).not.toBeNull();
+        const control = section.getByLabelText(FIELD_LABELS[name]);
+
+        expect(groups[index].querySelector(`#qualify-${name}`), name).not.toBeNull();
+        expect(groups[index].contains(control), name).toBe(true);
+        for (const [otherIndex, other] of groups.entries()) {
+          if (otherIndex !== index) {
+            expect(other.contains(control), `${name} in ${QUALIFY.groups[otherIndex].legend}`)
+              .toBe(false);
+          }
+        }
       }
     }
   });
@@ -432,13 +649,30 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   it('derives the optional label suffix from computed requiredness', () => {
     stubFetch(async () => ({ ok: true }));
 
-    // Nothing in the shipped data is optional yet, and no source label carries the
-    // suffix — it is rendered from `isFieldRequired`, never stored in copy.
+    // No source label carries the suffix or an asterisk (D-21) — the marker is
+    // rendered from `isFieldRequired`, never stored in copy, so it cannot drift away
+    // from the validation rule when plan 04 makes phone conditionally required.
     for (const field of QUALIFY.fields) {
-      expect(field.label).not.toContain('(optional)');
+      expect(field.label, field.name).not.toContain('(optional)');
+      expect(field.label, field.name).not.toContain('*');
     }
-    expect(within(render(<ProductPage product={HAOO_PRODUCT} />).container).queryByText(/\(optional\)/))
-      .toBeNull();
+
+    renderPage();
+
+    const shipped = within(qualifySection());
+
+    for (const field of QUALIFY.fields) {
+      const control = shipped.getByLabelText(FIELD_LABELS[field.name]);
+      const label = qualifySection().querySelector(`label[for="qualify-${field.name}"]`);
+
+      expect(isFieldRequired(field, {}), field.name).toBe(field.required);
+      expect((control as HTMLInputElement).required, field.name).toBe(field.required);
+      expect(label?.textContent?.includes('(optional)'), field.name).toBe(!field.required);
+      expect(label?.textContent, field.name).not.toContain('*');
+    }
+
+    expect(shipped.getAllByText('(optional)')).toHaveLength(OPTIONAL_FIELDS.length);
+    cleanup();
 
     const optionalQualify: ProductQualifyForm = {
       ...QUALIFY,
@@ -457,19 +691,21 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
       groups: [{ legend: 'About you', fieldNames: ['organization'] }],
     };
 
-    render(
-      <QualifyForm
-        qualify={optionalQualify}
-        contacts={HAOO_PRODUCT.contacts}
-        productName="ZENITH"
-      />,
+    const synthetic = within(
+      render(
+        <QualifyForm
+          qualify={optionalQualify}
+          contacts={HAOO_PRODUCT.contacts}
+          productName="ZENITH"
+        />,
+      ).container,
     );
 
     const optionalField = optionalQualify.fields[0];
 
     expect(isFieldRequired(optionalField, {})).toBe(false);
-    expect(screen.getByText('(optional)', { exact: false })).toBeTruthy();
-    expect((screen.getByLabelText(/^Organization/) as HTMLInputElement).required).toBe(false);
+    expect(synthetic.getByText('(optional)', { exact: false })).toBeTruthy();
+    expect((synthetic.getByLabelText(/^Organization/) as HTMLInputElement).required).toBe(false);
   });
 });
 
@@ -477,9 +713,8 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
   it('builds a deeply equal body for the same values on every call', () => {
     const values = {
       ...emptyValues(),
+      ...requiredValues(),
       name: '  Jane Wanjiru  ',
-      email: 'jane@example.com',
-      role: 'Landlord',
     };
 
     expect(buildSubmissionBody(values, QUALIFY)).toEqual(buildSubmissionBody(values, QUALIFY));
@@ -497,39 +732,45 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
   });
 
   it('keys the payload byte-for-byte on the configured email labels', () => {
-    const values = {
+    const values: Record<string, string> = {
       ...emptyValues(),
-      name: 'Jane',
-      email: 'jane@example.com',
+      ...COMPLETE_ENQUIRY,
       role: 'Agency',
     };
     const body = buildSubmissionBody(values, QUALIFY);
 
     for (const field of QUALIFY.fields) {
-      expect(Object.keys(body)).toContain(field.emailLabel);
+      expect(Object.keys(body), field.name).toContain(field.emailLabel);
+      expect(body[field.emailLabel], field.name).toBe(values[field.name]);
     }
+    expect(Object.keys(body).sort()).toEqual(EXPECTED_BODY_KEYS);
   });
 
   it('reports one message per invalid field and none for a valid enquiry', () => {
+    // One message per required field, and none for the three optional fields.
     expect(validateQualifyValues(emptyValues(), QUALIFY)).toEqual({
       name: 'Enter your full name',
       email: 'Enter your email address',
+      preferredChannel: 'Select how we should reach you',
       role: 'Select your role',
+      portfolioBand: 'Select how many units you manage',
+      county: 'Select where your properties are',
+      timeframe: 'Select when you would like to start',
     });
 
     expect(
       validateQualifyValues(
-        { ...emptyValues(), name: 'Jane', email: 'not-an-email', role: 'Landlord' },
+        { ...emptyValues(), ...requiredValues(), email: 'not-an-email' },
         QUALIFY,
       ),
     ).toEqual({ email: 'Enter an email address in the format name@example.com' });
 
-    expect(
-      validateQualifyValues(
-        { ...emptyValues(), name: 'Jane', email: 'jane@example.com', role: 'Landlord' },
-        QUALIFY,
-      ),
-    ).toEqual({});
+    // Name plus email and the closed selects alone submit: phone stays optional at
+    // this stage, so LEAD-01's usable contact method is satisfied by email (D-13).
+    expect(validateQualifyValues({ ...emptyValues(), ...requiredValues() }, QUALIFY))
+      .toEqual({});
+    expect(validateQualifyValues({ ...emptyValues(), ...COMPLETE_ENQUIRY }, QUALIFY))
+      .toEqual({});
   });
 
   it('counts length in the same UTF-16 code units the native maxLength attribute uses', () => {
@@ -538,7 +779,7 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
     expect(overBound.length).toBe(81);
     expect(
       validateQualifyValues(
-        { ...emptyValues(), name: overBound, email: 'jane@example.com', role: 'Landlord' },
+        { ...emptyValues(), ...requiredValues(), name: overBound },
         QUALIFY,
       ),
     ).toEqual({ name: 'Shorten your full name to 80 characters or fewer' });
@@ -547,9 +788,23 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
   it('rejects any select value outside its configured option allowlist', () => {
     expect(
       validateQualifyValues(
-        { ...emptyValues(), name: 'Jane', email: 'jane@example.com', role: 'Administrator' },
+        { ...emptyValues(), ...requiredValues(), role: 'Administrator' },
         QUALIFY,
       ),
     ).toEqual({ role: 'Select your role' });
+
+    // Every closed list is an allowlist, not just the tracer's role select.
+    expect(
+      validateQualifyValues(
+        { ...emptyValues(), ...requiredValues(), county: 'Atlantis' },
+        QUALIFY,
+      ),
+    ).toEqual({ county: 'Select where your properties are' });
+    expect(
+      validateQualifyValues(
+        { ...emptyValues(), ...requiredValues(), portfolioBand: '6-20 units' },
+        QUALIFY,
+      ),
+    ).toEqual({ portfolioBand: 'Select how many units you manage' });
   });
 });
