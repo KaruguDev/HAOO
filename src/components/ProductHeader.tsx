@@ -12,6 +12,7 @@ const PRODUCT_LINKS = [
   { label: 'Benefits', href: '#benefits' },
   { label: 'Capabilities', href: '#capabilities' },
   { label: 'Brochure', href: '#brochure' },
+  { label: 'Send details', href: '#qualify' },
   { label: 'Onboarding', href: '#onboarding' },
 ] as const;
 
