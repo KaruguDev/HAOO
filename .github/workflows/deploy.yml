@@ -36,6 +36,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_HAOO_FORM_ENDPOINT: ${{ vars.VITE_HAOO_FORM_ENDPOINT }}
         run: npm run build
 
       - name: Configure Pages
