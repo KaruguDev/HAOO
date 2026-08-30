@@ -73,7 +73,7 @@ This milestone turns the existing company landing page into a product-led site b
   4. Visitor receives accessible validation, submitting, return, failure, and retry guidance and retains entered values after a recoverable client-side error.
   5. Legitimate keyboard and assistive-technology users can complete the form while a honeypot and provider-supported spam controls discourage automated submissions.
 
-**Plans**: 1/7 plans executed
+**Plans**: 2/7 plans executed
 
 **Wave 1**
 
@@ -81,7 +81,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 **Wave 2**
 
-- [ ] 02-07-PLAN.md — Pin endpoint resolution and register the tracer with inherited focus and generic-source guards.
+- [x] 02-07-PLAN.md — Pin endpoint resolution and register the tracer with inherited focus and generic-source guards.
 
 **Wave 3**
 
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
-| 2. Submit a Qualified HAOO Enquiry | 1/7 | In Progress|  |
+| 2. Submit a Qualified HAOO Enquiry | 2/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 0/TBD | Not started | - |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 0/TBD | Not started | - |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

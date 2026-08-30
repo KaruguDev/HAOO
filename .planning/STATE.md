@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Submit a Qualified HAOO Enquiry
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-08-30T07:51:37.410Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-08-30T08:00:08.551Z"
 last_activity: 2026-08-30
 last_activity_desc: Phase 02 execution started
-state_head: ae61aedce07a17762f79d9a7c975388b207a2aa4
+state_head: 4f8dcc3c34b6f779ed5cd6bec346323f0b3ddb9b
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 16
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 02 (Submit a Qualified HAOO Enquiry) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-08-30 — Phase 02 execution started
 
@@ -68,6 +68,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 01 P08 | 4 min | 2 tasks | 3 files |
 | Phase 01 P09 | 2 min | 2 tasks | 2 files |
 | Phase 02 P01 | 12 min | 1 tasks | 7 files |
+| Phase 02 P07 | 6 min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 02]: resolveQualifyEndpoint validates through new URL() but returns the original outer-trimmed candidate rather than URL.href — Re-serialising would percent-encode a readable-address target such as /ajax/info@haoo.online; returning the candidate preserves the configured destination byte-for-byte while still rejecting bare, empty, encoded-empty, multi-segment, wrong-host and wrong-protocol inputs
 - [Phase 02]: The tracer confirmation panel uses the locked UI-SPEC heading 'Your details are on their way' with body 'Your details were sent.' — Plan 05 then enriches an existing panel rather than renaming one, and both strings describe browser-observable events rather than claiming mailbox delivery
 - [Phase 02]: Concurrency is owned by a synchronous inFlightRef, not by React state or the button disabled attribute — Two submit events fired back-to-back against a pending promise must issue exactly one request; React cannot commit disabled state before the second event is dispatched
+- [Phase 02]: Each endpoint table row carries an explicit expectedResolution string rather than an isValid boolean — A boolean table would let a future resolver return some third string for a rejected input and still pass the was-rejected half of the assertion; naming the exact expected output for all 30 rows makes the table a total function specification, and the whitespace-padded rows double as the trimming contract
+- [Phase 02]: The endpoint contract table was mutation-probed against two deliberately weakened resolvers before being trusted — The resolver was delivered by 02-01, so a green first run proves nothing on its own; a nullish-only fallback is killed by 12 of 12 representative invalid rows and a startsWith-prefix any-https-host resolver by 10 of 12, which is the evidence that the plan prohibitions are enforced by the table rather than only stated in prose
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T07:51:21.430Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-08-30T08:00:08.499Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
