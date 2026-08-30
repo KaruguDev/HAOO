@@ -491,13 +491,22 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(qualifySection().querySelector('form')).toBeNull();
     expect(section.queryByRole('button', { name: QUALIFY_SUBMIT_LABEL })).toBeNull();
     expect(section.getAllByRole('status')).toHaveLength(1);
+    expect(section.getByText(
+      "We've sent your name, contact details, and the answers you gave to the HAOO team. Someone will reply within one business day.",
+    )).toBeTruthy();
+    expect(section.getByText('Need an answer sooner?')).toBeTruthy();
+    expect(section.getByRole('link', { name: 'Message HAOO on WhatsApp instead' })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.whatsappHref);
+    expect(section.getByRole('link', { name: 'Call HAOO on +254 702 188 044 instead' })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.phoneHref);
+    expect(section.queryByRole('link', { name: /Email HAOO .* instead/ })).toBeNull();
   });
 
   it('retains entered values and reports the problem when the provider rejects the request', async () => {
     const fetchSpy = stubFetch(async () => ({ ok: false }));
 
     renderPage();
-    fillValidEnquiry();
+    fillCompleteEnquiry();
     fireEvent.click(submitControl());
 
     await waitFor(() =>
@@ -507,18 +516,37 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const section = within(qualifySection());
 
     // Every answer survives the failure, including the chosen select values.
-    for (const field of REQUIRED_FIELDS) {
+    for (const field of QUALIFY.fields) {
       expect(
         (section.getByLabelText(FIELD_LABELS[field.name]) as HTMLInputElement).value,
         field.name,
       ).toBe(COMPLETE_ENQUIRY[field.name]);
     }
 
-    // The control returns to its idle label so the retained values can be retried.
-    expect(submitControl()).toBeTruthy();
+    const failureHeading = section.getByRole('heading', {
+      name: "We couldn't send your details",
+    });
 
-    fireEvent.click(submitControl());
+    expect(failureHeading.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(failureHeading);
+    expect(section.getAllByRole('button', { name: 'Try sending again' })).toHaveLength(1);
+    expect((submitControl() as HTMLButtonElement).disabled).toBe(false);
+    expect(section.getByRole('link', { name: 'Message HAOO on WhatsApp instead' })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.whatsappHref);
+    expect(section.getByRole('link', { name: 'Call HAOO on +254 702 188 044 instead' })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.phoneHref);
+    expect(section.getByRole('link', { name: 'Email HAOO at info@haoo.online instead' })
+      .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.emailHref);
+
+    fireEvent.click(section.getByRole('button', { name: 'Try sending again' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+
+    expect(parseRequest(fetchSpy).body).toEqual(JSON.parse(
+      String((fetchSpy.mock.calls[1][1] as RequestInit).body),
+    ));
+    expect(section.getAllByRole('heading', {
+      name: "We couldn't send your details",
+    })).toHaveLength(1);
   });
 
   it('lands a rejected provider promise in the failed state and never in succeeded', async () => {
@@ -535,6 +563,110 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     );
     expect(statusRegion().textContent).not.toBe(QUALIFY_STATUS_MESSAGES.succeeded);
     expect(qualifySection().querySelector('form')).not.toBeNull();
+    const failureHeading = within(qualifySection()).getByRole('heading', {
+      name: "We couldn't send your details",
+    });
+
+    expect(document.activeElement).toBe(failureHeading);
+    expect(within(qualifySection()).getAllByRole('button', {
+      name: 'Try sending again',
+    })).toHaveLength(1);
+  });
+
+  it('admits exactly one retry while the retained request is in flight', async () => {
+    let settleRetry: (value: { ok: boolean }) => void = () => {};
+    const retry = new Promise<{ ok: boolean }>((resolve) => {
+      settleRetry = resolve;
+    });
+    const fetchSpy = vi.fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockImplementationOnce(() => retry);
+
+    vi.stubGlobal('fetch', fetchSpy);
+    renderPage();
+    fillCompleteEnquiry();
+    fireEvent.click(submitControl());
+
+    const retryControl = await screen.findByRole('button', { name: 'Try sending again' });
+
+    fireEvent.click(retryControl);
+    fireEvent.click(retryControl);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(String((fetchSpy.mock.calls[1][1] as RequestInit).body)))
+      .toEqual(JSON.parse(String((fetchSpy.mock.calls[0][1] as RequestInit).body)));
+
+    settleRetry({ ok: false });
+
+    await waitFor(() => expect(statusRegion().textContent)
+      .toBe(QUALIFY_STATUS_MESSAGES.failed));
+    expect(within(qualifySection()).getAllByRole('button', {
+      name: 'Try sending again',
+    })).toHaveLength(1);
+  });
+
+  it('renders terminal recovery copy from a synthetic product identity', async () => {
+    const zenithContacts = {
+      ...HAOO_PRODUCT.contacts,
+      phoneDisplay: '+254 711 222 333',
+      phoneHref: 'tel:+254711222333',
+      email: 'hello@zenith.example',
+      emailHref: 'mailto:hello@zenith.example',
+      whatsappHref: 'https://wa.me/254711222333?text=Hello%20ZENITH',
+    };
+    const failedFetch = stubFetch(async () => ({ ok: false }));
+    const first = render(
+      <QualifyForm qualify={QUALIFY} contacts={zenithContacts} productName="ZENITH" />,
+    );
+
+    for (const [name, value] of Object.entries(requiredValues())) {
+      fireEvent.change(first.container.querySelector(`#qualify-${name}`) as HTMLElement, {
+        target: { value },
+      });
+    }
+    fireEvent.click(within(first.container).getByRole('button', {
+      name: QUALIFY_SUBMIT_LABEL,
+    }));
+    await within(first.container).findByRole('heading', {
+      name: "We couldn't send your details",
+    });
+    expect(within(first.container).getByRole('link', {
+      name: 'Email ZENITH at hello@zenith.example instead',
+    }).getAttribute('href')).toBe(zenithContacts.emailHref);
+    expect(failedFetch).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    vi.unstubAllGlobals();
+    stubFetch(async () => ({ ok: true }));
+    const second = render(
+      <QualifyForm qualify={QUALIFY} contacts={zenithContacts} productName="ZENITH" />,
+    );
+
+    for (const [name, value] of Object.entries(requiredValues())) {
+      fireEvent.change(second.container.querySelector(`#qualify-${name}`) as HTMLElement, {
+        target: { value },
+      });
+    }
+    fireEvent.click(within(second.container).getByRole('button', {
+      name: QUALIFY_SUBMIT_LABEL,
+    }));
+    expect(await within(second.container).findByText(
+      /answers you gave to the ZENITH team.*one business day/,
+    )).toBeTruthy();
+    expect(within(second.container).getByRole('link', {
+      name: 'Message ZENITH on WhatsApp instead',
+    }).getAttribute('href')).toBe(zenithContacts.whatsappHref);
+
+    const genericSources = [
+      '../components/QualifyForm.tsx',
+      '../components/QualifyFallback.tsx',
+      '../products/copy.ts',
+    ];
+
+    for (const sourcePath of genericSources) {
+      expect(readFileSync(resolve(import.meta.dirname, sourcePath), 'utf8'), sourcePath)
+        .not.toMatch(/HAOO/);
+    }
   });
 
   it('traps bots without blocking assistive technology', async () => {
