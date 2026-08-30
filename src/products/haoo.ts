@@ -1,4 +1,8 @@
 import type { ProductDefinition, QualifyOption } from './types';
+import {
+  qualifyCollectionNotePageContext,
+  qualifyCollectionNotePurpose,
+} from './copy';
 
 export type { ProductDefinition } from './types';
 
@@ -281,6 +285,10 @@ export const HAOO_PRODUCT: ProductDefinition = {
     subject: 'New HAOO qualification enquiry — ZERO-PAPER HUB',
     sourceNote:
       'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
+    collectionNote: {
+      purpose: qualifyCollectionNotePurpose('HAOO'),
+      pageContext: qualifyCollectionNotePageContext('HAOO'),
+    },
     // DOM order is also the order the labels appear in the delivered email. The
     // preferred-channel select deliberately precedes `phone` so its `requiredWhen` rule
     // fires after the visitor chooses, never retroactively on a field they have already

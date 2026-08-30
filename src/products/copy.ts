@@ -67,6 +67,16 @@ export function qualifyConfirmationBody(productName: string) {
   return `We've sent your name, contact details, and the answers you gave to the ${requireIdentity(productName, 'name')} team. Someone will reply within one business day.`;
 }
 
+export function qualifyCollectionNotePurpose(productName: string) {
+  return `We use these details only to reply to you about ${requireIdentity(productName, 'name')} onboarding. We never sell them or add you to a mailing list.`;
+}
+
+export function qualifyCollectionNotePageContext(productName: string) {
+  const name = requireIdentity(productName, 'name');
+
+  return `When you send this form, a short summary of how you used this ${name} page is included with your details. It is coarse and anonymous — it never includes your message text, exact portfolio numbers, or any identifier that follows you across sites.`;
+}
+
 /**
  * The written-enquiry alternative offered beside the assisted contacts. The visible
  * label is locked by the UI-SPEC and carries no product name, but the identity is

@@ -39,6 +39,7 @@ export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> 
 
 const QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way';
 const HONEYPOT_NAME = '_honey';
+const COLLECTION_NOTE_ID = 'qualify-collection-note';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const focusClasses =
@@ -461,11 +462,15 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
           </div>
         </div>
       ) : (
-        <form
-          noValidate
-          onSubmit={handleSubmit}
-          className="relative max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
-        >
+        <>
+          <p className="mb-4 max-w-[560px] text-sm font-normal leading-[1.4] text-[#5F6B84]">
+            All fields are required unless marked optional.
+          </p>
+          <form
+            noValidate
+            onSubmit={handleSubmit}
+            className="relative max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
+          >
           <div
             aria-hidden="true"
             className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
@@ -521,14 +526,26 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
             </fieldset>
           ))}
 
-          <button
-            type="submit"
-            disabled={state === 'submitting'}
-            className={`mt-8 inline-flex w-full min-h-11 items-center justify-center rounded-lg bg-[#4054C6] px-5 py-3 text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] disabled:cursor-wait disabled:opacity-70 md:w-auto ${focusClasses}`}
-          >
-            {state === 'submitting' ? QUALIFY_SUBMITTING_LABEL : QUALIFY_SUBMIT_LABEL}
-          </button>
-        </form>
+            {qualify.collectionNote ? (
+              <div
+                id={COLLECTION_NOTE_ID}
+                className="mt-8 rounded-lg border border-[#DFE4F0] bg-[#FBFCFF] p-4 text-sm font-normal leading-[1.4] text-[#5F6B84]"
+              >
+                <p>{qualify.collectionNote.purpose}</p>
+                <p className="mt-3">{qualify.collectionNote.pageContext}</p>
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={state === 'submitting'}
+              aria-describedby={qualify.collectionNote ? COLLECTION_NOTE_ID : undefined}
+              className={`mt-8 inline-flex w-full min-h-11 items-center justify-center rounded-lg bg-[#4054C6] px-5 py-3 text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] disabled:cursor-wait disabled:opacity-70 md:w-auto ${focusClasses}`}
+            >
+              {state === 'submitting' ? QUALIFY_SUBMITTING_LABEL : QUALIFY_SUBMIT_LABEL}
+            </button>
+          </form>
+        </>
       )}
 
       {state === 'failed' ? (

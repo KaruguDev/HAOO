@@ -86,10 +86,16 @@ export interface QualifyFieldGroup {
   readonly fieldNames: readonly string[];
 }
 
+export interface QualifyCollectionNote {
+  readonly purpose: string;
+  readonly pageContext: string;
+}
+
 export interface ProductQualifyForm {
   readonly endpoint: string;
   readonly subject: string;
   readonly sourceNote: string;
+  readonly collectionNote?: QualifyCollectionNote;
   readonly fields: readonly QualifyField[];
   readonly groups: readonly QualifyFieldGroup[];
 }
