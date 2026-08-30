@@ -16,6 +16,7 @@ const FALLBACK_HEADING = 'Brochure preview unavailable';
 const FALLBACK_BODY = 'You can still open the HAOO brochure in a new tab or download the PDF.';
 const PREVIEW_ERROR =
   "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
+const QUALIFY_ENTRY_LABEL = 'Send your details instead';
 
 function renderPage() {
   return render(<ProductPage product={HAOO_PRODUCT} />);
@@ -399,5 +400,51 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(screen.getAllByRole('region', { name: /onboarding choices/i })).toHaveLength(3);
     expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
     expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(2);
+  });
+});
+
+describe('Phase 2 written-enquiry entry points', () => {
+  it('exposes one entry link per onboarding placement, all targeting the single qualify section', () => {
+    const { container } = renderPage();
+
+    const links = screen.getAllByRole('link', { name: QUALIFY_ENTRY_LABEL });
+    expect(links).toHaveLength(3);
+    expect(links.every((link) => link.getAttribute('href') === '#qualify')).toBe(true);
+    expect(container.querySelectorAll('[id="qualify"]')).toHaveLength(1);
+  });
+
+  it('places the entry link below the assisted contact group without displacing WhatsApp', () => {
+    renderPage();
+
+    const placements = screen.getAllByRole('region', { name: /onboarding choices/i });
+    expect(placements).toHaveLength(3);
+
+    for (const placement of placements) {
+      const entry = within(placement).getByRole('link', { name: QUALIFY_ENTRY_LABEL });
+      const assisted = ONBOARDING_LINKS.slice(0, 3)
+        .map(([name]) => within(placement).getByRole('link', { name }));
+
+      for (const preceding of assisted) {
+        expect(preceding.compareDocumentPosition(entry) & Node.DOCUMENT_POSITION_FOLLOWING)
+          .toBeGreaterThan(0);
+      }
+
+      // The entry point lives inside the assisted panel that WhatsApp leads.
+      expect(assisted[0].closest('div')!.contains(entry)).toBe(true);
+      expect(entry.className).toContain('min-h-11');
+      expect(entry.className).toContain('focus-visible:ring-');
+      expect(entry.className).not.toContain('whitespace-nowrap');
+      expect(entry.getAttribute('target')).toBeNull();
+    }
+  });
+
+  it('leaves every Phase 1 onboarding accessible name at exactly three occurrences', () => {
+    renderPage();
+
+    for (const [name, href] of ONBOARDING_LINKS) {
+      const links = screen.getAllByRole('link', { name });
+      expect(links).toHaveLength(3);
+      expect(links.every((link) => link.getAttribute('href') === href)).toBe(true);
+    }
   });
 });

@@ -13,6 +13,7 @@ import {
   mobileSectionsNavLabel,
   navigationToggleLabel,
   parentRelationshipLine,
+  qualifyEntryPointLabel,
   sectionsNavLabel,
   selfOnboardingActionLabel,
   selfOnboardingLead,
@@ -129,6 +130,9 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(screen.getAllByText("Continue to ZENITH's platform for self-onboarding."))
       .toHaveLength(3);
     expect(screen.getAllByRole('link', { name: 'Start with ZENITH' })).toHaveLength(3);
+    const entryLinks = screen.getAllByRole('link', { name: 'Send your details instead' });
+    expect(entryLinks).toHaveLength(3);
+    expect(entryLinks.every((link) => link.getAttribute('href') === '#qualify')).toBe(true);
     expect(screen.getByRole('heading', { name: product.painHeading })).toBeTruthy();
     expect(screen.getByRole('heading', { name: product.benefitHeading })).toBeTruthy();
     expect(screen.getByRole('region', { name: product.journeyHeading })).toBeTruthy();
@@ -157,6 +161,7 @@ describe('Phase 1 product shell reuse contracts', () => {
       'You can still open the HAOO brochure in a new tab or download the PDF.',
     );
     expect(parentRelationshipLine('HAOO')).toBe('HAOO is a ZERO-PAPER HUB product');
+    expect(qualifyEntryPointLabel('HAOO')).toBe('Send your details instead');
     expect(contentAnchorId('haoo')).toBe('haoo-content');
     expect(mobileNavigationId('haoo')).toBe('haoo-mobile-navigation');
   });
@@ -172,6 +177,7 @@ describe('Phase 1 product shell reuse contracts', () => {
       brochureLead,
       brochureFallbackBody,
       parentRelationshipLine,
+      qualifyEntryPointLabel,
     ];
 
     for (const builder of nameBuilders) {
