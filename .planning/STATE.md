@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Submit a Qualified HAOO Enquiry
 status: executing
-stopped_at: Phase 02 UI-SPEC approved
-last_updated: "2026-08-30T07:35:09.745Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-08-30T07:51:37.410Z"
 last_activity: 2026-08-30
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 558426f9be59640383de326ab67c73a4f999a673
+last_activity_desc: Phase 02 execution started
+state_head: ae61aedce07a17762f79d9a7c975388b207a2aa4
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 16
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 2 — Submit a Qualified HAOO Enquiry
+**Current focus:** Phase 02 — Submit a Qualified HAOO Enquiry
 
 ## Current Position
 
-Phase: 02 (Submit a Qualified HAOO Enquiry) — READY TO EXECUTE
-Plan: Not started
+Phase: 02 (Submit a Qualified HAOO Enquiry) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-08-30 - Completed quick task 260830-16r: Update .gitignore to exclude local GSD runtime state and generated planning research cache files
+Last activity: 2026-08-30 — Phase 02 execution started
 
-Progress: [████████████████████] 9/9 plans (100%)
+Progress: [████████████████████] 9/9 plans ([██░░░░░░░░] 20%)
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 01 P07 | 4 min | 3 tasks | 7 files |
 | Phase 01 P08 | 4 min | 2 tasks | 3 files |
 | Phase 01 P09 | 2 min | 2 tasks | 2 files |
+| Phase 02 P01 | 12 min | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Anchor scroll offset is reserved with scroll-mt on the products target, not scroll-padding-top on html — html is shared with the product document, whose header is not fixed and whose sections already declare scroll-mt-4
 - [Phase 01]: Preserve onboarding access without JavaScript through a narrow `<noscript>` fallback whose destinations are contract-bound to centralized product data.
 - [Phase 01]: Treat a green full suite as current-build evidence by making `npm test` build first and retaining `test:unit` for the guarded inner loop.
+- [Phase 02]: Narrow the Phase 1 static boundary into a per-file PRODUCT_SOURCE_BOUNDARY map instead of deleting regexes — Grants haoo.ts the provider token and QualifyForm.tsx the network/form-markup tokens while asserting every product source still carries the whole ALWAYS_FORBIDDEN group, so a future capability grant cannot silently drop a storage, analytics, injection, router or backend prohibition
+- [Phase 02]: resolveQualifyEndpoint validates through new URL() but returns the original outer-trimmed candidate rather than URL.href — Re-serialising would percent-encode a readable-address target such as /ajax/info@haoo.online; returning the candidate preserves the configured destination byte-for-byte while still rejecting bare, empty, encoded-empty, multi-segment, wrong-host and wrong-protocol inputs
+- [Phase 02]: The tracer confirmation panel uses the locked UI-SPEC heading 'Your details are on their way' with body 'Your details were sent.' — Plan 05 then enriches an existing panel rather than renaming one, and both strings describe browser-observable events rather than claiming mailbox delivery
+- [Phase 02]: Concurrency is owned by a synchronous inFlightRef, not by React state or the button disabled attribute — Two submit events fired back-to-back against a pending promise must issue exactly one request; React cannot commit disabled state before the second event is dispatched
 
 ### Pending Todos
 
@@ -125,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T21:38:42.416Z
-Stopped at: Phase 02 UI-SPEC approved
-Resume file: .planning/phases/02-submit-a-qualified-haoo-enquiry/02-UI-SPEC.md
+Last session: 2026-08-30T07:51:21.430Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
