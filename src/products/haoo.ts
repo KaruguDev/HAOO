@@ -6,6 +6,63 @@ const WHATSAPP_STARTER_TEXT =
   'Hello HAOO, I would like help choosing the best way to get started.';
 const PHONE_NUMBER = '254702188044';
 
+/**
+ * Build-time enquiry destination. `VITE_HAOO_FORM_ENDPOINT` is inlined by Vite and is
+ * world-readable in the published bundle by construction; it is obfuscation of the
+ * mailbox address, never a secret. An unset or blank Actions variable is an empty
+ * string rather than `undefined`, so a nullish-only fallback would ship `''` as the
+ * network destination. Every rejected input selects the readable fallback instead.
+ */
+export const QUALIFY_ENDPOINT_FALLBACK = 'https://formsubmit.co/ajax/info@haoo.online';
+
+/**
+ * Accepts only an absolute `https://formsubmit.co/ajax/{target}` URL carrying exactly
+ * one decoded, non-blank path segment after `/ajax/`. Bare `/ajax`, `/ajax/`,
+ * `/ajax//`, whitespace or percent-encoded-whitespace targets, encoded slashes, extra
+ * segments, credentials, queries, fragments, malformed encodings, `http:` and any
+ * other host all resolve to the fallback: a route prefix is not a usable recipient.
+ */
+export function resolveQualifyEndpoint(configuredValue?: string): string {
+  const candidate = (configuredValue ?? '').trim();
+
+  if (candidate === '') {
+    return QUALIFY_ENDPOINT_FALLBACK;
+  }
+
+  try {
+    const url = new URL(candidate);
+
+    if (url.protocol !== 'https:' || url.host !== 'formsubmit.co') {
+      return QUALIFY_ENDPOINT_FALLBACK;
+    }
+
+    if (url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '') {
+      return QUALIFY_ENDPOINT_FALLBACK;
+    }
+
+    const segments = url.pathname.split('/');
+
+    // A well-formed pathname splits to exactly ['', 'ajax', '{target}'].
+    if (segments.length !== 3 || segments[0] !== '' || segments[1] !== 'ajax') {
+      return QUALIFY_ENDPOINT_FALLBACK;
+    }
+
+    const target = decodeURIComponent(segments[2]);
+
+    if (target.trim() === '' || target.includes('/')) {
+      return QUALIFY_ENDPOINT_FALLBACK;
+    }
+
+    return candidate;
+  } catch {
+    return QUALIFY_ENDPOINT_FALLBACK;
+  }
+}
+
+export const QUALIFY_ENDPOINT = resolveQualifyEndpoint(
+  import.meta.env.VITE_HAOO_FORM_ENDPOINT,
+);
+
 export const HAOO_PRODUCT: ProductDefinition = {
   slug: 'haoo',
   name: 'HAOO',
@@ -114,5 +171,57 @@ export const HAOO_PRODUCT: ProductDefinition = {
     previewImageHeight: 909,
     downloadName: 'HAOO-Marketing-Brochure.pdf',
     expectationLabel: 'PDF · 2.1 MB',
+  },
+  qualify: {
+    endpoint: QUALIFY_ENDPOINT,
+    subject: 'New HAOO qualification enquiry — ZERO-PAPER HUB',
+    sourceNote:
+      'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
+    fields: [
+      {
+        name: 'name',
+        label: 'Full name',
+        emailLabel: 'Full name',
+        control: 'text',
+        required: true,
+        requiredMessage: 'Enter your full name',
+        autoComplete: 'name',
+        maxLength: 80,
+        lengthMessage: 'Shorten your full name to 80 characters or fewer',
+      },
+      {
+        name: 'email',
+        label: 'Email address',
+        emailLabel: 'Email address',
+        control: 'email',
+        required: true,
+        requiredMessage: 'Enter your email address',
+        autoComplete: 'email',
+        maxLength: 254,
+        formatMessage: 'Enter an email address in the format name@example.com',
+        lengthMessage: 'Shorten your email address to 254 characters or fewer',
+      },
+      {
+        name: 'role',
+        label: 'Your role',
+        emailLabel: 'Role',
+        control: 'select',
+        required: true,
+        requiredMessage: 'Select your role',
+        autoComplete: 'off',
+        placeholderOption: 'Select your role',
+        options: [
+          { value: 'Landlord', label: 'Landlord' },
+          { value: 'Property manager', label: 'Property manager' },
+          { value: 'Agency', label: 'Agency' },
+          { value: 'Organization', label: 'Organization' },
+          { value: 'Other', label: 'Other' },
+        ],
+      },
+    ],
+    groups: [
+      { legend: 'About you', fieldNames: ['name', 'email'] },
+      { legend: 'About your portfolio', fieldNames: ['role'] },
+    ],
   },
 };

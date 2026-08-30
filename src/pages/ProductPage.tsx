@@ -10,6 +10,7 @@ import {
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
+import QualifyForm from '../components/QualifyForm';
 import {
   brochureLead,
   contentAnchorId,
@@ -33,6 +34,10 @@ const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
   marketplace: Store,
   reports: BarChart3,
 };
+
+/** Locked UI-SPEC sub-lead framing the form as an alternative to chatting, never a gate. */
+const QUALIFY_SUB_LEAD =
+  "Prefer writing to chatting? Share a few details and we'll reply with the onboarding path that fits your portfolio. This is not a sign-up \u2014 you can still start on your own at any time.";
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
 export default function ProductPage({ product }: ProductPageProps) {
@@ -187,6 +192,19 @@ export default function ProductPage({ product }: ProductPageProps) {
             <h2 className={headingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
             <BrochurePanel brochure={product.brochure} productName={product.name} />
+          </div>
+        </section>
+
+        <section id="qualify" aria-label="Send your details" className="scroll-mt-4 py-12 md:py-16">
+          <div className={containerClasses}>
+            <h2 className={headingClasses}>Send your details</h2>
+            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
+            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
+            <QualifyForm
+              qualify={product.qualify}
+              contacts={product.contacts}
+              productName={product.name}
+            />
           </div>
         </section>
 

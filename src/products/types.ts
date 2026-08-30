@@ -49,6 +49,51 @@ export interface ProductBrochure {
   readonly expectationLabel: string;
 }
 
+export type QualifyControl = 'text' | 'email' | 'tel' | 'select' | 'textarea';
+
+export interface QualifyOption {
+  readonly value: string;
+  readonly label: string;
+}
+
+export interface QualifyRequiredWhen {
+  readonly field: string;
+  readonly values: readonly string[];
+  readonly message: string;
+}
+
+export interface QualifyField {
+  readonly name: string;
+  readonly label: string;
+  readonly emailLabel: string;
+  readonly control: QualifyControl;
+  readonly required: boolean;
+  readonly requiredMessage: string;
+  readonly autoComplete?: string;
+  readonly maxLength?: number;
+  readonly rows?: number;
+  readonly options?: readonly QualifyOption[];
+  readonly placeholderOption?: string;
+  readonly help?: string;
+  readonly formatPattern?: string;
+  readonly formatMessage?: string;
+  readonly lengthMessage?: string;
+  readonly requiredWhen?: QualifyRequiredWhen;
+}
+
+export interface QualifyFieldGroup {
+  readonly legend: string;
+  readonly fieldNames: readonly string[];
+}
+
+export interface ProductQualifyForm {
+  readonly endpoint: string;
+  readonly subject: string;
+  readonly sourceNote: string;
+  readonly fields: readonly QualifyField[];
+  readonly groups: readonly QualifyFieldGroup[];
+}
+
 export interface ProductDefinition {
   readonly slug: string;
   readonly name: string;
@@ -69,4 +114,5 @@ export interface ProductDefinition {
   readonly media: ProductMedia;
   readonly contacts: ProductContacts;
   readonly brochure: ProductBrochure;
+  readonly qualify: ProductQualifyForm;
 }

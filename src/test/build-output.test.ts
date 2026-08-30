@@ -32,18 +32,60 @@ const PRODUCT_ASSETS = [
   '/products/haoo/haoo-logo.png',
 ];
 
-/** Phase 1 product source files — the static boundary later phases may observe but not breach. */
-const PRODUCT_SOURCES = [
-  'src/pages/ProductPage.tsx',
-  'src/components/BrochurePanel.tsx',
-  'src/components/OnboardingChoices.tsx',
-  'src/components/ProductHeader.tsx',
-  'src/components/ProductsSection.tsx',
-  'src/products/haoo.ts',
-  'src/products/copy.ts',
-  'src/products/registry.ts',
-  'src/products/types.ts',
-];
+/**
+ * Static boundary for the product surface, narrowed per file rather than deleted.
+ *
+ * Phase 1 forbade the same flat regex list in every product source. Phase 2 needs a
+ * real provider request, so the boundary is now a per-file map: a file keeps every
+ * group that still applies to it, and the two files that gained a capability lose
+ * exactly one group each and keep the rest.
+ *
+ * - `src/products/haoo.ts` drops `PROVIDER_FORBIDDEN` only. It names the FormSubmit
+ *   endpoint as build data; it still may not open a network call or render form markup.
+ * - `src/components/QualifyForm.tsx` drops `NETWORK_FORBIDDEN` and
+ *   `FORM_MARKUP_FORBIDDEN` only. It is the single module allowed to `fetch` and to
+ *   render a `<form>`; it still may not hardcode the provider, because the endpoint
+ *   must arrive through product data.
+ *
+ * Every other product source keeps all four groups, and `ALWAYS_FORBIDDEN` — storage,
+ * analytics, injection, router, ambient browser context and backend seams — applies to
+ * every file without exception, including the two above.
+ */
+const ALWAYS_FORBIDDEN = [
+  /dangerouslySetInnerHTML/,
+  /localStorage|sessionStorage|document\.cookie|indexedDB/,
+  /gtag\(|dataLayer|analytics\./,
+  /react-router|createBrowserRouter/,
+  /document\.referrer|navigator\.userAgent|window\.location/,
+  /supabase/i,
+] as const;
+const NETWORK_FORBIDDEN = [/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/] as const;
+const PROVIDER_FORBIDDEN = [/formsubmit/] as const;
+const FORM_MARKUP_FORBIDDEN = [/FormData|<form\b/] as const;
+
+const FULL_BOUNDARY = [
+  ...ALWAYS_FORBIDDEN,
+  ...NETWORK_FORBIDDEN,
+  ...PROVIDER_FORBIDDEN,
+  ...FORM_MARKUP_FORBIDDEN,
+] as const;
+
+const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
+  'src/pages/ProductPage.tsx': FULL_BOUNDARY,
+  'src/components/BrochurePanel.tsx': FULL_BOUNDARY,
+  'src/components/OnboardingChoices.tsx': FULL_BOUNDARY,
+  'src/components/ProductHeader.tsx': FULL_BOUNDARY,
+  'src/components/ProductsSection.tsx': FULL_BOUNDARY,
+  'src/products/copy.ts': FULL_BOUNDARY,
+  'src/products/registry.ts': FULL_BOUNDARY,
+  'src/products/types.ts': FULL_BOUNDARY,
+  'src/products/haoo.ts': [
+    ...ALWAYS_FORBIDDEN,
+    ...NETWORK_FORBIDDEN,
+    ...FORM_MARKUP_FORBIDDEN,
+  ],
+  'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+};
 
 function readText(path: string) {
   return existsSync(path) ? readFileSync(path, 'utf8') : '';
@@ -289,22 +331,21 @@ describe('Phase 1 static build contracts', () => {
     expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('www.zero-paperhub.com');
   });
 
-  it('keeps the Phase 1 product surface free of tracking, storage, injection, and backend seams', () => {
-    for (const relativePath of PRODUCT_SOURCES) {
+  it('keeps the product surface inside its narrowed static boundary', () => {
+    for (const [relativePath, forbiddenGroup] of Object.entries(PRODUCT_SOURCE_BOUNDARY)) {
       const source = readText(resolve(ROOT, relativePath));
 
-      expect(source).not.toBe('');
-      for (const forbidden of [
-        /dangerouslySetInnerHTML/,
-        /localStorage|sessionStorage|document\.cookie|indexedDB/,
-        /gtag\(|dataLayer|analytics\./,
-        /\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/,
-        /formsubmit|FormData|<form\b/,
-        /react-router|createBrowserRouter/,
-        /document\.referrer|navigator\.userAgent|window\.location/,
-        /supabase/i,
-      ]) {
-        expect(source).not.toMatch(forbidden);
+      expect(source, relativePath).not.toBe('');
+      for (const forbidden of forbiddenGroup) {
+        expect(source, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
+      }
+    }
+
+    // Every product source — including the two that gained a capability — still
+    // carries the whole always-forbidden group.
+    for (const forbiddenGroup of Object.values(PRODUCT_SOURCE_BOUNDARY)) {
+      for (const forbidden of ALWAYS_FORBIDDEN) {
+        expect(forbiddenGroup).toContain(forbidden);
       }
     }
 

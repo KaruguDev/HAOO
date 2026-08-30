@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import ProductPage from '../pages/ProductPage';
+import { HAOO_PRODUCT } from '../products/haoo';
 import {
   brochureFallbackBody,
   brochureLead,
@@ -96,6 +97,16 @@ function syntheticProduct(
       previewImageHeight: 800,
       downloadName: 'ZENITH-brochure.pdf',
       expectationLabel: 'PDF · 1 MB',
+    },
+    qualify: {
+      endpoint: 'https://formsubmit.co/ajax/hello@zenith.example',
+      subject: 'New ZENITH qualification enquiry — ZERO-PAPER HUB',
+      sourceNote:
+        'Sent from the ZENITH product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/zenith/)',
+      // Field and group definitions are reused verbatim from the shipped product so the
+      // "no HAOO literal" assertion below proves the form itself is product-generic.
+      fields: HAOO_PRODUCT.qualify.fields,
+      groups: HAOO_PRODUCT.qualify.groups,
     },
     ...overrides,
   };
