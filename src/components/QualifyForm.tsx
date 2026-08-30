@@ -342,6 +342,11 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
+      // A submission blocked by validation is not a transport event. Returning to the
+      // neutral state unmounts a recovery panel left over from an earlier failure and
+      // clears its status text, so the summary is the single reported problem rather
+      // than one of two contradictory ones.
+      setState('idle');
       setAttempts((previous) => previous + 1);
 
       return;

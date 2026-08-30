@@ -722,6 +722,36 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     })).toHaveLength(1);
   });
 
+  it('clears the transport failure when a retry is blocked by validation', async () => {
+    const fetchSpy = stubFetch(async () => ({ ok: false }));
+
+    renderPage();
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await within(qualifySection()).findByRole('heading', {
+      name: "We couldn't send your details",
+    });
+
+    // The form stays editable in the failed state, so a retry can legitimately be
+    // blocked by validation. A transport failure and a validation failure must never be
+    // reported at the same time — only one of them is real.
+    fireEvent.change(controlByName('name'), { target: { value: '' } });
+    fireEvent.click(within(qualifySection()).getByRole('button', {
+      name: 'Try sending again',
+    }));
+
+    expect(within(qualifySection()).queryByRole('heading', {
+      name: "We couldn't send your details",
+    })).toBeNull();
+    expect(within(qualifySection()).getAllByRole('alert')).toHaveLength(1);
+    expect(summaryLinkTexts()).toEqual(['Enter your full name']);
+    expect(statusRegion().textContent).toBe('');
+    expect(document.activeElement).toBe(summaryContainer());
+    // No second request was attempted, so the cleared failure is not a lie either.
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('locks every control while a request is in flight, then releases them', async () => {
     let settleRequest: ((value: { ok: boolean }) => void) | undefined;
     const fetchSpy = stubFetch(
