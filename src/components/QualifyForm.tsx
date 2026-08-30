@@ -160,6 +160,11 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   const [errors, setErrors] = useState<QualifyErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  // Counts invalid submit attempts only. The focus move is keyed on this integer and
+  // never on `errors`, for two reasons: a second invalid submit with an unchanged error
+  // set must still re-announce, and correcting a field while typing must never pull
+  // focus out of the control the visitor is working in.
+  const [attempts, setAttempts] = useState(0);
   const [state, setState] = useState<SubmissionState>('idle');
   // Synchronous concurrency authority. React state and the native disabled attribute
   // are visual and assistive feedback, never the guard that admits a request.
@@ -170,12 +175,16 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   const invalidFields = qualify.fields.filter((field) => errors[field.name]);
 
   useEffect(() => {
-    if (invalidFields.length > 0) {
-      summaryRef.current?.focus();
+    if (attempts === 0) {
+      return;
     }
-    // The summary container is the single invalid-submit focus target; a later plan
-    // adds an attempt counter here so an unchanged error set still re-announces.
-  }, [errors, invalidFields.length]);
+
+    // The summary container is the single invalid-submit focus target. The counter is
+    // incremented only by an invalid submit, so the summary is always rendered by the
+    // time this runs, and every attempt — including a repeat of the same errors —
+    // re-announces it.
+    summaryRef.current?.focus();
+  }, [attempts]);
 
   useEffect(() => {
     if (state === 'succeeded') {
@@ -184,7 +193,31 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   }, [state]);
 
   function setValue(name: string, value: string) {
-    setValues((previous) => ({ ...previous, [name]: value }));
+    const nextValues = { ...values, [name]: value };
+
+    setValues(nextValues);
+
+    // Before the first submit attempt nothing complains, so there is nothing to
+    // reconcile. After it, the edited field alone is re-validated against the one pure
+    // validator and its message is added, replaced or removed in place — the summary
+    // updates with it because both surfaces read the same errors object.
+    if (!submitted) {
+      return;
+    }
+
+    const fresh = validateQualifyValues(nextValues, qualify);
+
+    setErrors((previous) => {
+      const next = { ...previous };
+
+      if (fresh[name]) {
+        next[name] = fresh[name];
+      } else {
+        delete next[name];
+      }
+
+      return next;
+    });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -200,6 +233,8 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
+      setAttempts((previous) => previous + 1);
+
       return;
     }
 
