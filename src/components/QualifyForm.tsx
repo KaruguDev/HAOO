@@ -7,6 +7,7 @@ import type {
 import {
   qualifyContactActionLabels,
   qualifyConfirmationBody,
+  requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
 
@@ -14,6 +15,8 @@ interface QualifyFormProps {
   readonly qualify: ProductQualifyForm;
   readonly contacts: ProductContacts;
   readonly productName: string;
+  /** Namespaces every DOM id this form owns. See `qualifyId`. */
+  readonly slug: string;
 }
 
 type QualifyValues = Record<string, string>;
@@ -48,7 +51,6 @@ const QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way';
  */
 export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
 const HONEYPOT_NAME = '_honey';
-const COLLECTION_NOTE_ID = 'qualify-collection-note';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const focusClasses =
@@ -65,16 +67,37 @@ const scriptFocusClasses =
   'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2';
 const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] disabled:cursor-wait disabled:opacity-70 ${focusClasses}`;
 
-function fieldId(field: QualifyField) {
-  return `qualify-${field.name}`;
+/**
+ * Every DOM id this form owns, namespaced by the product slug — the same pattern
+ * `contentAnchorId` and `mobileNavigationId` already use. This component is built for
+ * reuse, so two product forms can legitimately coexist on one page (a comparison page, a
+ * combined landing page). Unnamespaced ids would silently cross-wire them: `label[for]`
+ * binds to the first match, `aria-describedby` on the second form's submit button would
+ * point at the first form's notice, and an error-summary link would jump the visitor
+ * into the wrong form's control.
+ */
+function qualifyId(slug: string, suffix: string) {
+  return `${requireIdentity(slug, 'slug')}-qualify-${suffix}`;
 }
 
-function errorId(field: QualifyField) {
-  return `qualify-${field.name}-error`;
+function fieldId(slug: string, field: QualifyField) {
+  return qualifyId(slug, field.name);
 }
 
-function helpId(field: QualifyField) {
-  return `qualify-${field.name}-help`;
+function errorId(slug: string, field: QualifyField) {
+  return qualifyId(slug, `${field.name}-error`);
+}
+
+function helpId(slug: string, field: QualifyField) {
+  return qualifyId(slug, `${field.name}-help`);
+}
+
+function collectionNoteId(slug: string) {
+  return qualifyId(slug, 'collection-note');
+}
+
+function honeypotId(slug: string) {
+  return qualifyId(slug, 'website');
 }
 
 /**
@@ -252,7 +275,12 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
   return seeded;
 }
 
-export default function QualifyForm({ contacts, productName, qualify }: QualifyFormProps) {
+export default function QualifyForm({
+  contacts,
+  productName,
+  qualify,
+  slug,
+}: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   // The authoritative latest snapshot. `values` from the render closure is stale for any
   // path that writes more than one field before the next render — browser autofill and
@@ -422,13 +450,13 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
 
   function renderControl(field: QualifyField, required: boolean) {
     const describedBy = [
-      field.help ? helpId(field) : '',
-      errors[field.name] ? errorId(field) : '',
+      field.help ? helpId(slug, field) : '',
+      errors[field.name] ? errorId(slug, field) : '',
     ]
       .filter((token) => token !== '')
       .join(' ');
     const shared = {
-      id: fieldId(field),
+      id: fieldId(slug, field),
       name: field.name,
       value: values[field.name] ?? '',
       required,
@@ -489,7 +517,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
     return (
       <div key={field.name} className="mb-6 last:mb-0">
         <label
-          htmlFor={fieldId(field)}
+          htmlFor={fieldId(slug, field)}
           className="mb-1 block text-sm font-semibold leading-[1.4] text-[#18275F]"
         >
           {field.label}
@@ -499,7 +527,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
         </label>
         {field.help ? (
           <p
-            id={helpId(field)}
+            id={helpId(slug, field)}
             className="mb-1 text-sm font-normal leading-[1.4] text-[#5F6B84]"
           >
             {field.help}
@@ -508,7 +536,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
         {renderControl(field, required)}
         {message ? (
           <p
-            id={errorId(field)}
+            id={errorId(slug, field)}
             className="mt-1 text-sm font-semibold leading-[1.4] text-[#B00020]"
           >
             <span className="sr-only">Error: </span>
@@ -570,9 +598,9 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
             aria-hidden="true"
             className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
           >
-            <label htmlFor="qualify-website">Leave this field blank</label>
+            <label htmlFor={honeypotId(slug)}>Leave this field blank</label>
             <input
-              id="qualify-website"
+              id={honeypotId(slug)}
               type="text"
               name={HONEYPOT_NAME}
               tabIndex={-1}
@@ -596,7 +624,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
                   {invalidFields.map((field) => (
                     <li key={field.name} className="mt-1 first:mt-0">
                       <a
-                        href={`#${fieldId(field)}`}
+                        href={`#${fieldId(slug, field)}`}
                         className={`text-sm font-semibold leading-[1.4] text-[#B00020] underline ${focusClasses}`}
                       >
                         {errors[field.name]}
@@ -623,7 +651,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
 
             {qualify.collectionNote ? (
               <div
-                id={COLLECTION_NOTE_ID}
+                id={collectionNoteId(slug)}
                 className="mt-8 rounded-lg border border-[#DFE4F0] bg-[#FBFCFF] p-4 text-sm font-normal leading-[1.4] text-[#5F6B84]"
               >
                 <p>{qualify.collectionNote.purpose}</p>
@@ -635,7 +663,9 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
             <button
               type="submit"
               disabled={state === 'submitting'}
-              aria-describedby={qualify.collectionNote ? COLLECTION_NOTE_ID : undefined}
+              aria-describedby={
+                qualify.collectionNote ? collectionNoteId(slug) : undefined
+              }
               className={`mt-8 inline-flex w-full min-h-11 items-center justify-center rounded-lg bg-[#4054C6] px-5 py-3 text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] disabled:cursor-wait disabled:opacity-70 md:w-auto ${focusClasses}`}
             >
               {state === 'submitting' ? QUALIFY_SUBMITTING_LABEL : QUALIFY_SUBMIT_LABEL}

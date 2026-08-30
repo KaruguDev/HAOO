@@ -39,7 +39,7 @@ const COLLECTION_CONTEXT =
 /** Named at the point of collection: the payload reaches the processor before us. */
 const COLLECTION_PROCESSOR =
   'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
-const DISCLOSURE_ID = 'qualify-collection-note';
+const DISCLOSURE_ID = `${HAOO_PRODUCT.slug}-qualify-collection-note`;
 /** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
 const EXPECTED_BODY_KEYS = [
   'Email address',
@@ -183,7 +183,7 @@ function parseRequest(spy: ReturnType<typeof vi.fn>) {
  * stored — so a label-based lookup would break precisely where the rule is under test.
  */
 function controlByName(fieldName: string): HTMLElement {
-  const node = qualifySection().querySelector(`#qualify-${fieldName}`);
+  const node = qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-${fieldName}`);
 
   if (!node) {
     throw new Error(`Expected a control for "${fieldName}".`);
@@ -210,7 +210,7 @@ function summaryContainer() {
 }
 
 function inlineError(fieldName: string) {
-  const node = qualifySection().querySelector(`#qualify-${fieldName}-error`);
+  const node = qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-${fieldName}-error`);
 
   if (!node) {
     throw new Error(`Expected an inline error message for "${fieldName}".`);
@@ -270,7 +270,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(button.getAttribute('aria-describedby')?.split(/\s+/)).toContain(DISCLOSURE_ID);
 
     for (const field of QUALIFY.fields) {
-      const label = qualifySection().querySelector(`label[for="qualify-${field.name}"]`);
+      const label = qualifySection().querySelector(`label[for="${HAOO_PRODUCT.slug}-qualify-${field.name}"]`);
 
       expect(field.label, field.name).not.toContain('(optional)');
       expect(label?.textContent, field.name).not.toContain('*');
@@ -355,7 +355,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
       expect(control.getAttribute('aria-invalid'), field.name).toBe('true');
       expect(control.getAttribute('aria-describedby'), field.name)
-        .toBe(`qualify-${field.name}-error`);
+        .toBe(`${HAOO_PRODUCT.slug}-qualify-${field.name}-error`);
     }
 
     // An untouched optional field is not an error and is never described by one.
@@ -363,7 +363,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
       const control = section.getByLabelText(FIELD_LABELS[field.name]);
 
       expect(control.getAttribute('aria-invalid'), field.name).toBeNull();
-      expect(qualifySection().querySelector(`#qualify-${field.name}-error`), field.name)
+      expect(qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-${field.name}-error`), field.name)
         .toBeNull();
     }
     expect(fetchSpy).toHaveBeenCalledTimes(0);
@@ -851,11 +851,16 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     };
     const failedFetch = stubFetch(async () => ({ ok: false }));
     const first = render(
-      <QualifyForm qualify={QUALIFY} contacts={zenithContacts} productName="ZENITH" />,
+      <QualifyForm
+        qualify={QUALIFY}
+        contacts={zenithContacts}
+        productName="ZENITH"
+        slug="zenith"
+      />,
     );
 
     for (const [name, value] of Object.entries(requiredValues())) {
-      fireEvent.change(first.container.querySelector(`#qualify-${name}`) as HTMLElement, {
+      fireEvent.change(first.container.querySelector(`#zenith-qualify-${name}`) as HTMLElement, {
         target: { value },
       });
     }
@@ -874,11 +879,16 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     vi.unstubAllGlobals();
     stubFetch(async () => ({ ok: true }));
     const second = render(
-      <QualifyForm qualify={QUALIFY} contacts={zenithContacts} productName="ZENITH" />,
+      <QualifyForm
+        qualify={QUALIFY}
+        contacts={zenithContacts}
+        productName="ZENITH"
+        slug="zenith"
+      />,
     );
 
     for (const [name, value] of Object.entries(requiredValues())) {
-      fireEvent.change(second.container.querySelector(`#qualify-${name}`) as HTMLElement, {
+      fireEvent.change(second.container.querySelector(`#zenith-qualify-${name}`) as HTMLElement, {
         target: { value },
       });
     }
@@ -904,12 +914,49 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     }
   });
 
+  it('namespaces every id so two product forms can coexist on one page', () => {
+    stubFetch(async () => ({ ok: true }));
+
+    const { container } = render(
+      <>
+        <QualifyForm
+          qualify={QUALIFY}
+          contacts={HAOO_PRODUCT.contacts}
+          productName="HAOO"
+          slug="haoo"
+        />
+        <QualifyForm
+          qualify={QUALIFY}
+          contacts={HAOO_PRODUCT.contacts}
+          productName="ZENITH"
+          slug="zenith"
+        />
+      </>,
+    );
+
+    const ids = Array.from(container.querySelectorAll('[id]')).map((node) => node.id);
+
+    expect(ids.length).toBeGreaterThan(0);
+    expect(new Set(ids).size, ids.join(', ')).toBe(ids.length);
+
+    // A duplicate id would not merely be invalid markup: `label[for]` binds to the first
+    // match, so the second form's controls would be labelled by the first form's labels.
+    for (const label of Array.from(container.querySelectorAll('label[for]'))) {
+      const forId = label.getAttribute('for') ?? '';
+      const target = container.querySelector(`#${forId}`);
+
+      expect(target, forId).not.toBeNull();
+      expect(label.closest('form'), forId).toBe(target?.closest('form'));
+    }
+  });
+
   it('traps bots without blocking assistive technology', async () => {
     const fetchSpy = stubFetch(async () => ({ ok: true }));
 
     renderPage();
 
-    const honeypot = qualifySection().querySelector('#qualify-website') as HTMLInputElement;
+    const honeypot = qualifySection()
+      .querySelector(`#${HAOO_PRODUCT.slug}-qualify-website`) as HTMLInputElement;
     const wrapper = honeypot.parentElement as HTMLElement;
 
     expect(honeypot.getAttribute('name')).toBe('_honey');
@@ -1035,7 +1082,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
       for (const name of group.fieldNames) {
         const control = section.getByLabelText(FIELD_LABELS[name]);
 
-        expect(groups[index].querySelector(`#qualify-${name}`), name).not.toBeNull();
+        expect(groups[index].querySelector(`#${HAOO_PRODUCT.slug}-qualify-${name}`), name).not.toBeNull();
         expect(groups[index].contains(control), name).toBe(true);
         for (const [otherIndex, other] of groups.entries()) {
           if (otherIndex !== index) {
@@ -1064,7 +1111,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     for (const field of QUALIFY.fields) {
       const control = shipped.getByLabelText(FIELD_LABELS[field.name]);
-      const label = qualifySection().querySelector(`label[for="qualify-${field.name}"]`);
+      const label = qualifySection().querySelector(`label[for="${HAOO_PRODUCT.slug}-qualify-${field.name}"]`);
 
       expect(isFieldRequired(field, {}), field.name).toBe(field.required);
       expect((control as HTMLInputElement).required, field.name).toBe(field.required);
@@ -1098,6 +1145,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
           qualify={optionalQualify}
           contacts={HAOO_PRODUCT.contacts}
           productName="ZENITH"
+          slug="zenith"
         />,
       ).container,
     );
@@ -1267,7 +1315,8 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
       'Select how many units you manage',
       'Select when you would like to start',
     ]);
-    expect(qualifySection().querySelector('#qualify-role-error')).toBeNull();
+    expect(qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-role-error`))
+      .toBeNull();
     expect(role.getAttribute('aria-invalid')).toBeNull();
 
     // Every other message, and every entered value, is untouched.
@@ -1286,7 +1335,8 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
 
     fireEvent.change(controlByName('email'), { target: { value: 'jane@example.com' } });
 
-    expect(qualifySection().querySelector('#qualify-email-error')).toBeNull();
+    expect(qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-email-error`))
+      .toBeNull();
     expect(summaryLinkTexts()).toEqual([
       'Select how we should reach you',
       'Select how many units you manage',
@@ -1329,14 +1379,14 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
       .map((field) => field.name);
 
     expect(links.map((link) => link.getAttribute('href')))
-      .toEqual(invalidNames.map((fieldName) => `#qualify-${fieldName}`));
+      .toEqual(invalidNames.map((fieldName) => `#${HAOO_PRODUCT.slug}-qualify-${fieldName}`));
     for (const [index, fieldName] of invalidNames.entries()) {
       const control = controlByName(fieldName);
 
-      expect(control.id, fieldName).toBe(`qualify-${fieldName}`);
+      expect(control.id, fieldName).toBe(`${HAOO_PRODUCT.slug}-qualify-${fieldName}`);
       expect(control.getAttribute('aria-invalid'), fieldName).toBe('true');
       expect(control.getAttribute('aria-describedby'), fieldName)
-        .toContain(`qualify-${fieldName}-error`);
+        .toContain(`${HAOO_PRODUCT.slug}-qualify-${fieldName}-error`);
       expect(links[index].textContent, fieldName)
         .toBe(inlineError(fieldName).textContent?.replace('Error: ', ''));
     }
@@ -1390,7 +1440,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   }
 
   function labelFor(fieldName: string) {
-    return qualifySection().querySelector(`label[for="qualify-${fieldName}"]`) as HTMLElement;
+    return qualifySection().querySelector(`label[for="${HAOO_PRODUCT.slug}-qualify-${fieldName}"]`) as HTMLElement;
   }
 
   it('leaves the phone field optional until a channel requires it', () => {
@@ -1494,7 +1544,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
 
     expect(summaryLinkTexts()).toEqual(['Enter your full name']);
-    expect(qualifySection().querySelector(`#qualify-${PHONE}-error`)).toBeNull();
+    expect(qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-${PHONE}-error`)).toBeNull();
     expect(fetchSpy).toHaveBeenCalledTimes(0);
   });
 
@@ -1510,7 +1560,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
 
     // All four surfaces reverse together, and the error goes with them.
-    expect(qualifySection().querySelector(`#qualify-${PHONE}-error`)).toBeNull();
+    expect(qualifySection().querySelector(`#${HAOO_PRODUCT.slug}-qualify-${PHONE}-error`)).toBeNull();
     expect((controlByName(PHONE) as HTMLInputElement).required).toBe(false);
     expect(controlByName(PHONE).getAttribute('aria-required')).toBe('false');
     expect(labelFor(PHONE).textContent).toContain('(optional)');
@@ -1628,13 +1678,15 @@ describe('Phase 2 conditional contact-channel contracts', () => {
         qualify={syntheticQualify}
         contacts={HAOO_PRODUCT.contacts}
         productName="ZENITH"
+        slug="zenith"
       />,
     );
     const scoped = within(container);
-    const mode = container.querySelector('#qualify-contactMode') as HTMLSelectElement;
-    const address = () => container.querySelector('#qualify-siteAddress') as HTMLInputElement;
+    const mode = container.querySelector('#zenith-qualify-contactMode') as HTMLSelectElement;
+    const address = () =>
+      container.querySelector('#zenith-qualify-siteAddress') as HTMLInputElement;
     const addressLabel = () =>
-      container.querySelector('label[for="qualify-siteAddress"]') as HTMLElement;
+      container.querySelector('label[for="zenith-qualify-siteAddress"]') as HTMLElement;
 
     expect(address().required).toBe(false);
     expect(addressLabel().textContent).toContain('(optional)');
@@ -1656,12 +1708,12 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     fireEvent.click(scoped.getByRole('button', { name: QUALIFY_SUBMIT_LABEL }));
 
     expect(fetchSpy).toHaveBeenCalledTimes(0);
-    expect(container.querySelector('#qualify-siteAddress-error')?.textContent)
+    expect(container.querySelector('#zenith-qualify-siteAddress-error')?.textContent)
       .toBe('Error: Enter the site address');
 
     fireEvent.change(mode, { target: { value: 'Video call' } });
 
-    expect(container.querySelector('#qualify-siteAddress-error')).toBeNull();
+    expect(container.querySelector('#zenith-qualify-siteAddress-error')).toBeNull();
     expect(address().required).toBe(false);
     expect(addressLabel().textContent).toContain('(optional)');
     expect(scoped.getByRole('status').textContent).toBe('');

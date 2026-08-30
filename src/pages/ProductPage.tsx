@@ -204,6 +204,7 @@ export default function ProductPage({ product }: ProductPageProps) {
               qualify={product.qualify}
               contacts={product.contacts}
               productName={product.name}
+              slug={product.slug}
             />
           </div>
         </section>

@@ -1,6 +1,10 @@
 import type { ProductContacts } from './types';
 
-function requireIdentity(value: string, field: 'name' | 'slug') {
+/**
+ * Fail-closed identity guard. A shell rendered for a nameless or slugless product must
+ * throw rather than ship orphan copy or an unnamespaced DOM id.
+ */
+export function requireIdentity(value: string, field: 'name' | 'slug') {
   if (value.trim() === '') {
     throw new Error(`Product ${field} must not be empty`);
   }
