@@ -606,6 +606,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
                 className="mt-8 rounded-lg border border-[#DFE4F0] bg-[#FBFCFF] p-4 text-sm font-normal leading-[1.4] text-[#5F6B84]"
               >
                 <p>{qualify.collectionNote.purpose}</p>
+                <p className="mt-3">{qualify.collectionNote.processor}</p>
                 <p className="mt-3">{qualify.collectionNote.pageContext}</p>
               </div>
             ) : null}

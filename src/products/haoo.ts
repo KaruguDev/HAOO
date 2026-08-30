@@ -1,6 +1,7 @@
 import type { ProductDefinition, QualifyOption } from './types';
 import {
   qualifyCollectionNotePageContext,
+  qualifyCollectionNoteProcessor,
   qualifyCollectionNotePurpose,
 } from './copy';
 
@@ -287,6 +288,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
       'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
     collectionNote: {
       purpose: qualifyCollectionNotePurpose('HAOO'),
+      processor: qualifyCollectionNoteProcessor(),
       pageContext: qualifyCollectionNotePageContext('HAOO'),
     },
     // DOM order is also the order the labels appear in the delivered email. The

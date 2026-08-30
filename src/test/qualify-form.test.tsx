@@ -36,6 +36,9 @@ const COLLECTION_PURPOSE =
  */
 const COLLECTION_CONTEXT =
   'In future, a short summary of how you used this HAOO page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.';
+/** Named at the point of collection: the payload reaches the processor before us. */
+const COLLECTION_PROCESSOR =
+  'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
 const DISCLOSURE_ID = 'qualify-collection-note';
 /** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
 const EXPECTED_BODY_KEYS = [
@@ -257,9 +260,11 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(section.getByText(REQUIRED_FIELDS_NOTE)).toBeTruthy();
     expect(QUALIFY.collectionNote).toEqual({
       purpose: COLLECTION_PURPOSE,
+      processor: COLLECTION_PROCESSOR,
       pageContext: COLLECTION_CONTEXT,
     });
     expect(disclosure?.textContent).toContain(COLLECTION_PURPOSE);
+    expect(disclosure?.textContent).toContain(COLLECTION_PROCESSOR);
     expect(disclosure?.textContent).toContain(COLLECTION_CONTEXT);
     expect(disclosure?.nextElementSibling).toBe(button);
     expect(button.getAttribute('aria-describedby')?.split(/\s+/)).toContain(DISCLOSURE_ID);

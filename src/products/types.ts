@@ -88,6 +88,7 @@ export interface QualifyFieldGroup {
 
 export interface QualifyCollectionNote {
   readonly purpose: string;
+  readonly processor: string;
   readonly pageContext: string;
 }
 

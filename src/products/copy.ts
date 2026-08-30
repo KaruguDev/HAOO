@@ -80,6 +80,20 @@ export function qualifyCollectionNotePurpose(productName: string) {
 }
 
 /**
+ * Named recipient. The submission travels from the visitor's own browser to FormSubmit,
+ * a third-party email-forwarding service that receives the whole payload before any
+ * ZERO-PAPER HUB mailbox does. From the visitor's position the data appears to go
+ * straight to us, so the processor is named at the point of collection — Kenya's Data
+ * Protection Act 2019 expects recipients to be identified there, as does its GDPR
+ * analogue. The second sentence is a claim about this site only, which is a static
+ * bundle with no backend and no store, and deliberately makes no claim about how long
+ * the processor itself keeps anything.
+ */
+export function qualifyCollectionNoteProcessor() {
+  return 'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
+}
+
+/**
  * Forward-looking disclosure. The page-use summary it describes is not built yet, so the
  * sentence is written in the future tense: a privacy notice must never describe
  * collection that does not occur. The tense flips to present in the same change that
