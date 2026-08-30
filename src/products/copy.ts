@@ -63,8 +63,16 @@ export function qualifyFallbackBody(productName: string) {
   return `Something went wrong between this page and our email provider. Your answers are still here, so you can try again — or reach ${requireIdentity(productName, 'name')} directly.`;
 }
 
+/**
+ * Confirmation body. Every claim here is browser-observable: the page saw the provider
+ * accept the request, which is not proof that a mailbox received it. The response-time
+ * sentence is therefore phrased as the visitor's fallback trigger, never as a delivery
+ * receipt or an unconditional promise the page cannot observe.
+ */
 export function qualifyConfirmationBody(productName: string) {
-  return `We've sent your name, contact details, and the answers you gave to the ${requireIdentity(productName, 'name')} team. Someone will reply within one business day.`;
+  requireIdentity(productName, 'name');
+
+  return "Your details were submitted. If you don't hear back within one business day, use one of the contacts below.";
 }
 
 export function qualifyCollectionNotePurpose(productName: string) {

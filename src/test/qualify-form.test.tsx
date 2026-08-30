@@ -558,9 +558,13 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(qualifySection().querySelector('form')).toBeNull();
     expect(section.queryByRole('button', { name: QUALIFY_SUBMIT_LABEL })).toBeNull();
     expect(section.getAllByRole('status')).toHaveLength(1);
+    // The confirmation reports only what this page observed — the provider accepted the
+    // request — and offers the response-time sentence as a fallback trigger, never as a
+    // delivery receipt (LEAD-07 has not proven live delivery).
     expect(section.getByText(
-      "We've sent your name, contact details, and the answers you gave to the HAOO team. Someone will reply within one business day.",
+      "Your details were submitted. If you don't hear back within one business day, use one of the contacts below.",
     )).toBeTruthy();
+    expect(section.queryByText(/sent your name.*to the HAOO team/)).toBeNull();
     expect(section.getByText('Need an answer sooner?')).toBeTruthy();
     expect(section.getByRole('link', { name: 'Message HAOO on WhatsApp instead' })
       .getAttribute('href')).toBe(HAOO_PRODUCT.contacts.whatsappHref);
@@ -720,7 +724,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
       name: QUALIFY_SUBMIT_LABEL,
     }));
     expect(await within(second.container).findByText(
-      /answers you gave to the ZENITH team.*one business day/,
+      /Your details were submitted\..*one business day/,
     )).toBeTruthy();
     expect(within(second.container).getByRole('link', {
       name: 'Message ZENITH on WhatsApp instead',
