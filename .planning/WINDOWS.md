@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 6
 waived_count: 0
 fixed_count: 2
-total_count: 6
-last_updated: 2026-08-29T10:44:29.827Z
+total_count: 8
+last_updated: 2026-08-30T08:19:24.116Z
 ---
 
 # Broken Windows Ledger
@@ -21,6 +21,8 @@ last_updated: 2026-08-29T10:44:29.827Z
 | 4 | 01 | deviation | vitest.config.ts | 1 | Added the existing React Vite plugin to Vitest and rejected React-is-not-defined output so infrastructure failures cannot satisfy expected RED. | open |  | 2026-08-29T09:32:59.971Z |  |
 | 5 | 01 | deviation | src/pages/ProductPage.tsx | 65 | Removed an unsupported security characterization from the self-onboarding copy to preserve brochure source fidelity. | open |  | 2026-08-29T09:42:36.668Z |  |
 | 6 | 01 | stub | src/products/haoo.ts |  | HAOO_PRODUCT.brochure pdfHref/downloadName/expectationLabel remain placeholders pending plan 01-05 | fixed |  | 2026-08-29T10:22:12.183Z | 2026-08-29T10:44:29.827Z |
+| 7 | 02 | stub | src/products/haoo.ts |  | phone.formatPattern and phone.formatMessage ship as configuration but no validator reads them until plan 02-04 wires the permissive phone format | open |  | 2026-08-30T08:19:23.966Z |  |
+| 8 | 02 | stub | src/products/haoo.ts |  | organization.requiredMessage and message.requiredMessage are unreachable copy demanded by the non-optional QualifyField.requiredMessage shape; both fields are permanently optional | open |  | 2026-08-30T08:19:24.116Z |  |
 
 ````json
 [
@@ -95,6 +97,30 @@ last_updated: 2026-08-29T10:44:29.827Z
     "reason": "",
     "recorded_at": "2026-08-29T10:22:12.183Z",
     "resolved_at": "2026-08-29T10:44:29.827Z"
+  },
+  {
+    "id": 7,
+    "kind": "stub",
+    "phase": "02",
+    "file": "src/products/haoo.ts",
+    "line": null,
+    "description": "phone.formatPattern and phone.formatMessage ship as configuration but no validator reads them until plan 02-04 wires the permissive phone format",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T08:19:23.966Z",
+    "resolved_at": null
+  },
+  {
+    "id": 8,
+    "kind": "stub",
+    "phase": "02",
+    "file": "src/products/haoo.ts",
+    "line": null,
+    "description": "organization.requiredMessage and message.requiredMessage are unreachable copy demanded by the non-optional QualifyField.requiredMessage shape; both fields are permanently optional",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T08:19:24.116Z",
+    "resolved_at": null
   }
 ]
 ````

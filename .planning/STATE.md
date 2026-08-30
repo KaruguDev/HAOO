@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Submit a Qualified HAOO Enquiry
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-08-30T08:00:08.551Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-08-30T08:19:37.712Z"
 last_activity: 2026-08-30
 last_activity_desc: Phase 02 execution started
-state_head: 4f8dcc3c34b6f779ed5cd6bec346323f0b3ddb9b
+state_head: f897cf9919a9ad69e1c6516a13475f55ce3ff1de
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
   percent: 20
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 02 (Submit a Qualified HAOO Enquiry) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-08-30 — Phase 02 execution started
 
@@ -69,6 +69,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 01 P09 | 2 min | 2 tasks | 2 files |
 | Phase 02 P01 | 12 min | 1 tasks | 7 files |
 | Phase 02 P07 | 6 min | 1 tasks | 4 files |
+| Phase 02 P02 | 15 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Concurrency is owned by a synchronous inFlightRef, not by React state or the button disabled attribute — Two submit events fired back-to-back against a pending promise must issue exactly one request; React cannot commit disabled state before the second event is dispatched
 - [Phase 02]: Each endpoint table row carries an explicit expectedResolution string rather than an isValid boolean — A boolean table would let a future resolver return some third string for a rejected input and still pass the was-rejected half of the assertion; naming the exact expected output for all 30 rows makes the table a total function specification, and the whitespace-padded rows double as the trimming contract
 - [Phase 02]: The endpoint contract table was mutation-probed against two deliberately weakened resolvers before being trusted — The resolver was delivered by 02-01, so a green first run proves nothing on its own; a nullish-only fallback is killed by 12 of 12 representative invalid rows and a startsWith-prefix any-https-host resolver by 10 of 12, which is the evidence that the plan prohibitions are enforced by the table rather than only stated in prose
+- [Phase 02]: Kenyan county, portfolio-band and timeframe punctuation shipped exactly as planned after the task-1 blocking-human checkpoint: en dash U+2013 in Taita-Taveta and the four banded ranges, plain hyphen U+002D in Tharaka-Nithi / Trans-Nzoia / Elgeyo-Marakwet, typographic apostrophe U+2019 in Murang'a. — These values are written into email delivered to a real inbox and, from Phase 3, into the engagement summary. A wrong character in a closed list is a permanent data-quality defect, so a human confirmed the codepoints before ship rather than after.
+- [Phase 02]: Shipped option value is derived from label by a single toOptions helper, and the contested county names are pinned in tests with backslash-u escape sequences rather than visible characters. — A hand-written value/label pair can drift silently; a derivation cannot. A literal expectation written with visible en dashes defends against a source-only edit but not against a tool that normalises the whole repository - both files would drift together and the test would still pass. Escape sequences cannot be normalised.
 
 ### Pending Todos
 
@@ -116,6 +119,7 @@ None yet.
 - Analytics account/configuration may be absent; the product journey must remain launchable with the no-op measurement path.
 - [Phase 1 review] Informational tenant and agent audiences are not visibly rendered despite the broader PROD-03 audience wording; revisit before shipping if that interpretation is required.
 - [Dependency maintenance] The unused Supabase dependency retains a pre-existing `ws` advisory; review removal or upgrade in a dedicated task before shipping.
+- The five closed option lists are assumed complete enough for real HAOO follow-up routing; unresolved, carried to UAT as human-judgment item 02-02-SUMMARY coverage D6.
 
 ### Quick Tasks Completed
 
@@ -133,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T08:00:08.499Z
-Stopped at: Completed 02-07-PLAN.md
+Last session: 2026-08-30T08:19:23.747Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
