@@ -252,8 +252,11 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
   // focus out of the control the visitor is working in.
   const [attempts, setAttempts] = useState(0);
   // A requiredness-change sentence awaiting announcement. It shares the one mounted
-  // status region with the submission states, which take precedence the moment a
-  // submission starts — the region never holds two messages and is never duplicated.
+  // status region with the submission states: a starting submission clears it and owns
+  // the region, and a terminal message holds the region only until the next requiredness
+  // change. The form stays mounted and editable after a failure, so a stale
+  // "we couldn't send" must never suppress a live announcement. The region never holds
+  // two messages and is never duplicated.
   const [notice, setNotice] = useState('');
   const [state, setState] = useState<SubmissionState>('idle');
   // Synchronous concurrency authority. React state and the native disabled attribute
@@ -345,6 +348,9 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
     }
 
     inFlightRef.current = true;
+    // The region is handed to the submission for the duration; a requiredness sentence
+    // left over from the last edit must not survive into the terminal message.
+    setNotice('');
     setState('submitting');
 
     const controller = new AbortController();
@@ -478,7 +484,12 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
     );
   }
 
-  const statusMessage = state === 'idle' ? notice : QUALIFY_STATUS_MESSAGES[state];
+  // A live requiredness announcement outranks an already-read terminal message, because
+  // `state` never returns to `idle` once a submission has been attempted and the form
+  // remains editable afterwards. Only `submitting` is absolute: nothing may displace the
+  // in-progress message while the request is open.
+  const statusMessage =
+    notice !== '' && state !== 'submitting' ? notice : QUALIFY_STATUS_MESSAGES[state];
 
   return (
     <div className="mt-6">

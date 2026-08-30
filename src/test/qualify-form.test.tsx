@@ -1398,6 +1398,33 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     }
   });
 
+  it('still announces a requiredness change after a failed submission', async () => {
+    stubFetch(async () => ({ ok: false }));
+
+    renderPage();
+    fillControls(requiredValues());
+    fireEvent.click(submitControl());
+
+    await waitFor(() => expect(statusRegion().textContent)
+      .toBe(QUALIFY_STATUS_MESSAGES.failed));
+
+    // The form stays mounted and editable in the failed state, so an attribute flip made
+    // now still needs its sentence: a stale terminal message cannot own the region.
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'WhatsApp' } });
+
+    expect(statusRegion().textContent).toBe(announcement('WhatsApp'));
+    expect((controlByName(PHONE) as HTMLInputElement).required).toBe(true);
+    expect((controlByName(PHONE) as HTMLInputElement).getAttribute('aria-required'))
+      .toBe('true');
+    expect(labelFor(PHONE).textContent).not.toContain('(optional)');
+    expect(within(qualifySection()).getAllByRole('status')).toHaveLength(1);
+
+    // Reversing the rule clears the sentence and hands the region back.
+    fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });
+
+    expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed);
+  });
+
   it('reports the locked message when a required phone is empty', () => {
     const fetchSpy = stubFetch(async () => ({ ok: true }));
 
