@@ -383,27 +383,27 @@ The footer handler should set `disclosureRef.current.open = true` before/while n
 | A3 | Brochure preview means the first successful preview load/availability observation, deduplicated across responsive nodes. | Architecture Pattern 5 | Counts differ if ownership defines preview as section visibility or explicit user action. |
 | A4 | A native `details`/`summary` implementation is acceptable for the locked expandable disclosure. | Standard Stack | Platform-specific accessibility behavior may require a custom tested disclosure control. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What derivation metadata may the browser persist? — RESOLVED 2026-08-30**
    - What we know: Exact thresholds at visits 2 and 4, relative age bands, and ~180-day expiry are locked, as is “exactly three things” with no raw count/date.
    - What's unclear: Those outcomes are mathematically impossible from only the three stated fields.
    - Resolution: The product owner approved a capped visit ordinal (`1..4`) and day-level last-seen value as disclosed bounded local derivation metadata. They must remain excluded from analytics events, lead context, and form payloads.
 
-2. **What is the precise brochure-preview observation?**
+2. **What is the precise brochure-preview observation? — RESOLVED 2026-08-30**
    - What we know: It originates in `BrochurePanel`, which renders responsive image/object nodes.
    - What's unclear: Successful media load, first viewport visibility, and explicit interaction produce different counts.
-   - Recommendation: Count first successful preview availability per page instance; guard both responsive nodes with one ref. Confirm during planning if “viewed” requires viewport observation.
+   - Resolution: Count first successful preview availability per page instance and guard both responsive nodes with one shared ref. This is availability semantics, not viewport visibility or explicit interaction.
 
-3. **What exactly does the future provider environment variable select?**
+3. **What exactly does the future provider environment variable select? — RESOLVED 2026-08-30**
    - What we know: Phase 3 has no provider implementation or account, and all unknown/unset states must be no-op.
    - What's unclear: The variable name and future closed provider identifiers are not locked.
-   - Recommendation: Define a closed resolver whose only current result is no-op and document it as public build data. Do not accept a script URL or arbitrary provider code.
+   - Resolution: Use a closed build-time selector whose only current behavior is no-op. Unset, blank, and unknown values remain no-op; arbitrary URLs and provider code are never accepted.
 
-4. **Where does normalized campaign context go in Phase 3?**
+4. **Where does normalized campaign context go in Phase 3? — RESOLVED 2026-08-30**
    - What we know: Event payloads have no properties; the persistent record contains only visit/date/flags; Phase 4 owns the email summary.
    - What's unclear: The locked context requires read/normalize/remove but names no Phase 3 consumer.
-   - Recommendation: Retain only the accepted values in page-lifetime module memory for the future adapter seam, never in the event or localStorage record; discard them with the page. If there is no approved consumer, URL cleanup plus a pure parser contract is sufficient and safer.
+   - Resolution: Accepted values remain page-memory only and are discarded with the page; when unconsumed, the implementation may limit behavior to the pure parser and URL cleanup. Campaign values never enter events, localStorage, form data, or lead payloads.
 
 ## Environment Availability
 
