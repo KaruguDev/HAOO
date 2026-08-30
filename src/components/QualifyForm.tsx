@@ -53,14 +53,53 @@ function helpId(field: QualifyField) {
 }
 
 /**
- * Computed requiredness. The tracer answers from the static flag; a later plan teaches
- * this one function to interpret the generic `requiredWhen` descriptor, so every caller
- * — label suffix, native attribute, `aria-required` and validation — flips together.
+ * Computed requiredness, and the single seam every requiredness surface reads: the label
+ * suffix, the native attribute, `aria-required`, the validator and the announcement all
+ * call this one function, so they cannot drift apart.
+ *
+ * A base-required field is always required. Otherwise the optional `requiredWhen`
+ * descriptor is evaluated generically — read the controlling field named by the
+ * descriptor and test the current value for exact membership in the configured trigger
+ * list. This component recognises no field name and no option value of any product.
  */
-export function isFieldRequired(field: QualifyField, _values: QualifyValues): boolean {
-  void _values;
+export function isFieldRequired(field: QualifyField, values: QualifyValues): boolean {
+  if (field.required) {
+    return true;
+  }
 
-  return field.required;
+  const rule = field.requiredWhen;
+
+  if (!rule) {
+    return false;
+  }
+
+  return rule.values.includes(values[rule.field] ?? '');
+}
+
+/**
+ * The announcement for a descriptor that has just started matching, with `{value}`
+ * replaced by the controlling value the visitor selected. Returns an empty string when
+ * no descriptor controlled by `changed` matches, which is how the reversal clears the
+ * region rather than leaving a stale sentence behind.
+ */
+function requirednessAnnouncement(
+  qualify: ProductQualifyForm,
+  changed: string,
+  values: QualifyValues,
+): string {
+  for (const field of qualify.fields) {
+    const rule = field.requiredWhen;
+
+    if (rule?.field !== changed) {
+      continue;
+    }
+
+    if (isFieldRequired(field, values)) {
+      return rule.message.replace('{value}', values[rule.field] ?? '');
+    }
+  }
+
+  return '';
 }
 
 /**
@@ -133,13 +172,18 @@ export function validateQualifyValues(
       continue;
     }
 
-    if (field.control === 'email') {
-      const pattern = field.formatPattern ? new RegExp(field.formatPattern) : EMAIL_PATTERN;
+    // A configured pattern applies to any free-text control, so a product can express a
+    // format rule without this component learning what the field means. An email control
+    // with no configured pattern falls back to the shared shape check.
+    const pattern = field.formatPattern
+      ? new RegExp(field.formatPattern)
+      : field.control === 'email'
+        ? EMAIL_PATTERN
+        : null;
 
-      if (!pattern.test(value)) {
-        errors[field.name] =
-          field.formatMessage ?? field.lengthMessage ?? field.requiredMessage;
-      }
+    if (pattern && !pattern.test(value)) {
+      errors[field.name] =
+        field.formatMessage ?? field.lengthMessage ?? field.requiredMessage;
     }
   }
 
@@ -165,6 +209,10 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   // set must still re-announce, and correcting a field while typing must never pull
   // focus out of the control the visitor is working in.
   const [attempts, setAttempts] = useState(0);
+  // A requiredness-change sentence awaiting announcement. It shares the one mounted
+  // status region with the submission states, which take precedence the moment a
+  // submission starts — the region never holds two messages and is never duplicated.
+  const [notice, setNotice] = useState('');
   const [state, setState] = useState<SubmissionState>('idle');
   // Synchronous concurrency authority. React state and the native disabled attribute
   // are visual and assistive feedback, never the guard that admits a request.
@@ -197,6 +245,12 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
 
     setValues(nextValues);
 
+    // A requiredness rule that just started matching is announced through the region
+    // already mounted below; one that stopped matching clears it. Attribute flips on a
+    // control the visitor is not focused on are not announced by assistive technology,
+    // so the sentence is the announcement.
+    setNotice(requirednessAnnouncement(qualify, name, nextValues));
+
     // Before the first submit attempt nothing complains, so there is nothing to
     // reconcile. After it, the edited field alone is re-validated against the one pure
     // validator and its message is added, replaced or removed in place — the summary
@@ -214,6 +268,14 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
         next[name] = fresh[name];
       } else {
         delete next[name];
+      }
+
+      // A field this edit stopped requiring drops its now-unreachable message too, but
+      // keeps any message it still earns on its own — and always keeps its typed value.
+      for (const field of qualify.fields) {
+        if (field.requiredWhen?.field === name && !fresh[field.name]) {
+          delete next[field.name];
+        }
       }
 
       return next;
@@ -354,7 +416,7 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
     );
   }
 
-  const statusMessage = QUALIFY_STATUS_MESSAGES[state];
+  const statusMessage = state === 'idle' ? notice : QUALIFY_STATUS_MESSAGES[state];
 
   return (
     <div className="mt-6">

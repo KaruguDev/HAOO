@@ -282,9 +282,9 @@ export const HAOO_PRODUCT: ProductDefinition = {
     sourceNote:
       'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
     // DOM order is also the order the labels appear in the delivered email. The
-    // preferred-channel select deliberately precedes `phone` so the requiredness rule
-    // added in plan 04 fires after the visitor chooses, never retroactively on a field
-    // they have already left behind.
+    // preferred-channel select deliberately precedes `phone` so its `requiredWhen` rule
+    // fires after the visitor chooses, never retroactively on a field they have already
+    // left behind.
     fields: [
       {
         name: 'name',
@@ -321,9 +321,14 @@ export const HAOO_PRODUCT: ProductDefinition = {
         options: CONTACT_CHANNEL_OPTIONS,
       },
       {
-        // Optional at this stage. Plan 04 adds the generic `requiredWhen` descriptor that
-        // makes it required for the WhatsApp and Phone call channels; `formatPattern` is
-        // read by the same plan's validator. Neither belongs in the component.
+        // Optional by default (D-13). `requiredWhen` is the generic descriptor the form
+        // component evaluates without knowing this product: when `preferredChannel` holds
+        // one of the two channels that need a number to be reachable, this field becomes
+        // required in the native attribute, in `aria-required`, in the derived label
+        // suffix, in the validator, and in the announcement below — all from this one
+        // place (D-15). `{value}` is replaced by the chosen channel at announcement time.
+        // `formatPattern` is deliberately permissive: it accepts the way people in Kenya
+        // actually write their numbers and never rewrites what the visitor typed.
         name: 'phone',
         label: 'Phone number',
         emailLabel: 'Phone number',
@@ -336,6 +341,12 @@ export const HAOO_PRODUCT: ProductDefinition = {
         formatPattern: '^\\+?[0-9 ()-]+$',
         formatMessage: 'Enter a phone number using digits, spaces, or +',
         lengthMessage: 'Shorten your phone number to 30 characters or fewer',
+        requiredWhen: {
+          field: 'preferredChannel',
+          values: ['WhatsApp', 'Phone call'],
+          message:
+            'A phone number is now required because you asked us to reach you by {value}.',
+        },
       },
       {
         name: 'role',
