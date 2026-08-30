@@ -17,6 +17,16 @@ interface QualifyFallbackProps {
 
 const focusClasses =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
+/**
+ * Focus this page moves by script. `:focus-visible` is a user-agent heuristic: after a
+ * pointer click, a script-focused non-interactive element generally does not qualify, so
+ * a `focus-visible:` ring paints nothing and focus lands somewhere the visitor cannot
+ * see — a WCAG 2.4.7 failure on the exact moments this design chose to move focus. These
+ * targets are never reached by keyboard traversal, so they use the modality-independent
+ * `focus:` variants; genuinely interactive controls keep `focus-visible:`.
+ */
+const scriptFocusClasses =
+  'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2';
 
 export default function QualifyFallback({
   contacts,
@@ -29,7 +39,7 @@ export default function QualifyFallback({
       <h3
         ref={headingRef}
         tabIndex={-1}
-        className={`text-[28px] font-semibold leading-[1.2] ${focusClasses}`}
+        className={`text-[28px] font-semibold leading-[1.2] ${scriptFocusClasses}`}
       >
         We couldn't send your details
       </h3>

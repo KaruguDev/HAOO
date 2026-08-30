@@ -53,6 +53,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const focusClasses =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
+/**
+ * Focus this page moves by script. `:focus-visible` is a user-agent heuristic: after a
+ * pointer click, a script-focused non-interactive element generally does not qualify, so
+ * a `focus-visible:` ring paints nothing and focus lands somewhere the visitor cannot
+ * see — a WCAG 2.4.7 failure on the exact moments this design chose to move focus. These
+ * targets are never reached by keyboard traversal, so they use the modality-independent
+ * `focus:` variants; genuinely interactive controls keep `focus-visible:`.
+ */
+const scriptFocusClasses =
+  'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2';
 const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] disabled:cursor-wait disabled:opacity-70 ${focusClasses}`;
 
 function fieldId(field: QualifyField) {
@@ -512,7 +522,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
           <h3
             ref={confirmationRef}
             tabIndex={-1}
-            className={`text-[28px] font-semibold leading-[1.2] ${focusClasses}`}
+            className={`text-[28px] font-semibold leading-[1.2] ${scriptFocusClasses}`}
           >
             {QUALIFY_CONFIRMATION_HEADING}
           </h3>
@@ -565,7 +575,7 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
             <div
               ref={summaryRef}
               tabIndex={-1}
-              className={`mb-8 rounded-2xl border-2 border-[#B00020] bg-[#FFF5F5] p-4 ${focusClasses}`}
+              className={`mb-8 rounded-2xl border-2 border-[#B00020] bg-[#FFF5F5] p-4 ${scriptFocusClasses}`}
             >
               <div role="alert">
                 <h3 className="text-base font-semibold leading-6 text-[#18275F]">
