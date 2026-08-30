@@ -684,6 +684,46 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     })).toHaveLength(1);
   });
 
+  it('locks every control while a request is in flight, then releases them', async () => {
+    let settleRequest: ((value: { ok: boolean }) => void) | undefined;
+    const fetchSpy = stubFetch(
+      () => new Promise<{ ok: boolean }>((resolve) => {
+        settleRequest = resolve;
+      }),
+    );
+
+    renderPage();
+    fillCompleteEnquiry();
+
+    for (const field of QUALIFY.fields) {
+      expect((controlByName(field.name) as HTMLInputElement).disabled, field.name)
+        .toBe(false);
+    }
+
+    fireEvent.click(submitControl());
+
+    expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.submitting);
+
+    // The payload is already serialised, so an edit accepted now would be missing from
+    // the request in flight and then destroyed with the form subtree on success.
+    for (const field of QUALIFY.fields) {
+      expect((controlByName(field.name) as HTMLInputElement).disabled, field.name)
+        .toBe(true);
+    }
+
+    settleRequest?.({ ok: false });
+
+    await waitFor(() => expect(statusRegion().textContent)
+      .toBe(QUALIFY_STATUS_MESSAGES.failed));
+
+    // A terminal failure hands the form back: the visitor can correct and retry.
+    for (const field of QUALIFY.fields) {
+      expect((controlByName(field.name) as HTMLInputElement).disabled, field.name)
+        .toBe(false);
+    }
+    expect(parseRequest(fetchSpy).body['Email address']).toBe(COMPLETE_ENQUIRY.email);
+  });
+
   it('treats a stalled request as a failure so the recovery panel stays reachable', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
 

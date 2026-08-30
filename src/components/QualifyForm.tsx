@@ -53,7 +53,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const focusClasses =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
-const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] ${focusClasses}`;
+const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] disabled:cursor-wait disabled:opacity-70 ${focusClasses}`;
 
 function fieldId(field: QualifyField) {
   return `qualify-${field.name}`;
@@ -368,6 +368,12 @@ export default function QualifyForm({ contacts, productName, qualify }: QualifyF
       'aria-invalid': errors[field.name] ? true : undefined,
       'aria-describedby': describedBy === '' ? undefined : describedBy,
       autoComplete: field.autoComplete,
+      // The request body was serialised from the values captured when the submission
+      // started, so an edit accepted during the request window would be absent from the
+      // request already in flight and then destroyed with the form subtree on success.
+      // Locking the controls makes that window visibly read-only rather than silently
+      // discarding a correction the visitor believes was sent.
+      disabled: state === 'submitting',
       className: controlClasses,
     } as const;
 
