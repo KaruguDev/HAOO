@@ -24,13 +24,20 @@ export const RING_COLOR_TOKENS: Readonly<Record<string, string>> = {
   'blue-700': '#1d4ed8',
 };
 
-/** Every Phase 1 product source that declares a focus indicator. */
+/**
+ * Every product source that declares a focus indicator. Phase 1 established the list;
+ * Phase 2 keeps it closed by registering each new interactive component here rather
+ * than by widening RING_COLOR_TOKENS, so a focus style that is never measured cannot
+ * ship. The contract asserts `pairs.length > 0`, so a file listed here with no focus
+ * utility fails loudly.
+ */
 export const FOCUS_SOURCES = [
   'src/pages/ProductPage.tsx',
   'src/components/ProductHeader.tsx',
   'src/components/OnboardingChoices.tsx',
   'src/components/BrochurePanel.tsx',
   'src/components/ProductsSection.tsx',
+  'src/components/QualifyForm.tsx',
 ] as const;
 
 /** Tailwind ring *width* keywords — these are not colours and carry no contrast. */

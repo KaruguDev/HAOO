@@ -29,6 +29,7 @@ const GENERIC_PRODUCT_SOURCES = [
   'src/components/OnboardingChoices.tsx',
   'src/components/BrochurePanel.tsx',
   'src/components/ProductsSection.tsx',
+  'src/components/QualifyForm.tsx',
   'src/products/copy.ts',
   'src/products/types.ts',
 ] as const;
