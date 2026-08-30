@@ -541,9 +541,11 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     fireEvent.click(section.getByRole('button', { name: 'Try sending again' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
 
-    expect(parseRequest(fetchSpy).body).toEqual(JSON.parse(
-      String((fetchSpy.mock.calls[1][1] as RequestInit).body),
-    ));
+    const firstCall = fetchSpy.mock.calls[0] as unknown as [string, RequestInit];
+    const secondCall = fetchSpy.mock.calls[1] as unknown as [string, RequestInit];
+
+    expect(JSON.parse(String(firstCall[1].body)))
+      .toEqual(JSON.parse(String(secondCall[1].body)));
     expect(section.getAllByRole('heading', {
       name: "We couldn't send your details",
     })).toHaveLength(1);

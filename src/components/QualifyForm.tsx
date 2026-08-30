@@ -4,6 +4,11 @@ import type {
   ProductQualifyForm,
   QualifyField,
 } from '../products/types';
+import {
+  qualifyContactActionLabels,
+  qualifyConfirmationBody,
+} from '../products/copy';
+import QualifyFallback from './QualifyFallback';
 
 interface QualifyFormProps {
   readonly qualify: ProductQualifyForm;
@@ -200,7 +205,7 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
   return seeded;
 }
 
-export default function QualifyForm({ qualify }: QualifyFormProps) {
+export default function QualifyForm({ contacts, productName, qualify }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   const [errors, setErrors] = useState<QualifyErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -219,8 +224,10 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   const inFlightRef = useRef(false);
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const confirmationRef = useRef<HTMLHeadingElement | null>(null);
+  const failureRef = useRef<HTMLHeadingElement | null>(null);
 
   const invalidFields = qualify.fields.filter((field) => errors[field.name]);
+  const contactActions = qualifyContactActionLabels(productName, contacts);
 
   useEffect(() => {
     if (attempts === 0) {
@@ -237,6 +244,8 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
   useEffect(() => {
     if (state === 'succeeded') {
       confirmationRef.current?.focus();
+    } else if (state === 'failed') {
+      failureRef.current?.focus();
     }
   }, [state]);
 
@@ -282,9 +291,7 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
     });
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function submitValues() {
     if (inFlightRef.current) {
       return;
     }
@@ -321,6 +328,11 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
     } finally {
       inFlightRef.current = false;
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submitValues();
   }
 
   function renderControl(field: QualifyField, required: boolean) {
@@ -430,8 +442,23 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
             {QUALIFY_CONFIRMATION_HEADING}
           </h3>
           <p className="mt-2 text-base font-normal leading-6">
-            {QUALIFY_STATUS_MESSAGES.succeeded}
+            {qualifyConfirmationBody(productName)}
           </p>
+          <p className="mt-6 text-base font-semibold leading-6">Need an answer sooner?</p>
+          <div className="mt-2 grid gap-1">
+            <a
+              href={contactActions.message.href}
+              className={`inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusClasses}`}
+            >
+              {contactActions.message.label}
+            </a>
+            <a
+              href={contactActions.call.href}
+              className={`inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusClasses}`}
+            >
+              {contactActions.call.label}
+            </a>
+          </div>
         </div>
       ) : (
         <form
@@ -503,6 +530,15 @@ export default function QualifyForm({ qualify }: QualifyFormProps) {
           </button>
         </form>
       )}
+
+      {state === 'failed' ? (
+        <QualifyFallback
+          contacts={contacts}
+          headingRef={failureRef}
+          onRetry={() => void submitValues()}
+          productName={productName}
+        />
+      ) : null}
 
       {/* Mounted unconditionally from first render and kept outside the form card: the
           card is replaced on success, so a region inside it would unmount at the exact

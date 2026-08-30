@@ -1,3 +1,5 @@
+import type { ProductContacts } from './types';
+
 function requireIdentity(value: string, field: 'name' | 'slug') {
   if (value.trim() === '') {
     throw new Error(`Product ${field} must not be empty`);
@@ -24,6 +26,45 @@ export function navigationToggleLabel(productName: string, open: boolean) {
 
 export function whatsappActionLabel(productName: string) {
   return `Chat with ${requireIdentity(productName, 'name')} on WhatsApp`;
+}
+
+export function whatsappFallbackActionLabel(productName: string) {
+  return `Message ${requireIdentity(productName, 'name')} on WhatsApp instead`;
+}
+
+export function phoneFallbackActionLabel(
+  productName: string,
+  phoneDisplay: string,
+) {
+  return `Call ${requireIdentity(productName, 'name')} on ${phoneDisplay} instead`;
+}
+
+export function emailFallbackActionLabel(productName: string, email: string) {
+  return `Email ${requireIdentity(productName, 'name')} at ${email} instead`;
+}
+
+export function qualifyContactActionLabels(
+  productName: string,
+  contacts: ProductContacts,
+) {
+  return {
+    message: {
+      href: contacts.whatsappHref,
+      label: whatsappFallbackActionLabel(productName),
+    },
+    call: {
+      href: contacts.phoneHref,
+      label: phoneFallbackActionLabel(productName, contacts.phoneDisplay),
+    },
+  } as const;
+}
+
+export function qualifyFallbackBody(productName: string) {
+  return `Something went wrong between this page and our email provider. Your answers are still here, so you can try again — or reach ${requireIdentity(productName, 'name')} directly.`;
+}
+
+export function qualifyConfirmationBody(productName: string) {
+  return `We've sent your name, contact details, and the answers you gave to the ${requireIdentity(productName, 'name')} team. Someone will reply within one business day.`;
 }
 
 /**
