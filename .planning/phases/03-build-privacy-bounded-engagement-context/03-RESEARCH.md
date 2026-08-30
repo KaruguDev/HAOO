@@ -385,10 +385,10 @@ The footer handler should set `disclosureRef.current.open = true` before/while n
 
 ## Open Questions
 
-1. **What derivation metadata may the browser persist? — BLOCKING**
+1. **What derivation metadata may the browser persist? — RESOLVED 2026-08-30**
    - What we know: Exact thresholds at visits 2 and 4, relative age bands, and ~180-day expiry are locked, as is “exactly three things” with no raw count/date.
    - What's unclear: Those outcomes are mathematically impossible from only the three stated fields.
-   - Recommendation: Approve a capped visit ordinal (`1..4`) and day-level last-seen value as disclosed bounded metadata, or explicitly relax the exact thresholds/age/expiry semantics. The planner must not choose silently.
+   - Resolution: The product owner approved a capped visit ordinal (`1..4`) and day-level last-seen value as disclosed bounded local derivation metadata. They must remain excluded from analytics events, lead context, and form payloads.
 
 2. **What is the precise brochure-preview observation?**
    - What we know: It originates in `BrochurePanel`, which renders responsive image/object nodes.
