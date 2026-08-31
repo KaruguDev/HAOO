@@ -406,27 +406,38 @@ Do not render a progress bar, connecting arrows, percentages, or “drop-off”;
 | A6 | One local HTML artifact refreshed on demand is an acceptable report access model for v1. | Primary recommendation | If multi-user or always-current access is needed, local generation will not satisfy operations. |
 | A7 | The suggested file/module boundaries are compatible with the eventual execution plan. | Recommended Structure | Planner may choose different names while preserving capability ownership and tests. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+Every question below carries an inline resolution naming the blocking checkpoint or the
+`04-CONTEXT.md` discretion clause that closes it. No question is left open against planning; three
+resolve at a `gate="blocking-human"` checkpoint during execution, one resolves under delegated
+discretion. Checkpoint map: **C-1** = `04-04-PLAN.md` Task 1 (collection-notice clause approval),
+**C-2** = `04-02-PLAN.md` Task 1 (campaign values in the emailed summary), **C-3** =
+`04-05-PLAN.md` Task 1 (processor approval and production-collection authorisation).
 
 1. **Will ZERO-PAPER HUB approve and fund hosted Plausible with Stats API access?**
    - What we know: the API is a Business-plan feature and provider activation is currently absent. [CITED: https://plausible.io/docs/stats-api] [VERIFIED: src/products/haoo.ts:29-31]
    - What's unclear: account owner, plan, site ID, site-specific script URL, and API key availability.
    - Recommendation: first plan checkpoint creates/approves the account and ten exact goals; keep implementation/test work runnable with fixtures and the no-op provider while awaiting credentials. [ASSUMED]
+   - **RESOLVED by C-3** (`04-05-PLAN.md` Task 1, `gate="blocking-human"`), which authorises the account, plan and the ten exact goals, plus the `user_setup` blocks in `04-01-PLAN.md` and `04-05-PLAN.md` that name every variable and its dashboard source. Planning is unblocked because the resolution is not needed to build: every task in the phase is fixture-driven and ships green with the provider unset, so an unfavourable or delayed answer costs the phase nothing already built.
 
 2. **Does the privacy/legal owner approve Plausible's processor behavior?**
    - What we know: Plausible says it receives IP/User-Agent, derives a daily-changing identifier with rotating salt, stores no raw IP/User-Agent, and keeps visitor data in the EU. [CITED: https://plausible.io/security]
    - What's unclear: Kenya Data Protection Act assessment, disclosure wording, processor/DPA approval, retention, and production enablement authority.
    - Recommendation: blocking human approval before setting the provider variable in production. [VERIFIED: .planning/STATE.md:139-145]
+   - **RESOLVED by C-3** (`04-05-PLAN.md` Task 1), which is the blocking human approval this recommendation asks for and is the sole authorisation for the visitor-to-provider crossing. `04-05-PLAN.md` requires the C-3 outcome — authorised or deferred — to be recorded verbatim in `04-05-SUMMARY.md`, so a deferral is a recorded state rather than an open question.
 
 3. **Is a local generated HTML report acceptable to the product owner?**
    - What we know: it satisfies the exact locked presentation without a backend and keeps the Stats API key out of Vite. [CITED: https://plausible.io/docs/stats-api] [ASSUMED]
    - What's unclear: whether the owner needs multi-user, mobile, scheduled, or always-current access.
    - Recommendation: accept local generation for v1; if rejected, explicitly authorize a minimal authenticated server-side proxy instead of leaking a key into GitHub Pages. [ASSUMED]
+   - **RESOLVED under delegated discretion** — `04-CONTEXT.md` `## the agent's Discretion` states the report-access model "was not discussed" and delegates it to research and planning within Phase 3's locked boundaries. Planning takes the recommended v1: local generation to a gitignored path. The choice is recorded as an explicit `<reversibility rating="costly">` on `04-01-PLAN.md` Task 1, which names what survives a reversal (the query and rendering modules) and what a reversal would newly require (an authenticated server-side read boundary and a deployment target). No checkpoint is minted because no locked decision is at stake.
 
 4. **Should normalized campaign context accompany the voluntary enquiry?**
    - What we know: Phase 4 delegates this decision; Phase 3 retains only normalized allowlisted page-lifetime values and forbids form values in analytics. [VERIFIED: .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-CONTEXT.md:22-25] [VERIFIED: src/measurement/index.ts:207-249]
    - What's unclear: product/privacy preference.
    - Recommendation: include it as a separate plain-language sentence when present, with exact negative tests proving no unaccepted UTM key/value can enter. [ASSUMED]
+   - **RESOLVED by C-2** (`04-02-PLAN.md` Task 1, `gate="blocking-human"`), which puts the include-or-omit choice to the product/privacy owner rather than assuming it. The outcome is load-bearing downstream: `04-02-PLAN.md` gates the campaign sentence on it, and `04-04-PLAN.md` requires the C-1 disclosure clause to stay consistent with the C-2 outcome recorded in `04-02-SUMMARY.md`.
 
 ## Environment Availability
 

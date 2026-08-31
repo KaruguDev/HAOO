@@ -24,6 +24,8 @@ created: 2026-09-01
 | **Quick run command** | `npm run test:unit -- --run src/test/measurement.test.ts src/test/qualify-form.test.tsx src/test/haoo-report.test.ts` |
 | **Full suite command** | `npm test` (`npm run build && vitest run`) |
 | **Estimated runtime** | ~60 seconds (full suite includes a production build) |
+| **Runtime floor** | Node ≥ 22.18.0. `scripts/generate-haoo-report.mjs` loads `src/reporting/*.ts` through Node's native TypeScript type stripping; the 04-01 T1 CLI smoke test is the check that catches a runtime below the floor. Declared as `engines.node` in `package.json`. |
+| **Build-freshness rule** | Any command that runs `src/test/build-output.test.ts` must be prefixed with `npm run build` (or use `npm test`). That suite asserts `dist/` exists and is newer than every source file under `src/` outside `src/test/`, and `dist/` is gitignored. |
 
 ---
 
@@ -42,9 +44,9 @@ created: 2026-09-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 04-01 T1 (tracer) | 04-01 | 1 | MEAS-01, MEAS-08 | T-04-02, T-04-03, T-04-04, T-04-05 | Event→stage/label map exhaustive both ways; untrusted response rejected fail-closed; write-on-success-only so an interrupted run leaves the previous report byte-identical | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ❌ W0 — created by this task | ⬜ pending |
+| 04-01 T1 (tracer) | 04-01 | 1 | MEAS-01, MEAS-08 | T-04-02, T-04-03, T-04-04, T-04-05 | Event→stage/label map exhaustive both ways (typed `Readonly<Record<HaooMeasurementEvent, ...>>`, so an added event fails typecheck too); untrusted response rejected fail-closed; write-on-success-only so an interrupted run leaves the previous report byte-identical; CLI smoke test proves the `.mjs` entry loads the `src/reporting/*.ts` modules under real Node | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts && npm run typecheck && npm run lint` | ❌ W0 — created by this task | ⬜ pending |
 | 04-01 T2 | 04-01 | 1 | MEAS-01 | T-04-04 | Exact inclusive 7/30/90/all windows incl. month, year and leap-day boundaries; per-period zero-fill; integer deltas only | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after T1 | ⬜ pending |
-| 04-02 T2 (tracer) | 04-02 | 1 | MEAS-05, MEAS-08 | T-04-01, T-04-10, T-04-11 | Summary carries only coarse disclosed fields; exact-allowlist payload keys; reserved label unclaimable; serialize→track→fetch order preserved | unit + component | `npm run test:unit -- --run src/test/qualify-form.test.tsx src/test/build-output.test.ts` | ✅ extend | ⬜ pending |
+| 04-02 T2 (tracer) | 04-02 | 1 | MEAS-05, MEAS-08 | T-04-01, T-04-10, T-04-11 | Summary carries only coarse disclosed fields; exact-allowlist payload keys; reserved label unclaimable; serialize→track→fetch order preserved | unit + component | `npm run build && npm run test:unit -- --run src/test/qualify-form.test.tsx src/test/build-output.test.ts` | ✅ extend | ⬜ pending |
 | 04-02 T3 | 04-02 | 1 | MEAS-05 | T-04-01, T-04-07 | Band thresholds and one step either side; numeric silence; locked fallback on unreadable context without failing submission | unit | `npm run test:unit -- --run src/test/qualify-form.test.tsx` | ✅ extend | ⬜ pending |
 | 04-03 T1 | 04-03 | 2 | MEAS-01 | T-04-03 | Four pre-rendered periods; native period control degrading to all-sections-visible; labelled scroll regions; authored empty state | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after 04-01 | ⬜ pending |
 | 04-03 T2 | 04-03 | 2 | MEAS-08 | T-04-05, T-04-02, T-04-13 | Banned vocabulary absent from document text; no percent sign; zero external resources; no credential; mutation-probed | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after 04-01 | ⬜ pending |
@@ -79,7 +81,7 @@ exists, so the only MISSING test file in the phase is created by the first task 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Compact report readability | MEAS-01 | Visual/responsive judgement not capturable in jsdom | Open the report at narrow width and 200% zoom; confirm no truncation or horizontal scroll |
-| Screen-reader announcement and order | MEAS-08 | Assistive-tech output not asserted by jsdom | Navigate the report with a screen reader; confirm labels announce as views/attempts/returns/outbound clicks in source order |
+| Screen-reader announcement and order | MEAS-08 | Assistive-tech output not asserted by jsdom | Navigate the report with a screen reader; confirm the ten event labels announce in source order as the categories that actually exist in the Phase 3 closed allowlist — page views, brochure preview/open/download, qualification start and validated send attempt, assisted-contact clicks (WhatsApp/phone/email), and self-onboarding clicks. Do **not** look for a redirect-return, delivery, or reply label: no such signal is collected in this milestone, so its absence is correct and its presence is a defect. |
 | Live qualification submission | MEAS-05 | Requires an activated endpoint (Phase 5 authorization) | Submit a uniquely tagged qualification after endpoint activation; inspect the received email for the coarse summary and absence of score/identifier |
 
 ---
