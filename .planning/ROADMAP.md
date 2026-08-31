@@ -104,7 +104,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 ### Phase 3: Build Privacy-Bounded Engagement Context
 
-**Goal**: Visitors receive a fully functional HAOO journey whose disclosed measurement and browser context stay aggregate, coarse, bounded, and free of personal or stable identity data.
+**Goal:** As a HAOO prospect, I want to follow a privacy-bounded journey, so that I can onboard without identity tracking.
 **Mode:** mvp
 **Depends on**: Phase 2
 **Requirements**: MEAS-02, MEAS-03, MEAS-04, MEAS-06, MEAS-07
