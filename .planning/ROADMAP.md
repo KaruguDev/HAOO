@@ -147,7 +147,22 @@ This milestone turns the existing company landing page into a product-led site b
   2. A submitted qualification email includes the disclosed coarse HAOO engagement summary in human-readable form and contains no opaque lead score or stable visitor identifier.
   3. Product reporting labels browser evidence precisely as views, attempts, redirect returns, and outbound clicks rather than claiming confirmed delivery, customers, or completed onboarding.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Tracer: query, validate and render an owner-facing HAOO funnel report end to end, then extend it to all four locked periods.
+- [ ] 04-02-PLAN.md — Tracer: attach a readable, disclosed engagement summary to the qualification request, then complete its sentence matrix and thresholds.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-03-PLAN.md — Complete the Surface A report document and pin its vocabulary, encoding and self-containment contracts.
+- [ ] 04-04-PLAN.md — Replace the superseded collection-notice clause everywhere and add the disclosure group describing what is attached.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-05-PLAN.md — Widen the provider seam to a real privacy-first sink, re-scope the static boundary, and document the credential split.
+
 **UI hint**: yes
 
 ### Phase 5: Prove the Deployed Journey

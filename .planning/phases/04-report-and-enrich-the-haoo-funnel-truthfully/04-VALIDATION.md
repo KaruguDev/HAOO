@@ -4,8 +4,8 @@ slug: report-and-enrich-the-haoo-funnel-truthfully
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: false  # absorbed into 04-01 T1 (tdd); no separate wave
 created: 2026-09-01
 ---
 
@@ -42,22 +42,35 @@ created: 2026-09-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | 0 | MEAS-01 | — | Event→stage map, zero-fill, invalid provider rows rejected, exact period windows, counts-only totals/deltas | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | TBD | 1 | MEAS-01 | — | Sink emits one name-only call; no auto-duplicates/properties; degrades when script/global/network absent | unit + component | `npm run test:unit -- --run src/test/measurement.test.ts src/test/measurement-page.test.tsx` | ✅ | ⬜ pending |
-| TBD | TBD | 1 | MEAS-05 | T-04-01 | Summary carries only coarse disclosed fields; no raw/derivation/provider values; one human-readable email field | unit + component | `npm run test:unit -- --run src/test/qualify-form.test.tsx src/test/qualify-data.test.ts` | ✅ | ⬜ pending |
-| TBD | TBD | 1 | MEAS-08 | — | Every event carries one literal evidence label; no conversion/customer/delivery/completion claims or percentages | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts src/test/build-output.test.ts` | ❌ W0 / ✅ | ⬜ pending |
-| TBD | TBD | 2 | MEAS-08 | — | Browser success/failure copy stays distinct from inbox delivery proof | component | `npm run test:unit -- --run src/test/qualify-form.test.tsx` | ✅ | ⬜ pending |
+| 04-01 T1 (tracer) | 04-01 | 1 | MEAS-01, MEAS-08 | T-04-02, T-04-03, T-04-04, T-04-05 | Event→stage/label map exhaustive both ways; untrusted response rejected fail-closed; write-on-success-only so an interrupted run leaves the previous report byte-identical | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ❌ W0 — created by this task | ⬜ pending |
+| 04-01 T2 | 04-01 | 1 | MEAS-01 | T-04-04 | Exact inclusive 7/30/90/all windows incl. month, year and leap-day boundaries; per-period zero-fill; integer deltas only | unit + contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after T1 | ⬜ pending |
+| 04-02 T2 (tracer) | 04-02 | 1 | MEAS-05, MEAS-08 | T-04-01, T-04-10, T-04-11 | Summary carries only coarse disclosed fields; exact-allowlist payload keys; reserved label unclaimable; serialize→track→fetch order preserved | unit + component | `npm run test:unit -- --run src/test/qualify-form.test.tsx src/test/build-output.test.ts` | ✅ extend | ⬜ pending |
+| 04-02 T3 | 04-02 | 1 | MEAS-05 | T-04-01, T-04-07 | Band thresholds and one step either side; numeric silence; locked fallback on unreadable context without failing submission | unit | `npm run test:unit -- --run src/test/qualify-form.test.tsx` | ✅ extend | ⬜ pending |
+| 04-03 T1 | 04-03 | 2 | MEAS-01 | T-04-03 | Four pre-rendered periods; native period control degrading to all-sections-visible; labelled scroll regions; authored empty state | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after 04-01 | ⬜ pending |
+| 04-03 T2 | 04-03 | 2 | MEAS-08 | T-04-05, T-04-02, T-04-13 | Banned vocabulary absent from document text; no percent sign; zero external resources; no credential; mutation-probed | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after 04-01 | ⬜ pending |
+| 04-04 T2 | 04-04 | 2 | MEAS-05, MEAS-08 | T-04-15 | Superseded notice clause replaced in all five asserted locations in one commit, including the built-bundle assertion | component + build | `npm test` | ✅ extend | ⬜ pending |
+| 04-04 T3 | 04-04 | 2 | MEAS-05 | T-04-16, T-04-17 | Disclosure summary group renders fixed copy in locked position and reflects no runtime measurement value | component | `npm run test:unit -- --run src/test/measurement-page.test.tsx src/test/product-shell-reuse.test.tsx` | ✅ extend | ⬜ pending |
+| 04-05 T2 | 04-05 | 3 | MEAS-01, MEAS-07, MEAS-08 | T-04-06, T-04-07, T-04-19 | Fail-closed provider and script-source resolution; exactly one name-only call per event; automatic capture disabled; total failure isolation | unit + component | `npm run test:unit -- --run src/test/measurement.test.ts src/test/measurement-page.test.tsx` | ✅ extend | ⬜ pending |
+| 04-05 T3 | 04-05 | 3 | MEAS-01 | T-04-02, T-04-18 | No analytics origin literal under `src/`; unset-provider bundle scope stated explicitly; credential shapes forbidden in the bundle | contract + build | `npm test` | ✅ extend | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+*Checkpoint tasks (04-02 T1 = C-2, 04-04 T1 = C-1, 04-05 T1 = C-3) carry no automated verification by
+design — each is a `gate="blocking-human"` decision. Sampling continuity is preserved because no
+checkpoint is followed by more than one task without an automated verify.*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `src/test/haoo-report.test.ts` — report-domain contracts: exact event→stage/label map, period ranges, integer deltas, provider response validation, generated accessible HTML
-- [ ] Fixture-driven Stats API adapter test — must never require a live key or network access
-- [ ] Extend `src/test/qualify-form.test.tsx` / `src/test/qualify-data.test.ts` — exact summary label/value plus negative sensitive-field table
-- [ ] Extend `src/test/build-output.test.ts` — Stats API tokens, provider URLs, analytics globals, and report code must not enter unapproved product files or `dist`
+Wave 0 is absorbed into plan 04-01 Task 1 rather than run as a separate wave: that task is
+`tdd="true"` and creates `src/test/haoo-report.test.ts` with its contracts before the implementation
+exists, so the only MISSING test file in the phase is created by the first task that needs it.
+
+- [ ] `src/test/haoo-report.test.ts` — report-domain contracts: exact event→stage/label map, period ranges, integer deltas, provider response validation, generated accessible HTML — **created by 04-01 T1**
+- [ ] Fixture-driven Stats API adapter test — must never require a live key or network access — **created by 04-01 T1 via the injected `fetch` capability**
+- [ ] Extend `src/test/qualify-form.test.tsx` — exact summary label/value plus negative sensitive-field table — **04-02 T2 and T3**
+- [ ] Extend `src/test/build-output.test.ts` — Stats API tokens, provider URLs, analytics globals, and report code must not enter unapproved product files or `dist` — **04-02 T2 (boundary registration) and 04-05 T3 (bundle prohibitions and origin-literal scan)**
 
 ---
 
@@ -73,11 +86,11 @@ created: 2026-09-01
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies — every non-checkpoint task carries an `<automated>` command; the three `gate="blocking-human"` checkpoint tasks carry none by design
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify — the longest gap is a single checkpoint task
+- [x] Wave 0 covers all MISSING references — the only MISSING file, `src/test/haoo-report.test.ts`, is created by 04-01 T1 before its implementation
+- [x] No watch-mode flags — every command uses `--run` or `npm test`
+- [x] Feedback latency < 60s — focused `test:unit` runs are seconds; only `npm test` includes a build
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planner-seeded 2026-09-01; `status` stays `draft` until `/gsd-validate-phase` signs off
