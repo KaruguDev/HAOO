@@ -2,7 +2,13 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  CONTEXT_RECORD_KEYS,
+  MEASUREMENT_TRACK_ARGUMENT_COUNT,
+  createMeasurement,
+} from '../measurement';
 import { HAOO_PRODUCT } from '../products/haoo';
+import { buildSubmissionBody } from '../components/QualifyForm';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
@@ -478,6 +484,66 @@ describe('Phase 1 static build contracts', () => {
       /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i,
     ];
 
+    for (const forbidden of forbiddenBundlePatterns) {
+      expect(bundle, String(forbidden)).not.toMatch(forbidden);
+    }
+  });
+
+  it('pins the local record and bare tracking call to finite structural shapes', () => {
+    const source = readText(resolve(ROOT, 'src/measurement/index.ts'));
+    const measurement = createMeasurement(HAOO_PRODUCT.measurement, {
+      storage: window.localStorage,
+      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+    });
+
+    expect(CONTEXT_RECORD_KEYS).toEqual([
+      'version',
+      'visitBand',
+      'lastSeenBand',
+      'flags',
+      'visitOrdinal',
+      'lastSeenDay',
+    ]);
+    expect(MEASUREMENT_TRACK_ARGUMENT_COUNT).toBe(1);
+    expect(measurement.track.length).toBe(MEASUREMENT_TRACK_ARGUMENT_COUNT);
+    expect(source).toMatch(/function track\(event: EventName\): boolean/);
+    expect(source).toMatch(/eventSink\?\.\(event\)/);
+    expect(source).not.toMatch(/eventSink\?\.\(event\s*,/);
+    expect(source).not.toMatch(/\b(?:eventQueue|eventLog|emittedEvents|retryTimer)\b/);
+    expect(source).not.toMatch(/\b(?:setTimeout|setInterval|console\.(?:log|debug))\s*\(/);
+  });
+
+  it('keeps derivation metadata and engagement context out of qualification payloads', () => {
+    const values = Object.fromEntries(
+      HAOO_PRODUCT.qualify.fields.map((field) => [field.name, `private-${field.name}`]),
+    );
+    const body = buildSubmissionBody(values, HAOO_PRODUCT.qualify);
+    const serializedBody = JSON.stringify(body);
+
+    expect(Object.keys(body)).toEqual([
+      '_subject',
+      '_template',
+      '_captcha',
+      '_honey',
+      ...HAOO_PRODUCT.qualify.fields.map((field) => field.emailLabel),
+      'Source',
+    ]);
+    for (const contextKey of CONTEXT_RECORD_KEYS) {
+      expect(serializedBody).not.toContain(contextKey);
+    }
+    expect(serializedBody).not.toMatch(/engagement|campaign|utm_/i);
+  });
+
+  it('keeps the production bundle free of identity and ordered-emission channels', () => {
+    const bundle = builtBundleText();
+    const forbiddenBundlePatterns = [
+      /document\.cookie|sessionStorage|indexedDB/,
+      /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+      /\b(?:uuid|fingerprint|clickstream|eventQueue|emittedEvents)\b/i,
+    ];
+
+    expect(bundle).toContain('visitOrdinal');
+    expect(bundle).toContain('lastSeenDay');
     for (const forbidden of forbiddenBundlePatterns) {
       expect(bundle, String(forbidden)).not.toMatch(forbidden);
     }
