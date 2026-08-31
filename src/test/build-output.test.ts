@@ -62,6 +62,12 @@ const ALWAYS_FORBIDDEN = [
 const NETWORK_FORBIDDEN = [/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/] as const;
 const PROVIDER_FORBIDDEN = [/formsubmit/] as const;
 const FORM_MARKUP_FORBIDDEN = [/FormData|<form\b/] as const;
+const MEASUREMENT_PRIVACY_FORBIDDEN = [
+  /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+  /\b(?:uuid|fingerprint)\b/i,
+  /\b(?:eventQueue|clickstream)\b/i,
+  /(?:track|eventSink)\s*\([^,]+,/,
+] as const;
 
 const FULL_BOUNDARY = [
   ...ALWAYS_FORBIDDEN,
@@ -423,5 +429,39 @@ describe('Phase 1 static build contracts', () => {
       }
     }
     expect(scanned).toBe(FULL_BOUNDARY.length);
+  });
+
+  it('grants browser measurement capabilities only to the audited facade', () => {
+    const measurementPath = 'src/measurement/index.ts';
+    const measurementBoundary = PRODUCT_SOURCE_BOUNDARY[measurementPath];
+
+    expect(measurementBoundary).toBeTruthy();
+    expect(measurementBoundary).toContain(PROVIDER_FORBIDDEN[0]);
+    expect(measurementBoundary).toContain(FORM_MARKUP_FORBIDDEN[0]);
+    for (const forbidden of MEASUREMENT_PRIVACY_FORBIDDEN) {
+      expect(measurementBoundary).toContain(forbidden);
+    }
+
+    for (const [relativePath, forbiddenGroup] of Object.entries(PRODUCT_SOURCE_BOUNDARY)) {
+      if (relativePath === measurementPath) continue;
+
+      for (const forbidden of ALWAYS_FORBIDDEN) {
+        expect(forbiddenGroup, relativePath).toContain(forbidden);
+      }
+    }
+  });
+
+  it('ships the unset provider bundle without identity, property, queue, or SDK seams', () => {
+    const bundle = builtBundleText();
+    const forbiddenBundlePatterns = [
+      /googletagmanager|google-analytics|plausible\.io|umami|posthog|segment\.com/i,
+      /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+      /\b(?:uuid|fingerprint|clickstream|eventQueue)\b/i,
+      /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i,
+    ];
+
+    for (const forbidden of forbiddenBundlePatterns) {
+      expect(bundle, String(forbidden)).not.toMatch(forbidden);
+    }
   });
 });
