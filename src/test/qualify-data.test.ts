@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RESERVED_EMAIL_LABELS } from '../components/QualifyForm';
+import { RESERVED_EMAIL_LABELS } from '../components/qualify-form.logic';
 import {
   CONTACT_CHANNEL_OPTIONS,
   HAOO_PRODUCT,

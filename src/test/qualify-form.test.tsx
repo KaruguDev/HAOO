@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import QualifyForm, {
+import QualifyForm from '../components/QualifyForm';
+import {
   buildSubmissionBody,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
@@ -12,7 +13,7 @@ import QualifyForm, {
   QUALIFY_SUBMITTING_LABEL,
   QUALIFY_SUMMARY_HEADING,
   validateQualifyValues,
-} from '../components/QualifyForm';
+} from '../components/qualify-form.logic';
 import ProductPage from '../pages/ProductPage';
 import {
   CONTACT_CHANNEL_OPTIONS,

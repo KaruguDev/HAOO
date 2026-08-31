@@ -8,7 +8,7 @@ import {
   createMeasurement,
 } from '../measurement';
 import { HAOO_PRODUCT } from '../products/haoo';
-import { buildSubmissionBody } from '../components/QualifyForm';
+import { buildSubmissionBody } from '../components/qualify-form.logic';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
