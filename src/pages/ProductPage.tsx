@@ -96,7 +96,11 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                 <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
                 <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
               </div>
-              <OnboardingChoices product={product} position="opening" />
+              <OnboardingChoices
+                product={product}
+                position="opening"
+                track={measurementRef.current.track}
+              />
             </div>
 
             {product.media.hero ? (
@@ -204,7 +208,11 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
         </section>
 
         <div className={`${containerClasses} pb-12 md:pb-16`}>
-          <OnboardingChoices product={product} position="mid-page" />
+          <OnboardingChoices
+            product={product}
+            position="mid-page"
+            track={measurementRef.current.track}
+          />
         </div>
 
         <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
@@ -240,7 +248,11 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section id="onboarding" aria-label="Onboarding" className="scroll-mt-4 bg-[#18275F] py-12 text-white md:py-16">
           <div className={containerClasses}>
-            <OnboardingChoices product={product} position="closing" />
+            <OnboardingChoices
+              product={product}
+              position="closing"
+              track={measurementRef.current.track}
+            />
           </div>
         </section>
       </main>
