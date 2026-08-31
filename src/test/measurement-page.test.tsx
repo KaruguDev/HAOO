@@ -49,6 +49,11 @@ function fillValidQualification() {
   }
 }
 
+function clickWithoutNavigation(link: HTMLElement) {
+  link.addEventListener('click', (event) => event.preventDefault(), { once: true });
+  fireEvent.click(link);
+}
+
 describe('Phase 3 HAOO page-view measurement tracer', () => {
   it('rebinds measurement storage, sink, page view, and vocabulary when product changes', () => {
     const firstSink = vi.fn();
@@ -310,10 +315,10 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     });
 
     fireEvent.load(preview);
-    fireEvent.click(open);
-    fireEvent.click(open);
-    fireEvent.click(download);
-    fireEvent.click(download);
+    clickWithoutNavigation(open);
+    clickWithoutNavigation(open);
+    clickWithoutNavigation(download);
+    clickWithoutNavigation(download);
 
     expect(eventSink.mock.calls).toEqual([
       ['haoo_brochure_preview'],
@@ -352,8 +357,8 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     const downloadDestination = download.outerHTML;
 
     expect(() => fireEvent.load(preview)).not.toThrow();
-    expect(() => fireEvent.click(open)).not.toThrow();
-    expect(() => fireEvent.click(download)).not.toThrow();
+    expect(() => clickWithoutNavigation(open)).not.toThrow();
+    expect(() => clickWithoutNavigation(download)).not.toThrow();
     expect(open.outerHTML).toBe(openDestination);
     expect(download.outerHTML).toBe(downloadDestination);
 
@@ -416,7 +421,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
         expect(link.getAttribute('href')).toBe(activation.href);
 
         for (let index = 0; index < activation.repetitions; index += 1) {
-          fireEvent.click(link);
+          clickWithoutNavigation(link);
         }
 
         expect(link.outerHTML).toBe(nativeMarkup);
@@ -455,7 +460,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     for (const [name, href] of destinations) {
       for (const link of screen.getAllByRole('link', { name })) {
         const nativeMarkup = link.outerHTML;
-        expect(() => fireEvent.click(link)).not.toThrow();
+        expect(() => clickWithoutNavigation(link)).not.toThrow();
         expect(link.getAttribute('href')).toBe(href);
         expect(link.outerHTML).toBe(nativeMarkup);
       }
