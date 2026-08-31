@@ -55,9 +55,31 @@ function clickWithoutNavigation(link: HTMLElement) {
 }
 
 describe('Phase 3 HAOO page-view measurement tracer', () => {
-  it('rebinds measurement storage, sink, page view, and vocabulary when product changes', () => {
+  it('rebinds measurement and resets private product state when product changes', async () => {
     const firstSink = vi.fn();
     const secondSink = vi.fn();
+    const intersectionCallbacks: IntersectionObserverCallback[] = [];
+    let resolveFirstRequest: ((value: { ok: boolean }) => void) | undefined;
+    const firstRequest = new Promise<{ ok: boolean }>((resolve) => {
+      resolveFirstRequest = resolve;
+    });
+    const fetchSpy = vi.fn(() => firstRequest);
+    vi.stubGlobal('fetch', fetchSpy);
+    class TestIntersectionObserver {
+      readonly root = null;
+      readonly rootMargin = '0px';
+      readonly thresholds = [0];
+
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallbacks.push(callback);
+      }
+
+      disconnect = vi.fn();
+      observe = vi.fn();
+      takeRecords = () => [];
+      unobserve = vi.fn();
+    }
+    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
     const secondEvents = HAOO_MEASUREMENT_EVENTS.map((event) => (
       event.replace(/^haoo_/, 'other_')
     ));
@@ -112,6 +134,26 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
     expect(window.localStorage.getItem(CONTEXT_KEY)).not.toBeNull();
 
+    const firstPreview = within(screen.getByRole('region', { name: 'Brochure' }))
+      .getByRole('img', { name: HAOO_PRODUCT.brochure.previewImageAlt });
+    fireEvent.load(firstPreview);
+    act(() => {
+      intersectionCallbacks.at(-1)?.([{
+        target: firstPreview,
+        isIntersecting: true,
+        intersectionRatio: 1,
+      } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
+    });
+    fillValidQualification();
+    fireEvent.change(screen.getByLabelText('Full name'), {
+      target: { value: 'First Product Private Answer' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(firstSink).toHaveBeenCalledWith('haoo_brochure_preview');
+    expect(firstSink).toHaveBeenCalledWith('haoo_qualify_start');
+    const firstProductCalls = [...firstSink.mock.calls];
+
     page.rerender(
       <ProductPage
         product={secondProduct}
@@ -119,17 +161,37 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
       />,
     );
 
-    expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
+    expect(firstSink.mock.calls).toEqual(firstProductCalls);
     expect(secondSink.mock.calls).toEqual([['other_page_view']]);
     expect(window.localStorage.getItem('zph.other.ctx.v1')).not.toBeNull();
+    expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('');
 
     fireEvent.focus(screen.getByLabelText('Full name'));
+
+    const secondPreview = within(screen.getByRole('region', { name: 'Brochure' }))
+      .getByRole('img', { name: HAOO_PRODUCT.brochure.previewImageAlt });
+    fireEvent.load(secondPreview);
+    act(() => {
+      intersectionCallbacks.at(-1)?.([{
+        target: secondPreview,
+        isIntersecting: true,
+        intersectionRatio: 1,
+      } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
+    });
 
     expect(secondSink.mock.calls).toEqual([
       ['other_page_view'],
       ['other_qualify_start'],
+      ['other_brochure_preview'],
     ]);
-    expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
+    expect(firstSink.mock.calls).toEqual(firstProductCalls);
+
+    await act(async () => {
+      resolveFirstRequest?.({ ok: true });
+      await firstRequest;
+    });
+    expect(screen.queryByRole('heading', { name: 'Your details are on their way' }))
+      .toBeNull();
   });
 
   it('traces one privacy-bounded HAOO page view', () => {

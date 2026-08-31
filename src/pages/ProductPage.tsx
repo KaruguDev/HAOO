@@ -229,6 +229,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <h2 className={headingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
             <BrochurePanel
+              key={product.slug}
               brochure={product.brochure}
               productName={product.name}
               track={measurement.track}
@@ -247,6 +248,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
             <QualifyForm
+              key={product.slug}
               qualify={product.qualify}
               contacts={product.contacts}
               productName={product.name}
