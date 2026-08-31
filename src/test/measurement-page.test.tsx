@@ -432,6 +432,34 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
 });
 
 describe('Phase 3 HAOO measurement disclosure', () => {
+  it('does not treat disclosure and clear-control interaction as qualification start', () => {
+    const eventSink = vi.fn();
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    const summary = screen.getByText('How we measure this page', {
+      selector: 'summary',
+    });
+    const clear = screen.getByRole('button', {
+      name: 'Clear what this page remembers',
+    });
+
+    fireEvent.focus(summary);
+    fireEvent.click(summary);
+    fireEvent.focus(clear);
+    fireEvent.click(clear);
+
+    expect(eventSink).not.toHaveBeenCalledWith('haoo_qualify_start');
+    expect(eventSink).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem(CONTEXT_KEY)).toBeNull();
+  });
+
   it('renders the approved complete measurement disclosure', () => {
     render(<ProductPage product={HAOO_PRODUCT} />);
 

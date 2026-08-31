@@ -174,7 +174,20 @@ export default function QualifyForm({
   const invalidFields = qualify.fields.filter((field) => errors[field.name]);
   const contactActions = qualifyContactActionLabels(productName, contacts);
 
-  function handleQualifyStart() {
+  function handleQualifyStart(event: FormEvent<HTMLFormElement>) {
+    const target = event.target;
+    const isQualificationControl =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLSelectElement ||
+      target instanceof HTMLTextAreaElement;
+
+    if (
+      !isQualificationControl ||
+      !qualify.fields.some((field) => field.name === target.name)
+    ) {
+      return;
+    }
+
     if (startRecordedRef.current) return;
 
     startRecordedRef.current = true;
