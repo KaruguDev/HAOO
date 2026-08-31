@@ -540,4 +540,45 @@ describe('Phase 3 HAOO measurement disclosure', () => {
       .toBe(true);
     expect(screen.getAllByRole('link', { name: 'Start with HAOO' })).toHaveLength(3);
   });
+
+  it('opens the disclosure from the progressive footer fragment link', () => {
+    const eventSink = vi.fn();
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    const disclosure = document.querySelector<HTMLDetailsElement>(
+      '#haoo-measurement-disclosure',
+    );
+    const footer = screen.getByRole('contentinfo');
+    const footerLinks = within(footer).getAllByRole('link');
+    const measurementLink = within(footer).getByRole('link', {
+      name: 'How we measure this page',
+    });
+    const backLink = within(footer).getByRole('link', {
+      name: 'Back to ZERO-PAPER HUB',
+    });
+    let defaultPrevented = true;
+
+    measurementLink.addEventListener('click', (event) => {
+      defaultPrevented = event.defaultPrevented;
+    });
+    expect(disclosure?.open).toBe(false);
+    fireEvent.click(measurementLink);
+
+    expect(measurementLink.getAttribute('href')).toBe('#haoo-measurement-disclosure');
+    expect(footerLinks.indexOf(measurementLink)).toBeLessThan(footerLinks.indexOf(backLink));
+    expect(disclosure?.open).toBe(true);
+    expect(defaultPrevented).toBe(false);
+    expect(document.activeElement).not.toBe(disclosure);
+    expect(eventSink).not.toHaveBeenCalled();
+    expect(footer.querySelector('.flex.flex-wrap')).not.toBeNull();
+    expect(measurementLink.className).toContain('min-h-11');
+    expect(measurementLink.className).not.toMatch(/truncate|line-clamp|whitespace-nowrap/);
+  });
 });
