@@ -5,7 +5,6 @@ import type {
   QualifyOption,
 } from './types';
 import {
-  qualifyCollectionNotePageContext,
   qualifyCollectionNoteProcessor,
   qualifyCollectionNotePurpose,
 } from './copy';
@@ -398,7 +397,8 @@ export const HAOO_PRODUCT: ProductDefinition = {
     collectionNote: {
       purpose: qualifyCollectionNotePurpose('HAOO'),
       processor: qualifyCollectionNoteProcessor(),
-      pageContext: qualifyCollectionNotePageContext('HAOO'),
+      pageContext:
+        'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.',
     },
     // DOM order is also the order the labels appear in the delivered email. The
     // preferred-channel select deliberately precedes `phone` so its `requiredWhen` rule

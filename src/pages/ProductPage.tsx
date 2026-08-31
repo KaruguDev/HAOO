@@ -63,6 +63,16 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
     measurementRef.current?.track(product.measurement.pageViewEvent);
   }, [product.measurement.pageViewEvent]);
 
+  function handleMeasurementDisclosureLink() {
+    const disclosure = document.getElementById(
+      `${product.slug}-measurement-disclosure`,
+    );
+
+    if (disclosure instanceof HTMLDetailsElement) {
+      disclosure.open = true;
+    }
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">
       <a href={`#${mainContentId}`} className="sr-only z-50 rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
@@ -271,6 +281,13 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           <div className="flex flex-wrap gap-2">
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.emailHref}>{product.contacts.email}</a>
+            <a
+              className={`${footerLinkClasses} text-[#4054C6]`}
+              href={`#${product.slug}-measurement-disclosure`}
+              onClick={handleMeasurementDisclosureLink}
+            >
+              How we measure this page
+            </a>
             <a className={`${footerLinkClasses} text-green-800`} href="/">Back to ZERO-PAPER HUB</a>
           </div>
         </div>

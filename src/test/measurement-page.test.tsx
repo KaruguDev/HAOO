@@ -438,7 +438,9 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     const notice = screen.getByText(APPROVED_COLLECTION_NOTICE);
     const submit = screen.getByRole('button', { name: 'Send my details' });
     const describedBy = submit.getAttribute('aria-describedby')?.split(/\s+/) ?? [];
-    const details = screen.getByText('How we measure this page').closest('details');
+    const details = screen
+      .getByText('How we measure this page', { selector: 'summary' })
+      .closest('details');
 
     expect(notice.textContent).toBe(APPROVED_COLLECTION_NOTICE);
     expect(describedBy).toContain(notice.closest('[id]')?.id);
