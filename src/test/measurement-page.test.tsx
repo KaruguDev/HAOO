@@ -50,6 +50,83 @@ function fillValidQualification() {
 }
 
 describe('Phase 3 HAOO page-view measurement tracer', () => {
+  it('rebinds measurement storage, sink, page view, and vocabulary when product changes', () => {
+    const firstSink = vi.fn();
+    const secondSink = vi.fn();
+    const secondEvents = HAOO_MEASUREMENT_EVENTS.map((event) => (
+      event.replace(/^haoo_/, 'other_')
+    ));
+    const secondInteractionEvents = {
+      brochurePreview: 'other_brochure_preview',
+      brochureOpen: 'other_brochure_open',
+      brochureDownload: 'other_brochure_download',
+      qualifyStart: 'other_qualify_start',
+      qualifySubmit: 'other_qualify_submit',
+      assistedWhatsapp: 'other_assisted_whatsapp',
+      assistedPhone: 'other_assisted_phone',
+      assistedEmail: 'other_assisted_email',
+      selfOnboarding: 'other_self_onboarding',
+    } as const;
+    const secondProduct = {
+      ...HAOO_PRODUCT,
+      slug: 'other',
+      name: 'Other',
+      measurement: {
+        ...HAOO_PRODUCT.measurement,
+        productKey: 'other',
+        storageKey: 'zph.other.ctx.v1',
+        events: secondEvents,
+        pageViewEvent: 'other_page_view',
+        interactionEvents: secondInteractionEvents,
+        interactionEventFlags: {
+          other_brochure_preview: 'brochureViewed',
+          other_brochure_open: 'brochureViewed',
+          other_brochure_download: 'brochureDownloaded',
+          other_qualify_start: 'qualifyStarted',
+          other_assisted_whatsapp: 'assistedContact',
+          other_assisted_phone: 'assistedContact',
+          other_assisted_email: 'assistedContact',
+          other_self_onboarding: 'selfOnboarding',
+        },
+        disclosure: {
+          ...HAOO_PRODUCT.measurement.disclosure,
+          signalLines: Object.fromEntries(
+            secondEvents.map((event) => [event, `That ${event} happened.`]),
+          ),
+        },
+      },
+    };
+
+    const page = render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink: firstSink }}
+      />,
+    );
+
+    expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
+    expect(window.localStorage.getItem(CONTEXT_KEY)).not.toBeNull();
+
+    page.rerender(
+      <ProductPage
+        product={secondProduct}
+        measurementAdapters={{ eventSink: secondSink }}
+      />,
+    );
+
+    expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
+    expect(secondSink.mock.calls).toEqual([['other_page_view']]);
+    expect(window.localStorage.getItem('zph.other.ctx.v1')).not.toBeNull();
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+
+    expect(secondSink.mock.calls).toEqual([
+      ['other_page_view'],
+      ['other_qualify_start'],
+    ]);
+    expect(firstSink.mock.calls).toEqual([['haoo_page_view']]);
+  });
+
   it('traces one privacy-bounded HAOO page view', () => {
     window.history.replaceState(
       {},

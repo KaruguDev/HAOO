@@ -7,7 +7,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
@@ -48,20 +48,19 @@ const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hov
 
 export default function ProductPage({ product, measurementAdapters }: ProductPageProps) {
   const mainContentId = contentAnchorId(product.slug);
-  const measurementRef = useRef<ReturnType<typeof createMeasurement>>();
-  const pageViewRecorded = useRef(false);
-
-  if (!measurementRef.current) {
-    measurementRef.current = createMeasurement(product.measurement, measurementAdapters);
-  }
+  const measurement = useMemo(
+    () => createMeasurement(product.measurement, measurementAdapters),
+    [product.measurement, measurementAdapters],
+  );
+  const pageViewMeasurement = useRef<ReturnType<typeof createMeasurement>>();
 
   useEffect(() => {
-    if (pageViewRecorded.current) return;
+    if (pageViewMeasurement.current === measurement) return;
 
-    pageViewRecorded.current = true;
-    measurementRef.current?.initialize();
-    measurementRef.current?.track(product.measurement.pageViewEvent);
-  }, [product.measurement.pageViewEvent]);
+    pageViewMeasurement.current = measurement;
+    measurement.initialize();
+    measurement.track(product.measurement.pageViewEvent);
+  }, [measurement, product.measurement.pageViewEvent]);
 
   function handleMeasurementDisclosureLink() {
     const disclosure = document.getElementById(
@@ -109,7 +108,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               <OnboardingChoices
                 product={product}
                 position="opening"
-                track={measurementRef.current.track}
+                track={measurement.track}
               />
             </div>
 
@@ -221,7 +220,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           <OnboardingChoices
             product={product}
             position="mid-page"
-            track={measurementRef.current.track}
+            track={measurement.track}
           />
         </div>
 
@@ -232,7 +231,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <BrochurePanel
               brochure={product.brochure}
               productName={product.name}
-              track={measurementRef.current.track}
+              track={measurement.track}
               events={{
                 preview: product.measurement.interactionEvents.brochurePreview,
                 open: product.measurement.interactionEvents.brochureOpen,
@@ -252,14 +251,14 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               contacts={product.contacts}
               productName={product.name}
               slug={product.slug}
-              track={measurementRef.current.track}
+              track={measurement.track}
               measurementEvents={{
                 start: product.measurement.interactionEvents.qualifyStart,
                 submit: product.measurement.interactionEvents.qualifySubmit,
               }}
               measurementEventNames={product.measurement.events}
               measurementDisclosure={product.measurement.disclosure}
-              clearMeasurementContext={measurementRef.current.clearContext}
+              clearMeasurementContext={measurement.clearContext}
             />
           </div>
         </section>
@@ -269,7 +268,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <OnboardingChoices
               product={product}
               position="closing"
-              track={measurementRef.current.track}
+              track={measurement.track}
             />
           </div>
         </section>
