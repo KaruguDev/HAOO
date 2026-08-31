@@ -37,7 +37,7 @@
 - [ ] **MEAS-01**: Product owner can view aggregate counts for HAOO page views, brochure preview/open/download actions, qualification starts/submits, assisted-contact clicks, and self-onboarding clicks
 - [x] **MEAS-02**: Analytics events use a closed allowlist and contain no names, contact details, free-text form values, exact portfolio/location values, or stable visitor identifiers
 - [x] **MEAS-03**: Browser stores at most bounded visit bands, coarse date bands, and HAOO interaction flags without a UUID, raw clickstream, or cross-site identity
-- [ ] **MEAS-04**: Visitor can read a privacy disclosure describing aggregate analytics, bounded browser context, and the engagement summary attached after voluntary form submission
+- [x] **MEAS-04**: Visitor can read a privacy disclosure describing aggregate analytics, bounded browser context, and the engagement summary attached after voluntary form submission
 - [ ] **MEAS-05**: Submitted qualification email includes a disclosed human-readable summary of relevant HAOO engagement signals without an opaque lead score
 - [x] **MEAS-06**: Campaign parameters are allowlisted and normalized before use and never include or receive personal information
 - [x] **MEAS-07**: Product journey remains fully functional when analytics scripts or browser storage are blocked or unavailable
@@ -110,7 +110,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | MEAS-01 | Phase 4 | Pending |
 | MEAS-02 | Phase 3 | Complete |
 | MEAS-03 | Phase 3 | Complete |
-| MEAS-04 | Phase 3 | Pending |
+| MEAS-04 | Phase 3 | Complete |
 | MEAS-05 | Phase 4 | Pending |
 | MEAS-06 | Phase 3 | Complete |
 | MEAS-07 | Phase 3 | Complete |
