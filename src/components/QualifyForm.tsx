@@ -17,6 +17,11 @@ interface QualifyFormProps {
   readonly productName: string;
   /** Namespaces every DOM id this form owns. See `qualifyId`. */
   readonly slug: string;
+  readonly track: (event: string) => boolean;
+  readonly measurementEvents: {
+    readonly start: string;
+    readonly submit: string;
+  };
 }
 
 type QualifyValues = Record<string, string>;
@@ -277,9 +282,11 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
 
 export default function QualifyForm({
   contacts,
+  measurementEvents,
   productName,
   qualify,
   slug,
+  track,
 }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   // The authoritative latest snapshot. `values` from the render closure is stale for any
@@ -309,12 +316,20 @@ export default function QualifyForm({
   // Synchronous concurrency authority. React state and the native disabled attribute
   // are visual and assistive feedback, never the guard that admits a request.
   const inFlightRef = useRef(false);
+  const startRecordedRef = useRef(false);
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const confirmationRef = useRef<HTMLHeadingElement | null>(null);
   const failureRef = useRef<HTMLHeadingElement | null>(null);
 
   const invalidFields = qualify.fields.filter((field) => errors[field.name]);
   const contactActions = qualifyContactActionLabels(productName, contacts);
+
+  function handleQualifyStart() {
+    if (startRecordedRef.current) return;
+
+    startRecordedRef.current = true;
+    track(measurementEvents.start);
+  }
 
   useEffect(() => {
     if (attempts === 0) {
@@ -420,13 +435,16 @@ export default function QualifyForm({
     const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
 
     try {
+      const body = JSON.stringify(buildSubmissionBody(submittedValues, qualify));
+
+      track(measurementEvents.submit);
       const response = await fetch(qualify.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify(buildSubmissionBody(submittedValues, qualify)),
+        body,
         signal: controller.signal,
       });
 
@@ -592,6 +610,8 @@ export default function QualifyForm({
           <form
             noValidate
             onSubmit={handleSubmit}
+            onFocus={handleQualifyStart}
+            onChange={handleQualifyStart}
             className="relative max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
           >
           <div

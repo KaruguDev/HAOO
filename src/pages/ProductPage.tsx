@@ -242,6 +242,11 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               contacts={product.contacts}
               productName={product.name}
               slug={product.slug}
+              track={measurementRef.current.track}
+              measurementEvents={{
+                start: product.measurement.interactionEvents.qualifyStart,
+                submit: product.measurement.interactionEvents.qualifySubmit,
+              }}
             />
           </div>
         </section>

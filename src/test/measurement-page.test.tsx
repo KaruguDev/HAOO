@@ -190,7 +190,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
   });
 
   it('measures brochure actions without changing recovery or native destinations when the sink throws', () => {
-    const eventSink = vi.fn(() => {
+    const eventSink = vi.fn<(event: string) => never>(() => {
       throw new Error('provider unavailable');
     });
 
@@ -297,7 +297,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
   });
 
   it('keeps every onboarding destination native when assisted measurement throws', () => {
-    const eventSink = vi.fn(() => {
+    const eventSink = vi.fn<(event: string) => never>(() => {
       throw new Error('provider unavailable');
     });
 
@@ -328,7 +328,9 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
 
   it('measures qualification start once and only validation-admitted submit attempts', async () => {
     const eventSink = vi.fn();
-    const fetchSpy = vi.fn(() => Promise.reject(new Error('network unavailable')));
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
     vi.stubGlobal('fetch', fetchSpy);
 
     render(
@@ -376,10 +378,12 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
   });
 
   it('keeps qualification validation, retained values, retry, and outcome independent of measurement failure', async () => {
-    const eventSink = vi.fn(() => {
+    const eventSink = vi.fn<(event: string) => never>(() => {
       throw new Error('provider unavailable');
     });
-    const fetchSpy = vi.fn(() => Promise.reject(new Error('network unavailable')));
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
     vi.stubGlobal('fetch', fetchSpy);
 
     render(

@@ -73,6 +73,13 @@ const ALL_OPTION_LISTS = [
   KENYAN_COUNTY_OPTIONS,
   TIMEFRAME_OPTIONS,
 ];
+const MEASUREMENT_PROPS = {
+  track: () => true,
+  measurementEvents: {
+    start: HAOO_PRODUCT.measurement.interactionEvents.qualifyStart,
+    submit: HAOO_PRODUCT.measurement.interactionEvents.qualifySubmit,
+  },
+} as const;
 
 /**
  * The accessible name of a control. The component appends ` (optional)` itself from
@@ -852,6 +859,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const failedFetch = stubFetch(async () => ({ ok: false }));
     const first = render(
       <QualifyForm
+        {...MEASUREMENT_PROPS}
         qualify={QUALIFY}
         contacts={zenithContacts}
         productName="ZENITH"
@@ -880,6 +888,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     stubFetch(async () => ({ ok: true }));
     const second = render(
       <QualifyForm
+        {...MEASUREMENT_PROPS}
         qualify={QUALIFY}
         contacts={zenithContacts}
         productName="ZENITH"
@@ -920,12 +929,14 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const { container } = render(
       <>
         <QualifyForm
+          {...MEASUREMENT_PROPS}
           qualify={QUALIFY}
           contacts={HAOO_PRODUCT.contacts}
           productName="HAOO"
           slug="haoo"
         />
         <QualifyForm
+          {...MEASUREMENT_PROPS}
           qualify={QUALIFY}
           contacts={HAOO_PRODUCT.contacts}
           productName="ZENITH"
@@ -1142,6 +1153,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     const synthetic = within(
       render(
         <QualifyForm
+          {...MEASUREMENT_PROPS}
           qualify={optionalQualify}
           contacts={HAOO_PRODUCT.contacts}
           productName="ZENITH"
@@ -1675,6 +1687,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
 
     const { container } = render(
       <QualifyForm
+        {...MEASUREMENT_PROPS}
         qualify={syntheticQualify}
         contacts={HAOO_PRODUCT.contacts}
         productName="ZENITH"
