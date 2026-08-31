@@ -535,9 +535,9 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect((screen.getByLabelText('Full name') as HTMLInputElement).value)
       .toBe('Jane Wanjiru');
     expect(window.location.href).toBe(initialUrl);
-    expect(screen.getByRole('status', {
-      name: 'This page stopped using remembered context for this visit. Your browser did not allow us to clear its saved copy.',
-    })).toBeTruthy();
+    expect(screen.getAllByRole('status').some((status) => status.textContent ===
+      'This page stopped using remembered context for this visit. Your browser did not allow us to clear its saved copy.'))
+      .toBe(true);
     expect(screen.getAllByRole('link', { name: 'Start with HAOO' })).toHaveLength(3);
   });
 });

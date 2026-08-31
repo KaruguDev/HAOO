@@ -66,6 +66,54 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     haoo_self_onboarding: 'selfOnboarding',
   },
   provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
+  disclosure: {
+    summary: 'How we measure this page',
+    intro:
+      'We use a closed list of page signals for aggregate product learning and keep a separate, small context record in this browser. The page works if analytics or browser storage is unavailable.',
+    signalsHeading: 'Signals this page can count',
+    signalLines: {
+      haoo_page_view: 'That you viewed this HAOO page.',
+      haoo_brochure_preview: 'That the brochure preview became available.',
+      haoo_brochure_open: 'That you opened the brochure.',
+      haoo_brochure_download: 'That you downloaded the brochure.',
+      haoo_qualify_start: 'That you started the qualification form.',
+      haoo_qualify_submit:
+        "That you tried to send the qualification form after it passed the page's checks.",
+      haoo_assisted_whatsapp: 'That you chose WhatsApp to contact HAOO.',
+      haoo_assisted_phone: 'That you chose phone to contact HAOO.',
+      haoo_assisted_email: 'That you chose email to contact HAOO.',
+      haoo_self_onboarding: 'That you opened HAOO self-onboarding.',
+    },
+    signalBoundary:
+      'These signals are sent as bare names with no form answers or visitor properties attached.',
+    browserHeading: 'What this browser remembers',
+    browserFacts: [
+      'Whether this visit is first, returning, or frequent.',
+      'Whether the last visit was today, this week, this month, or earlier.',
+      'Whether the brochure was viewed or downloaded, the form was started, an assisted-contact channel was chosen, or self-onboarding was opened.',
+      'A visit step capped at four, used only to calculate the coarse visit band.',
+      'A day-only last-seen value, used only to calculate the coarse time band and remove context after about 180 days.',
+    ],
+    browserBoundary:
+      'The capped visit step and day-only value never enter analytics events or form submissions.',
+    campaignHeading: 'Campaign information',
+    campaignDescription:
+      'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, and removed from the address bar after being read.',
+    neverCollectedHeading: 'What we never collect for measurement',
+    neverCollected: [
+      'Name, email address, phone number, or organization.',
+      'Message text.',
+      'Role, county, timeframe, or exact portfolio values.',
+      'UUIDs, cookies, fingerprints, or cross-site identifiers.',
+      'Raw click history.',
+      'Any form answer attached to an analytics event.',
+    ],
+    summaryBoundary: 'No engagement summary is attached to this form submission yet.',
+    clearLabel: 'Clear what this page remembers',
+    clearSuccess: 'What this page remembered has been cleared.',
+    clearBlocked:
+      'This page stopped using remembered context for this visit. Your browser did not allow us to clear its saved copy.',
+  },
 };
 
 const WHATSAPP_STARTER_TEXT =

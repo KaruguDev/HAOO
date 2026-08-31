@@ -103,6 +103,25 @@ export interface ProductQualifyForm {
 
 export type MeasurementProvider = 'none';
 
+export interface ProductMeasurementDisclosure<EventName extends string> {
+  readonly summary: string;
+  readonly intro: string;
+  readonly signalsHeading: string;
+  readonly signalLines: Readonly<Record<EventName, string>>;
+  readonly signalBoundary: string;
+  readonly browserHeading: string;
+  readonly browserFacts: readonly [string, string, string, string, string];
+  readonly browserBoundary: string;
+  readonly campaignHeading: string;
+  readonly campaignDescription: string;
+  readonly neverCollectedHeading: string;
+  readonly neverCollected: readonly string[];
+  readonly summaryBoundary: string;
+  readonly clearLabel: string;
+  readonly clearSuccess: string;
+  readonly clearBlocked: string;
+}
+
 export interface ProductMeasurement<EventName extends string = string> {
   readonly productKey: string;
   readonly storageKey: string;
@@ -123,6 +142,7 @@ export interface ProductMeasurement<EventName extends string = string> {
   readonly interactionFlags: readonly string[];
   readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
   readonly provider: MeasurementProvider;
+  readonly disclosure: ProductMeasurementDisclosure<EventName>;
 }
 
 export interface ProductDefinition {

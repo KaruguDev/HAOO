@@ -29,13 +29,8 @@ const SECTION_NAME = 'Send your details';
 const REQUIRED_FIELDS_NOTE = 'All fields are required unless marked optional.';
 const COLLECTION_PURPOSE =
   'We use these details only to reply to you about HAOO onboarding. We never sell them or add you to a mailing list.';
-/**
- * Future tense on purpose: the page-use summary is not in the payload this phase sends,
- * and `EXPECTED_BODY_KEYS` below is the proof. A present-tense notice would describe
- * collection that does not occur.
- */
 const COLLECTION_CONTEXT =
-  'In future, a short summary of how you used this HAOO page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.';
+  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
 /** Named at the point of collection: the payload reaches the processor before us. */
 const COLLECTION_PROCESSOR =
   'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
@@ -233,7 +228,14 @@ function summaryLinkTexts() {
 }
 
 function statusRegion() {
-  return within(qualifySection()).getByRole('status');
+  const status = within(qualifySection()).getAllByRole('status')
+    .find((candidate) => candidate.closest('details') === null);
+
+  if (!status) {
+    throw new Error('Expected the qualification submission status region.');
+  }
+
+  return status;
 }
 
 function emptyValues() {
@@ -273,7 +275,9 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(disclosure?.textContent).toContain(COLLECTION_PURPOSE);
     expect(disclosure?.textContent).toContain(COLLECTION_PROCESSOR);
     expect(disclosure?.textContent).toContain(COLLECTION_CONTEXT);
-    expect(disclosure?.nextElementSibling).toBe(button);
+    const measurementDisclosure = disclosure?.nextElementSibling;
+    expect(measurementDisclosure?.tagName).toBe('DETAILS');
+    expect(measurementDisclosure?.nextElementSibling).toBe(button);
     expect(button.getAttribute('aria-describedby')?.split(/\s+/)).toContain(DISCLOSURE_ID);
 
     for (const field of QUALIFY.fields) {
@@ -1074,7 +1078,8 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     renderPage();
 
     const section = within(qualifySection());
-    const groups = section.getAllByRole('group');
+    const groups = section.getAllByRole('group')
+      .filter((group) => group.tagName === 'FIELDSET');
 
     // Native `fieldset`/`legend`, not styled prose: each group is reachable by its
     // legend as an accessible name, and the three appear in configured DOM order.
@@ -1489,9 +1494,11 @@ describe('Phase 2 conditional contact-channel contracts', () => {
       expect(labelFor(PHONE).textContent, channel).toBe('Phone number');
       expect(labelFor(PHONE).textContent, channel).not.toContain('(optional)');
       expect(statusRegion().textContent, channel).toBe(announcement(channel));
-      // One region, still the same node - never a second live region and never a role
-      // swapped onto an already-mounted element.
-      expect(within(qualifySection()).getAllByRole('status'), channel).toHaveLength(1);
+      // Submission and measurement clearing keep distinct, persistently mounted regions.
+      const regions = within(qualifySection()).getAllByRole('status');
+      expect(regions, channel).toHaveLength(2);
+      expect(regions.filter((region) => region.closest('details') !== null), channel)
+        .toHaveLength(1);
     }
   });
 
@@ -1514,7 +1521,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     expect((controlByName(PHONE) as HTMLInputElement).getAttribute('aria-required'))
       .toBe('true');
     expect(labelFor(PHONE).textContent).not.toContain('(optional)');
-    expect(within(qualifySection()).getAllByRole('status')).toHaveLength(1);
+    expect(within(qualifySection()).getAllByRole('status')).toHaveLength(2);
 
     // Reversing the rule clears the sentence and hands the region back.
     fireEvent.change(controlByName(CHANNEL), { target: { value: 'Email' } });

@@ -247,6 +247,9 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                 start: product.measurement.interactionEvents.qualifyStart,
                 submit: product.measurement.interactionEvents.qualifySubmit,
               }}
+              measurementEventNames={product.measurement.events}
+              measurementDisclosure={product.measurement.disclosure}
+              clearMeasurementContext={measurementRef.current.clearContext}
             />
           </div>
         </section>

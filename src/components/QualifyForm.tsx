@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import type {
   ProductContacts,
+  ProductMeasurementDisclosure,
   ProductQualifyForm,
   QualifyField,
 } from '../products/types';
@@ -10,6 +11,7 @@ import {
   requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
+import MeasurementDisclosure from './MeasurementDisclosure';
 
 interface QualifyFormProps {
   readonly qualify: ProductQualifyForm;
@@ -22,6 +24,9 @@ interface QualifyFormProps {
     readonly start: string;
     readonly submit: string;
   };
+  readonly measurementEventNames?: readonly string[];
+  readonly measurementDisclosure?: ProductMeasurementDisclosure<string>;
+  readonly clearMeasurementContext?: () => boolean;
 }
 
 type QualifyValues = Record<string, string>;
@@ -283,10 +288,13 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
 export default function QualifyForm({
   contacts,
   measurementEvents,
+  measurementEventNames,
+  measurementDisclosure,
   productName,
   qualify,
   slug,
   track,
+  clearMeasurementContext,
 }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   // The authoritative latest snapshot. `values` from the render closure is stale for any
@@ -678,6 +686,15 @@ export default function QualifyForm({
                 <p className="mt-3">{qualify.collectionNote.processor}</p>
                 <p className="mt-3">{qualify.collectionNote.pageContext}</p>
               </div>
+            ) : null}
+
+            {measurementEventNames && measurementDisclosure && clearMeasurementContext ? (
+              <MeasurementDisclosure
+                slug={slug}
+                events={measurementEventNames}
+                disclosure={measurementDisclosure}
+                clearContext={clearMeasurementContext}
+              />
             ) : null}
 
             <button
