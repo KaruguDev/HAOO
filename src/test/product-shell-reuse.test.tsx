@@ -31,6 +31,7 @@ const GENERIC_PRODUCT_SOURCES = [
   'src/components/BrochurePanel.tsx',
   'src/components/ProductsSection.tsx',
   'src/components/QualifyForm.tsx',
+  'src/components/qualify-form.logic.ts',
   'src/components/QualifyFallback.tsx',
   'src/products/copy.ts',
   'src/products/types.ts',

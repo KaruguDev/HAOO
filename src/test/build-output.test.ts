@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CONTEXT_RECORD_KEYS,
@@ -115,6 +115,7 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
   ],
   'src/measurement/index.ts': MEASUREMENT_FACADE_BOUNDARY,
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+  'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
 
@@ -433,6 +434,25 @@ describe('Phase 1 static build contracts', () => {
 
     expect(existsSync(resolve(ROOT, 'components.json'))).toBe(false);
     expect(existsSync(resolve(ROOT, 'src/components/ui'))).toBe(false);
+  });
+
+  it('covers every local production dependency imported by QualifyForm', () => {
+    const owner = 'src/components/QualifyForm.tsx';
+    const source = readText(resolve(ROOT, owner));
+    const localImports = [...source.matchAll(/from\s+['"](\.[^'"]+)['"]/g)]
+      .map(([, specifier]) => {
+        const base = resolve(ROOT, dirname(owner), specifier);
+        const sourcePath = [`${base}.ts`, `${base}.tsx`, base]
+          .find((candidate) => existsSync(candidate));
+
+        expect(sourcePath, specifier).toBeTruthy();
+        return relative(ROOT, sourcePath ?? base).replace(/\\/g, '/');
+      });
+
+    expect(localImports).toContain('src/components/qualify-form.logic.ts');
+    for (const dependency of localImports) {
+      expect(PRODUCT_SOURCE_BOUNDARY, dependency).toHaveProperty(dependency);
+    }
   });
 
   it('runs every inherited static prohibition against the qualification fallback', () => {

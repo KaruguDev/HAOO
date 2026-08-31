@@ -918,6 +918,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     const genericSources = [
       '../components/QualifyForm.tsx',
+      '../components/qualify-form.logic.ts',
       '../components/QualifyFallback.tsx',
       '../products/copy.ts',
     ];
