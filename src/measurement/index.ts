@@ -36,6 +36,7 @@ export const CONTEXT_RECORD_KEYS = [
   'visitOrdinal',
   'lastSeenDay',
 ] as const;
+export const MEASUREMENT_TRACK_ARGUMENT_COUNT = 1 as const;
 
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'] as const;
 const CAMPAIGN_VALUE = /^[a-z0-9-]+$/;

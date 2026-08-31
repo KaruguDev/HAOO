@@ -148,7 +148,9 @@ describe('exact stored schema', () => {
     ['malformed JSON', '{'],
     ['array', '[]'],
     ['unknown version', JSON.stringify(storedContext({ version: 2 }))],
-    ['missing key', JSON.stringify((({ lastSeenDay: _removed, ...rest }) => rest)(storedContext()))],
+    ['missing key', JSON.stringify(Object.fromEntries(
+      Object.entries(storedContext()).filter(([key]) => key !== 'lastSeenDay'),
+    ))],
     ['extra key', JSON.stringify(storedContext({ visitorId: 'person-1' }))],
     ['invalid visit band', JSON.stringify(storedContext({ visitBand: 'repeat' }))],
     ['invalid last-seen band', JSON.stringify(storedContext({ lastSeenBand: 'yesterday' }))],
