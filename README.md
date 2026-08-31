@@ -52,6 +52,20 @@ Set it as an Actions repository *variable*: Settings → Secrets and variables �
 
 Activating the endpoint and confirming live mail for `info@haoo.online` — submitting a first enquiry, confirming FormSubmit's activation email, and verifying that a second enquiry is delivered — is tracked as Phase 5 `LEAD-07`. It is not a Phase 2 action. Until it is done, a submission that reports success in the browser has not been proven to reach the inbox.
 
+## HAOO measurement provider
+
+`VITE_HAOO_MEASUREMENT_PROVIDER` is a public build-time selector for the HAOO
+measurement sink. Its finite accepted set currently contains only `none`.
+An unset, blank, `none`, or unknown value therefore selects the same inert no-op
+sink; the value is never interpreted as a URL or dynamically loaded script.
+
+Phase 3 records bare, allowlisted event names through this sink and stores only
+the disclosed bounded browser context. It ships no analytics SDK or account,
+sends no event-property or form-field payload, and maintains no delivery queue,
+retry buffer, identifier, or ordered clickstream. Live aggregate reporting and
+adding a coarse engagement summary to qualification email are Phase 4 work and
+are not available in this build.
+
 ### Spam handling
 
 FormSubmit's reCAPTCHA is disabled for this form — the page sends `_captcha: 'false'` in the request body — so the reCAPTCHA filtering described for the contact form above does not apply to it.

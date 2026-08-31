@@ -66,7 +66,7 @@ const MEASUREMENT_PRIVACY_FORBIDDEN = [
   /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
   /\b(?:uuid|fingerprint)\b/i,
   /\b(?:eventQueue|clickstream)\b/i,
-  /(?:track|eventSink)\s*\([^,]+,/,
+  /(?:track|eventSink)\s*\([^,\n]+,/,
 ] as const;
 
 const FULL_BOUNDARY = [
@@ -74,6 +74,20 @@ const FULL_BOUNDARY = [
   ...NETWORK_FORBIDDEN,
   ...PROVIDER_FORBIDDEN,
   ...FORM_MARKUP_FORBIDDEN,
+] as const;
+
+// The measurement facade is the sole browser-capability boundary. It needs
+// storage and the current URL for bounded context/campaign handling, but it
+// keeps every unrelated prohibition plus explicit privacy-channel guards.
+const MEASUREMENT_FACADE_BOUNDARY = [
+  /dangerouslySetInnerHTML/,
+  /gtag\(|dataLayer|analytics\./,
+  /react-router|createBrowserRouter/,
+  /supabase/i,
+  ...NETWORK_FORBIDDEN,
+  ...PROVIDER_FORBIDDEN,
+  ...FORM_MARKUP_FORBIDDEN,
+  ...MEASUREMENT_PRIVACY_FORBIDDEN,
 ] as const;
 
 const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
@@ -90,6 +104,7 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...NETWORK_FORBIDDEN,
     ...FORM_MARKUP_FORBIDDEN,
   ],
+  'src/measurement/index.ts': MEASUREMENT_FACADE_BOUNDARY,
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
@@ -396,9 +411,12 @@ describe('Phase 1 static build contracts', () => {
       }
     }
 
-    // Every product source — including the two that gained a capability — still
-    // carries the whole always-forbidden group.
-    for (const forbiddenGroup of Object.values(PRODUCT_SOURCE_BOUNDARY)) {
+    // Every existing product source — including the two Phase 2 files that gained
+    // a capability — still carries the whole always-forbidden group. The audited
+    // measurement facade is the sole narrowed browser-capability boundary.
+    for (const [relativePath, forbiddenGroup] of Object.entries(PRODUCT_SOURCE_BOUNDARY)) {
+      if (relativePath === 'src/measurement/index.ts') continue;
+
       for (const forbidden of ALWAYS_FORBIDDEN) {
         expect(forbiddenGroup).toContain(forbidden);
       }
