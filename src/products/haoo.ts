@@ -1,11 +1,119 @@
-import type { ProductDefinition, QualifyOption } from './types';
+import type {
+  MeasurementProvider,
+  ProductDefinition,
+  ProductMeasurement,
+  QualifyOption,
+} from './types';
 import {
-  qualifyCollectionNotePageContext,
   qualifyCollectionNoteProcessor,
   qualifyCollectionNotePurpose,
 } from './copy';
 
 export type { ProductDefinition } from './types';
+
+export const HAOO_MEASUREMENT_EVENTS = [
+  'haoo_page_view',
+  'haoo_brochure_preview',
+  'haoo_brochure_open',
+  'haoo_brochure_download',
+  'haoo_qualify_start',
+  'haoo_qualify_submit',
+  'haoo_assisted_whatsapp',
+  'haoo_assisted_phone',
+  'haoo_assisted_email',
+  'haoo_self_onboarding',
+] as const;
+
+export type HaooMeasurementEvent = (typeof HAOO_MEASUREMENT_EVENTS)[number];
+
+export function resolveMeasurementProvider(configuredValue?: string): MeasurementProvider {
+  return configuredValue?.trim().toLowerCase() === 'none' ? 'none' : 'none';
+}
+
+export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
+  productKey: 'haoo',
+  storageKey: 'zph.haoo.ctx.v1',
+  schemaVersion: 1,
+  events: HAOO_MEASUREMENT_EVENTS,
+  pageViewEvent: 'haoo_page_view',
+  interactionEvents: {
+    brochurePreview: 'haoo_brochure_preview',
+    brochureOpen: 'haoo_brochure_open',
+    brochureDownload: 'haoo_brochure_download',
+    qualifyStart: 'haoo_qualify_start',
+    qualifySubmit: 'haoo_qualify_submit',
+    assistedWhatsapp: 'haoo_assisted_whatsapp',
+    assistedPhone: 'haoo_assisted_phone',
+    assistedEmail: 'haoo_assisted_email',
+    selfOnboarding: 'haoo_self_onboarding',
+  },
+  interactionFlags: [
+    'brochureViewed',
+    'brochureDownloaded',
+    'qualifyStarted',
+    'assistedContact',
+    'selfOnboarding',
+  ],
+  interactionEventFlags: {
+    haoo_brochure_preview: 'brochureViewed',
+    haoo_brochure_open: 'brochureViewed',
+    haoo_brochure_download: 'brochureDownloaded',
+    haoo_qualify_start: 'qualifyStarted',
+    haoo_assisted_whatsapp: 'assistedContact',
+    haoo_assisted_phone: 'assistedContact',
+    haoo_assisted_email: 'assistedContact',
+    haoo_self_onboarding: 'selfOnboarding',
+  },
+  provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
+  disclosure: {
+    summary: 'How we measure this page',
+    intro:
+      'We use a closed list of page signals for aggregate product learning and keep a separate, small context record in this browser. The page works if analytics or browser storage is unavailable.',
+    signalsHeading: 'Signals this page can count',
+    signalLines: {
+      haoo_page_view: 'That you viewed this HAOO page.',
+      haoo_brochure_preview: 'That the brochure preview became available.',
+      haoo_brochure_open: 'That you opened the brochure.',
+      haoo_brochure_download: 'That you downloaded the brochure.',
+      haoo_qualify_start: 'That you started the qualification form.',
+      haoo_qualify_submit:
+        "That you tried to send the qualification form after it passed the page's checks.",
+      haoo_assisted_whatsapp: 'That you chose WhatsApp to contact HAOO.',
+      haoo_assisted_phone: 'That you chose phone to contact HAOO.',
+      haoo_assisted_email: 'That you chose email to contact HAOO.',
+      haoo_self_onboarding: 'That you opened HAOO self-onboarding.',
+    },
+    signalBoundary:
+      'These signals are sent as bare names with no form answers or visitor properties attached.',
+    browserHeading: 'What this browser remembers',
+    browserFacts: [
+      'Whether this visit is first, returning, or frequent.',
+      'Whether the last visit was today, this week, this month, or earlier.',
+      'Whether the brochure was viewed or downloaded, the form was started, an assisted-contact channel was chosen, or self-onboarding was opened.',
+      'A visit step capped at four, used only to calculate the coarse visit band.',
+      'A day-only last-seen value, used only to calculate the coarse time band and remove context after about 180 days.',
+    ],
+    browserBoundary:
+      'The capped visit step and day-only value never enter analytics events or form submissions.',
+    campaignHeading: 'Campaign information',
+    campaignDescription:
+      'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, and removed from the address bar after being read.',
+    neverCollectedHeading: 'What we never collect for measurement',
+    neverCollected: [
+      'Name, email address, phone number, or organization.',
+      'Message text.',
+      'Role, county, timeframe, or exact portfolio values.',
+      'UUIDs, cookies, fingerprints, or cross-site identifiers.',
+      'Raw click history.',
+      'Any form answer attached to an analytics event.',
+    ],
+    summaryBoundary: 'No engagement summary is attached to this form submission yet.',
+    clearLabel: 'Clear what this page remembers',
+    clearSuccess: 'What this page remembered has been cleared.',
+    clearBlocked:
+      'This page stopped using remembered context for this visit. Your browser did not allow us to clear its saved copy.',
+  },
+};
 
 const WHATSAPP_STARTER_TEXT =
   'Hello HAOO, I would like help choosing the best way to get started.';
@@ -289,7 +397,8 @@ export const HAOO_PRODUCT: ProductDefinition = {
     collectionNote: {
       purpose: qualifyCollectionNotePurpose('HAOO'),
       processor: qualifyCollectionNoteProcessor(),
-      pageContext: qualifyCollectionNotePageContext('HAOO'),
+      pageContext:
+        'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.',
     },
     // DOM order is also the order the labels appear in the delivered email. The
     // preferred-channel select deliberately precedes `phone` so its `requiredWhen` rule
@@ -445,4 +554,5 @@ export const HAOO_PRODUCT: ProductDefinition = {
       { legend: 'Getting started', fieldNames: ['timeframe', 'message'] },
     ],
   },
+  measurement: HAOO_MEASUREMENT,
 };

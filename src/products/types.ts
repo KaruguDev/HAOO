@@ -101,6 +101,50 @@ export interface ProductQualifyForm {
   readonly groups: readonly QualifyFieldGroup[];
 }
 
+export type MeasurementProvider = 'none';
+
+export interface ProductMeasurementDisclosure<EventName extends string> {
+  readonly summary: string;
+  readonly intro: string;
+  readonly signalsHeading: string;
+  readonly signalLines: Readonly<Record<EventName, string>>;
+  readonly signalBoundary: string;
+  readonly browserHeading: string;
+  readonly browserFacts: readonly [string, string, string, string, string];
+  readonly browserBoundary: string;
+  readonly campaignHeading: string;
+  readonly campaignDescription: string;
+  readonly neverCollectedHeading: string;
+  readonly neverCollected: readonly string[];
+  readonly summaryBoundary: string;
+  readonly clearLabel: string;
+  readonly clearSuccess: string;
+  readonly clearBlocked: string;
+}
+
+export interface ProductMeasurement<EventName extends string = string> {
+  readonly productKey: string;
+  readonly storageKey: string;
+  readonly schemaVersion: number;
+  readonly events: readonly EventName[];
+  readonly pageViewEvent: EventName;
+  readonly interactionEvents: {
+    readonly brochurePreview: EventName;
+    readonly brochureOpen: EventName;
+    readonly brochureDownload: EventName;
+    readonly qualifyStart: EventName;
+    readonly qualifySubmit: EventName;
+    readonly assistedWhatsapp: EventName;
+    readonly assistedPhone: EventName;
+    readonly assistedEmail: EventName;
+    readonly selfOnboarding: EventName;
+  };
+  readonly interactionFlags: readonly string[];
+  readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
+  readonly provider: MeasurementProvider;
+  readonly disclosure: ProductMeasurementDisclosure<EventName>;
+}
+
 export interface ProductDefinition {
   readonly slug: string;
   readonly name: string;
@@ -122,4 +166,5 @@ export interface ProductDefinition {
   readonly contacts: ProductContacts;
   readonly brochure: ProductBrochure;
   readonly qualify: ProductQualifyForm;
+  readonly measurement: ProductMeasurement;
 }

@@ -7,6 +7,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
@@ -18,9 +19,14 @@ import {
   skipToContentLabel,
 } from '../products/copy';
 import type { ProductCapabilityIcon, ProductDefinition } from '../products/types';
+import {
+  createMeasurement,
+  type MeasurementAdapters,
+} from '../measurement';
 
 interface ProductPageProps {
   readonly product: ProductDefinition;
+  readonly measurementAdapters?: MeasurementAdapters<string>;
 }
 
 const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
@@ -40,8 +46,31 @@ const QUALIFY_SUB_LEAD =
   "Prefer writing to chatting? Share a few details and we'll reply with the onboarding path that fits your portfolio. This is not a sign-up \u2014 you can still start on your own at any time.";
 const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 
-export default function ProductPage({ product }: ProductPageProps) {
+export default function ProductPage({ product, measurementAdapters }: ProductPageProps) {
   const mainContentId = contentAnchorId(product.slug);
+  const measurement = useMemo(
+    () => createMeasurement(product.measurement, measurementAdapters),
+    [product.measurement, measurementAdapters],
+  );
+  const pageViewMeasurement = useRef<ReturnType<typeof createMeasurement>>();
+
+  useEffect(() => {
+    if (pageViewMeasurement.current === measurement) return;
+
+    pageViewMeasurement.current = measurement;
+    measurement.initialize();
+    measurement.track(product.measurement.pageViewEvent);
+  }, [measurement, product.measurement.pageViewEvent]);
+
+  function handleMeasurementDisclosureLink() {
+    const disclosure = document.getElementById(
+      `${product.slug}-measurement-disclosure`,
+    );
+
+    if (disclosure instanceof HTMLDetailsElement) {
+      disclosure.open = true;
+    }
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">
@@ -76,7 +105,11 @@ export default function ProductPage({ product }: ProductPageProps) {
                 <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
                 <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
               </div>
-              <OnboardingChoices product={product} position="opening" />
+              <OnboardingChoices
+                product={product}
+                position="opening"
+                track={measurement.track}
+              />
             </div>
 
             {product.media.hero ? (
@@ -184,14 +217,28 @@ export default function ProductPage({ product }: ProductPageProps) {
         </section>
 
         <div className={`${containerClasses} pb-12 md:pb-16`}>
-          <OnboardingChoices product={product} position="mid-page" />
+          <OnboardingChoices
+            product={product}
+            position="mid-page"
+            track={measurement.track}
+          />
         </div>
 
         <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={headingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
-            <BrochurePanel brochure={product.brochure} productName={product.name} />
+            <BrochurePanel
+              key={product.slug}
+              brochure={product.brochure}
+              productName={product.name}
+              track={measurement.track}
+              events={{
+                preview: product.measurement.interactionEvents.brochurePreview,
+                open: product.measurement.interactionEvents.brochureOpen,
+                download: product.measurement.interactionEvents.brochureDownload,
+              }}
+            />
           </div>
         </section>
 
@@ -201,17 +248,30 @@ export default function ProductPage({ product }: ProductPageProps) {
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
             <QualifyForm
+              key={product.slug}
               qualify={product.qualify}
               contacts={product.contacts}
               productName={product.name}
               slug={product.slug}
+              track={measurement.track}
+              measurementEvents={{
+                start: product.measurement.interactionEvents.qualifyStart,
+                submit: product.measurement.interactionEvents.qualifySubmit,
+              }}
+              measurementEventNames={product.measurement.events}
+              measurementDisclosure={product.measurement.disclosure}
+              clearMeasurementContext={measurement.clearContext}
             />
           </div>
         </section>
 
         <section id="onboarding" aria-label="Onboarding" className="scroll-mt-4 bg-[#18275F] py-12 text-white md:py-16">
           <div className={containerClasses}>
-            <OnboardingChoices product={product} position="closing" />
+            <OnboardingChoices
+              product={product}
+              position="closing"
+              track={measurement.track}
+            />
           </div>
         </section>
       </main>
@@ -222,6 +282,13 @@ export default function ProductPage({ product }: ProductPageProps) {
           <div className="flex flex-wrap gap-2">
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.emailHref}>{product.contacts.email}</a>
+            <a
+              className={`${footerLinkClasses} text-[#4054C6]`}
+              href={`#${product.slug}-measurement-disclosure`}
+              onClick={handleMeasurementDisclosureLink}
+            >
+              How we measure this page
+            </a>
             <a className={`${footerLinkClasses} text-green-800`} href="/">Back to ZERO-PAPER HUB</a>
           </div>
         </div>

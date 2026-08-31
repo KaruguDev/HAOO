@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import type {
   ProductContacts,
+  ProductMeasurementDisclosure,
   ProductQualifyForm,
   QualifyField,
 } from '../products/types';
@@ -10,6 +11,21 @@ import {
   requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
+import MeasurementDisclosure from './MeasurementDisclosure';
+import {
+  buildSubmissionBody,
+  HONEYPOT_NAME,
+  isFieldRequired,
+  QUALIFY_REQUEST_TIMEOUT_MS,
+  QUALIFY_STATUS_MESSAGES,
+  QUALIFY_SUBMIT_LABEL,
+  QUALIFY_SUBMITTING_LABEL,
+  QUALIFY_SUMMARY_HEADING,
+  validateQualifyValues,
+  type QualifyErrors,
+  type QualifyValues,
+  type SubmissionState,
+} from './qualify-form.logic';
 
 interface QualifyFormProps {
   readonly qualify: ProductQualifyForm;
@@ -17,42 +33,17 @@ interface QualifyFormProps {
   readonly productName: string;
   /** Namespaces every DOM id this form owns. See `qualifyId`. */
   readonly slug: string;
+  readonly track: (event: string) => boolean;
+  readonly measurementEvents: {
+    readonly start: string;
+    readonly submit: string;
+  };
+  readonly measurementEventNames?: readonly string[];
+  readonly measurementDisclosure?: ProductMeasurementDisclosure<string>;
+  readonly clearMeasurementContext?: () => boolean;
 }
 
-type QualifyValues = Record<string, string>;
-type QualifyErrors = Record<string, string>;
-type SubmissionState = 'idle' | 'submitting' | 'succeeded' | 'failed';
-
-/** Locked UI-SPEC control copy. Every string below is rendered byte-identically. */
-export const QUALIFY_SUBMIT_LABEL = 'Send my details';
-export const QUALIFY_SUBMITTING_LABEL = 'Sending…';
-export const QUALIFY_SUMMARY_HEADING = 'There is a problem';
-
-/**
- * Text routed through the persistently mounted status region. Each string describes a
- * browser-observable event: `Your details were sent.` reports what this page did, never
- * what a mailbox received.
- */
-export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> = {
-  idle: '',
-  submitting: 'Sending your details…',
-  succeeded: 'Your details were sent.',
-  failed: "We couldn't send your details.",
-};
-
 const QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way';
-/**
- * Request budget. `fetch` has no default timeout in any browser, so a request that never
- * settles — a captive portal, a dropped mobile connection, a hung provider — would
- * otherwise hold the in-flight guard and the `submitting` state forever, and the
- * recovery panel offering the product's direct contact routes renders only in the failed
- * state. A stall is therefore treated as a failure, so recovery stays reachable on
- * exactly the network conditions those routes exist for.
- */
-export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
-const HONEYPOT_NAME = '_honey';
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const focusClasses =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 /**
@@ -101,30 +92,6 @@ function honeypotId(slug: string) {
 }
 
 /**
- * Computed requiredness, and the single seam every requiredness surface reads: the label
- * suffix, the native attribute, `aria-required`, the validator and the announcement all
- * call this one function, so they cannot drift apart.
- *
- * A base-required field is always required. Otherwise the optional `requiredWhen`
- * descriptor is evaluated generically — read the controlling field named by the
- * descriptor and test the current value for exact membership in the configured trigger
- * list. This component recognises no field name and no option value of any product.
- */
-export function isFieldRequired(field: QualifyField, values: QualifyValues): boolean {
-  if (field.required) {
-    return true;
-  }
-
-  const rule = field.requiredWhen;
-
-  if (!rule) {
-    return false;
-  }
-
-  return rule.values.includes(values[rule.field] ?? '');
-}
-
-/**
  * The announcement for a descriptor that has just started matching, with `{value}`
  * replaced by the controlling value the visitor selected. Returns an empty string when
  * no descriptor controlled by `changed` matches, which is how the reversal clears the
@@ -150,121 +117,6 @@ function requirednessAnnouncement(
   return '';
 }
 
-/**
- * Every key this function owns: the provider options it seeds, the derived `Source` note
- * it appends, and the header-shaped options it must never emit. A product field claiming
- * any of them would either overwrite a spam control, destroy the source note, or — for
- * `_cc`, `_next`, `_autoresponse` and `_replyto` — route a *visitor-supplied* value into
- * a provider option that redirects or replies to mail.
- */
-export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
-  '_subject',
-  '_template',
-  '_captcha',
-  '_honey',
-  '_cc',
-  '_next',
-  '_autoresponse',
-  '_replyto',
-  'Source',
-]);
-
-/**
- * Pure provider-request descriptor. Emits only the provider options this product needs
- * plus one readable key per supplied field. `_cc`, `_next`, `_autoresponse` and
- * `_replyto` are never emitted under any condition, and that prohibition is enforced
- * here against `RESERVED_EMAIL_LABELS` rather than inferred from the current product's
- * data: a misconfigured field fails the request loudly instead of quietly handing a
- * header-shaped option to a visitor.
- */
-export function buildSubmissionBody(
-  values: QualifyValues,
-  qualify: ProductQualifyForm,
-): Record<string, string> {
-  const body: Record<string, string> = {
-    _subject: qualify.subject,
-    _template: 'table',
-    _captcha: 'false',
-    _honey: values[HONEYPOT_NAME] ?? '',
-  };
-
-  for (const field of qualify.fields) {
-    if (RESERVED_EMAIL_LABELS.has(field.emailLabel)) {
-      throw new Error(
-        `Field "${field.name}" uses reserved email label "${field.emailLabel}"`,
-      );
-    }
-
-    const value = (values[field.name] ?? '').trim();
-
-    if (value !== '') {
-      body[field.emailLabel] = value;
-    }
-  }
-
-  body.Source = qualify.sourceNote;
-
-  return body;
-}
-
-/**
- * Pure validator run against controlled state immediately before the request, so a
- * programmatically over-bound value or a manipulated select value issues zero requests
- * rather than relying on native attributes the page deliberately disables.
- */
-export function validateQualifyValues(
-  values: QualifyValues,
-  qualify: ProductQualifyForm,
-): QualifyErrors {
-  const errors: QualifyErrors = {};
-
-  for (const field of qualify.fields) {
-    const raw = values[field.name] ?? '';
-    const value = raw.trim();
-
-    if (isFieldRequired(field, values) && value === '') {
-      errors[field.name] = field.requiredMessage;
-      continue;
-    }
-
-    if (value === '') {
-      continue;
-    }
-
-    if (typeof field.maxLength === 'number' && raw.length > field.maxLength) {
-      errors[field.name] =
-        field.lengthMessage ?? field.formatMessage ?? field.requiredMessage;
-      continue;
-    }
-
-    if (field.control === 'select') {
-      const allowed = (field.options ?? []).map((option) => option.value);
-
-      if (!allowed.includes(raw)) {
-        errors[field.name] = field.formatMessage ?? field.requiredMessage;
-      }
-
-      continue;
-    }
-
-    // A configured pattern applies to any free-text control, so a product can express a
-    // format rule without this component learning what the field means. An email control
-    // with no configured pattern falls back to the shared shape check.
-    const pattern = field.formatPattern
-      ? new RegExp(field.formatPattern)
-      : field.control === 'email'
-        ? EMAIL_PATTERN
-        : null;
-
-    if (pattern && !pattern.test(value)) {
-      errors[field.name] =
-        field.formatMessage ?? field.lengthMessage ?? field.requiredMessage;
-    }
-  }
-
-  return errors;
-}
-
 function seedValues(qualify: ProductQualifyForm): QualifyValues {
   const seeded: QualifyValues = { [HONEYPOT_NAME]: '' };
 
@@ -277,9 +129,14 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
 
 export default function QualifyForm({
   contacts,
+  measurementEvents,
+  measurementEventNames,
+  measurementDisclosure,
   productName,
   qualify,
   slug,
+  track,
+  clearMeasurementContext,
 }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   // The authoritative latest snapshot. `values` from the render closure is stale for any
@@ -309,12 +166,33 @@ export default function QualifyForm({
   // Synchronous concurrency authority. React state and the native disabled attribute
   // are visual and assistive feedback, never the guard that admits a request.
   const inFlightRef = useRef(false);
+  const startRecordedRef = useRef(false);
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const confirmationRef = useRef<HTMLHeadingElement | null>(null);
   const failureRef = useRef<HTMLHeadingElement | null>(null);
 
   const invalidFields = qualify.fields.filter((field) => errors[field.name]);
   const contactActions = qualifyContactActionLabels(productName, contacts);
+
+  function handleQualifyStart(event: FormEvent<HTMLFormElement>) {
+    const target = event.target;
+    const isQualificationControl =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLSelectElement ||
+      target instanceof HTMLTextAreaElement;
+
+    if (
+      !isQualificationControl ||
+      !qualify.fields.some((field) => field.name === target.name)
+    ) {
+      return;
+    }
+
+    if (startRecordedRef.current) return;
+
+    startRecordedRef.current = true;
+    track(measurementEvents.start);
+  }
 
   useEffect(() => {
     if (attempts === 0) {
@@ -420,13 +298,16 @@ export default function QualifyForm({
     const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
 
     try {
+      const body = JSON.stringify(buildSubmissionBody(submittedValues, qualify));
+
+      track(measurementEvents.submit);
       const response = await fetch(qualify.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify(buildSubmissionBody(submittedValues, qualify)),
+        body,
         signal: controller.signal,
       });
 
@@ -592,6 +473,8 @@ export default function QualifyForm({
           <form
             noValidate
             onSubmit={handleSubmit}
+            onFocus={handleQualifyStart}
+            onChange={handleQualifyStart}
             className="relative max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
           >
           <div
@@ -658,6 +541,15 @@ export default function QualifyForm({
                 <p className="mt-3">{qualify.collectionNote.processor}</p>
                 <p className="mt-3">{qualify.collectionNote.pageContext}</p>
               </div>
+            ) : null}
+
+            {measurementEventNames && measurementDisclosure && clearMeasurementContext ? (
+              <MeasurementDisclosure
+                slug={slug}
+                events={measurementEventNames}
+                disclosure={measurementDisclosure}
+                clearContext={clearMeasurementContext}
+              />
             ) : null}
 
             <button

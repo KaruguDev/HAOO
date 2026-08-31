@@ -104,7 +104,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 ### Phase 3: Build Privacy-Bounded Engagement Context
 
-**Goal**: Visitors receive a fully functional HAOO journey whose disclosed measurement and browser context stay aggregate, coarse, bounded, and free of personal or stable identity data.
+**Goal:** As a HAOO prospect, I want to follow a privacy-bounded journey, so that I can onboard without identity tracking.
 **Mode:** mvp
 **Depends on**: Phase 2
 **Requirements**: MEAS-02, MEAS-03, MEAS-04, MEAS-06, MEAS-07
@@ -115,7 +115,24 @@ This milestone turns the existing company landing page into a product-led site b
   3. Allowlisted campaign parameters are normalized before use and cannot introduce personal information into analytics or lead context.
   4. Visitor can still read the HAOO page, use brochure controls, submit the form, and follow every onboarding route when analytics scripts or browser storage are blocked or unavailable.
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+**Wave 1**
+
+- [x] 03-01-PLAN.md — Prove the product-configured no-op page-view tracer and measurement capability boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 03-02-PLAN.md — Complete exhaustive event, campaign, bounded-context, expiry, and failure contracts.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 03-03-PLAN.md — Instrument brochure, form, assisted-contact, and self-onboarding actions.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 03-04-PLAN.md — Ship the approved disclosure, visitor clear control, and footer discovery path.
+
 **UI hint**: yes
 
 ### Phase 4: Report and Enrich the HAOO Funnel Truthfully
@@ -158,6 +175,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
-| 3. Build Privacy-Bounded Engagement Context | 0/TBD | Not started | - |
+| 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 0/TBD | Not started | - |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

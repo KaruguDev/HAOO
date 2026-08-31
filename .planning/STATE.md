@@ -1,19 +1,18 @@
 ---
 gsd_state_version: 1.0
-current_phase: 02
-current_phase_name: Submit a Qualified HAOO Enquiry
-status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-08-30T12:23:22.774Z"
-last_activity: 2026-08-30
-state_head: 08e2bea9c6a5585ed8d4c0e85781e89822dd3f01
+current_phase: 03
+current_phase_name: Build Privacy-Bounded Engagement Context
+status: "Phase 03 shipped — PR #4"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-08-31T20:38:29.291Z"
+last_activity: 2026-08-31
+state_head: 09afb6ddac23fce2fd91158524b0296595ee8cdd
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 20
+  completed_plans: 20
   percent: 20
-last_activity_desc: Phase 02 execution started
 ---
 
 # Project State
@@ -23,24 +22,18 @@ last_activity_desc: Phase 02 execution started
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 02 — Submit a Qualified HAOO Enquiry
+**Current focus:** Phase 03 — Build Privacy-Bounded Engagement Context
 
 ## Current Position
 
-Phase: 02 (Submit a Qualified HAOO Enquiry) — EXECUTING
-Plan: 7 of 7
-Status: Ready to execute
-Last activity: 2026-08-30
+Phase: 03 (Build Privacy-Bounded Engagement Context) — EXECUTING
+Plan: 4 of 4
+Status: Phase 03 shipped — PR #4
+Last activity: 2026-08-31
 
 Progress: [████████████████████] 9/9 plans ([██░░░░░░░░] 20%)
 
 ## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 9
-- Average duration: -
-- Total execution time: 0.0 hours
 
 **By Phase:**
 
@@ -69,6 +62,10 @@ Progress: [████████████████████] 9/9 pla
 | Phase 02 P04 | 14 min | 2 tasks | 3 files |
 | Phase 02 P05 | 7 min | 3 tasks | 8 files |
 | Phase 02 P06 | 6 min | 2 tasks | 5 files |
+| Phase 03 P01 | 8h 4m | 2 tasks | 8 files |
+| Phase 03 P02 | 8 min | 2 tasks | 6 files |
+| Phase 03 P03 | 12 min | 3 tasks | 9 files |
+| Phase 03 P04 | 22 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -116,6 +113,15 @@ Recent decisions affecting current work:
 - [Phase 02]: Retry uses the same validated and synchronously guarded submission path as the initial request. — This retains visitor values without creating a weaker or concurrent request seam.
 - [Phase 02]: The user selected approve-merge for the exact two-part collection disclosure in 02-UI-SPEC.md; this approves implementation and merge of that wording only, without a broader legal-compliance conclusion.
 - [Phase 02]: Phase 2 submits only provider options, Source, and supplied field email labels; it emits no engagement-summary value or placeholder.
+- [Phase 03]: Keep tracking event-name-only and derive accepted literals from readonly product configuration. — This removes any event-property or form-value delivery channel.
+- [Phase 03]: Confine storage and ambient URL access to src/measurement/index.ts. — All product and component sources retain inherited static privacy prohibitions.
+- [Phase 03]: Keep the generic reducer product-agnostic by adding a product-owned interactionEventFlags map instead of decoding HAOO event-name suffixes inside src/measurement/.
+- [Phase 03]: Treat exactly 180 elapsed UTC days as retained context and rebuild fresh only when age is greater than 180 days.
+- [Phase 03]: Export the exact context-key tuple and single-argument tracking arity as executable structural contracts for static boundary tests.
+- [Phase 03]: Add a product-owned semantic interactionEvents map so reusable components can request exact signals without containing HAOO literals or inferring meaning from tuple order. — Preserves D-04 product genericity while giving each component a stable event meaning.
+- [Phase 03]: Build the qualification request body before emitting qualify_submit, then emit immediately before fetch. — Serialization failures are not network attempts, while validated admitted fetch attempts are counted truthfully.
+- [Phase 03]: Keep the owner-approved HAOO notice as a literal in HAOO product configuration so the generic copy module remains product-name-free and the exact sentence survives bundling. — The public notice is owner-approved byte-exact copy, while reusable copy helpers are contractually product-generic.
+- [Phase 03]: Enhance the footer fragment by setting the target details open without preventing default or moving focus. — This preserves native fragment navigation and no-JavaScript usefulness while adding a small progressive enhancement.
 
 ### Pending Todos
 
@@ -146,6 +152,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T12:23:22.714Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-08-31T11:34:44.933Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None

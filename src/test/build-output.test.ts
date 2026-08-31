@@ -1,8 +1,14 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  CONTEXT_RECORD_KEYS,
+  MEASUREMENT_TRACK_ARGUMENT_COUNT,
+  createMeasurement,
+} from '../measurement';
 import { HAOO_PRODUCT } from '../products/haoo';
+import { buildSubmissionBody } from '../components/qualify-form.logic';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
@@ -31,6 +37,8 @@ const PRODUCT_ASSETS = [
   '/products/haoo/haoo-hero.png',
   '/products/haoo/haoo-logo.png',
 ];
+const APPROVED_COLLECTION_NOTICE =
+  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
 
 /**
  * Static boundary for the product surface, narrowed per file rather than deleted.
@@ -62,6 +70,12 @@ const ALWAYS_FORBIDDEN = [
 const NETWORK_FORBIDDEN = [/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/] as const;
 const PROVIDER_FORBIDDEN = [/formsubmit/] as const;
 const FORM_MARKUP_FORBIDDEN = [/FormData|<form\b/] as const;
+const MEASUREMENT_PRIVACY_FORBIDDEN = [
+  /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+  /\b(?:uuid|fingerprint)\b/i,
+  /\b(?:eventQueue|clickstream)\b/i,
+  /(?:track|eventSink)\s*\([^,\n]+,/,
+] as const;
 
 const FULL_BOUNDARY = [
   ...ALWAYS_FORBIDDEN,
@@ -70,10 +84,25 @@ const FULL_BOUNDARY = [
   ...FORM_MARKUP_FORBIDDEN,
 ] as const;
 
+// The measurement facade is the sole browser-capability boundary. It needs
+// storage and the current URL for bounded context/campaign handling, but it
+// keeps every unrelated prohibition plus explicit privacy-channel guards.
+const MEASUREMENT_FACADE_BOUNDARY = [
+  /dangerouslySetInnerHTML/,
+  /gtag\(|dataLayer|analytics\./,
+  /react-router|createBrowserRouter/,
+  /supabase/i,
+  ...NETWORK_FORBIDDEN,
+  ...PROVIDER_FORBIDDEN,
+  ...FORM_MARKUP_FORBIDDEN,
+  ...MEASUREMENT_PRIVACY_FORBIDDEN,
+] as const;
+
 const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
   'src/pages/ProductPage.tsx': FULL_BOUNDARY,
   'src/components/BrochurePanel.tsx': FULL_BOUNDARY,
   'src/components/OnboardingChoices.tsx': FULL_BOUNDARY,
+  'src/components/MeasurementDisclosure.tsx': FULL_BOUNDARY,
   'src/components/ProductHeader.tsx': FULL_BOUNDARY,
   'src/components/ProductsSection.tsx': FULL_BOUNDARY,
   'src/products/copy.ts': FULL_BOUNDARY,
@@ -84,7 +113,9 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...NETWORK_FORBIDDEN,
     ...FORM_MARKUP_FORBIDDEN,
   ],
+  'src/measurement/index.ts': MEASUREMENT_FACADE_BOUNDARY,
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+  'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
 
@@ -390,9 +421,12 @@ describe('Phase 1 static build contracts', () => {
       }
     }
 
-    // Every product source — including the two that gained a capability — still
-    // carries the whole always-forbidden group.
-    for (const forbiddenGroup of Object.values(PRODUCT_SOURCE_BOUNDARY)) {
+    // Every existing product source — including the two Phase 2 files that gained
+    // a capability — still carries the whole always-forbidden group. The audited
+    // measurement facade is the sole narrowed browser-capability boundary.
+    for (const [relativePath, forbiddenGroup] of Object.entries(PRODUCT_SOURCE_BOUNDARY)) {
+      if (relativePath === 'src/measurement/index.ts') continue;
+
       for (const forbidden of ALWAYS_FORBIDDEN) {
         expect(forbiddenGroup).toContain(forbidden);
       }
@@ -400,6 +434,25 @@ describe('Phase 1 static build contracts', () => {
 
     expect(existsSync(resolve(ROOT, 'components.json'))).toBe(false);
     expect(existsSync(resolve(ROOT, 'src/components/ui'))).toBe(false);
+  });
+
+  it('covers every local production dependency imported by QualifyForm', () => {
+    const owner = 'src/components/QualifyForm.tsx';
+    const source = readText(resolve(ROOT, owner));
+    const localImports = [...source.matchAll(/from\s+['"](\.[^'"]+)['"]/g)]
+      .map(([, specifier]) => {
+        const base = resolve(ROOT, dirname(owner), specifier);
+        const sourcePath = [`${base}.ts`, `${base}.tsx`, base]
+          .find((candidate) => existsSync(candidate));
+
+        expect(sourcePath, specifier).toBeTruthy();
+        return relative(ROOT, sourcePath ?? base).replace(/\\/g, '/');
+      });
+
+    expect(localImports).toContain('src/components/qualify-form.logic.ts');
+    for (const dependency of localImports) {
+      expect(PRODUCT_SOURCE_BOUNDARY, dependency).toHaveProperty(dependency);
+    }
   });
 
   it('runs every inherited static prohibition against the qualification fallback', () => {
@@ -423,5 +476,120 @@ describe('Phase 1 static build contracts', () => {
       }
     }
     expect(scanned).toBe(FULL_BOUNDARY.length);
+  });
+
+  it('grants browser measurement capabilities only to the audited facade', () => {
+    const measurementPath = 'src/measurement/index.ts';
+    const measurementBoundary = PRODUCT_SOURCE_BOUNDARY[measurementPath];
+
+    expect(measurementBoundary).toBeTruthy();
+    expect(measurementBoundary).toContain(PROVIDER_FORBIDDEN[0]);
+    expect(measurementBoundary).toContain(FORM_MARKUP_FORBIDDEN[0]);
+    for (const forbidden of MEASUREMENT_PRIVACY_FORBIDDEN) {
+      expect(measurementBoundary).toContain(forbidden);
+    }
+
+    for (const [relativePath, forbiddenGroup] of Object.entries(PRODUCT_SOURCE_BOUNDARY)) {
+      if (relativePath === measurementPath) continue;
+
+      for (const forbidden of ALWAYS_FORBIDDEN) {
+        expect(forbiddenGroup, relativePath).toContain(forbidden);
+      }
+    }
+  });
+
+  it('ships the unset provider bundle without identity, property, queue, or SDK seams', () => {
+    const bundle = builtBundleText();
+    const forbiddenBundlePatterns = [
+      /googletagmanager|google-analytics|plausible\.io|umami|posthog|segment\.com/i,
+      /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+      /\b(?:uuid|fingerprint|clickstream|eventQueue)\b/i,
+      /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i,
+    ];
+
+    for (const forbidden of forbiddenBundlePatterns) {
+      expect(bundle, String(forbidden)).not.toMatch(forbidden);
+    }
+  });
+
+  it('pins the local record and bare tracking call to finite structural shapes', () => {
+    const source = readText(resolve(ROOT, 'src/measurement/index.ts'));
+    const measurement = createMeasurement(HAOO_PRODUCT.measurement, {
+      storage: window.localStorage,
+      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+    });
+
+    expect(CONTEXT_RECORD_KEYS).toEqual([
+      'version',
+      'visitBand',
+      'lastSeenBand',
+      'flags',
+      'visitOrdinal',
+      'lastSeenDay',
+    ]);
+    expect(MEASUREMENT_TRACK_ARGUMENT_COUNT).toBe(1);
+    expect(measurement.track.length).toBe(MEASUREMENT_TRACK_ARGUMENT_COUNT);
+    expect(source).toMatch(/function track\(event: EventName\): boolean/);
+    expect(source).toMatch(/eventSink\?\.\(event\)/);
+    expect(source).not.toMatch(/eventSink\?\.\(event\s*,/);
+    expect(source).not.toMatch(/\b(?:eventQueue|eventLog|emittedEvents|retryTimer)\b/);
+    expect(source).not.toMatch(/\b(?:setTimeout|setInterval|console\.(?:log|debug))\s*\(/);
+  });
+
+  it('keeps derivation metadata and engagement context out of qualification payloads', () => {
+    const values = Object.fromEntries(
+      HAOO_PRODUCT.qualify.fields.map((field) => [field.name, `private-${field.name}`]),
+    );
+    const body = buildSubmissionBody(values, HAOO_PRODUCT.qualify);
+    const serializedBody = JSON.stringify(body);
+
+    expect(Object.keys(body)).toEqual([
+      '_subject',
+      '_template',
+      '_captcha',
+      '_honey',
+      ...HAOO_PRODUCT.qualify.fields.map((field) => field.emailLabel),
+      'Source',
+    ]);
+    for (const contextKey of CONTEXT_RECORD_KEYS) {
+      expect(serializedBody).not.toContain(contextKey);
+    }
+    expect(serializedBody).not.toMatch(/engagement|campaign|utm_/i);
+  });
+
+  it('keeps the production bundle free of identity and ordered-emission channels', () => {
+    const bundle = builtBundleText();
+    const forbiddenBundlePatterns = [
+      /document\.cookie|sessionStorage|indexedDB/,
+      /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+      /\b(?:uuid|fingerprint|clickstream|eventQueue|emittedEvents)\b/i,
+    ];
+
+    expect(bundle).toContain('visitOrdinal');
+    expect(bundle).toContain('lastSeenDay');
+    for (const forbidden of forbiddenBundlePatterns) {
+      expect(bundle, String(forbidden)).not.toMatch(forbidden);
+    }
+  });
+
+  it('keeps measurement disclosure static, bounded, and fragment-discoverable', () => {
+    const pageSource = readText(resolve(ROOT, 'src/pages/ProductPage.tsx'));
+    const disclosureSource = readText(
+      resolve(ROOT, 'src/components/MeasurementDisclosure.tsx'),
+    );
+    const bundle = builtBundleText();
+
+    expect(PRODUCT_SOURCE_BOUNDARY['src/components/MeasurementDisclosure.tsx'])
+      .toEqual(FULL_BOUNDARY);
+    expect(pageSource).toContain('href={`#${product.slug}-measurement-disclosure`}');
+    expect(pageSource).toContain('handleMeasurementDisclosureLink');
+    expect(pageSource).not.toMatch(/handleMeasurementDisclosureLink[\s\S]{0,300}preventDefault/);
+    expect(disclosureSource).toContain('<details');
+    expect(disclosureSource).toContain('<summary');
+    expect(disclosureSource.indexOf('<summary'))
+      .toBeLessThan(disclosureSource.indexOf('<div className="mt-6 space-y-6">'));
+    expect(disclosureSource).not.toMatch(/skeleton|spinner|loading|line-clamp|truncate|text-ellipsis|overflow-x/i);
+    expect(bundle).toContain('How we measure this page');
+    expect(bundle).toContain(APPROVED_COLLECTION_NOTICE);
   });
 });

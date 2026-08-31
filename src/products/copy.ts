@@ -97,16 +97,10 @@ export function qualifyCollectionNoteProcessor() {
   return 'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
 }
 
-/**
- * Forward-looking disclosure. The page-use summary it describes is not built yet, so the
- * sentence is written in the future tense: a privacy notice must never describe
- * collection that does not occur. The tense flips to present in the same change that
- * adds the summary to the request body, so the notice and the payload land together.
- */
 export function qualifyCollectionNotePageContext(productName: string) {
   const name = requireIdentity(productName, 'name');
 
-  return `In future, a short summary of how you used this ${name} page will be included with your details. It will be coarse and anonymous — it will never include your message text, exact portfolio numbers, or any identifier that follows you across sites.`;
+  return `This page remembers only coarse ${name} engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted ${name}, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.`;
 }
 
 /**
