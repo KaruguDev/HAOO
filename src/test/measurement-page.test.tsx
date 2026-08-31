@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
@@ -126,5 +126,93 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     });
     expect(history.replaceState).toHaveBeenCalledWith(null, '', '/products/haoo/');
     expect(JSON.stringify(measurement.readContext())).not.toContain('utm_');
+  });
+});
+
+describe('Phase 3 HAOO journey measurement expansion', () => {
+  it('measures brochure availability once and every deliberate brochure action', () => {
+    const eventSink = vi.fn();
+
+    render(
+      <StrictMode>
+        <ProductPage
+          product={HAOO_PRODUCT}
+          measurementAdapters={{ eventSink }}
+        />
+      </StrictMode>,
+    );
+    eventSink.mockClear();
+
+    const brochure = screen.getByRole('region', { name: 'Brochure' });
+    const preview = within(brochure).getByRole('img', {
+      name: HAOO_PRODUCT.brochure.previewImageAlt,
+    });
+    const object = brochure.querySelector('object[type="application/pdf"]');
+    const open = within(brochure).getByRole('link', {
+      name: /Open brochure.*new tab/i,
+    });
+    const download = within(brochure).getByRole('link', {
+      name: 'Download brochure',
+    });
+
+    expect(object).not.toBeNull();
+    fireEvent.load(preview);
+    fireEvent.load(object!);
+    fireEvent.click(open);
+    fireEvent.click(open);
+    fireEvent.click(download);
+    fireEvent.click(download);
+
+    expect(eventSink.mock.calls).toEqual([
+      ['haoo_brochure_preview'],
+      ['haoo_brochure_open'],
+      ['haoo_brochure_open'],
+      ['haoo_brochure_download'],
+      ['haoo_brochure_download'],
+    ]);
+  });
+
+  it('measures brochure actions without changing recovery or native destinations when the sink throws', () => {
+    const eventSink = vi.fn(() => {
+      throw new Error('provider unavailable');
+    });
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    const brochure = screen.getByRole('region', { name: 'Brochure' });
+    const preview = within(brochure).getByRole('img', {
+      name: HAOO_PRODUCT.brochure.previewImageAlt,
+    });
+    const open = within(brochure).getByRole('link', {
+      name: /Open brochure.*new tab/i,
+    });
+    const download = within(brochure).getByRole('link', {
+      name: 'Download brochure',
+    });
+    const openDestination = open.outerHTML;
+    const downloadDestination = download.outerHTML;
+
+    expect(() => fireEvent.load(preview)).not.toThrow();
+    expect(() => fireEvent.click(open)).not.toThrow();
+    expect(() => fireEvent.click(download)).not.toThrow();
+    expect(open.outerHTML).toBe(openDestination);
+    expect(download.outerHTML).toBe(downloadDestination);
+
+    fireEvent.error(preview);
+    expect(within(brochure).getByText(
+      "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.",
+    )).toBeTruthy();
+    expect(within(brochure).getByRole('link', {
+      name: /Open brochure.*new tab/i,
+    }).getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    expect(within(brochure).getByRole('link', {
+      name: 'Download brochure',
+    }).getAttribute('download')).toBe(HAOO_PRODUCT.brochure.downloadName);
   });
 });
