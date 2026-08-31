@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
@@ -11,7 +11,24 @@ afterEach(() => {
   window.history.replaceState({}, '', '/products/haoo/');
   window.localStorage.clear();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
+
+function fillValidQualification() {
+  const values = [
+    ['Full name', 'Jane Wanjiru'],
+    ['Email address', 'jane@example.com'],
+    ['How should we reach you?', 'Email'],
+    ['Your role', 'Landlord'],
+    ['How many units do you manage?', '6\u201320 units'],
+    ['Where are your properties?', 'Nairobi'],
+    ['When would you like to start?', 'Ready now'],
+  ] as const;
+
+  for (const [label, value] of values) {
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  }
+}
 
 describe('Phase 3 HAOO page-view measurement tracer', () => {
   it('traces one privacy-bounded HAOO page view', () => {
@@ -307,5 +324,86 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
         expect(link.outerHTML).toBe(nativeMarkup);
       }
     }
+  });
+
+  it('measures qualification start once and only validation-admitted submit attempts', async () => {
+    const eventSink = vi.fn();
+    const fetchSpy = vi.fn(() => Promise.reject(new Error('network unavailable')));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <StrictMode>
+        <ProductPage
+          product={HAOO_PRODUCT}
+          measurementAdapters={{ eventSink }}
+        />
+      </StrictMode>,
+    );
+    eventSink.mockClear();
+
+    const name = screen.getByLabelText('Full name');
+    fireEvent.focus(name);
+    fireEvent.change(name, { target: { value: 'Jane Wanjiru' } });
+    fireEvent.focus(screen.getByLabelText('Email address'));
+    expect(eventSink.mock.calls).toEqual([['haoo_qualify_start']]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(eventSink.mock.calls).toEqual([['haoo_qualify_start']]);
+
+    fillValidQualification();
+    eventSink.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(eventSink.mock.calls).toEqual([['haoo_qualify_submit']]);
+    expect(eventSink.mock.calls[0]).toHaveLength(1);
+
+    const requestBody = JSON.parse(
+      String((fetchSpy.mock.calls[0][1] as RequestInit).body),
+    ) as Record<string, string>;
+    expect(JSON.stringify(eventSink.mock.calls)).not.toContain('Jane Wanjiru');
+    expect(JSON.stringify(eventSink.mock.calls)).not.toContain('Nairobi');
+    expect(requestBody['Full name']).toBe('Jane Wanjiru');
+
+    await screen.findByRole('button', { name: 'Try sending again' });
+    fireEvent.click(screen.getByRole('button', { name: 'Try sending again' }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    expect(eventSink.mock.calls).toEqual([
+      ['haoo_qualify_submit'],
+      ['haoo_qualify_submit'],
+    ]);
+  });
+
+  it('keeps qualification validation, retained values, retry, and outcome independent of measurement failure', async () => {
+    const eventSink = vi.fn(() => {
+      throw new Error('provider unavailable');
+    });
+    const fetchSpy = vi.fn(() => Promise.reject(new Error('network unavailable')));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    expect(() => fireEvent.focus(screen.getByLabelText('Full name'))).not.toThrow();
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toBeTruthy();
+
+    fillValidQualification();
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("We couldn't send your details.")).toBeTruthy();
+    expect((screen.getByLabelText('Full name') as HTMLInputElement).value)
+      .toBe('Jane Wanjiru');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try sending again' }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    expect(eventSink.mock.calls.every((call) => call.length === 1)).toBe(true);
   });
 });
