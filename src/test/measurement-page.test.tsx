@@ -3,9 +3,28 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
-import { HAOO_MEASUREMENT, HAOO_PRODUCT } from '../products/haoo';
+import {
+  HAOO_MEASUREMENT,
+  HAOO_MEASUREMENT_EVENTS,
+  HAOO_PRODUCT,
+} from '../products/haoo';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
+const APPROVED_COLLECTION_NOTICE =
+  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
+
+const SIGNAL_DISCLOSURES = [
+  'That you viewed this HAOO page.',
+  'That the brochure preview became available.',
+  'That you opened the brochure.',
+  'That you downloaded the brochure.',
+  'That you started the qualification form.',
+  "That you tried to send the qualification form after it passed the page's checks.",
+  'That you chose WhatsApp to contact HAOO.',
+  'That you chose phone to contact HAOO.',
+  'That you chose email to contact HAOO.',
+  'That you opened HAOO self-onboarding.',
+] as const;
 
 afterEach(() => {
   window.history.replaceState({}, '', '/products/haoo/');
@@ -409,5 +428,116 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try sending again' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
     expect(eventSink.mock.calls.every((call) => call.length === 1)).toBe(true);
+  });
+});
+
+describe('Phase 3 HAOO measurement disclosure', () => {
+  it('renders the approved complete measurement disclosure', () => {
+    render(<ProductPage product={HAOO_PRODUCT} />);
+
+    const notice = screen.getByText(APPROVED_COLLECTION_NOTICE);
+    const submit = screen.getByRole('button', { name: 'Send my details' });
+    const describedBy = submit.getAttribute('aria-describedby')?.split(/\s+/) ?? [];
+    const details = screen.getByText('How we measure this page').closest('details');
+
+    expect(notice.textContent).toBe(APPROVED_COLLECTION_NOTICE);
+    expect(describedBy).toContain(notice.closest('[id]')?.id);
+    expect(details).not.toBeNull();
+    expect(details?.hasAttribute('open')).toBe(false);
+    expect(details?.firstElementChild?.tagName).toBe('SUMMARY');
+    expect(details?.id).toBe('haoo-measurement-disclosure');
+
+    const disclosure = within(details as HTMLElement);
+    const signalList = disclosure
+      .getByText('Signals this page can count')
+      .nextElementSibling;
+    const signalItems = signalList ? within(signalList as HTMLElement).getAllByRole('listitem') : [];
+
+    expect(signalItems.map((item) => item.textContent)).toEqual(SIGNAL_DISCLOSURES);
+    expect(signalItems).toHaveLength(HAOO_MEASUREMENT_EVENTS.length);
+    expect(HAOO_PRODUCT.measurement.disclosure.signalLines).toEqual(
+      Object.fromEntries(
+        HAOO_MEASUREMENT_EVENTS.map((event, index) => [event, SIGNAL_DISCLOSURES[index]]),
+      ),
+    );
+
+    const disclosureText = details?.textContent ?? '';
+    const orderedCopy = [
+      'We use a closed list of page signals for aggregate product learning and keep a separate, small context record in this browser. The page works if analytics or browser storage is unavailable.',
+      'Signals this page can count',
+      ...SIGNAL_DISCLOSURES,
+      'What this browser remembers',
+      'Whether this visit is first, returning, or frequent.',
+      'Campaign information',
+      'utm_source',
+      'What we never collect for measurement',
+      'Name, email address, phone number, or organization.',
+      'No engagement summary is attached to this form submission yet.',
+      'Clear what this page remembers',
+    ];
+    let previous = -1;
+    for (const copy of orderedCopy) {
+      const current = disclosureText.indexOf(copy);
+      expect(current, copy).toBeGreaterThan(previous);
+      previous = current;
+    }
+
+    expect(disclosure.getByRole('button', {
+      name: 'Clear what this page remembers',
+    }).getAttribute('type')).toBe('button');
+    expect(disclosure.getByRole('status').textContent).toBe('');
+    expect(details?.querySelector('[aria-expanded], [role="button"]')).toBeNull();
+  });
+
+  it('clears only bounded page context and keeps truthful status through failure', () => {
+    const stored = {
+      version: 1,
+      visitBand: 'returning',
+      lastSeenBand: 'this-week',
+      flags: {
+        brochureViewed: true,
+        brochureDownloaded: false,
+        qualifyStarted: false,
+        assistedContact: false,
+        selfOnboarding: false,
+      },
+      visitOrdinal: 2,
+      lastSeenDay: new Date().toISOString().slice(0, 10),
+    };
+    const storage = {
+      getItem: vi.fn(() => JSON.stringify(stored)),
+      setItem: vi.fn(),
+      removeItem: vi.fn(() => {
+        throw new DOMException('Storage is blocked', 'SecurityError');
+      }),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 1,
+    } satisfies Storage;
+    const initialUrl = window.location.href;
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ storage }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Full name'), {
+      target: { value: 'Jane Wanjiru' },
+    });
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Clear what this page remembers',
+    }));
+
+    expect(storage.removeItem).toHaveBeenCalledWith(CONTEXT_KEY);
+    expect(storage.clear).not.toHaveBeenCalled();
+    expect((screen.getByLabelText('Full name') as HTMLInputElement).value)
+      .toBe('Jane Wanjiru');
+    expect(window.location.href).toBe(initialUrl);
+    expect(screen.getByRole('status', {
+      name: 'This page stopped using remembered context for this visit. Your browser did not allow us to clear its saved copy.',
+    })).toBeTruthy();
+    expect(screen.getAllByRole('link', { name: 'Start with HAOO' })).toHaveLength(3);
   });
 });
