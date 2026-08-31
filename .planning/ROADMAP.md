@@ -115,7 +115,7 @@ This milestone turns the existing company landing page into a product-led site b
   3. Allowlisted campaign parameters are normalized before use and cannot introduce personal information into analytics or lead context.
   4. Visitor can still read the HAOO page, use brochure controls, submit the form, and follow every onboarding route when analytics scripts or browser storage are blocked or unavailable.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 **Wave 1**
 
@@ -127,7 +127,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03-PLAN.md — Instrument brochure, form, assisted-contact, and self-onboarding actions.
+- [x] 03-03-PLAN.md — Instrument brochure, form, assisted-contact, and self-onboarding actions.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -175,6 +175,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
-| 3. Build Privacy-Bounded Engagement Context | 2/4 | In Progress|  |
+| 3. Build Privacy-Bounded Engagement Context | 3/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 0/TBD | Not started | - |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
