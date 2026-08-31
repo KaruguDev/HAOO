@@ -285,6 +285,43 @@ describe('disclosed idempotent interaction reducer', () => {
     expect(measurement.readContext().flags).toEqual(expected);
     expect(Object.keys(JSON.parse(storage.getItem(CONTEXT_KEY) ?? '{}'))).toEqual(STORED_KEYS);
   });
+
+  it('reconciles interleaved tabs and never resurrects context removed elsewhere', () => {
+    const storage = new MemoryStorage();
+    const firstTab = measurementWithStorage(storage);
+    const secondTab = measurementWithStorage(storage);
+
+    firstTab.initialize();
+    secondTab.initialize();
+    expect(secondTab.readContext().visitOrdinal).toBe(2);
+
+    firstTab.track('haoo_brochure_download');
+    secondTab.track('haoo_qualify_start');
+
+    expect(firstTab.readContext()).toMatchObject({
+      visitOrdinal: 2,
+      visitBand: 'returning',
+      flags: {
+        brochureDownloaded: true,
+        qualifyStarted: true,
+      },
+    });
+
+    storage.removeItem(CONTEXT_KEY);
+    firstTab.track('haoo_assisted_email');
+    secondTab.track('haoo_self_onboarding');
+
+    expect(secondTab.readContext()).toMatchObject({
+      visitOrdinal: 1,
+      visitBand: 'first',
+      flags: {
+        brochureDownloaded: false,
+        qualifyStarted: false,
+        assistedContact: true,
+        selfOnboarding: true,
+      },
+    });
+  });
 });
 
 describe('campaign whole-value allowlist', () => {

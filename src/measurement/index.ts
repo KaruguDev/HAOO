@@ -269,6 +269,28 @@ export function createMeasurement<const EventName extends string>(
     }
   }
 
+  function reconcileContext(): EngagementContext {
+    const fallback = context ?? freshContext(config, currentDay(adapters));
+    if (storage === null) return fallback;
+
+    try {
+      const raw = storage.getItem(config.storageKey);
+      const stored = parseContext(raw, config, currentDay(adapters));
+
+      if (raw !== null && stored === null) {
+        storage.removeItem(config.storageKey);
+      }
+
+      // A missing record is an intentional reset as well as a first visit. Never use
+      // this facade's stale cache to resurrect flags cleared by another tab.
+      context = stored ?? freshContext(config, currentDay(adapters));
+      return context;
+    } catch {
+      storage = null;
+      return fallback;
+    }
+  }
+
   function initialize() {
     if (initialized) return;
     initialized = true;
@@ -309,7 +331,7 @@ export function createMeasurement<const EventName extends string>(
 
   function currentContext(): EngagementContext {
     if (!initialized) initialize();
-    return context ?? freshContext(config, currentDay(adapters));
+    return reconcileContext();
   }
 
   function clearContext(): boolean {
