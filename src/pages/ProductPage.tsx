@@ -211,7 +211,16 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           <div className={containerClasses}>
             <h2 className={headingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
-            <BrochurePanel brochure={product.brochure} productName={product.name} />
+            <BrochurePanel
+              brochure={product.brochure}
+              productName={product.name}
+              track={measurementRef.current.track}
+              events={{
+                preview: product.measurement.interactionEvents.brochurePreview,
+                open: product.measurement.interactionEvents.brochureOpen,
+                download: product.measurement.interactionEvents.brochureDownload,
+              }}
+            />
           </div>
         </section>
 

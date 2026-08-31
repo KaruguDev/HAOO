@@ -109,6 +109,17 @@ export interface ProductMeasurement<EventName extends string = string> {
   readonly schemaVersion: number;
   readonly events: readonly EventName[];
   readonly pageViewEvent: EventName;
+  readonly interactionEvents: {
+    readonly brochurePreview: EventName;
+    readonly brochureOpen: EventName;
+    readonly brochureDownload: EventName;
+    readonly qualifyStart: EventName;
+    readonly qualifySubmit: EventName;
+    readonly assistedWhatsapp: EventName;
+    readonly assistedPhone: EventName;
+    readonly assistedEmail: EventName;
+    readonly selfOnboarding: EventName;
+  };
   readonly interactionFlags: readonly string[];
   readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
   readonly provider: MeasurementProvider;

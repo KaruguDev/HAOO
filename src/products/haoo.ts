@@ -37,6 +37,17 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
   schemaVersion: 1,
   events: HAOO_MEASUREMENT_EVENTS,
   pageViewEvent: 'haoo_page_view',
+  interactionEvents: {
+    brochurePreview: 'haoo_brochure_preview',
+    brochureOpen: 'haoo_brochure_open',
+    brochureDownload: 'haoo_brochure_download',
+    qualifyStart: 'haoo_qualify_start',
+    qualifySubmit: 'haoo_qualify_submit',
+    assistedWhatsapp: 'haoo_assisted_whatsapp',
+    assistedPhone: 'haoo_assisted_phone',
+    assistedEmail: 'haoo_assisted_email',
+    selfOnboarding: 'haoo_self_onboarding',
+  },
   interactionFlags: [
     'brochureViewed',
     'brochureDownloaded',

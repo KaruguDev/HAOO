@@ -117,6 +117,17 @@ function syntheticProduct(
       schemaVersion: 1,
       events: ['zenith_page_view'],
       pageViewEvent: 'zenith_page_view',
+      interactionEvents: {
+        brochurePreview: 'zenith_page_view',
+        brochureOpen: 'zenith_page_view',
+        brochureDownload: 'zenith_page_view',
+        qualifyStart: 'zenith_page_view',
+        qualifySubmit: 'zenith_page_view',
+        assistedWhatsapp: 'zenith_page_view',
+        assistedPhone: 'zenith_page_view',
+        assistedEmail: 'zenith_page_view',
+        selfOnboarding: 'zenith_page_view',
+      },
       interactionFlags: [
         'brochureViewed',
         'brochureDownloaded',
