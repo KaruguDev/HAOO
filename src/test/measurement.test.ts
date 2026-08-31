@@ -155,6 +155,8 @@ describe('exact stored schema', () => {
     ['ordinal zero', JSON.stringify(storedContext({ visitOrdinal: 0 }))],
     ['ordinal five', JSON.stringify(storedContext({ visitOrdinal: 5, visitBand: 'frequent' }))],
     ['fractional ordinal', JSON.stringify(storedContext({ visitOrdinal: 2.5, visitBand: 'returning' }))],
+    ['string ordinal', JSON.stringify(storedContext({ visitOrdinal: '1' }))],
+    ['boolean ordinal', JSON.stringify(storedContext({ visitOrdinal: true }))],
     ['invalid day syntax', JSON.stringify(storedContext({ lastSeenDay: '2026/08/30' }))],
     ['impossible day', JSON.stringify(storedContext({ lastSeenDay: '2026-02-30' }))],
     ['future day', JSON.stringify(storedContext({ lastSeenDay: '2026-09-01' }))],

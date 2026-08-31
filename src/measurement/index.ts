@@ -28,6 +28,15 @@ export interface Measurement<EventName extends string> {
   clearContext(): boolean;
 }
 
+export const CONTEXT_RECORD_KEYS = [
+  'version',
+  'visitBand',
+  'lastSeenBand',
+  'flags',
+  'visitOrdinal',
+  'lastSeenDay',
+] as const;
+
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'] as const;
 const CAMPAIGN_VALUE = /^[a-z0-9-]+$/;
 const MAX_CAMPAIGN_LENGTH = 32;
@@ -36,6 +45,17 @@ const DAY_MILLISECONDS = 86_400_000;
 
 function dayValue(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+function currentDay<EventName extends string>(
+  adapters: MeasurementAdapters<EventName>,
+): string {
+  try {
+    const value = (adapters.now ?? (() => new Date()))();
+    return dayValue(value);
+  } catch {
+    return dayValue(new Date());
+  }
 }
 
 function dayEpoch(value: string): number | null {
@@ -89,19 +109,13 @@ function parseContext(
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
 
     const record = value as Record<string, unknown>;
-    if (!exactKeys(record, [
-      'version',
-      'visitBand',
-      'lastSeenBand',
-      'flags',
-      'visitOrdinal',
-      'lastSeenDay',
-    ])) return null;
+    if (!exactKeys(record, CONTEXT_RECORD_KEYS)) return null;
     if (record.version !== config.schemaVersion) return null;
     if (!['first', 'returning', 'frequent'].includes(String(record.visitBand))) return null;
     if (!['today', 'this-week', 'this-month', 'earlier']
       .includes(String(record.lastSeenBand))) return null;
-    if (![1, 2, 3, 4].includes(Number(record.visitOrdinal))) return null;
+    if (typeof record.visitOrdinal !== 'number'
+      || ![1, 2, 3, 4].includes(record.visitOrdinal)) return null;
     if (typeof record.lastSeenDay !== 'string') return null;
 
     const age = daysSince(record.lastSeenDay, today);
@@ -154,6 +168,29 @@ function nextContext(previous: EngagementContext, today: string): EngagementCont
     visitOrdinal: ordinal,
     lastSeenDay: today,
   };
+}
+
+function contextWithInteraction(
+  previous: EngagementContext,
+  flag: string | undefined,
+): EngagementContext {
+  if (flag === undefined || previous.flags[flag] === true) return previous;
+  if (!Object.prototype.hasOwnProperty.call(previous.flags, flag)) return previous;
+
+  return {
+    ...previous,
+    flags: {
+      ...previous.flags,
+      [flag]: true,
+    },
+  };
+}
+
+export function isMeasurementEventName<EventName extends string>(
+  events: readonly EventName[],
+  candidate: unknown,
+): candidate is EventName {
+  return typeof candidate === 'string' && events.includes(candidate as EventName);
 }
 
 function browserStorage<EventName extends string>(
@@ -215,7 +252,6 @@ export function createMeasurement<const EventName extends string>(
   config: ProductMeasurement<EventName>,
   adapters: MeasurementAdapters<EventName> = {},
 ): Measurement<EventName> {
-  const allowedEvents = new Set<string>(config.events);
   let context: EngagementContext | null = null;
   let campaign: Readonly<Record<string, string>> = {};
   let initialized = false;
@@ -236,7 +272,7 @@ export function createMeasurement<const EventName extends string>(
     if (initialized) return;
     initialized = true;
 
-    const today = dayValue((adapters.now ?? (() => new Date()))());
+    const today = currentDay(adapters);
     let previous: EngagementContext | null = null;
 
     if (storage !== null) {
@@ -253,23 +289,30 @@ export function createMeasurement<const EventName extends string>(
   }
 
   function track(event: EventName): boolean {
-    if (typeof event !== 'string' || !allowedEvents.has(event)) return false;
+    if (!isMeasurementEventName(config.events, event)) return false;
 
     try {
       adapters.eventSink?.(event);
     } catch {
       // Provider delivery is deliberately isolated from every visitor action.
     }
+
+    try {
+      const previous = currentContext();
+      writeContext(contextWithInteraction(previous, config.interactionEventFlags[event]));
+    } catch {
+      // Local context is independent from provider delivery and visitor actions.
+    }
     return true;
   }
 
   function currentContext(): EngagementContext {
     if (!initialized) initialize();
-    return context ?? freshContext(config, dayValue((adapters.now ?? (() => new Date()))()));
+    return context ?? freshContext(config, currentDay(adapters));
   }
 
   function clearContext(): boolean {
-    const next = freshContext(config, dayValue((adapters.now ?? (() => new Date()))()));
+    const next = freshContext(config, currentDay(adapters));
     context = next;
     if (storage === null) return false;
 

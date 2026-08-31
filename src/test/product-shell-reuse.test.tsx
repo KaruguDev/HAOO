@@ -124,6 +124,7 @@ function syntheticProduct(
         'assistedContact',
         'selfOnboarding',
       ],
+      interactionEventFlags: {},
       provider: 'none',
     },
     ...overrides,

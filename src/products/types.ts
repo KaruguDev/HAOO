@@ -110,6 +110,7 @@ export interface ProductMeasurement<EventName extends string = string> {
   readonly events: readonly EventName[];
   readonly pageViewEvent: EventName;
   readonly interactionFlags: readonly string[];
+  readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
   readonly provider: MeasurementProvider;
 }
 

@@ -44,6 +44,16 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     'assistedContact',
     'selfOnboarding',
   ],
+  interactionEventFlags: {
+    haoo_brochure_preview: 'brochureViewed',
+    haoo_brochure_open: 'brochureViewed',
+    haoo_brochure_download: 'brochureDownloaded',
+    haoo_qualify_start: 'qualifyStarted',
+    haoo_assisted_whatsapp: 'assistedContact',
+    haoo_assisted_phone: 'assistedContact',
+    haoo_assisted_email: 'assistedContact',
+    haoo_self_onboarding: 'selfOnboarding',
+  },
   provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
 };
 
