@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, act } from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
@@ -243,8 +243,28 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
 });
 
 describe('Phase 3 HAOO journey measurement expansion', () => {
-  it('measures brochure availability once and every deliberate brochure action', () => {
+  it('measures only a loaded, visible brochure preview and every deliberate action', () => {
     const eventSink = vi.fn();
+    let intersectionCallback: IntersectionObserverCallback | undefined;
+    const disconnect = vi.fn();
+    const observe = vi.fn();
+
+    class TestIntersectionObserver {
+      readonly root = null;
+      readonly rootMargin = '0px';
+      readonly thresholds = [0];
+
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback;
+      }
+
+      disconnect = disconnect;
+      observe = observe;
+      takeRecords = () => [];
+      unobserve = vi.fn();
+    }
+
+    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
 
     render(
       <StrictMode>
@@ -269,8 +289,27 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     });
 
     expect(object).not.toBeNull();
-    fireEvent.load(preview);
+    expect(observe).toHaveBeenCalledWith(preview);
+    expect(observe).toHaveBeenCalledWith(object);
+
+    // A hidden resource may load, and an HTTP/error object may still dispatch load.
+    // Neither is evidence that the visitor saw a usable preview.
     fireEvent.load(object!);
+    fireEvent.error(object!);
+    fireEvent.load(preview);
+    expect(eventSink).not.toHaveBeenCalled();
+
+    act(() => {
+      intersectionCallback?.([
+        {
+          target: preview,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as unknown as IntersectionObserverEntry,
+      ], {} as IntersectionObserver);
+    });
+
+    fireEvent.load(preview);
     fireEvent.click(open);
     fireEvent.click(open);
     fireEvent.click(download);
@@ -283,6 +322,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
       ['haoo_brochure_download'],
       ['haoo_brochure_download'],
     ]);
+    expect(disconnect).toHaveBeenCalled();
   });
 
   it('measures brochure actions without changing recovery or native destinations when the sink throws', () => {

@@ -1,4 +1,10 @@
-import { useRef, useState } from 'react';
+import {
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Download, ExternalLink } from 'lucide-react';
 import { brochureFallbackBody } from '../products/copy';
 import type { ProductBrochure } from '../products/types';
@@ -37,14 +43,64 @@ export default function BrochurePanel({
 }: BrochurePanelProps) {
   const [previewFailed, setPreviewFailed] = useState(false);
   const previewRecorded = useRef(false);
+  const mobilePreviewRef = useRef<HTMLImageElement | null>(null);
+  const desktopPreviewRef = useRef<HTMLObjectElement | null>(null);
+  const loadedPreviews = useRef(new WeakSet<Element>());
+  const visiblePreviews = useRef(new WeakSet<Element>());
   const showPreview = brochure.previewImageHref !== '' && !previewFailed;
 
-  function handlePreviewAvailable() {
+  const recordVisiblePreview = useCallback((element: Element) => {
     if (previewRecorded.current) return;
+    if (!loadedPreviews.current.has(element) || !visiblePreviews.current.has(element)) {
+      return;
+    }
 
     previewRecorded.current = true;
     track(events.preview);
+  }, [events.preview, track]);
+
+  function handleImageLoad(event: SyntheticEvent<HTMLImageElement>) {
+    loadedPreviews.current.add(event.currentTarget);
+    recordVisiblePreview(event.currentTarget);
   }
+
+  function handleObjectLoad(event: SyntheticEvent<HTMLObjectElement>) {
+    try {
+      if (event.currentTarget.contentDocument?.contentType !== 'application/pdf') {
+        return;
+      }
+    } catch {
+      return;
+    }
+
+    loadedPreviews.current.add(event.currentTarget);
+    recordVisiblePreview(event.currentTarget);
+  }
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting || entry.intersectionRatio <= 0) {
+          continue;
+        }
+
+        visiblePreviews.current.add(entry.target);
+        recordVisiblePreview(entry.target);
+      }
+    });
+    const previews = [mobilePreviewRef.current, desktopPreviewRef.current]
+      .filter((preview): preview is HTMLImageElement | HTMLObjectElement => (
+        preview !== null
+      ));
+
+    previews.forEach((preview) => observer.observe(preview));
+
+    return () => observer.disconnect();
+  }, [showPreview, recordVisiblePreview]);
 
   function handleBrochureOpen() {
     track(events.open);
@@ -61,13 +117,14 @@ export default function BrochurePanel({
         <div className="lg:hidden">
           {showPreview ? (
             <img
+              ref={mobilePreviewRef}
               src={brochure.previewImageHref}
               alt={brochure.previewImageAlt}
               width={brochure.previewImageWidth}
               height={brochure.previewImageHeight}
               loading="lazy"
               decoding="async"
-              onLoad={handlePreviewAvailable}
+              onLoad={handleImageLoad}
               onError={() => setPreviewFailed(true)}
               className="h-auto w-full rounded-2xl border border-[#DFE4F0] bg-white object-cover"
             />
@@ -79,10 +136,11 @@ export default function BrochurePanel({
         {/* Desktop embed attempt with a branded child fallback (D-08). */}
         <div className="hidden lg:block">
           <object
+            ref={desktopPreviewRef}
             data={brochure.pdfHref}
             type="application/pdf"
             aria-label={`${productName} brochure preview`}
-            onLoad={handlePreviewAvailable}
+            onLoad={handleObjectLoad}
             className="aspect-[1287/909] w-full rounded-2xl border border-[#DFE4F0] bg-white"
           >
             <div className={surfaceClasses}>
