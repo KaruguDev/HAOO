@@ -35,12 +35,12 @@
 ### Privacy-First Measurement
 
 - [ ] **MEAS-01**: Product owner can view aggregate counts for HAOO page views, brochure preview/open/download actions, qualification starts/submits, assisted-contact clicks, and self-onboarding clicks
-- [ ] **MEAS-02**: Analytics events use a closed allowlist and contain no names, contact details, free-text form values, exact portfolio/location values, or stable visitor identifiers
-- [ ] **MEAS-03**: Browser stores at most bounded visit bands, coarse date bands, and HAOO interaction flags without a UUID, raw clickstream, or cross-site identity
+- [x] **MEAS-02**: Analytics events use a closed allowlist and contain no names, contact details, free-text form values, exact portfolio/location values, or stable visitor identifiers
+- [x] **MEAS-03**: Browser stores at most bounded visit bands, coarse date bands, and HAOO interaction flags without a UUID, raw clickstream, or cross-site identity
 - [ ] **MEAS-04**: Visitor can read a privacy disclosure describing aggregate analytics, bounded browser context, and the engagement summary attached after voluntary form submission
 - [ ] **MEAS-05**: Submitted qualification email includes a disclosed human-readable summary of relevant HAOO engagement signals without an opaque lead score
-- [ ] **MEAS-06**: Campaign parameters are allowlisted and normalized before use and never include or receive personal information
-- [ ] **MEAS-07**: Product journey remains fully functional when analytics scripts or browser storage are blocked or unavailable
+- [x] **MEAS-06**: Campaign parameters are allowlisted and normalized before use and never include or receive personal information
+- [x] **MEAS-07**: Product journey remains fully functional when analytics scripts or browser storage are blocked or unavailable
 - [ ] **MEAS-08**: Reports describe browser-observable events truthfully as views, attempts, redirect returns, and outbound clicks rather than confirmed delivery, customers, or completed onboarding
 
 ### Experience and Release Quality
@@ -108,12 +108,12 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | LEAD-06 | Phase 2 | Gaps Found |
 | LEAD-07 | Phase 5 | Pending |
 | MEAS-01 | Phase 4 | Pending |
-| MEAS-02 | Phase 3 | Pending |
-| MEAS-03 | Phase 3 | Pending |
+| MEAS-02 | Phase 3 | Complete |
+| MEAS-03 | Phase 3 | Complete |
 | MEAS-04 | Phase 3 | Pending |
 | MEAS-05 | Phase 4 | Pending |
-| MEAS-06 | Phase 3 | Pending |
-| MEAS-07 | Phase 3 | Pending |
+| MEAS-06 | Phase 3 | Complete |
+| MEAS-07 | Phase 3 | Complete |
 | MEAS-08 | Phase 4 | Pending |
 | QUAL-01 | Phase 5 | Pending |
 | QUAL-02 | Phase 5 | Pending |
