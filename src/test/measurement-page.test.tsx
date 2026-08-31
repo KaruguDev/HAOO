@@ -215,4 +215,97 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
       name: 'Download brochure',
     }).getAttribute('download')).toBe(HAOO_PRODUCT.brochure.downloadName);
   });
+
+  it('measures every assisted and self-onboarding activation at all three placements', () => {
+    const eventSink = vi.fn();
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    const cases = [
+      {
+        name: 'Chat with HAOO on WhatsApp',
+        href: HAOO_PRODUCT.contacts.whatsappHref,
+        event: 'haoo_assisted_whatsapp',
+        repetitions: 2,
+      },
+      {
+        name: `Call ${HAOO_PRODUCT.contacts.phoneDisplay}`,
+        href: HAOO_PRODUCT.contacts.phoneHref,
+        event: 'haoo_assisted_phone',
+        repetitions: 1,
+      },
+      {
+        name: `Email ${HAOO_PRODUCT.contacts.email}`,
+        href: HAOO_PRODUCT.contacts.emailHref,
+        event: 'haoo_assisted_email',
+        repetitions: 1,
+      },
+      {
+        name: 'Start with HAOO',
+        href: HAOO_PRODUCT.contacts.selfOnboardingHref,
+        event: 'haoo_self_onboarding',
+        repetitions: 1,
+      },
+    ] as const;
+
+    for (const activation of cases) {
+      const links = screen.getAllByRole('link', { name: activation.name });
+      expect(links).toHaveLength(3);
+
+      for (const link of links) {
+        const nativeMarkup = link.outerHTML;
+        expect(link.getAttribute('href')).toBe(activation.href);
+
+        for (let index = 0; index < activation.repetitions; index += 1) {
+          fireEvent.click(link);
+        }
+
+        expect(link.outerHTML).toBe(nativeMarkup);
+      }
+    }
+
+    expect(eventSink.mock.calls).toEqual([
+      ...Array.from({ length: 6 }, () => ['haoo_assisted_whatsapp']),
+      ...Array.from({ length: 3 }, () => ['haoo_assisted_phone']),
+      ...Array.from({ length: 3 }, () => ['haoo_assisted_email']),
+      ...Array.from({ length: 3 }, () => ['haoo_self_onboarding']),
+    ]);
+    expect(eventSink.mock.calls.every((call) => call.length === 1)).toBe(true);
+  });
+
+  it('keeps every onboarding destination native when assisted measurement throws', () => {
+    const eventSink = vi.fn(() => {
+      throw new Error('provider unavailable');
+    });
+
+    render(
+      <ProductPage
+        product={HAOO_PRODUCT}
+        measurementAdapters={{ eventSink }}
+      />,
+    );
+    eventSink.mockClear();
+
+    const destinations = [
+      ['Chat with HAOO on WhatsApp', HAOO_PRODUCT.contacts.whatsappHref],
+      [`Call ${HAOO_PRODUCT.contacts.phoneDisplay}`, HAOO_PRODUCT.contacts.phoneHref],
+      [`Email ${HAOO_PRODUCT.contacts.email}`, HAOO_PRODUCT.contacts.emailHref],
+      ['Start with HAOO', HAOO_PRODUCT.contacts.selfOnboardingHref],
+    ] as const;
+
+    for (const [name, href] of destinations) {
+      for (const link of screen.getAllByRole('link', { name })) {
+        const nativeMarkup = link.outerHTML;
+        expect(() => fireEvent.click(link)).not.toThrow();
+        expect(link.getAttribute('href')).toBe(href);
+        expect(link.outerHTML).toBe(nativeMarkup);
+      }
+    }
+  });
 });
