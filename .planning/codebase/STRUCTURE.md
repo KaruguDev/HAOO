@@ -1,85 +1,159 @@
-# Structure
+# Codebase Structure
 
-**Analysis Date:** 2026-08-29
+**Analysis Date:** 2026-09-01
 
-## Repository Layout
+## Directory Layout
 
-```text
+```
 ZERO-PAPERHUB/
-├── index.html                 # Vite browser document and React mount point
+├── index.html                  # Home entry document (Vite input "main")
+├── products/
+│   └── haoo/index.html         # HAOO product entry document (Vite input "haoo")
 ├── src/
-│   ├── main.tsx               # React bootstrap/composition root
-│   ├── App.tsx                # Complete landing page, state, helpers, content data
-│   ├── index.css              # Tailwind layers and global document styles
-│   └── vite-env.d.ts           # Vite client type declarations
-├── public/
-│   ├── zero-paper_hub_hi-def.png # Primary logo used by app/favicon
-│   ├── image.png               # Static image asset
-│   ├── CNAME.txt               # Published static-hosting domain asset
-│   ├── .htaccess               # Static-hosting rewrite/config asset
-│   └── marketing/
-│       ├── zero-paper-hub-marketing.html # Editable A4 tri-fold source
-│       ├── zero-paper-hub-marketing.pdf  # Print/share artifact
-│       ├── README.md            # Marketing export/printing instructions
-│       └── assets/zero-paper-hub-logo.png # Marketing document logo
-├── dist/                       # Existing generated static build/artifacts
-├── .bolt/                      # Bolt project metadata/prompts
-├── .planning/codebase/         # GSD-generated repository analysis documents
-├── package.json                # Scripts and dependencies
-├── package-lock.json           # npm lockfile
-├── vite.config.ts              # Vite/React build configuration
-├── tsconfig*.json              # TypeScript project configurations
-├── tailwind.config.js          # Tailwind content scan/theme config
-├── postcss.config.js           # Tailwind + Autoprefixer pipeline
-├── eslint.config.js            # Flat ESLint configuration
-├── CNAME                       # Repository-level custom domain file
-└── README.md                   # Contact form activation/deployment notes
+│   ├── main.tsx                # React bootstrap
+│   ├── App.tsx                 # HomePage + data-page router
+│   ├── index.css               # Tailwind directives / global styles
+│   ├── vite-env.d.ts           # Typed import.meta.env declarations
+│   ├── components/             # Presentational, props-driven units
+│   ├── pages/                  # Whole-document compositions
+│   ├── products/               # Product data layer (types, definitions, registry, copy)
+│   ├── measurement/            # Privacy-bounded engagement context facade
+│   └── test/                   # All vitest suites
+├── public/                     # Copied verbatim to dist/ (images, PDFs, CNAME, .htaccess)
+├── scripts/assert-phase1-red.mjs  # Red-state guard script
+├── dist/                       # Build output (generated, gitignored)
+├── .github/workflows/deploy.yml   # Typecheck→lint→build→test→Pages deploy
+├── .planning/                  # GSD planning artifacts
+├── AGENTS.md                   # Agent working agreement for this repo
+└── vite.config.ts / vitest.config.ts / tailwind.config.js / eslint.config.js / tsconfig*.json
 ```
 
-## Source Organization
+## Directory Purposes
 
-The source tree intentionally remains small and page-oriented:
+**`src/components/`:**
+- Purpose: Reusable presentational units rendered by pages
+- Contains: `.tsx` components plus co-located pure logic modules
+- Key files: `QualifyForm.tsx`, `qualify-form.logic.ts`, `OnboardingChoices.tsx`, `BrochurePanel.tsx`, `ProductHeader.tsx`, `QualifyFallback.tsx`, `MeasurementDisclosure.tsx`, `ProductsSection.tsx`
+- Rule: never import from `src/pages/`; never hardcode product facts
 
-- `src/main.tsx` is the only application entry point. It imports `src/index.css` and mounts `src/App.tsx`.
-- `src/App.tsx` contains all visible sections in page order: fixed navigation, hero, About, Impact Stats, Mission/Vision/Values, Services, Values strip, CTA, Contact, and Footer.
-- Static arrays in `src/App.tsx` (`NAV_LINKS`, `VALUES`, `SERVICES`) are the correct location for repeated labels/descriptions/icons used in the page.
-- `src/index.css` is for global rules only; component styling is represented by Tailwind classes in JSX.
+**`src/pages/`:**
+- Purpose: Full-document composition and page-level effects
+- Key files: `ProductPage.tsx` (the reusable product shell)
+- Note: the home page still lives inline as `HomePage` inside `src/App.tsx`
+
+**`src/products/`:**
+- Purpose: Single source of truth for product facts and their contract
+- Key files: `types.ts` (contract), `haoo.ts` (the one live definition), `registry.ts` (which products ship, route derivation), `copy.ts` (identity-guarded shared labels)
+
+**`src/measurement/`:**
+- Purpose: Local engagement-context facade with injectable adapters
+- Key files: `index.ts`
+
+**`src/test/`:**
+- Purpose: All tests, centralized (not co-located)
+- Key files: `setup.ts` (vitest setup), `build-output.test.ts` (asserts the real `dist/`), `qualify-form.test.tsx`, `qualify-data.test.ts`, `measurement.test.ts`, `measurement-page.test.tsx`, `haoo-page.test.tsx`, `haoo-content.test.ts`, `product-shell-reuse.test.tsx`, `products-section.test.tsx`, `focus-contrast.test.ts`
+
+**`public/`:**
+- Purpose: Assets served at the URL root, untouched by the bundler
+- Contains: `products/haoo/` brochure PDF + preview/hero/logo PNGs, `marketing/` collateral, `zero-paper_hub_hi-def.png`, `CNAME.txt`, `.htaccess`
+
+**`products/`:**
+- Purpose: Per-product HTML entry documents only (no TS/JS). Distinct from `src/products/` (data) and `public/products/` (assets).
+
+## Key File Locations
+
+**Entry Points:**
+- `index.html`: home document, home SEO metadata
+- `products/haoo/index.html`: product document, sets `data-page="haoo-product"`, noscript fallback
+- `src/main.tsx`: React root mount
+- `src/App.tsx`: page selection + HomePage
+
+**Configuration:**
+- `vite.config.ts`: multi-page Rollup inputs, `base: '/'`, `lucide-react` excluded from prebundling
+- `vitest.config.ts`: jsdom environment, `src/test/setup.ts`
+- `tsconfig.app.json` / `tsconfig.node.json` / `tsconfig.json`: project references
+- `eslint.config.js`, `tailwind.config.js`, `postcss.config.js`
+- `src/vite-env.d.ts`: declares `VITE_HAOO_FORM_ENDPOINT`, `VITE_HAOO_MEASUREMENT_PROVIDER`
+- `.github/workflows/deploy.yml`: CI/CD gate order
+
+**Core Logic:**
+- `src/products/types.ts`: the contract new products must satisfy
+- `src/products/haoo.ts`: every HAOO fact, including endpoint resolution
+- `src/components/qualify-form.logic.ts`: validation, submission body, status copy
+- `src/measurement/index.ts`: context banding, campaign parsing, storage lifecycle
+
+**Testing:**
+- `src/test/*.test.ts` / `*.test.tsx`
+- `scripts/assert-phase1-red.mjs`
+
+## Naming Conventions
+
+**Files:**
+- React components: `PascalCase.tsx` — `QualifyForm.tsx`, `ProductPage.tsx`
+- Pure logic / data modules: `kebab-case.ts` or single-word lowercase — `qualify-form.logic.ts`, `registry.ts`, `copy.ts`, `haoo.ts`
+- Co-located logic for a component: `<component-kebab>.logic.ts`
+- Tests: `<subject>.test.ts` for logic, `<subject>.test.tsx` for rendering
+- Barrel-style module entry: `index.ts` (used only by `src/measurement/`)
+
+**Directories:**
+- Lowercase, singular-by-concern: `components`, `pages`, `products`, `measurement`, `test`
+- Product asset and document folders are named by slug: `haoo`
+
+**Exports:**
+- Components: `export default`
+- Data, types, helpers, constants: named exports; constants `SCREAMING_SNAKE_CASE` (`PRODUCTS`, `QUALIFY_ENDPOINT_FALLBACK`, `HONEYPOT_NAME`)
+
+**Routes:** derived from slug as `/products/<slug>/` via `productRoute()` in `src/products/registry.ts`.
 
 ## Where to Add New Code
 
-| Need | Location | Pattern |
-|---|---|---|
-| New landing-page section | `src/App.tsx` | Add a semantic `<section>` in page order with an `id` when navigable; use Tailwind utilities and `useInView()` if it needs reveal animation. |
-| Repeated navigation item | `NAV_LINKS` in `src/App.tsx` | Add `{ label, href }`; renderers already cover desktop, mobile, and footer navigation. |
-| Service/value item | `SERVICES` or `VALUES` in `src/App.tsx` | Add static data and a `lucide-react` icon import; retain stable `title`/`label` keys. |
-| Page interaction/state | `App()` in `src/App.tsx` | Use a focused `useState`/`useEffect`; clean up listeners/observers in effect return functions. |
-| External form/provider setting | Named constants near top of `src/App.tsx` | Keep endpoint and redirect URLs explicit and aligned with native form fields. |
-| Global typography/scroll behavior | `src/index.css` | Add document-level CSS only; do not duplicate Tailwind utilities here. |
-| Image, favicon, downloadable/static asset | `public/` | Reference with a root-relative path (`/asset-name.ext`). Place marketing-only assets under `public/marketing/`. |
-| SEO/document metadata | `index.html` | Update title, favicon, Open Graph, and Twitter metadata in the document head. |
-| Build/lint/type behavior | `vite.config.ts`, `tailwind.config.js`, `postcss.config.js`, `eslint.config.js`, or `tsconfig*.json` | Preserve existing Vite + Tailwind + strict TypeScript toolchain. |
+**New product:**
+1. Definition: `src/products/<slug>.ts` exporting a `ProductDefinition`
+2. Register: add to `PRODUCTS` in `src/products/registry.ts`
+3. Entry document: `products/<slug>/index.html` with `<body data-page="<slug>-product">`, canonical URL, metadata, noscript fallback
+4. Register the document as a Rollup input in `vite.config.ts`
+5. Add the branch in `App` (`src/App.tsx`)
+6. Assets: `public/products/<slug>/`
+7. Tests: `src/test/<slug>-content.test.ts` and `src/test/<slug>-page.test.tsx`; extend `src/test/build-output.test.ts`
 
-## Naming and Placement Rules
+**New product page section:**
+- Component: `src/components/<Name>.tsx`, props typed from `src/products/types.ts`
+- Compose in `src/pages/ProductPage.tsx`
+- Any new copy becomes a definition field, not an inline string
 
-Use PascalCase for React components and camelCase for functions, hooks, and state (`downloadCompanyProfile`, `useInView`, `menuOpen`). Use uppercase names for static page data constants. Keep TypeScript/TSX application code under `src/`; use `public/` only for files that must be served verbatim. Keep editable marketing source and its generated PDF together in `public/marketing/`.
+**New product field:**
+- Extend `src/products/types.ts` first (readonly), then every definition, then consumers — the compiler drives the change
 
-## Build and Generated Files
+**New shared label:**
+- `src/products/copy.ts`, guarded by `requireIdentity`
 
-`dist/` is generated static output and should not be treated as the source of truth for application changes. Edit `src/`, `public/`, and root configuration files, then run `npm run build` to regenerate output. The repository currently contains a checked/available `dist/` tree with built HTML/assets; confirm project policy before committing regenerated artifacts.
+**New measurement event or flag:**
+- Add the event name and `interactionEventFlags` entry in the product's `measurement` config (`src/products/haoo.ts`); if the stored record shape changes, bump `schemaVersion` and update `CONTEXT_RECORD_KEYS` in `src/measurement/index.ts`
+- Add disclosure text under `measurement.disclosure.signalLines` — the disclosure is typed per event name, so an undisclosed event fails typecheck
 
-## Navigation Map
+**New form field:**
+- Add a `QualifyField` to the product's `qualify.fields` and place its name in a `groups` entry; validation is derived, not hand-written. Never use a name in `RESERVED_EMAIL_LABELS`.
 
-The single page has no router. `NAV_LINKS` maps to section IDs:
+**Static asset:**
+- `public/` (root-served, hashed nothing) — reference by absolute path such as `/products/haoo/haoo-hero.png`
 
-```text
-About    → #about
-Mission  → #mission
-Services → #services
-Values   → #values
-Contact  → #contact
-```
+**Tests:**
+- Always `src/test/`, never co-located
 
-The hero and CTA also link directly to these anchors. Preserve matching `href`/`id` pairs when renaming or adding sections, and close the mobile menu from mobile navigation handlers.
+## Special Directories
+
+**`dist/`:** build output. Generated: yes. Committed: no (gitignored). Asserted by `src/test/build-output.test.ts`, so it must exist before `npm run test:unit`.
+
+**`node_modules/`:** generated, not committed.
+
+**`.planning/`:** GSD phase plans, roadmap, state, and these codebase documents. Committed.
+
+**`.claude/worktrees/`:** transient GSD execution worktrees containing full repo copies. Not source; exclude from searches and analysis.
+
+**`.bolt/`, `.gsd/`:** tooling metadata (`config.json`, `prompt`, `dispatch-isolation-sentinel.json`). Not application code.
+
+**`public/marketing/`:** marketing collateral (HTML/PDF/PNG) shipped as static files, not part of the React app.
 
 ---
-*Structure analysis: 2026-08-29*
+
+*Structure analysis: 2026-09-01*
