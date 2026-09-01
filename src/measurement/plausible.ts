@@ -24,6 +24,7 @@ export interface PlausibleInitOptions {
 export interface PlausibleGlobal {
   (...args: unknown[]): void;
   q?: unknown[];
+  o?: PlausibleInitOptions;
   init?: (options: PlausibleInitOptions) => void;
 }
 
@@ -94,7 +95,7 @@ function ensureProvider(scope: PlausibleScope): PlausibleGlobal {
     (stub.q = stub.q ?? []).push(args);
   } as PlausibleGlobal;
   stub.init = (options: PlausibleInitOptions) => {
-    stub('init', options);
+    stub.o = options;
   };
   scope.plausible = stub;
 
