@@ -13,6 +13,7 @@ import {
   type HaooMeasurementEvent,
 } from '../products/haoo';
 import type { MeasurementProvider, ProductMeasurement } from '../products/types';
+import { installPlausibleVendorPreload } from './fixtures/plausible-preload-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
 const TODAY = new Date('2026-08-31T12:00:00.000Z');
@@ -625,17 +626,25 @@ describe('name-only provider sink', () => {
     }
   });
 
-  it('queues calls made before the site script arrives instead of losing them', () => {
+  it('matches the documented preload options and event-queue contract', () => {
     const documentRef = document.implementation.createHTMLDocument('queue');
     const scope: PlausibleScope = {};
+    const vendorScope: Parameters<typeof installPlausibleVendorPreload>[0] = {};
+    const vendorPlausible = installPlausibleVendorPreload(vendorScope);
+    const options = { domain: SITE_DOMAIN, autoCapturePageviews: false } as const;
+
+    vendorPlausible.init?.(options);
     const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
 
+    expect(scope.plausible?.o).toEqual(vendorScope.plausible?.o);
+    expect(scope.plausible?.q).toEqual(vendorScope.plausible?.q);
+
+    vendorPlausible('haoo_page_view');
     sink?.('haoo_page_view');
 
-    expect(scope.plausible?.q).toEqual([
-      ['init', { domain: SITE_DOMAIN, autoCapturePageviews: false }],
-      ['haoo_page_view'],
-    ]);
+    expect(scope.plausible?.o).toEqual(options);
+    expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
+    expect(scope.plausible?.q).toEqual(vendorScope.plausible?.q);
   });
 });
 
@@ -704,10 +713,11 @@ describe('provider failure isolation', () => {
     expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
     // The site script never arrived, so the pre-load queue holds the calls and nothing
     // is retried, logged, or dropped on the floor.
-    expect(scope.plausible?.q).toEqual([
-      ['init', { domain: SITE_DOMAIN, autoCapturePageviews: false }],
-      ['haoo_brochure_download'],
-    ]);
+    expect(scope.plausible?.o).toEqual({
+      domain: SITE_DOMAIN,
+      autoCapturePageviews: false,
+    });
+    expect(scope.plausible?.q).toEqual([['haoo_brochure_download']]);
     expectSilent(spies);
   });
 });
