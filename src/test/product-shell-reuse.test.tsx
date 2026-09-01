@@ -143,6 +143,7 @@ function syntheticProduct(
       ],
       interactionEventFlags: {},
       provider: 'none',
+      providerScript: { src: '', domain: '' },
       disclosure: {
         summary: 'How we measure this page',
         intro: 'This synthetic page uses one aggregate signal and one local browser record.',

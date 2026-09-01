@@ -28,8 +28,64 @@ export const HAOO_MEASUREMENT_EVENTS = [
 
 export type HaooMeasurementEvent = (typeof HAOO_MEASUREMENT_EVENTS)[number];
 
+/**
+ * Every accepted provider value, written once. A value that is not exactly one of these
+ * — after trimming and lowercasing — resolves to the inert no-op sink.
+ */
+const MEASUREMENT_PROVIDERS: readonly MeasurementProvider[] = ['none', 'plausible'];
+
+/**
+ * Fail-closed provider selection. `VITE_HAOO_MEASUREMENT_PROVIDER` is a public
+ * build-time selector, not a URL and never a script source: undefined, blank,
+ * whitespace, an unknown word and an absolute URL all resolve to `'none'`, so a build
+ * with no configuration at all keeps the existing inert sink and an unchanged journey.
+ */
 export function resolveMeasurementProvider(configuredValue?: string): MeasurementProvider {
-  return configuredValue?.trim().toLowerCase() === 'none' ? 'none' : 'none';
+  const candidate = (configuredValue ?? '').trim().toLowerCase();
+
+  return MEASUREMENT_PROVIDERS.find((provider) => provider === candidate) ?? 'none';
+}
+
+/**
+ * Fail-closed provider script source, modelled on `resolveQualifyEndpoint` below.
+ *
+ * The URL is validated structurally and its host is deliberately NOT compared against a
+ * hardcoded origin: writing the analytics origin as a literal in `src/` would inline it
+ * into every build, including builds with no provider configured, which is exactly what
+ * the bundle prohibition exists to prevent. The origin therefore reaches a bundle only
+ * through `VITE_HAOO_PLAUSIBLE_SRC`.
+ *
+ * Accepted only when the value is an absolute `https:` URL carrying no username, no
+ * password, no query string and no fragment, whose path ends in `.js`. Every other
+ * input — including a bare origin, an `http:` URL and any unparsable string — returns
+ * the empty string, which stops the sink being created at all.
+ */
+export function resolvePlausibleScriptSrc(configuredValue?: string): string {
+  const candidate = (configuredValue ?? '').trim();
+
+  if (candidate === '') {
+    return '';
+  }
+
+  try {
+    const url = new URL(candidate);
+
+    if (url.protocol !== 'https:') {
+      return '';
+    }
+
+    if (url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '') {
+      return '';
+    }
+
+    if (!url.pathname.endsWith('.js')) {
+      return '';
+    }
+
+    return candidate;
+  } catch {
+    return '';
+  }
 }
 
 export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
@@ -67,6 +123,10 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     haoo_self_onboarding: 'selfOnboarding',
   },
   provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
+  providerScript: {
+    src: resolvePlausibleScriptSrc(import.meta.env.VITE_HAOO_PLAUSIBLE_SRC),
+    domain: (import.meta.env.VITE_HAOO_PLAUSIBLE_DOMAIN ?? '').trim(),
+  },
   disclosure: {
     summary: 'How we measure this page',
     intro:

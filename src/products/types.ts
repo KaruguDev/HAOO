@@ -148,7 +148,23 @@ export interface ProductQualifyForm {
   readonly groups: readonly QualifyFieldGroup[];
 }
 
-export type MeasurementProvider = 'none';
+/**
+ * The finite set of measurement sinks a product may select. `'none'` is the inert
+ * no-op sink and is the fail-closed default: an unset, blank, or unrecognised
+ * build-time value resolves here, never to a provider.
+ */
+export type MeasurementProvider = 'none' | 'plausible';
+
+/**
+ * Public build-time provider script configuration. Both members arrive through `VITE_`
+ * variables and are therefore inlined into the world-readable bundle by construction —
+ * they are public site identifiers, never credentials. An empty member is the
+ * fail-closed state: the provider sink is not created at all.
+ */
+export interface MeasurementProviderScript {
+  readonly src: string;
+  readonly domain: string;
+}
 
 export interface ProductMeasurementDisclosure<EventName extends string> {
   readonly summary: string;
@@ -198,6 +214,12 @@ export interface ProductMeasurement<EventName extends string = string> {
   readonly interactionFlags: readonly string[];
   readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
   readonly provider: MeasurementProvider;
+  /**
+   * Required, not optional: a product that selects a provider but forgets to configure
+   * its script must fail typecheck rather than silently resolve to a half-configured
+   * sink. `{ src: '', domain: '' }` is the explicit unconfigured value.
+   */
+  readonly providerScript: MeasurementProviderScript;
   readonly disclosure: ProductMeasurementDisclosure<EventName>;
 }
 

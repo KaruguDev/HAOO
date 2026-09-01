@@ -1,4 +1,8 @@
 import type { ProductMeasurement } from '../products/types';
+import {
+  createPlausibleEventSink,
+  type PlausibleAdapters,
+} from './plausible';
 
 export type VisitBand = 'first' | 'returning' | 'frequent';
 export type LastSeenBand = 'today' | 'this-week' | 'this-month' | 'earlier';
@@ -14,6 +18,7 @@ export interface EngagementContext {
 
 export interface MeasurementAdapters<EventName extends string> {
   readonly eventSink?: (event: EventName) => void;
+  readonly providerAdapters?: PlausibleAdapters;
   readonly now?: () => Date;
   readonly storage?: Storage;
   readonly location?: Pick<Location, 'href'>;
@@ -257,6 +262,7 @@ export function createMeasurement<const EventName extends string>(
   let campaign: Readonly<Record<string, string>> = {};
   let initialized = false;
   let storage = browserStorage(adapters);
+  let eventSink = adapters.eventSink;
 
   function writeContext(next: EngagementContext) {
     context = next;
@@ -309,13 +315,22 @@ export function createMeasurement<const EventName extends string>(
 
     writeContext(previous === null ? freshContext(config, today) : nextContext(previous, today));
     campaign = readCampaign(adapters);
+
+    // Campaign parameters are normalized and removed before a provider script is
+    // appended, so automatic capture cannot race ahead of address-bar cleanup. An
+    // injected sink remains authoritative for tests and alternate adapters.
+    if (eventSink === undefined) {
+      eventSink = createPlausibleEventSink(config, adapters.providerAdapters);
+    }
   }
 
   function track(event: EventName): boolean {
     if (!isMeasurementEventName(config.events, event)) return false;
 
+    if (!initialized) initialize();
+
     try {
-      adapters.eventSink?.(event);
+      eventSink?.(event);
     } catch {
       // Provider delivery is deliberately isolated from every visitor action.
     }

@@ -478,10 +478,14 @@ function recordingScope() {
   const recorded: RecordedProviderCall[] = [];
 
   function provider(this: unknown) {
+    // The contract needs the real invocation arity: a rest parameter cannot
+    // distinguish one argument from an explicit trailing `undefined`.
+    // eslint-disable-next-line prefer-rest-params
+    const args = Array.from(arguments) as unknown[];
     recorded.push({
       kind: 'event',
-      args: Array.from(arguments) as unknown[],
-      arity: arguments.length,
+      args,
+      arity: args.length,
     });
   }
   provider.init = (options: PlausibleInitOptions) => {
