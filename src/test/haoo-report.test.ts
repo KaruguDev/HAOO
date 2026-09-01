@@ -852,3 +852,281 @@ describe('owner command registration', () => {
     ).toBe(0);
   });
 });
+
+/**
+ * UI-SPEC Surface A — the complete owner document.
+ *
+ * Every string below is copied from `04-UI-SPEC.md` by hand rather than imported from
+ * `src/reporting/haoo-report.ts`, so the suite is an independent second copy of the
+ * locked contract. A rename in the dictionary that silently changes owner-facing copy
+ * fails here instead of passing by construction.
+ */
+
+/** UI-SPEC "Period section headings" — the four locked views in document order. */
+const SURFACE_A_PERIODS = [
+  { id: 'last-7-days', label: 'Last 7 days' },
+  { id: 'last-30-days', label: 'Last 30 days' },
+  { id: 'last-90-days', label: 'Last 90 days' },
+  { id: 'all-time', label: 'All time' },
+] as const;
+
+/** UI-SPEC "Caveat block copy", one sentence per authored line. */
+const CAVEAT_BLOCK = [
+  'These counts are occurrences of browser actions, not people, sessions, or enquiries.',
+  'One browser can appear in several stages, and a repeated action counts again.',
+  'A stage total is the sum of the actions listed inside it, not evidence that the same '
+  + 'person moved from one stage to the next.',
+  'A validated form send attempt is a request the browser made; it is not proof that the '
+  + 'message reached the inbox.',
+  'An outbound click records that a link was opened; it is not a conversation, a '
+  + 'registration, a customer, or completed onboarding.',
+  'Browser privacy settings and content blockers can prevent an action from being '
+  + 'recorded, so real activity can be higher than the counts shown.',
+] as const;
+
+/** UI-SPEC "Empty state heading" and "Empty state body". */
+const EMPTY_STATE_HEADING = 'No recorded actions in this period';
+
+function emptyStateBody(start: string, end: string): string {
+  return `Nothing was recorded for any HAOO signal between ${start} and ${end}. Counts `
+    + 'include only actions taken while measurement was configured, and browser privacy '
+    + 'settings can prevent an action from being recorded.';
+}
+
+/** UI-SPEC "Table column headers". */
+const BOUNDED_COLUMNS = ['Recorded action', 'This period', 'Previous period', 'Change'];
+const ALL_TIME_COLUMNS = ['Recorded action', 'All time'];
+
+/**
+ * A fixture covering every rendering branch the document has: a singular stage total, a
+ * whole zero period, a no-change delta, an increase, a decrease, and an all-time period
+ * whose first recorded day the provider resolved.
+ */
+const SURFACE_A_BODIES = [
+  goalRows({ haoo_page_view: 1, haoo_assisted_whatsapp: 3, haoo_assisted_phone: 2 }),
+  goalRows({ haoo_page_view: 4 }),
+  FIXTURE_CURRENT,
+  FIXTURE_PREVIOUS,
+  goalRows({}),
+  goalRows({}),
+  {
+    ...goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 }),
+    query: { date_range: ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'] },
+  },
+];
+
+async function generateSurfaceA(bodies: readonly unknown[] = SURFACE_A_BODIES) {
+  const { fetchSpy } = stubFetch(bodies);
+  const { fs, files } = memoryFs();
+  const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+  return { html: files.get(OUTPUT_PATH) ?? '', result };
+}
+
+function parseReport(html: string): Document {
+  return new DOMParser().parseFromString(html, 'text/html');
+}
+
+function normalise(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function sectionOf(doc: Document, id: string): HTMLElement {
+  const section = doc.getElementById(id);
+  expect(section, id).not.toBeNull();
+  return section as HTMLElement;
+}
+
+function styleTextOf(doc: Document): string {
+  const style = doc.querySelector('style');
+  expect(style).not.toBeNull();
+  return style?.textContent ?? '';
+}
+
+/** The name an assistive technology would announce for an `aria-labelledby` region. */
+function accessibleNameOf(doc: Document, element: Element): string {
+  const ids = (element.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean);
+  return normalise(ids.map((id) => doc.getElementById(id)?.textContent ?? '').join(' '));
+}
+
+describe('Surface A document structure', () => {
+  it('emits one h1, four h2 and sixteen h3 with no skipped heading level', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelectorAll('h2')).toHaveLength(4);
+    expect(doc.querySelectorAll('h3')).toHaveLength(16);
+
+    const levels = [...doc.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((heading) =>
+      Number(heading.tagName.slice(1)));
+    expect(levels[0]).toBe(1);
+    for (let index = 1; index < levels.length; index += 1) {
+      expect(levels[index] - levels[index - 1], `${levels[index - 1]} -> ${levels[index]}`)
+        .toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('renders one reporting-period fieldset of four radios with the 30-day view checked', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    const fieldsets = doc.querySelectorAll('fieldset');
+    expect(fieldsets).toHaveLength(1);
+    expect(normalise(fieldsets[0]?.querySelector('legend')?.textContent ?? ''))
+      .toBe('Reporting period');
+
+    const radios = [...doc.querySelectorAll('input[type="radio"]')] as HTMLInputElement[];
+    expect(radios).toHaveLength(4);
+    expect(new Set(radios.map((radio) => radio.name)).size).toBe(1);
+    expect(radios.map((radio) => radio.value)).toEqual(
+      SURFACE_A_PERIODS.map((period) => period.id),
+    );
+
+    for (const radio of radios) {
+      expect(radio.checked, radio.value).toBe(radio.value === 'last-30-days');
+      const label = doc.querySelector(`label[for="${radio.id}"]`);
+      expect(label, radio.id).not.toBeNull();
+      const period = SURFACE_A_PERIODS.find((entry) => entry.id === radio.value);
+      expect(normalise(label?.textContent ?? '')).toBe(period?.label);
+    }
+  });
+
+  it('pre-renders all four period sections with nothing hidden by markup', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    for (const period of SURFACE_A_PERIODS) {
+      const section = sectionOf(doc, period.id);
+      expect(section.tagName).toBe('SECTION');
+      expect(section.hasAttribute('hidden'), period.id).toBe(false);
+      expect(section.getAttribute('style') ?? '', period.id).not.toContain('display');
+      expect(section.querySelectorAll('details.stage'), period.id).toHaveLength(4);
+    }
+  });
+
+  it('hides a non-selected section only through a :has() rule, so no support means all visible', async () => {
+    const { html } = await generateSurfaceA();
+    const style = styleTextOf(parseReport(html));
+
+    const hidingRules = style
+      .split('}')
+      .map((block) => block.trim())
+      .filter((block) => block.includes('.period-section') && block.includes('display: none'));
+
+    expect(hidingRules.length).toBeGreaterThan(0);
+    for (const rule of hidingRules) {
+      expect(rule, rule).toContain(':has(');
+    }
+  });
+
+  it('wraps every event table in a keyboard-reachable labelled scroll region', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    const regions = [...doc.querySelectorAll('.table-scroll')];
+    expect(regions).toHaveLength(16);
+    for (const region of regions) {
+      expect(region.getAttribute('role')).toBe('region');
+      expect(region.getAttribute('tabindex')).toBe('0');
+      expect(accessibleNameOf(doc, region).length).toBeGreaterThan(0);
+      expect(region.querySelectorAll('table')).toHaveLength(1);
+    }
+  });
+
+  it('renders the bounded column headers and the two all-time column headers', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    for (const table of sectionOf(doc, 'last-30-days').querySelectorAll('table')) {
+      expect([...table.querySelectorAll('thead th')].map((th) => th.textContent))
+        .toEqual(BOUNDED_COLUMNS);
+      for (const th of table.querySelectorAll('thead th')) {
+        expect(th.getAttribute('scope')).toBe('col');
+      }
+      for (const th of table.querySelectorAll('tbody th')) {
+        expect(th.getAttribute('scope')).toBe('row');
+      }
+    }
+
+    const allTime = sectionOf(doc, 'all-time');
+    for (const table of allTime.querySelectorAll('table')) {
+      expect([...table.querySelectorAll('thead th')].map((th) => th.textContent))
+        .toEqual(ALL_TIME_COLUMNS);
+    }
+    expect(allTime.querySelectorAll('.stage-change')).toHaveLength(0);
+    expect(normalise(allTime.textContent ?? ''))
+      .toContain('All time has no preceding period to compare with.');
+  });
+
+  it('renders the singular unit noun for a total of one and the plural for zero', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    const totalsIn = (id: string) =>
+      [...sectionOf(doc, id).querySelectorAll('.stage-total')]
+        .map((node) => normalise(node.textContent ?? ''));
+
+    expect(totalsIn('last-7-days')).toEqual([
+      '1 recorded action',
+      '0 recorded actions',
+      '0 recorded actions',
+      '5 recorded actions',
+    ]);
+    expect(totalsIn('last-90-days')).toEqual([
+      '0 recorded actions',
+      '0 recorded actions',
+      '0 recorded actions',
+      '0 recorded actions',
+    ]);
+  });
+
+  it('renders the authored empty state with its own dates and still renders four cards', async () => {
+    const { html } = await generateSurfaceA();
+    const section = sectionOf(parseReport(html), 'last-90-days');
+    const text = normalise(section.textContent ?? '');
+
+    expect(text).toContain(EMPTY_STATE_HEADING);
+    expect(text).toContain(normalise(emptyStateBody('2025-12-02', '2026-03-01')));
+    expect(section.querySelectorAll('details.stage')).toHaveLength(4);
+
+    const populated = normalise(sectionOf(parseReport(html), 'last-30-days').textContent ?? '');
+    expect(populated).not.toContain(EMPTY_STATE_HEADING);
+  });
+
+  it('keeps the caveat block last, always visible, and outside every collapsed element', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    const caveats = doc.getElementById('report-caveats');
+    expect(caveats).not.toBeNull();
+    expect(caveats?.closest('details')).toBeNull();
+    expect(caveats?.hasAttribute('hidden')).toBe(false);
+    expect(normalise(caveats?.textContent ?? '')).toBe(normalise(CAVEAT_BLOCK.join(' ')));
+
+    const wrap = caveats?.parentElement;
+    expect(wrap?.lastElementChild).toBe(caveats);
+  });
+
+  it('carries a print block and a reduced-motion block in the inline style element', async () => {
+    const { html } = await generateSurfaceA();
+    const style = styleTextOf(parseReport(html));
+
+    expect(style).toContain('@media print');
+    expect(style).toContain('prefers-reduced-motion');
+    expect(style).toContain('font-variant-numeric: tabular-nums');
+    expect(style).toContain('880px');
+    expect(style).toContain('44px');
+  });
+
+  it('states the generation timestamp, timezone, provider state and site scope', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+    const meta = normalise(doc.querySelector('.report-meta')?.textContent ?? '');
+
+    expect(meta).toContain('Generated 2026-03-01T09:30:00.000Z');
+    expect(meta).toContain('Reporting timezone Africa/Nairobi');
+    expect(meta).toContain('Analytics provider: configured');
+    expect(meta).toContain(FIXTURE_SITE_ID);
+  });
+});
