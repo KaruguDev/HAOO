@@ -32,3 +32,8 @@ dist-ssr
 # Local GSD runtime and generated research cache
 .gsd/
 .planning/research/.cache/
+
+# Generated owner reports carry aggregate HAOO business counts and are produced on
+# demand from the Stats API. They are a local artifact of `npm run report:haoo`, never
+# repository content, and must not reach a published bundle or a code review diff.
+.reports/

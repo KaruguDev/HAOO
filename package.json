@@ -11,7 +11,11 @@
     "test": "npm run build && vitest run",
     "test:unit": "vitest run",
     "test:phase1:red": "node scripts/assert-phase1-red.mjs",
+    "report:haoo": "node scripts/generate-haoo-report.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
