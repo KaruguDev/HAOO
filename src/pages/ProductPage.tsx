@@ -7,7 +7,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
@@ -18,6 +18,7 @@ import {
   parentRelationshipLine,
   skipToContentLabel,
 } from '../products/copy';
+import { formatEngagementSummary } from '../products/engagement-summary';
 import type { ProductCapabilityIcon, ProductDefinition } from '../products/types';
 import {
   createMeasurement,
@@ -53,6 +54,21 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
     [product.measurement, measurementAdapters],
   );
   const pageViewMeasurement = useRef<ReturnType<typeof createMeasurement>>();
+
+  /**
+   * The disclosed engagement summary, assembled from this page's own bounded record and
+   * the page-lifetime campaign snapshot. No analytics provider is queried here, so no
+   * provider record can ever be joined to a named enquiry. The copy is read from
+   * product data, so this shell stays product-agnostic.
+   */
+  const buildEngagementSummary = useCallback(
+    () => formatEngagementSummary(
+      measurement.readContext(),
+      measurement.readCampaign(),
+      product.qualify.engagementSummary,
+    ),
+    [measurement, product.qualify.engagementSummary],
+  );
 
   useEffect(() => {
     if (pageViewMeasurement.current === measurement) return;
@@ -261,6 +277,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               measurementEventNames={product.measurement.events}
               measurementDisclosure={product.measurement.disclosure}
               clearMeasurementContext={measurement.clearContext}
+              buildEngagementSummary={buildEngagementSummary}
             />
           </div>
         </section>

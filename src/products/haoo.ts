@@ -4,6 +4,7 @@ import type {
   ProductMeasurement,
   QualifyOption,
 } from './types';
+import { ENGAGEMENT_SUMMARY_LABEL } from '../components/qualify-form.logic';
 import {
   qualifyCollectionNoteProcessor,
   qualifyCollectionNotePurpose,
@@ -399,6 +400,66 @@ export const HAOO_PRODUCT: ProductDefinition = {
       processor: qualifyCollectionNoteProcessor(),
       pageContext:
         'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.',
+    },
+    /**
+     * Owner-approved engagement-summary copy, byte-exact from `04-UI-SPEC.md`
+     * "Surface C — engagement summary sentences". Every sentence describes something a
+     * browser did, in words the visitor could read themselves. There is deliberately no
+     * count, ordinal, date, rank, grade or weighting anywhere in this block: the summary
+     * reports bands and facts, so there is no rounding or tie-breaking rule to get wrong.
+     *
+     * The campaign clause is included per blocking checkpoint C-2, resolved `include` by
+     * the product owner: the owner can tell a campaign arrival from an organic one, and
+     * the values are already lowercased, character-restricted and length-capped by the
+     * measurement facade before they get here.
+     */
+    engagementSummary: {
+      emailLabel: ENGAGEMENT_SUMMARY_LABEL,
+      prefix: 'Browser context only; not a lead score.',
+      visitBandSentences: {
+        first: 'This browser had no earlier recorded HAOO visit.',
+        returning: 'This browser has visited the HAOO page before.',
+        frequent: 'This browser has visited the HAOO page several times.',
+      },
+      lastSeenSentences: {
+        today: 'The last recorded visit was today.',
+        'this-week': 'The last recorded visit was earlier this week.',
+        'this-month': 'The last recorded visit was earlier this month.',
+        earlier: 'The last recorded visit was more than a month ago.',
+      },
+      // The shipped order, matching `HAOO_MEASUREMENT.interactionFlags`.
+      flagSentences: [
+        { flag: 'brochureViewed', sentence: 'This browser viewed the brochure.' },
+        { flag: 'brochureDownloaded', sentence: 'This browser downloaded the brochure.' },
+        {
+          flag: 'qualifyStarted',
+          sentence: 'This browser started the qualification form.',
+        },
+        {
+          flag: 'assistedContact',
+          sentence: 'This browser opened an assisted-contact link.',
+        },
+        {
+          flag: 'selfOnboarding',
+          sentence: 'This browser opened the HAOO self-onboarding link.',
+        },
+      ],
+      noFlagsSentence:
+        'No brochure, contact, or self-onboarding actions were recorded in this browser.',
+      campaignSentence: {
+        lead: 'Campaign values seen on arrival:',
+        clauses: [
+          { key: 'utm_source', label: 'source' },
+          { key: 'utm_medium', label: 'medium' },
+          { key: 'utm_campaign', label: 'campaign' },
+        ],
+        separator: ';',
+        terminator: '.',
+      },
+      closing:
+        'These are coarse signals from this browser, not proof that the same person took each action.',
+      fallback:
+        'Browser context only; not a lead score. No engagement context was available in this browser.',
     },
     // DOM order is also the order the labels appear in the delivered email. The
     // preferred-channel select deliberately precedes `phone` so its `requiredWhen` rule

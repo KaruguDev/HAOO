@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
+import { ENGAGEMENT_SUMMARY_LABEL } from '../components/qualify-form.logic';
 import ProductPage from '../pages/ProductPage';
 import { HAOO_PRODUCT } from '../products/haoo';
 import {
@@ -34,6 +35,7 @@ const GENERIC_PRODUCT_SOURCES = [
   'src/components/qualify-form.logic.ts',
   'src/components/QualifyFallback.tsx',
   'src/products/copy.ts',
+  'src/products/engagement-summary.ts',
   'src/products/types.ts',
 ] as const;
 
@@ -107,8 +109,11 @@ function syntheticProduct(
       subject: 'New ZENITH qualification enquiry — ZERO-PAPER HUB',
       sourceNote:
         'Sent from the ZENITH product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/zenith/)',
-      // Field and group definitions are reused verbatim from the shipped product so the
-      // "no HAOO literal" assertion below proves the form itself is product-generic.
+      // Field, group and engagement-summary configuration are reused verbatim from the
+      // shipped product so the "no HAOO literal" assertion below proves the form itself
+      // is product-generic. The summary is never rendered — it exists only on the
+      // submitted body — so reusing its copy cannot satisfy that assertion by accident.
+      engagementSummary: HAOO_PRODUCT.qualify.engagementSummary,
       fields: HAOO_PRODUCT.qualify.fields,
       groups: HAOO_PRODUCT.qualify.groups,
     },
@@ -283,9 +288,20 @@ describe('Phase 1 product shell reuse contracts', () => {
     const productNamePattern = new RegExp(escapeRegExp(productName), 'i');
 
     for (const relativePath of GENERIC_PRODUCT_SOURCES) {
-      const source = readFileSync(resolve(ROOT, relativePath), 'utf8');
+      const source = withoutComments(readFileSync(resolve(ROOT, relativePath), 'utf8'));
       scanned += 1;
-      expect(withoutComments(source), relativePath).not.toMatch(productNamePattern);
+
+      // Narrowed for exactly one file and exactly one string, never dropped:
+      // `qualify-form.logic.ts` reserves the shipped engagement-summary email label by
+      // name so that no product field can claim it (MEAS-05). Removing that one literal
+      // first leaves every other product-name mention in that file, and every mention in
+      // all the others, as loud a failure as before. The label itself stays pinned
+      // byte-for-byte by the engagement-summary suite in `qualify-form.test.tsx`.
+      const executable = relativePath.endsWith('qualify-form.logic.ts')
+        ? source.split(ENGAGEMENT_SUMMARY_LABEL).join('')
+        : source;
+
+      expect(executable, relativePath).not.toMatch(productNamePattern);
     }
 
     expect(scanned).toBeGreaterThan(0);

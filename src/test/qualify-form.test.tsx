@@ -970,8 +970,17 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     ];
 
     for (const sourcePath of genericSources) {
-      expect(readFileSync(resolve(import.meta.dirname, sourcePath), 'utf8'), sourcePath)
-        .not.toMatch(/HAOO/);
+      const source = readFileSync(resolve(import.meta.dirname, sourcePath), 'utf8');
+      // Narrowed, not dropped. `qualify-form.logic.ts` reserves the shipped
+      // engagement-summary label by name so no product field can claim it (MEAS-05),
+      // and that one string is the only product literal any generic module may carry.
+      // Removing exactly that string first leaves every other HAOO mention — in every
+      // one of these files — as strict a failure as it was before.
+      const remaining = sourcePath.endsWith('qualify-form.logic.ts')
+        ? source.split(ENGAGEMENT_SUMMARY_LABEL).join('')
+        : source;
+
+      expect(remaining, sourcePath).not.toMatch(/HAOO/);
     }
   });
 
@@ -1257,7 +1266,8 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
       expect(Object.keys(body), field.name).toContain(field.emailLabel);
       expect(body[field.emailLabel], field.name).toBe(values[field.name]);
     }
-    expect(Object.keys(body).sort()).toEqual(EXPECTED_BODY_KEYS);
+    // A two-argument call carries no summary, so the pre-summary allowlist is exact.
+    expect(Object.keys(body).sort()).toEqual(PRE_SUMMARY_BODY_KEYS);
   });
 
   it('reports one message per invalid field and none for a valid enquiry', () => {

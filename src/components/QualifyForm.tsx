@@ -41,6 +41,11 @@ interface QualifyFormProps {
   readonly measurementEventNames?: readonly string[];
   readonly measurementDisclosure?: ProductMeasurementDisclosure<string>;
   readonly clearMeasurementContext?: () => boolean;
+  /**
+   * Returns the disclosed engagement summary for this submission. Optional so a form
+   * rendered without measurement wiring simply sends no summary field.
+   */
+  readonly buildEngagementSummary?: () => string;
 }
 
 const QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way';
@@ -137,6 +142,7 @@ export default function QualifyForm({
   slug,
   track,
   clearMeasurementContext,
+  buildEngagementSummary,
 }: QualifyFormProps) {
   const [values, setValues] = useState<QualifyValues>(() => seedValues(qualify));
   // The authoritative latest snapshot. `values` from the render closure is stale for any
@@ -266,6 +272,24 @@ export default function QualifyForm({
     });
   }
 
+  /**
+   * The disclosed engagement summary, isolated exactly like the measurement sink. A
+   * summary that cannot be built must never block, delay or fail a send, so a failure
+   * falls back to the product's authored sentence rather than aborting the submission
+   * or leaving the field empty.
+   */
+  function engagementSummary(): string {
+    if (!buildEngagementSummary) {
+      return '';
+    }
+
+    try {
+      return buildEngagementSummary();
+    } catch {
+      return qualify.engagementSummary.fallback;
+    }
+  }
+
   async function submitValues() {
     if (inFlightRef.current) {
       return;
@@ -298,7 +322,9 @@ export default function QualifyForm({
     const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
 
     try {
-      const body = JSON.stringify(buildSubmissionBody(submittedValues, qualify));
+      const body = JSON.stringify(
+        buildSubmissionBody(submittedValues, qualify, engagementSummary()),
+      );
 
       track(measurementEvents.submit);
       const response = await fetch(qualify.endpoint, {

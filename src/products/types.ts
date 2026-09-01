@@ -1,3 +1,5 @@
+import type { LastSeenBand, VisitBand } from '../measurement';
+
 export interface ProductStoryItem {
   readonly title: string;
   readonly description: string;
@@ -92,11 +94,56 @@ export interface QualifyCollectionNote {
   readonly pageContext: string;
 }
 
+/** One interaction flag paired with the sentence the owner approved for it. */
+export interface EngagementFlagSentence {
+  readonly flag: string;
+  readonly sentence: string;
+}
+
+/** One normalized campaign key paired with the word that introduces it. */
+export interface EngagementCampaignClause {
+  readonly key: string;
+  readonly label: string;
+}
+
+/**
+ * The campaign clause is assembled rather than templated so an absent key omits only
+ * its own clause: there is no placeholder for a value that was never in the address bar.
+ */
+export interface EngagementCampaignSentence {
+  readonly lead: string;
+  readonly clauses: readonly EngagementCampaignClause[];
+  readonly separator: string;
+  readonly terminator: string;
+}
+
+/**
+ * Every sentence the emailed engagement summary can contain, as owner-approved product
+ * data. The formatter that assembles them holds no copy of its own, so the summary a
+ * recipient reads is exactly what the product owner signed off — never a score, a rank,
+ * a weighting, or any value derived from the visitor's own answers.
+ *
+ * The band maps are keyed by the closed unions, so an unauthored band is a typecheck
+ * failure rather than an empty sentence in a delivered email.
+ */
+export interface ProductEngagementSummary {
+  readonly emailLabel: string;
+  readonly prefix: string;
+  readonly visitBandSentences: Readonly<Record<VisitBand, string>>;
+  readonly lastSeenSentences: Readonly<Record<LastSeenBand, string>>;
+  readonly flagSentences: readonly EngagementFlagSentence[];
+  readonly noFlagsSentence: string;
+  readonly campaignSentence: EngagementCampaignSentence;
+  readonly closing: string;
+  readonly fallback: string;
+}
+
 export interface ProductQualifyForm {
   readonly endpoint: string;
   readonly subject: string;
   readonly sourceNote: string;
   readonly collectionNote?: QualifyCollectionNote;
+  readonly engagementSummary: ProductEngagementSummary;
   readonly fields: readonly QualifyField[];
   readonly groups: readonly QualifyFieldGroup[];
 }

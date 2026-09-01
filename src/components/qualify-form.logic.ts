@@ -44,7 +44,16 @@ export function isFieldRequired(field: QualifyField, values: QualifyValues): boo
   return rule.values.includes(values[rule.field] ?? '');
 }
 
-/** Provider-owned labels that product fields must never be allowed to override. */
+/**
+ * The email label the disclosed engagement summary is delivered under. It is reserved
+ * below rather than treated as an ordinary field label: the summary is written by this
+ * page, not by the visitor, so a product field claiming the same label would either
+ * overwrite it or put a visitor-supplied value under a name the recipient reads as
+ * page-generated context.
+ */
+export const ENGAGEMENT_SUMMARY_LABEL = 'HAOO engagement context';
+
+/** Labels that product fields must never be allowed to override. */
 export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
   '_subject',
   '_template',
@@ -55,12 +64,20 @@ export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
   '_autoresponse',
   '_replyto',
   'Source',
+  ENGAGEMENT_SUMMARY_LABEL,
 ]);
 
-/** Build the provider request without allowing visitor input to become provider options. */
+/**
+ * Build the provider request without allowing visitor input to become provider options.
+ *
+ * `summary` is the optional disclosed engagement summary. It is appended last, after
+ * `Source`, and only when it carries text: an empty summary is omitted rather than sent
+ * as a blank row in the delivered email. Two-argument callers are unaffected.
+ */
 export function buildSubmissionBody(
   values: QualifyValues,
   qualify: ProductQualifyForm,
+  summary?: string,
 ): Record<string, string> {
   const body: Record<string, string> = {
     _subject: qualify.subject,
@@ -84,6 +101,18 @@ export function buildSubmissionBody(
   }
 
   body.Source = qualify.sourceNote;
+
+  if (typeof summary === 'string' && summary.trim() !== '') {
+    const label = qualify.engagementSummary.emailLabel;
+
+    // The label the summary ships under must itself be reserved, or a product field
+    // could legitimately claim it and the loop above would not object.
+    if (!RESERVED_EMAIL_LABELS.has(label)) {
+      throw new Error(`Engagement summary uses unreserved email label "${label}"`);
+    }
+
+    body[label] = summary;
+  }
 
   return body;
 }
