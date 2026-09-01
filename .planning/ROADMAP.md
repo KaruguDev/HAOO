@@ -137,7 +137,7 @@ This milestone turns the existing company landing page into a product-led site b
 
 ### Phase 4: Report and Enrich the HAOO Funnel Truthfully
 
-**Goal**: The product owner can understand aggregate HAOO interest while voluntarily submitted enquiries carry a transparent, human-readable context summary rather than identity tracking or a hidden score.
+**Goal**: As a HAOO product owner, I want to understand aggregate HAOO interest and receive transparent, human-readable context with voluntarily submitted enquiries, so that I can act without identity tracking or a hidden score.
 **Mode:** mvp
 **Depends on**: Phase 3
 **Requirements**: MEAS-01, MEAS-05, MEAS-08
