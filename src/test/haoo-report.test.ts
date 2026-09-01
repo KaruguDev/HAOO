@@ -1,5 +1,14 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
@@ -721,6 +730,89 @@ describe('generateHaooReport', () => {
       expect(result.ok).toBe(false);
       expect(readFileSync(outputPath).equals(before)).toBe(true);
       expect(existsSync(`${outputPath}.tmp`)).toBe(false);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('removes its real temporary sibling and preserves the previous report when rename fails', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'haoo-report-rename-'));
+    const outputPath = join(directory, 'haoo-funnel-report.html');
+    const sentinel = '<!doctype html><html lang="en"><body>previous report</body></html>';
+    writeFileSync(outputPath, sentinel, 'utf8');
+    const before = readFileSync(outputPath);
+    const { fetchSpy } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const realFs = {
+      mkdirSync: () => {},
+      reserveTempSync: (path: string) => closeSync(openSync(path, 'wx')),
+      writeFileSync,
+      renameSync: () => {
+        throw new Error('rename refused');
+      },
+      rmSync: (path: string, options: { readonly force: true }) => rmSync(path, options),
+    };
+
+    try {
+      const result = await generateHaooReport(generateOptions(fetchSpy, realFs, outputPath));
+
+      expect(result).toEqual({ ok: false, reason: 'generation-failed' });
+      expect(readFileSync(outputPath).equals(before)).toBe(true);
+      expect(existsSync(`${outputPath}.tmp`)).toBe(false);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('removes an owned temporary sibling after a partial write throws', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'haoo-report-write-'));
+    const outputPath = join(directory, 'haoo-funnel-report.html');
+    const sentinel = '<!doctype html><html lang="en"><body>previous report</body></html>';
+    writeFileSync(outputPath, sentinel, 'utf8');
+    const before = readFileSync(outputPath);
+    const { fetchSpy } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const realFs = {
+      mkdirSync: () => {},
+      reserveTempSync: (path: string) => closeSync(openSync(path, 'wx')),
+      writeFileSync: (path: string, data: string) => {
+        writeFileSync(path, data.slice(0, 64), 'utf8');
+        throw new Error('disk full');
+      },
+      renameSync,
+      rmSync: (path: string, options: { readonly force: true }) => rmSync(path, options),
+    };
+
+    try {
+      const result = await generateHaooReport(generateOptions(fetchSpy, realFs, outputPath));
+
+      expect(result).toEqual({ ok: false, reason: 'generation-failed' });
+      expect(readFileSync(outputPath).equals(before)).toBe(true);
+      expect(existsSync(`${outputPath}.tmp`)).toBe(false);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('fails a concurrent loser closed without deleting the active invocation temporary file', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'haoo-report-concurrent-'));
+    const outputPath = join(directory, 'haoo-funnel-report.html');
+    const temporaryPath = `${outputPath}.tmp`;
+    const activeBytes = 'active invocation owns this file';
+    writeFileSync(temporaryPath, activeBytes, 'utf8');
+    const { fetchSpy } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const realFs = {
+      mkdirSync: () => {},
+      reserveTempSync: (path: string) => closeSync(openSync(path, 'wx')),
+      writeFileSync,
+      renameSync,
+      rmSync: (path: string, options: { readonly force: true }) => rmSync(path, options),
+    };
+
+    try {
+      const result = await generateHaooReport(generateOptions(fetchSpy, realFs, outputPath));
+
+      expect(result).toEqual({ ok: false, reason: 'generation-failed' });
+      expect(readFileSync(temporaryPath, 'utf8')).toBe(activeBytes);
+      expect(existsSync(outputPath)).toBe(false);
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
