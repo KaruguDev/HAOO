@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 7/7 plans executed
+**Plans**: 10 plans (7/10 executed)
 
 **Wave 1**
 
@@ -172,6 +172,12 @@ intent is unchanged.*
 
 - [x] 04-06-PLAN.md — Mirror the documented Plausible preload contract, pin it with an independent fixture, and restore MVP goal verification.
 - [x] 04-07-PLAN.md — Validate Stats query provenance, make report replacement fail-closed, and complete the owner run instructions.
+
+**Wave 5** *(gap closure round 2; 04-08 and 04-10 run in parallel, 04-09 follows 04-08)*
+
+- [ ] 04-08-PLAN.md — Constrain the configured analytics script source to a repository-owned approved origin and path, and document the constraint for the owner.
+- [ ] 04-09-PLAN.md — Require a confirmed automatic-capture opt-out before any provider script insertion or event-sink return, with journey regressions for every refusal path.
+- [ ] 04-10-PLAN.md — Fix first-run report directory creation on any host and record truthful Phase 4 requirement status with the open human gates.
 
 **UI hint**: yes
 
