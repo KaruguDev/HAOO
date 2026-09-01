@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import QualifyForm from '../components/QualifyForm';
 import {
   buildSubmissionBody,
+  ENGAGEMENT_SUMMARY_LABEL,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
   RESERVED_EMAIL_LABELS,
@@ -14,9 +15,12 @@ import {
   QUALIFY_SUMMARY_HEADING,
   validateQualifyValues,
 } from '../components/qualify-form.logic';
+import { CONTEXT_RECORD_KEYS } from '../measurement';
 import ProductPage from '../pages/ProductPage';
+import { formatEngagementSummary } from '../products/engagement-summary';
 import {
   CONTACT_CHANNEL_OPTIONS,
+  HAOO_MEASUREMENT,
   HAOO_PRODUCT,
   KENYAN_COUNTY_OPTIONS,
   PORTFOLIO_BAND_OPTIONS,
@@ -36,10 +40,15 @@ const COLLECTION_CONTEXT =
 const COLLECTION_PROCESSOR =
   'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
 const DISCLOSURE_ID = `${HAOO_PRODUCT.slug}-qualify-collection-note`;
-/** The ten readable email labels (LEAD-04) plus the provider options, sorted. */
+/**
+ * The ten readable email labels (LEAD-04), the provider options, and the reserved
+ * engagement-summary label (MEAS-05), sorted. This list is asserted as an exact
+ * allowlist, so a field the payload gains or loses fails here first.
+ */
 const EXPECTED_BODY_KEYS = [
   'Email address',
   'Full name',
+  'HAOO engagement context',
   'Location',
   'Message',
   'Onboarding timeframe',
@@ -54,7 +63,29 @@ const EXPECTED_BODY_KEYS = [
   '_subject',
   '_template',
 ];
+/** The pre-summary allowlist, kept so the two-argument call site stays pinned. */
+const PRE_SUMMARY_BODY_KEYS = EXPECTED_BODY_KEYS.filter(
+  (key) => key !== ENGAGEMENT_SUMMARY_LABEL,
+);
 const FORBIDDEN_PROVIDER_OPTIONS = ['_cc', '_next', '_autoresponse', '_replyto'];
+/** The three context members the summary formatter is allowed to read (UI-SPEC Surface C). */
+const SUMMARY_CONTEXT_KEYS: readonly string[] = ['visitBand', 'lastSeenBand', 'flags'];
+/**
+ * The internal derivation members, taken from the exported context tuple rather than
+ * retyped here. The tuple's first member is the schema marker and the three above are
+ * the summary's pick list, so whatever remains is exactly what the Phase 3 disclosure
+ * promised would never enter a form submission. Reading them from the tuple means a
+ * Phase 3 rename cannot leave this negative assertion guarding a name nothing uses.
+ */
+const DERIVATION_FIELDS = CONTEXT_RECORD_KEYS.filter(
+  (key) => key !== CONTEXT_RECORD_KEYS[0] && !SUMMARY_CONTEXT_KEYS.includes(key),
+);
+const UUID_SHAPE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+const ENGAGEMENT_SUMMARY = QUALIFY.engagementSummary;
+const ENGAGEMENT_SUMMARY_SOURCE = readFileSync(
+  resolve(import.meta.dirname, '../products/engagement-summary.ts'),
+  'utf8',
+);
 const CONTROL_TAGS: Record<string, string> = {
   text: 'INPUT',
   email: 'INPUT',
@@ -439,10 +470,25 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     expect(body['Onboarding timeframe']).toBe('Ready now');
     expect(body.Message).toBe('We manage four blocks in Kilimani.');
 
-    const forbiddenPayloadShape =
-      /engagement|context|analytics?|identifier|visitor|score|signal|summary/i;
+    // MEAS-05: the engagement summary rides as one readable paragraph under the
+    // reserved label, and it is the only new field the payload gained.
+    expect(body[ENGAGEMENT_SUMMARY_LABEL]).toContain(ENGAGEMENT_SUMMARY.prefix);
+    expect(body[ENGAGEMENT_SUMMARY_LABEL]).toContain(ENGAGEMENT_SUMMARY.closing);
+    expect(body[ENGAGEMENT_SUMMARY_LABEL].trim()).not.toBe('');
 
-    expect(Object.keys(body).filter((key) => forbiddenPayloadShape.test(key))).toEqual([]);
+    // The exact allowlist above is the primary protection. These named negatives record
+    // which specific leaks it exists to stop, so a later allowlist edit cannot quietly
+    // readmit one of them. The broad `engagement|context|summary` keyword filter this
+    // replaces cannot survive a field legitimately named `HAOO engagement context`.
+    expect(DERIVATION_FIELDS).toHaveLength(2);
+
+    const payloadText = [...Object.keys(body), ...Object.values(body)].join('\n');
+
+    for (const field of DERIVATION_FIELDS) {
+      expect(payloadText, field).not.toContain(field);
+    }
+    expect(payloadText).not.toContain(HAOO_MEASUREMENT.storageKey);
+    expect(payloadText).not.toMatch(UUID_SHAPE);
     expect(Object.values(body).filter((value) => value === COMPLETE_ENQUIRY.message))
       .toEqual([COMPLETE_ENQUIRY.message]);
 
@@ -1768,5 +1814,198 @@ describe('Phase 2 conditional contact-channel contracts', () => {
     });
     expect(phoneField?.formatPattern)
       .toBe('^(?=(?:[^0-9]*[0-9]){7,})\\+?[0-9 ()-]+$');
+  });
+});
+
+/**
+ * Phase 4 MEAS-05 / MEAS-08. Every expected string below is copied byte-for-byte from
+ * `04-UI-SPEC.md` "Surface C — engagement summary sentences". The sentences are the
+ * contract: they must read as coarse browser facts a visitor could read themselves,
+ * never as a score, a rank, or a claim about a person.
+ */
+const SUMMARY_PREFIX = 'Browser context only; not a lead score.';
+const SUMMARY_CLOSING =
+  'These are coarse signals from this browser, not proof that the same person took each action.';
+const SUMMARY_FALLBACK =
+  'Browser context only; not a lead score. No engagement context was available in this browser.';
+const VISIT_SENTENCES = {
+  first: 'This browser had no earlier recorded HAOO visit.',
+  returning: 'This browser has visited the HAOO page before.',
+  frequent: 'This browser has visited the HAOO page several times.',
+} as const;
+const LAST_SEEN_SENTENCES = {
+  today: 'The last recorded visit was today.',
+  'this-week': 'The last recorded visit was earlier this week.',
+  'this-month': 'The last recorded visit was earlier this month.',
+  earlier: 'The last recorded visit was more than a month ago.',
+} as const;
+const FLAG_SENTENCES = {
+  brochureViewed: 'This browser viewed the brochure.',
+  brochureDownloaded: 'This browser downloaded the brochure.',
+  qualifyStarted: 'This browser started the qualification form.',
+  assistedContact: 'This browser opened an assisted-contact link.',
+  selfOnboarding: 'This browser opened the HAOO self-onboarding link.',
+} as const;
+const NO_FLAGS_SENTENCE =
+  'No brochure, contact, or self-onboarding actions were recorded in this browser.';
+
+type SummaryContext = Parameters<typeof formatEngagementSummary>[0];
+
+/** Flags in the shipped order, with the named ones true. */
+function summaryFlags(...trueFlags: readonly string[]): Record<string, boolean> {
+  return Object.fromEntries(
+    HAOO_MEASUREMENT.interactionFlags.map((flag) => [flag, trueFlags.includes(flag)]),
+  );
+}
+
+/**
+ * A whole stored record, derivation members included. The formatter is handed the real
+ * shape on purpose: the contract is that it picks three members out of it, not that the
+ * caller hands it a pre-trimmed object.
+ */
+function summaryContext(overrides: Record<string, unknown> = {}): SummaryContext {
+  return {
+    version: HAOO_MEASUREMENT.schemaVersion,
+    visitBand: 'first',
+    lastSeenBand: 'today',
+    flags: summaryFlags(),
+    visitOrdinal: 1,
+    lastSeenDay: '2026-02-11',
+    ...overrides,
+  } as SummaryContext;
+}
+
+function summaryOf(context: SummaryContext, campaign: Record<string, string> = {}) {
+  return formatEngagementSummary(context, campaign, ENGAGEMENT_SUMMARY);
+}
+
+describe('Phase 4 emailed engagement summary', () => {
+  it('reserves the engagement-summary label so no product field can claim it', () => {
+    expect(ENGAGEMENT_SUMMARY_LABEL).toBe('HAOO engagement context');
+    expect(RESERVED_EMAIL_LABELS.has(ENGAGEMENT_SUMMARY_LABEL)).toBe(true);
+    expect(ENGAGEMENT_SUMMARY.emailLabel).toBe(ENGAGEMENT_SUMMARY_LABEL);
+
+    // No shipped field may already be using it, or the summary would overwrite an answer.
+    for (const field of QUALIFY.fields) {
+      expect(field.emailLabel, field.name).not.toBe(ENGAGEMENT_SUMMARY_LABEL);
+    }
+  });
+
+  it('assembles the first-visit summary in the locked order with no last-seen sentence', () => {
+    expect(summaryOf(summaryContext())).toBe(
+      `${SUMMARY_PREFIX} ${VISIT_SENTENCES.first} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    );
+  });
+
+  it('assembles a returning summary with the last-seen band and the true flags in order', () => {
+    const produced = summaryOf(
+      summaryContext({
+        visitBand: 'returning',
+        lastSeenBand: 'this-week',
+        visitOrdinal: 2,
+        flags: summaryFlags('brochureViewed', 'qualifyStarted'),
+      }),
+    );
+
+    expect(produced).toBe(
+      [
+        SUMMARY_PREFIX,
+        VISIT_SENTENCES.returning,
+        LAST_SEEN_SENTENCES['this-week'],
+        FLAG_SENTENCES.brochureViewed,
+        FLAG_SENTENCES.qualifyStarted,
+        SUMMARY_CLOSING,
+      ].join(' '),
+    );
+    expect(produced).not.toContain(NO_FLAGS_SENTENCE);
+  });
+
+  it('emits neither internal derivation value it was handed', () => {
+    const produced = summaryOf(
+      summaryContext({
+        visitBand: 'frequent',
+        lastSeenBand: 'earlier',
+        visitOrdinal: 4,
+        lastSeenDay: '2026-02-11',
+      }),
+    );
+
+    expect(produced).not.toContain('2026-02-11');
+    expect(produced).not.toMatch(/\d/);
+    for (const field of DERIVATION_FIELDS) {
+      expect(produced, field).not.toContain(field);
+    }
+  });
+
+  it('returns the locked fallback for a context it cannot read', () => {
+    expect(formatEngagementSummary(null, {}, ENGAGEMENT_SUMMARY)).toBe(SUMMARY_FALLBACK);
+    expect(ENGAGEMENT_SUMMARY.fallback).toBe(SUMMARY_FALLBACK);
+  });
+
+  it('appends the summary to the submission body after Source', () => {
+    const values = { ...emptyValues(), ...requiredValues() };
+    const summary = summaryOf(summaryContext());
+    const body = buildSubmissionBody(values, QUALIFY, summary);
+    const keys = Object.keys(body);
+
+    expect(body[ENGAGEMENT_SUMMARY_LABEL]).toBe(summary);
+    expect(keys.indexOf(ENGAGEMENT_SUMMARY_LABEL)).toBe(keys.indexOf('Source') + 1);
+    expect(keys.indexOf(ENGAGEMENT_SUMMARY_LABEL)).toBe(keys.length - 1);
+  });
+
+  it('leaves the payload unchanged for a two-argument caller', () => {
+    const values = { ...emptyValues(), ...COMPLETE_ENQUIRY };
+
+    expect(Object.keys(buildSubmissionBody(values, QUALIFY)).sort())
+      .toEqual(PRE_SUMMARY_BODY_KEYS);
+    expect(buildSubmissionBody(values, QUALIFY)).not.toHaveProperty(ENGAGEMENT_SUMMARY_LABEL);
+
+    // An empty or blank summary is omitted rather than sent as a blank email row.
+    expect(buildSubmissionBody(values, QUALIFY, ''))
+      .not.toHaveProperty(ENGAGEMENT_SUMMARY_LABEL);
+    expect(buildSubmissionBody(values, QUALIFY, '   '))
+      .not.toHaveProperty(ENGAGEMENT_SUMMARY_LABEL);
+  });
+
+  it('sends one readable summary with a submitted enquiry', async () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+
+    renderPage();
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+
+    const { body } = parseRequest(fetchSpy);
+    const summary = body[ENGAGEMENT_SUMMARY_LABEL];
+
+    expect(typeof summary).toBe('string');
+    expect(summary.trim()).not.toBe('');
+    expect(summary.startsWith(SUMMARY_PREFIX)).toBe(true);
+    expect(summary.endsWith(SUMMARY_CLOSING)).toBe(true);
+    expect(summary.split('\n')).toHaveLength(1);
+  });
+
+  it('keeps the formatter product-generic and inside its pick list', () => {
+    // Product identity is data. A formatter that named this product could not be reused,
+    // and the copy it assembles is owner-approved product configuration, not code.
+    expect(ENGAGEMENT_SUMMARY_SOURCE).not.toContain(HAOO_PRODUCT.name);
+    expect(ENGAGEMENT_SUMMARY_SOURCE).not.toContain(HAOO_PRODUCT.slug);
+
+    // The explicit pick list: three members named, and every other member of the stored
+    // record absent from the module entirely.
+    for (const key of SUMMARY_CONTEXT_KEYS) {
+      expect(ENGAGEMENT_SUMMARY_SOURCE, key).toContain(key);
+    }
+    for (const key of CONTEXT_RECORD_KEYS) {
+      if (SUMMARY_CONTEXT_KEYS.includes(key)) {
+        continue;
+      }
+
+      expect(ENGAGEMENT_SUMMARY_SOURCE, key).not.toContain(key);
+    }
+
+    // Never spread the stored record into the summary or the body.
+    expect(ENGAGEMENT_SUMMARY_SOURCE).not.toMatch(/\.\.\.context/);
   });
 });

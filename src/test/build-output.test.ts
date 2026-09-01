@@ -106,6 +106,7 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
   'src/components/ProductHeader.tsx': FULL_BOUNDARY,
   'src/components/ProductsSection.tsx': FULL_BOUNDARY,
   'src/products/copy.ts': FULL_BOUNDARY,
+  'src/products/engagement-summary.ts': FULL_BOUNDARY,
   'src/products/registry.ts': FULL_BOUNDARY,
   'src/products/types.ts': FULL_BOUNDARY,
   'src/products/haoo.ts': [
