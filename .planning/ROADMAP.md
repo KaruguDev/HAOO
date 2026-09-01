@@ -145,7 +145,12 @@ This milestone turns the existing company landing page into a product-led site b
 
   1. Product owner can view aggregate counts for HAOO page views, brochure preview/open/download actions, qualification starts/submits, assisted-contact clicks, and self-onboarding clicks.
   2. A submitted qualification email includes the disclosed coarse HAOO engagement summary in human-readable form and contains no opaque lead score or stable visitor identifier.
-  3. Product reporting labels browser evidence precisely as views, attempts, redirect returns, and outbound clicks rather than claiming confirmed delivery, customers, or completed onboarding.
+  3. Product reporting labels browser evidence precisely as views, attempts, and outbound clicks rather than claiming confirmed delivery, customers, or completed onboarding.
+
+*Criterion 3 amended 2026-09-01 during Phase 4 planning: `redirect returns` was dropped to match
+MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emits no redirect-return
+event and Phase 4 may not add one, so the category was unreportable by construction. The precision
+intent is unchanged.*
 
 **Plans**: 5 plans
 

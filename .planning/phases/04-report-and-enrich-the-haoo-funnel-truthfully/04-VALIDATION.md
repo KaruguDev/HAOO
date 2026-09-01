@@ -20,7 +20,7 @@ created: 2026-09-01
 | Property | Value |
 |----------|-------|
 | **Framework** | Vitest 3.2.4 + Testing Library 16.3.2 + jsdom 26.1.0 |
-| **Config file** | `vite.config.ts` (Vitest uses Vite defaults; no dedicated test block) |
+| **Config file** | `vitest.config.ts` — a dedicated Vitest config with its own `test` block (`environment: 'jsdom'`, `globals: false`, `setupFiles: ['./src/test/setup.ts']`). The repo also has a separate `vite.config.ts` for the production build; it is not the test config. |
 | **Quick run command** | `npm run test:unit -- --run src/test/measurement.test.ts src/test/qualify-form.test.tsx src/test/haoo-report.test.ts` |
 | **Full suite command** | `npm test` (`npm run build && vitest run`) |
 | **Estimated runtime** | ~60 seconds (full suite includes a production build) |
@@ -52,7 +52,7 @@ created: 2026-09-01
 | 04-03 T2 | 04-03 | 2 | MEAS-08 | T-04-05, T-04-02, T-04-13 | Banned vocabulary absent from document text; no percent sign; zero external resources; no credential; mutation-probed | contract | `npm run test:unit -- --run src/test/haoo-report.test.ts` | ✅ after 04-01 | ⬜ pending |
 | 04-04 T2 | 04-04 | 2 | MEAS-05, MEAS-08 | T-04-15 | Superseded notice clause replaced in all five asserted locations in one commit, including the built-bundle assertion | component + build | `npm test` | ✅ extend | ⬜ pending |
 | 04-04 T3 | 04-04 | 2 | MEAS-05 | T-04-16, T-04-17 | Disclosure summary group renders fixed copy in locked position and reflects no runtime measurement value | component | `npm run test:unit -- --run src/test/measurement-page.test.tsx src/test/product-shell-reuse.test.tsx` | ✅ extend | ⬜ pending |
-| 04-05 T2 | 04-05 | 3 | MEAS-01, MEAS-07, MEAS-08 | T-04-06, T-04-07, T-04-19 | Fail-closed provider and script-source resolution; exactly one name-only call per event; automatic capture disabled; total failure isolation | unit + component | `npm run test:unit -- --run src/test/measurement.test.ts src/test/measurement-page.test.tsx` | ✅ extend | ⬜ pending |
+| 04-05 T2 | 04-05 | 3 | MEAS-01, MEAS-08 (+ MEAS-07 regression guard, Phase 3 Complete) | T-04-06, T-04-07, T-04-19 | Fail-closed provider and script-source resolution; exactly one name-only call per event; automatic capture disabled; total failure isolation | unit + component | `npm run test:unit -- --run src/test/measurement.test.ts src/test/measurement-page.test.tsx` | ✅ extend | ⬜ pending |
 | 04-05 T3 | 04-05 | 3 | MEAS-01 | T-04-02, T-04-18 | No analytics origin literal under `src/`; unset-provider bundle scope stated explicitly; credential shapes forbidden in the bundle | contract + build | `npm test` | ✅ extend | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

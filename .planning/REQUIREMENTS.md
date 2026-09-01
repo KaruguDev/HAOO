@@ -41,7 +41,15 @@
 - [ ] **MEAS-05**: Submitted qualification email includes a disclosed human-readable summary of relevant HAOO engagement signals without an opaque lead score
 - [x] **MEAS-06**: Campaign parameters are allowlisted and normalized before use and never include or receive personal information
 - [x] **MEAS-07**: Product journey remains fully functional when analytics scripts or browser storage are blocked or unavailable
-- [ ] **MEAS-08**: Reports describe browser-observable events truthfully as views, attempts, redirect returns, and outbound clicks rather than confirmed delivery, customers, or completed onboarding
+- [ ] **MEAS-08**: Reports describe browser-observable events truthfully as views, attempts, and outbound clicks rather than confirmed delivery, customers, or completed onboarding
+
+*Amended 2026-09-01 (Phase 4 planning): `redirect returns` was removed from MEAS-08. The Phase 3
+closed event allowlist in `src/products/haoo.ts:14-25` contains no redirect-return event, and no
+Phase 4 plan may add one — the allowlist is locked. Enumerating a label category the measurement
+layer cannot emit would require the report to either fabricate the row or ship a permanently empty
+one. The remaining categories (views, attempts, outbound clicks) are unchanged, and the precision
+intent — never claiming confirmed delivery, customers, or completed onboarding — is preserved in
+full.*
 
 ### Experience and Release Quality
 
