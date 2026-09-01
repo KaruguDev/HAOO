@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 9
 waived_count: 0
 fixed_count: 2
-total_count: 10
-last_updated: 2026-09-01T03:46:55.653Z
+total_count: 11
+last_updated: 2026-09-01T04:13:09.236Z
 ---
 
 # Broken Windows Ledger
@@ -25,6 +25,7 @@ last_updated: 2026-09-01T03:46:55.653Z
 | 8 | 02 | stub | src/products/haoo.ts |  | organization.requiredMessage and message.requiredMessage are unreachable copy demanded by the non-optional QualifyField.requiredMessage shape; both fields are permanently optional | open |  | 2026-08-30T08:19:24.116Z |  |
 | 9 | 02 | lint-warning | src/components/QualifyForm.tsx | 28 | react-refresh/only-export-components: QualifyForm.tsx exports helpers beside the component (4 warnings, pre-existing from 02-01, lint exits 0) | open |  | 2026-08-30T08:27:54.452Z |  |
 | 10 | 04 | unrun-verify | .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-01-PLAN.md |  | 04-01 Task 2 <human-check> not run: needs a real PLAUSIBLE_STATS_API_KEY and PLAUSIBLE_SITE_ID (available only after the 04-05 provider-approval checkpoint) plus a human judging counts against the dashboard; carried as 04-01-SUMMARY coverage D6 | open |  | 2026-09-01T03:46:55.653Z |  |
+| 11 | 04 | unrun-verify | src/products/haoo.ts |  | 04-02 Task 3 <human-check>: a person must read the maximum-length engagement summary as it would appear in the email body and confirm it reads as one coherent paragraph with no score-like or person-like claim. Carried to phase-end UAT as coverage D6. | open |  | 2026-09-01T04:13:09.236Z |  |
 
 ````json
 [
@@ -146,6 +147,18 @@ last_updated: 2026-09-01T03:46:55.653Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-01T03:46:55.653Z",
+    "resolved_at": null
+  },
+  {
+    "id": 11,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": "src/products/haoo.ts",
+    "line": null,
+    "description": "04-02 Task 3 <human-check>: a person must read the maximum-length engagement summary as it would appear in the email body and confirm it reads as one coherent paragraph with no score-like or person-like claim. Carried to phase-end UAT as coverage D6.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-01T04:13:09.236Z",
     "resolved_at": null
   }
 ]

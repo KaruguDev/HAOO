@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-01T03:46:33.679Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-01T04:12:50.776Z"
 last_activity: 2026-09-01
 last_activity_desc: Phase 04 execution started
-state_head: e40baa4245ce7bac56a9db0dcf9858afecc0e90a
+state_head: 63190555f7772974a0adee542367edea59d0c738
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 22
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-09-01 — Phase 04 execution started
 
@@ -68,6 +68,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 03 P03 | 12 min | 3 tasks | 9 files |
 | Phase 03 P04 | 22 min | 2 tasks | 10 files |
 | Phase 04 P01 | 14 min | 2 tasks | 9 files |
+| Phase 04 P02 | 20 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,9 @@ Recent decisions affecting current work:
 - [Phase 04]: The ten HAOO event literals are written exactly once: HAOO_REPORT_EVENTS is derived from the label map key order and typed Readonly<Record<HaooMeasurementEvent, ...>>. — Adding an eleventh event or dropping a label then fails npm run typecheck before it fails a contract test; mutation-probed at 1 typecheck error and 8 failing contracts.
 - [Phase 04]: The all-time report heading has three branches and never invents a date: the locked empty-state heading when nothing was recorded, since-{day} when the provider resolved a first day, and a bare All time when it resolved none. — Using the empty-state copy for an unresolved range would have claimed no recorded actions over non-zero counts.
 - [Phase 04]: Only scripts/generate-haoo-report.mjs touches the credential and the provider origin; src/reporting/generate.ts receives endpoint, key and site id through an injected query capability. — A test derives the analytics-origin regex, the Stats API query path and the credential variable name from the files that already own them, so the boundary assertion cannot drift from the 04-05 source scan it protects.
+- [Phase 04]: Blocking checkpoint C-2 resolved `include` by the human product owner: normalized campaign values appear in the emailed HAOO engagement summary, so plan 04-04 keeps disclosure contents item 4. — The owner gains the milestone's only attribution signal, and Phase 3 already lowercases, character-restricts and caps the values; the cost is that a campaign label now travels to FormSubmit beside a named enquiry, which widens the standing privacy-ownership blocker.
+- [Phase 04]: The emailed engagement summary is assembled by a product-generic formatter that reads an explicit three-member pick list and holds no copy of its own; every sentence is owner-approved product data. — Never spreading the stored record means adding a member to that record cannot silently add it to a delivered email, and keeping copy in product data lets owner-approved wording change without touching executable source.
+- [Phase 04]: A half-readable context record is treated as unreadable and yields the locked fallback sentence rather than a summary with no facts in it. — A mutation probe showed that returning an empty sentence list for an unauthored visit band survived every failure row the plan named, shipping an email that reads like a successful summary while asserting nothing.
 
 ### Pending Todos
 
@@ -142,6 +146,8 @@ None yet.
 - [Dependency maintenance] The unused Supabase dependency retains a pre-existing `ws` advisory; review removal or upgrade in a dedicated task before shipping.
 - The five closed option lists are assumed complete enough for real HAOO follow-up routing; unresolved, carried to UAT as human-judgment item 02-02-SUMMARY coverage D6.
 - [Phase 4] A leftover untracked worktree at .claude/worktrees/rf-03-retry-1788205465/ makes Vitest collect and run every suite twice (591 tests instead of ~300); all copies pass, but it doubles runtime and could mask a single-copy regression.
+- [Phase 4] Checkpoint C-2 resolved `include`, so a normalized campaign label now travels to FormSubmit alongside a named enquiry. This widens the standing privacy-ownership approval to cover campaign values leaving the browser, not only page-lifetime memory.
+- [Phase 4] The always-visible collection notice and HAOO_MEASUREMENT.disclosure.summaryBoundary still say no engagement summary is attached, which became false when 04-02 shipped. Plan 04-04 owns checkpoint C-1 and must land before the phase is truthful.
 
 ### Quick Tasks Completed
 
@@ -159,6 +165,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-01T03:45:52.106Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-09-01T04:12:50.692Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

@@ -152,14 +152,14 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 - [ ] .planner-contributions.md
 
 **Wave 1**
 
 - [x] 04-01-PLAN.md — Tracer: query, validate and render an owner-facing HAOO funnel report end to end, then extend it to all four locked periods.
-- [ ] 04-02-PLAN.md — Tracer: attach a readable, disclosed engagement summary to the qualification request, then complete its sentence matrix and thresholds.
+- [x] 04-02-PLAN.md — Tracer: attach a readable, disclosed engagement summary to the qualification request, then complete its sentence matrix and thresholds.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -198,5 +198,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 1/6 | In Progress|  |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 2/6 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
