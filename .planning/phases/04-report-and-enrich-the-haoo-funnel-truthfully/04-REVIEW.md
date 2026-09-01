@@ -1,14 +1,15 @@
 ---
 phase: 04-report-and-enrich-the-haoo-funnel-truthfully
-reviewed: 2026-09-01T09:11:51Z
+reviewed: 2026-09-01T19:43:43Z
 depth: standard
-files_reviewed: 25
+files_reviewed: 29
 files_reviewed_list:
   - .gitignore
   - README.md
   - eslint.config.js
   - package.json
   - scripts/generate-haoo-report.mjs
+  - scripts/verify-phase4-coverage.mjs
   - src/components/MeasurementDisclosure.tsx
   - src/components/QualifyForm.tsx
   - src/components/qualify-form.logic.ts
@@ -21,9 +22,12 @@ files_reviewed_list:
   - src/products/types.ts
   - src/reporting/generate.ts
   - src/reporting/haoo-report.ts
+  - src/reporting/query-provenance.ts
   - src/reporting/render.ts
   - src/reporting/stats-response.ts
   - src/test/build-output.test.ts
+  - src/test/fixtures/haoo-report-cli-fetch-preload.mjs
+  - src/test/fixtures/plausible-preload-contract.ts
   - src/test/haoo-report.test.ts
   - src/test/measurement-page.test.tsx
   - src/test/measurement.test.ts
@@ -31,78 +35,96 @@ files_reviewed_list:
   - src/test/qualify-form.test.tsx
 findings:
   critical: 2
-  warning: 2
+  warning: 1
   info: 0
-  total: 4
+  total: 3
 status: issues_found
 ---
 
 # Phase 04: Code Review Report
 
-**Reviewed:** 2026-09-01T09:11:51Z
+**Reviewed:** 2026-09-01T19:43:43Z
 **Depth:** standard
-**Files Reviewed:** 25
+**Files Reviewed:** 29
 **Status:** issues_found
 
 ## Summary
 
-The provider adapter does not implement Plausible's current preload initialization contract, so the configuration intended to disable automatic pageviews is not available to the loaded script. The report generator also labels returned counts with requested periods without validating the response's echoed query. Two operational gaps remain around failed report writes and the undocumented required site identifier.
+The completed gap work fixes the previously reported preload contract, response-provenance, temporary-file cleanup, and setup-documentation defects. The current implementation still permits a public build variable to select any HTTPS JavaScript origin despite treating origin spoofing as mitigated, and it can return a live analytics sink even when the required opt-out initialization never ran. The report writer also contains a POSIX-only path parser that breaks the documented local command on Windows.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01 (BLOCKER): Plausible initialization is queued as an event instead of stored as script options
+### CR-01 (BLOCKER): Analytics configuration accepts executable JavaScript from any HTTPS origin
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/measurement/plausible.ts:93-99`
+**Classification:** BLOCKER
 
-**Issue:** The preload stub implements `init` by calling `stub('init', options)`, which appends `['init', options]` to `plausible.q`. Plausible's current site-specific snippet uses a separate options slot (`plausible.o`) for initialization; the queue is for tracking calls. When the configured script loads after this stub, it therefore cannot read `autoCapturePageviews: false` from the documented location. The likely outcomes are an unintended automatic pageview plus the explicit `haoo_page_view`, and an `init` custom-event-shaped queue entry. This breaks both the truthful counts and the privacy promise that automatic capture is disabled. The test at `src/test/measurement.test.ts:628-639` enshrines the same invented queue shape instead of exercising the vendor contract. See Plausible's official current snippet in its [proxy setup guide](https://plausible.io/docs/proxy/guides/apache) and the documented [`plausible.init()` options](https://plausible.io/docs/script-extensions).
+**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/products/haoo.ts:63-85`
 
-**Fix:** Add the vendor options slot to the global shape and make the stub mirror the official bootstrap contract:
+**Issue:** `resolvePlausibleScriptSrc` checks only URL syntax, HTTPS, credentials, query/fragment absence, and a `.js` suffix. It never verifies the origin. Consequently, `https://attacker.example/payload.js` is accepted and later appended to the product page. That script executes with the first-party page's privileges and can read form values, DOM content, storage, and any other browser-visible data. This directly contradicts threat T-04-19's claim that a tampered build variable cannot load an arbitrary origin; the tests at `src/test/measurement.test.ts:536-556` cover malformed URLs but never an unapproved HTTPS host.
+
+**Fix:** Fail closed to an explicitly approved origin (and, ideally, an approved path family) before returning the value. Keep the allowlist in deployment-controlled non-secret configuration if the literal cannot live under `src/`, but validate the candidate against that independently trusted value rather than trusting the same script URL wholesale. For example:
 
 ```ts
-export interface PlausibleGlobal {
-  (...args: unknown[]): void;
-  q?: unknown[];
-  o?: PlausibleInitOptions;
-  init?: (options?: PlausibleInitOptions) => void;
+function resolvePlausibleScriptSrc(
+  configuredValue: string | undefined,
+  approvedOrigin: string | undefined,
+): string {
+  const url = new URL((configuredValue ?? '').trim());
+  const origin = new URL((approvedOrigin ?? '').trim()).origin;
+
+  if (url.protocol !== 'https:' || url.origin !== origin) return '';
+  if (url.username || url.password || url.search || url.hash) return '';
+  if (!url.pathname.endsWith('.js')) return '';
+  return url.href;
+}
+```
+
+Add a regression test proving a structurally valid `.js` URL on another origin is rejected, and update the threat-register assertion so its claimed mitigation is executable.
+
+### CR-02 (BLOCKER): A missing or throwing initializer still yields a live event sink
+
+**Classification:** BLOCKER
+
+**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/measurement/plausible.ts:90-92,134-150`
+
+**Issue:** `ensureProvider` returns any pre-existing function unchanged. The caller then invokes `init` with optional chaining, swallows any initialization exception, and unconditionally returns a sink. If another snippet has already defined `window.plausible` without `init`, or its initializer throws, the adapter still appends the managed script and forwards events even though `autoCapturePageviews: false` was never established. That can enable the automatic capture the privacy contract explicitly opts out of and can duplicate the explicit `haoo_page_view`. The initialization-order test supplies a cooperative mock that always has a successful `init`; it does not exercise either fail-open branch.
+
+**Fix:** Establish the preload global and its options before appending the script, and return `undefined` unless initialization is known to have succeeded. Do not treat optional or failed initialization as usable configuration:
+
+```ts
+const provider = ensureProvider(scope);
+if (typeof provider.init !== 'function') return undefined;
+
+try {
+  provider.init({ domain: providerScript.domain, autoCapturePageviews: false });
+} catch {
+  return undefined;
 }
 
-stub.init = (options) => {
-  stub.o = options;
+appendProviderScript(documentRef, providerScript.src);
+return (event) => {
+  try { scope.plausible?.(event); } catch { /* isolated */ }
 };
 ```
 
-Update the preload test to expect `scope.plausible?.o` to contain the options and `q` to contain only actual event calls. Also add a contract fixture copied from the official snippet so future tests cannot drift back to an invented provider API.
-
-### CR-02 (BLOCKER): Report counts are not checked against the period/site echoed by the provider
-
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/reporting/generate.ts:136-161`
-
-**Issue:** `queryRange` validates only `results`; it never confirms that `body.query` describes the requested site, metrics, dimensions, filters, or date range. The caller then labels those counts with its locally requested dates at lines 210-219. A stale proxy response, provider regression, or wrong injected response can therefore produce a fully “validated” report whose numbers belong to a different range or site. For the all-time response, `resolvedStartDay` also accepts impossible or future dates because it checks only the first ten characters against a digit pattern. This contradicts the module's fail-closed trust-boundary contract and can generate factually false owner reports.
-
-**Fix:** Validate the echoed query before accepting counts. For bounded ranges, normalize the two returned ISO timestamps to calendar days and require exact equality with `range.start` and `range.end`; for all-time, validate both dates by ISO round-trip and require the end day to equal the report day. Also require the echoed `site_id`, metric, dimension, and goal filter to match the request. Return `null` on any mismatch and add tests for a wrong range, wrong site, impossible date, and future start.
+Add tests for a pre-existing callable without `init` and for a throwing `init`; both must append no script and return no sink while leaving the local journey operational.
 
 ## Warnings
 
-### WR-01 (WARNING): A failed final rename leaves a newly written temporary report behind
+### WR-01 (WARNING): Report output directory extraction is POSIX-only
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/reporting/generate.ts:251-266`
+**Classification:** WARNING
 
-**Issue:** The code writes `${outputPath}.tmp` and catches a failing `renameSync`, but the catch does not remove the temporary file. The comment that “Nothing was written” is false for rename failures and partial write failures. A permissions or filesystem error can leave a fresh business-data report beside the previous report indefinitely. The existing rejection test fails before any filesystem write and uses an in-memory filesystem while checking the real path, so it does not cover this branch.
+**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/reporting/generate.ts:97-100,243-248`
 
-**Fix:** Add a cleanup capability (`rmSync`/`unlinkSync`) to `ReportFs`, track the temporary path, and remove it with `force: true` when generation fails after the write begins. Add a filesystem test whose `renameSync` throws and assert that the previous destination remains byte-identical and the sibling `.tmp` is absent.
+**Issue:** `directoryOf` searches only for `/`. The CLI constructs `OUTPUT_PATH` with Node's platform-native `resolve`, so on Windows it produces backslashes. `directoryOf` then returns an empty string, skips `mkdirSync`, and a first report run fails when `.reports` does not already exist. The owner-facing `npm run report:haoo` command is documented as a local process and is not documented as Linux-only.
 
-### WR-02 (WARNING): The owner-facing setup guide omits a required report variable
-
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/README.md:95-103`
-
-**Issue:** The CLI refuses to run unless both `PLAUSIBLE_STATS_API_KEY` and `PLAUSIBLE_SITE_ID` are set (`scripts/generate-haoo-report.mjs:27-34`), but the README documents only the API key. Following the documented setup therefore always exits with the generic failure sentence, and the owner has no documented way to distinguish the missing site ID from a bad key or network failure.
-
-**Fix:** Document `PLAUSIBLE_SITE_ID`, state that it must exactly match the Plausible site's configured domain, and include a non-secret invocation example that supplies both variable names without example credentials. Update the missing-configuration error to identify which variable names are absent without printing their values.
+**Fix:** Use Node's platform-aware `dirname` at the CLI boundary, or inject a directory operation/path adapter rather than hand-parsing separators. For example, pass `dirname(OUTPUT_PATH)` into the generator and call `mkdirSync` on it. Add a unit test with a Windows-style destination such as `C:\\project\\.reports\\haoo-funnel-report.html` and assert the `.reports` directory is created before temporary-file reservation.
 
 ---
 
-_Reviewed: 2026-09-01T09:11:51Z_
+_Reviewed: 2026-09-01T19:43:43Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
