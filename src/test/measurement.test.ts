@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMeasurement } from '../measurement';
 import {
+  createPlausibleEventSink,
+  type PlausibleInitOptions,
+  type PlausibleScope,
+} from '../measurement/plausible';
+import {
   HAOO_MEASUREMENT,
   HAOO_MEASUREMENT_EVENTS,
+  resolveMeasurementProvider,
+  resolvePlausibleScriptSrc,
   type HaooMeasurementEvent,
 } from '../products/haoo';
+import type { MeasurementProvider, ProductMeasurement } from '../products/types';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
 const TODAY = new Date('2026-08-31T12:00:00.000Z');
@@ -434,5 +442,354 @@ describe('browser failure containment and clear result', () => {
 
     expect(measurement.clearContext()).toBe(false);
     expect(measurement.readContext().flags.brochureDownloaded).toBe(false);
+  });
+});
+
+/**
+ * Phase 4 provider seam.
+ *
+ * The origin literals below are deliberate and confined to `src/test/`: the boundary
+ * suite's source scan asserts that no file under `src/` outside `src/test/` contains an
+ * analytics origin, so the origin can only ever enter a bundle through the public
+ * build-time variable these rows exercise.
+ */
+const SCRIPT_SRC = 'https://plausible.io/js/script.js';
+const SITE_DOMAIN = 'www.zero-paperhub.com';
+const PRODUCT_HREF = 'https://www.zero-paperhub.com/products/haoo/';
+
+const CONFIGURED_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
+  ...HAOO_MEASUREMENT,
+  provider: 'plausible',
+  providerScript: { src: SCRIPT_SRC, domain: SITE_DOMAIN },
+};
+
+interface RecordedProviderCall {
+  readonly kind: 'init' | 'event';
+  readonly args: readonly unknown[];
+  readonly arity: number;
+}
+
+/**
+ * A provider global that records call arity as the provider itself would see it.
+ * `arguments.length` is the only way to prove the sink forwarded exactly one argument;
+ * a rest-parameter spy cannot distinguish `f('x')` from `f('x', undefined)`.
+ */
+function recordingScope() {
+  const recorded: RecordedProviderCall[] = [];
+
+  function provider(this: unknown) {
+    recorded.push({
+      kind: 'event',
+      args: Array.from(arguments) as unknown[],
+      arity: arguments.length,
+    });
+  }
+  provider.init = (options: PlausibleInitOptions) => {
+    recorded.push({ kind: 'init', args: [options], arity: 1 });
+  };
+
+  const scope: PlausibleScope = { plausible: provider };
+  return { scope, recorded };
+}
+
+function silentConsole() {
+  return {
+    log: vi.spyOn(console, 'log').mockImplementation(() => undefined),
+    warn: vi.spyOn(console, 'warn').mockImplementation(() => undefined),
+    error: vi.spyOn(console, 'error').mockImplementation(() => undefined),
+    debug: vi.spyOn(console, 'debug').mockImplementation(() => undefined),
+  };
+}
+
+function expectSilent(spies: ReturnType<typeof silentConsole>) {
+  for (const [name, spy] of Object.entries(spies)) {
+    expect(spy, `console.${name}`).not.toHaveBeenCalled();
+  }
+}
+
+describe('fail-closed provider resolution', () => {
+  const providerRows: readonly [string, string | undefined, MeasurementProvider][] = [
+    ['undefined', undefined, 'none'],
+    ['the empty string', '', 'none'],
+    ['whitespace only', '   \t ', 'none'],
+    ['the no-op literal', 'none', 'none'],
+    ['the provider name exactly', 'plausible', 'plausible'],
+    ['the provider name padded and mixed case', '  PlAuSiBlE\n', 'plausible'],
+    ['an unknown word', 'matomo', 'none'],
+    ['an absolute URL', SCRIPT_SRC, 'none'],
+    ['a near miss with a suffix', 'plausible-io', 'none'],
+    ['a near miss with an inner space', 'plaus ible', 'none'],
+  ];
+
+  it.each(providerRows)(
+    'resolves %s to the named provider',
+    (_label, configured, expected) => {
+      expect(resolveMeasurementProvider(configured)).toBe(expected);
+    },
+  );
+
+  const scriptSrcRows: readonly [string, string | undefined, string][] = [
+    ['a valid absolute https script URL', SCRIPT_SRC, SCRIPT_SRC],
+    ['the same URL surrounded by whitespace', `  ${SCRIPT_SRC}  `, SCRIPT_SRC],
+    ['a bare origin with no script path', 'https://plausible.io/', ''],
+    ['an http URL', 'http://plausible.io/js/script.js', ''],
+    ['a URL carrying a username and password', 'https://user:secret@plausible.io/js/script.js', ''],
+    ['a URL carrying a query string', 'https://plausible.io/js/script.js?domain=example.com', ''],
+    ['a URL carrying a fragment', 'https://plausible.io/js/script.js#fragment', ''],
+    ['a path that is not a script', 'https://plausible.io/js/script.json', ''],
+    ['a protocol-relative reference', '//plausible.io/js/script.js', ''],
+    ['a non-URL string', 'script.js', ''],
+    ['undefined', undefined, ''],
+    ['the empty string', '', ''],
+  ];
+
+  it.each(scriptSrcRows)(
+    'resolves %s to the named script source',
+    (_label, configured, expected) => {
+      expect(resolvePlausibleScriptSrc(configured)).toBe(expected);
+    },
+  );
+});
+
+describe('name-only provider sink', () => {
+  const unconfigured: readonly [string, ProductMeasurement<HaooMeasurementEvent>][] = [
+    ['the resolved provider is the no-op', { ...CONFIGURED_MEASUREMENT, provider: 'none' }],
+    ['the resolved script source is empty', {
+      ...CONFIGURED_MEASUREMENT,
+      providerScript: { src: '', domain: SITE_DOMAIN },
+    }],
+    ['the site domain is empty', {
+      ...CONFIGURED_MEASUREMENT,
+      providerScript: { src: SCRIPT_SRC, domain: '' },
+    }],
+  ];
+
+  it.each(unconfigured)('returns no sink when %s', (_label, config) => {
+    const documentRef = document.implementation.createHTMLDocument('unconfigured');
+    const scope: PlausibleScope = {};
+
+    expect(createPlausibleEventSink(config, { documentRef, scope })).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(scope.plausible).toBeUndefined();
+  });
+
+  it('appends the configured site script exactly once with deferred loading', () => {
+    const documentRef = document.implementation.createHTMLDocument('configured');
+    const { scope } = recordingScope();
+
+    createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+    createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+
+    const scripts = [...documentRef.querySelectorAll('script')];
+    expect(scripts).toHaveLength(1);
+    expect(scripts[0].getAttribute('src')).toBe(SCRIPT_SRC);
+    expect(scripts[0].defer).toBe(true);
+  });
+
+  it('initializes with automatic pageview capture disabled before any forwarded event', () => {
+    const documentRef = document.implementation.createHTMLDocument('init-order');
+    const { scope, recorded } = recordingScope();
+
+    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+
+    expect(recorded).toHaveLength(1);
+    expect(recorded[0].kind).toBe('init');
+    expect(recorded[0].args[0]).toEqual({
+      domain: SITE_DOMAIN,
+      autoCapturePageviews: false,
+    });
+
+    sink?.('haoo_page_view');
+    expect(recorded.map((call) => call.kind)).toEqual(['init', 'event']);
+  });
+
+  it('forwards exactly one bare argument for every one of the ten event names', () => {
+    const documentRef = document.implementation.createHTMLDocument('arity');
+    const { scope, recorded } = recordingScope();
+    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+
+    expect(sink).toBeTypeOf('function');
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      sink?.(event);
+    }
+
+    const events = recorded.filter((call) => call.kind === 'event');
+    expect(events.map((call) => call.args[0])).toEqual([...HAOO_MEASUREMENT_EVENTS]);
+    for (const [index, call] of events.entries()) {
+      expect(call.arity, HAOO_MEASUREMENT_EVENTS[index]).toBe(1);
+      expect(call.args).toHaveLength(1);
+    }
+  });
+
+  it('queues calls made before the site script arrives instead of losing them', () => {
+    const documentRef = document.implementation.createHTMLDocument('queue');
+    const scope: PlausibleScope = {};
+    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+
+    sink?.('haoo_page_view');
+
+    expect(scope.plausible?.q).toEqual([
+      ['init', { domain: SITE_DOMAIN, autoCapturePageviews: false }],
+      ['haoo_page_view'],
+    ]);
+  });
+});
+
+describe('provider failure isolation', () => {
+  function configuredMeasurement(
+    documentRef: Document,
+    scope: PlausibleScope,
+    storage: Storage,
+  ) {
+    return createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage,
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { documentRef, scope },
+    });
+  }
+
+  it('leaves the journey unchanged when the provider global is absent', () => {
+    const spies = silentConsole();
+    const documentRef = document.implementation.createHTMLDocument('absent');
+    const { scope } = recordingScope();
+    const storage = new MemoryStorage();
+    const measurement = configuredMeasurement(documentRef, scope, storage);
+
+    measurement.initialize();
+    delete scope.plausible;
+
+    expect(measurement.track('haoo_brochure_download')).toBe(true);
+    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    expect(scope.plausible).toBeUndefined();
+    expectSilent(spies);
+  });
+
+  it('leaves the journey unchanged when the provider call throws', () => {
+    const spies = silentConsole();
+    const documentRef = document.implementation.createHTMLDocument('throwing');
+    const { scope } = recordingScope();
+    const storage = new MemoryStorage();
+    const measurement = configuredMeasurement(documentRef, scope, storage);
+
+    measurement.initialize();
+    scope.plausible = () => {
+      throw new Error('provider unavailable');
+    };
+
+    expect(measurement.track('haoo_brochure_download')).toBe(true);
+    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    expectSilent(spies);
+  });
+
+  it('leaves the journey unchanged when the provider script load fails', () => {
+    const spies = silentConsole();
+    const documentRef = document.implementation.createHTMLDocument('failed-load');
+    const scope: PlausibleScope = {};
+    const storage = new MemoryStorage();
+    const measurement = configuredMeasurement(documentRef, scope, storage);
+
+    measurement.initialize();
+
+    const script = documentRef.querySelector('script');
+    expect(script).not.toBeNull();
+    script?.dispatchEvent(new Event('error'));
+
+    expect(measurement.track('haoo_brochure_download')).toBe(true);
+    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    // The site script never arrived, so the pre-load queue holds the calls and nothing
+    // is retried, logged, or dropped on the floor.
+    expect(scope.plausible?.q).toEqual([
+      ['init', { domain: SITE_DOMAIN, autoCapturePageviews: false }],
+      ['haoo_brochure_download'],
+    ]);
+    expectSilent(spies);
+  });
+});
+
+describe('facade contract under the widened provider seam', () => {
+  it('still exposes exactly the five existing members in the existing order', () => {
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      providerAdapters: {
+        documentRef: document.implementation.createHTMLDocument('facade'),
+        scope: {},
+      },
+    });
+
+    expect(Object.keys(measurement)).toEqual([
+      'initialize',
+      'track',
+      'readContext',
+      'readCampaign',
+      'clearContext',
+    ]);
+  });
+
+  it('appends no script and touches no provider global for the no-op provider', () => {
+    const documentRef = document.implementation.createHTMLDocument('no-op');
+    const scope: PlausibleScope = {};
+
+    expect(HAOO_MEASUREMENT.provider).toBe('none');
+
+    const measurement = createMeasurement(HAOO_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      providerAdapters: { documentRef, scope },
+    });
+
+    measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(scope.plausible).toBeUndefined();
+  });
+
+  it('keeps an injected sink authoritative over the configured provider', () => {
+    const documentRef = document.implementation.createHTMLDocument('injected');
+    const { scope, recorded } = recordingScope();
+    const eventSink = vi.fn();
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      eventSink,
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      providerAdapters: { documentRef, scope },
+    });
+
+    measurement.initialize();
+    expect(measurement.track('haoo_page_view')).toBe(true);
+
+    expect(eventSink.mock.calls).toEqual([['haoo_page_view']]);
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(recorded).toEqual([]);
+  });
+
+  it('wires the configured provider sink when no sink adapter is injected', () => {
+    const documentRef = document.implementation.createHTMLDocument('wired');
+    const { scope, recorded } = recordingScope();
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: `${PRODUCT_HREF}?utm_source=partner` },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { documentRef, scope },
+    });
+
+    measurement.initialize();
+    expect(measurement.track('haoo_qualify_submit')).toBe(true);
+
+    // Campaign normalization and address-bar cleanup complete before the provider
+    // script is ever appended, so no capture can precede it (RESEARCH Pitfall 1).
+    expect(measurement.readCampaign()).toEqual({ utm_source: 'partner' });
+    expect(documentRef.querySelectorAll('script')).toHaveLength(1);
+    expect(recorded.filter((call) => call.kind === 'event').map((call) => call.args[0]))
+      .toEqual(['haoo_qualify_submit']);
   });
 });
