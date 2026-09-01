@@ -8,10 +8,19 @@ import {
   HAOO_MEASUREMENT_EVENTS,
   HAOO_PRODUCT,
 } from '../products/haoo';
+import { qualifyCollectionNotePageContext } from '../products/copy';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
+/**
+ * The owner-approved collection notice, byte-exact, hand-typed exactly once in the
+ * repository. Its final clause is the Phase 4 checkpoint C-1 approval. Every other
+ * surface — product data, the built-bundle assertion, the qualification-form contract —
+ * derives the sentence from `qualifyCollectionNotePageContext`, and a contract below
+ * asserts that builder's output against these bytes. Change this literal only with a
+ * fresh owner approval.
+ */
 const APPROVED_COLLECTION_NOTICE =
-  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
+  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them and of any campaign values seen on arrival — never a score, an identifier, or your form answers.';
 
 const SIGNAL_DISCLOSURES = [
   'That you viewed this HAOO page.',
@@ -642,6 +651,20 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(eventSink).not.toHaveBeenCalledWith('haoo_qualify_start');
     expect(eventSink).not.toHaveBeenCalled();
     expect(window.localStorage.getItem(CONTEXT_KEY)).toBeNull();
+  });
+
+  /**
+   * Phase 4 checkpoint C-1. The approved bytes are hand-typed once, at the top of this
+   * file; the shipped product data derives the same sentence from the copy builder.
+   * This asserts the two are byte-identical directly, rather than comparing two
+   * independently typed literals that could both be wrong in the same way.
+   */
+  it('derives the shipped collection notice from the one approved copy builder', () => {
+    expect(qualifyCollectionNotePageContext('HAOO')).toBe(APPROVED_COLLECTION_NOTICE);
+    const { collectionNote } = HAOO_PRODUCT.qualify;
+
+    expect(collectionNote).toBeDefined();
+    expect(collectionNote?.pageContext).toBe(qualifyCollectionNotePageContext('HAOO'));
   });
 
   it('renders the approved complete measurement disclosure', () => {

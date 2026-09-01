@@ -97,10 +97,24 @@ export function qualifyCollectionNoteProcessor() {
   return 'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
 }
 
+/**
+ * Page-context paragraph of the collection notice, and the single source of that
+ * sentence for every surface that renders, builds or asserts it.
+ *
+ * The final clause is owner-approved byte-exact copy (Phase 4 blocking checkpoint C-1,
+ * resolved by the product owner as the `A-plus-campaign` variant). Phase 3's clause
+ * closed by denying that anything was attached to the submission; plan 04-02 made that
+ * denial false by attaching a readable engagement paragraph — and, per checkpoint C-2
+ * resolved `include`, any normalized campaign values seen on arrival. Naming both is
+ * what keeps the notice true.
+ *
+ * Do not restate this string anywhere. Product data and tests derive it from this
+ * builder so an approved wording change cannot land on some surfaces and not others.
+ */
 export function qualifyCollectionNotePageContext(productName: string) {
   const name = requireIdentity(productName, 'name');
 
-  return `This page remembers only coarse ${name} engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted ${name}, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.`;
+  return `This page remembers only coarse ${name} engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted ${name}, or opened self-onboarding. These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them and of any campaign values seen on arrival — never a score, an identifier, or your form answers.`;
 }
 
 /**

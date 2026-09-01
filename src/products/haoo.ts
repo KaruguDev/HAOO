@@ -6,6 +6,7 @@ import type {
 } from './types';
 import { ENGAGEMENT_SUMMARY_LABEL } from '../components/qualify-form.logic';
 import {
+  qualifyCollectionNotePageContext,
   qualifyCollectionNoteProcessor,
   qualifyCollectionNotePurpose,
 } from './copy';
@@ -398,8 +399,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
     collectionNote: {
       purpose: qualifyCollectionNotePurpose('HAOO'),
       processor: qualifyCollectionNoteProcessor(),
-      pageContext:
-        'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.',
+      pageContext: qualifyCollectionNotePageContext('HAOO'),
     },
     /**
      * Owner-approved engagement-summary copy, byte-exact from `04-UI-SPEC.md`

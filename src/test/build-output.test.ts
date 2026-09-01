@@ -8,6 +8,7 @@ import {
   createMeasurement,
 } from '../measurement';
 import { HAOO_PRODUCT } from '../products/haoo';
+import { qualifyCollectionNotePageContext } from '../products/copy';
 import { buildSubmissionBody } from '../components/qualify-form.logic';
 
 const ROOT = resolve(import.meta.dirname, '../..');
@@ -37,8 +38,24 @@ const PRODUCT_ASSETS = [
   '/products/haoo/haoo-hero.png',
   '/products/haoo/haoo-logo.png',
 ];
-const APPROVED_COLLECTION_NOTICE =
-  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
+/**
+ * Derived, never restated. The notice is owner-approved byte-exact copy whose only
+ * hand-typed copy lives in `measurement-page.test.tsx`; here the point of the assertion
+ * is that whatever the approved builder produces actually survives into the shipped
+ * bundle, so deriving it is stricter than a sixth literal that could drift silently.
+ */
+const APPROVED_COLLECTION_NOTICE = qualifyCollectionNotePageContext('HAOO');
+/**
+ * The notice is now assembled at runtime from one product-generic template, so the
+ * bundle carries the template's static segments around each interpolated product name
+ * rather than one contiguous sentence. Splitting the approved notice on the product
+ * name reconstructs exactly those segments, and the last one carries the whole
+ * owner-approved final clause — so a drifted word still fails here. Assembly itself is
+ * covered by the rendered-page `textContent` equality in `measurement-page.test.tsx`.
+ */
+const APPROVED_NOTICE_BUNDLE_SEGMENTS = APPROVED_COLLECTION_NOTICE.split(
+  HAOO_PRODUCT.name,
+);
 
 /**
  * Static boundary for the product surface, narrowed per file rather than deleted.
@@ -591,6 +608,9 @@ describe('Phase 1 static build contracts', () => {
       .toBeLessThan(disclosureSource.indexOf('<div className="mt-6 space-y-6">'));
     expect(disclosureSource).not.toMatch(/skeleton|spinner|loading|line-clamp|truncate|text-ellipsis|overflow-x/i);
     expect(bundle).toContain('How we measure this page');
-    expect(bundle).toContain(APPROVED_COLLECTION_NOTICE);
+    expect(APPROVED_NOTICE_BUNDLE_SEGMENTS.length).toBeGreaterThan(1);
+    for (const segment of APPROVED_NOTICE_BUNDLE_SEGMENTS) {
+      expect(bundle, segment).toContain(segment);
+    }
   });
 });

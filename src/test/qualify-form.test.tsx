@@ -17,6 +17,7 @@ import {
 } from '../components/qualify-form.logic';
 import { CONTEXT_RECORD_KEYS, createMeasurement } from '../measurement';
 import ProductPage from '../pages/ProductPage';
+import { qualifyCollectionNotePageContext } from '../products/copy';
 import { formatEngagementSummary } from '../products/engagement-summary';
 import {
   CONTACT_CHANNEL_OPTIONS,
@@ -34,8 +35,12 @@ const SECTION_NAME = 'Send your details';
 const REQUIRED_FIELDS_NOTE = 'All fields are required unless marked optional.';
 const COLLECTION_PURPOSE =
   'We use these details only to reply to you about HAOO onboarding. We never sell them or add you to a mailing list.';
-const COLLECTION_CONTEXT =
-  'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and no engagement summary is attached to this submission yet.';
+/**
+ * Derived from the one approved copy builder rather than restated: the assertion below
+ * compares the whole `collectionNote` object, so a hand-typed duplicate here would only
+ * ever prove that two literals were typed the same way on the same day.
+ */
+const COLLECTION_CONTEXT = qualifyCollectionNotePageContext('HAOO');
 /** Named at the point of collection: the payload reaches the processor before us. */
 const COLLECTION_PROCESSOR =
   'Your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to our inbox. This site does not store them anywhere else.';
