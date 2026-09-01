@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 2/6 plans executed
+**Plans**: 3/6 plans executed
 
 - [ ] .planner-contributions.md
 
@@ -164,7 +164,7 @@ intent is unchanged.*
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 04-03-PLAN.md — Complete the Surface A report document and pin its vocabulary, encoding and self-containment contracts.
-- [ ] 04-04-PLAN.md — Replace the superseded collection-notice clause everywhere and add the disclosure group describing what is attached.
+- [x] 04-04-PLAN.md — Replace the superseded collection-notice clause everywhere and add the disclosure group describing what is attached.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -198,5 +198,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 2/6 | In Progress|  |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 3/6 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

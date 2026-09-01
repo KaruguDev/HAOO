@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-01T04:12:50.776Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-09-01T06:44:37.925Z"
 last_activity: 2026-09-01
 last_activity_desc: Phase 04 execution started
-state_head: 63190555f7772974a0adee542367edea59d0c738
+state_head: 8a175f0430345fc9b8acf62246339e2906a49b27
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-09-01 — Phase 04 execution started
 
@@ -69,6 +69,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 03 P04 | 22 min | 2 tasks | 10 files |
 | Phase 04 P01 | 14 min | 2 tasks | 9 files |
 | Phase 04 P02 | 20 min | 2 tasks | 9 files |
+| Phase 04 P04 | 13 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Blocking checkpoint C-2 resolved `include` by the human product owner: normalized campaign values appear in the emailed HAOO engagement summary, so plan 04-04 keeps disclosure contents item 4. — The owner gains the milestone's only attribution signal, and Phase 3 already lowercases, character-restricts and caps the values; the cost is that a campaign label now travels to FormSubmit beside a named enquiry, which widens the standing privacy-ownership blocker.
 - [Phase 04]: The emailed engagement summary is assembled by a product-generic formatter that reads an explicit three-member pick list and holds no copy of its own; every sentence is owner-approved product data. — Never spreading the stored record means adding a member to that record cannot silently add it to a delivered email, and keeping copy in product data lets owner-approved wording change without touching executable source.
 - [Phase 04]: A half-readable context record is treated as unreadable and yields the locked fallback sentence rather than a summary with no facts in it. — A mutation probe showed that returning an empty sentence list for an unauthored visit band survived every failure row the plan named, shipping an email that reads like a successful summary while asserting nothing.
+- [Phase 04]: Checkpoint C-1 was resolved by the human product owner as the A-plus-campaign variant rather than the UI-SPEC proposal verbatim; the shipped notice names both the attached engagement summary and any campaign values seen on arrival. — The UI-SPEC clause bound "a summary of them" to an enumeration that excludes campaign values, which under-disclosed once C-2 resolved include. The 04-UI-SPEC.md C-1 row still carries the superseded text and needs reconciling.
+- [Phase 04]: Owner-approved visitor-facing copy has exactly one hand-typed home and one derivation path: qualifyCollectionNotePageContext is the single source, and only measurement-page.test.tsx keeps the approved bytes. — Deriving everywhere prevents drift between surfaces but loses the pin on the approved bytes; one anchor plus a derivation contract keeps both.
+- [Phase 04]: The built-bundle notice assertion checks the approved template static segments rather than one contiguous sentence. — Deriving the sentence in product data means it is assembled at runtime and no longer appears inlined in the bundle; the segments still carry the whole approved clause, and rendered textContent equality covers assembly.
 
 ### Pending Todos
 
@@ -147,7 +151,8 @@ None yet.
 - The five closed option lists are assumed complete enough for real HAOO follow-up routing; unresolved, carried to UAT as human-judgment item 02-02-SUMMARY coverage D6.
 - [Phase 4] A leftover untracked worktree at .claude/worktrees/rf-03-retry-1788205465/ makes Vitest collect and run every suite twice (591 tests instead of ~300); all copies pass, but it doubles runtime and could mask a single-copy regression.
 - [Phase 4] Checkpoint C-2 resolved `include`, so a normalized campaign label now travels to FormSubmit alongside a named enquiry. This widens the standing privacy-ownership approval to cover campaign values leaving the browser, not only page-lifetime memory.
-- [Phase 4] The always-visible collection notice and HAOO_MEASUREMENT.disclosure.summaryBoundary still say no engagement summary is attached, which became false when 04-02 shipped. Plan 04-04 owns checkpoint C-1 and must land before the phase is truthful.
+- [Phase 4] RESOLVED by plan 04-04: the always-visible collection notice and HAOO_MEASUREMENT.disclosure.summaryBoundary now state what is actually attached, in the owner-approved C-1 clause. The superseded sentence returns zero grep hits under src/.
+- [Phase 4] 04-UI-SPEC.md still carries the superseded proposed C-1 clause; the owner approved the A-plus-campaign variant instead, so the UI-SPEC C-1 row and Surface B boundary description need reconciling to the shipped bytes.
 
 ### Quick Tasks Completed
 
@@ -165,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-01T04:12:50.692Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-09-01T06:44:05.576Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
