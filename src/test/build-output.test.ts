@@ -71,6 +71,9 @@ const APPROVED_NOTICE_BUNDLE_SEGMENTS = APPROVED_COLLECTION_NOTICE.split(
  *   `FORM_MARKUP_FORBIDDEN` only. It is the single module allowed to `fetch` and to
  *   render a `<form>`; it still may not hardcode the provider, because the endpoint
  *   must arrive through product data.
+ * - `src/measurement/plausible.ts` keeps the full static boundary plus the explicit
+ *   measurement privacy group. It may create an injected script element, but it needs
+ *   no storage, network-call API, form markup, provider endpoint, or second event arg.
  *
  * Every other product source keeps all four groups, and `ALWAYS_FORBIDDEN` — storage,
  * analytics, injection, router, ambient browser context and backend seams — applies to
@@ -132,6 +135,10 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...FORM_MARKUP_FORBIDDEN,
   ],
   'src/measurement/index.ts': MEASUREMENT_FACADE_BOUNDARY,
+  'src/measurement/plausible.ts': [
+    ...FULL_BOUNDARY,
+    ...MEASUREMENT_PRIVACY_FORBIDDEN,
+  ],
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
   'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
@@ -158,16 +165,38 @@ function listFiles(dir: string): string[] {
   });
 }
 
+const PRODUCTION_SOURCE_INPUTS = listFiles(resolve(ROOT, 'src')).filter(
+  (path) => !path.startsWith(`${resolve(ROOT, 'src/test')}/`),
+);
 const BUILD_INPUTS = [
-  ...listFiles(resolve(ROOT, 'src')).filter(
-    (path) => !path.startsWith(`${resolve(ROOT, 'src/test')}/`),
-  ),
+  ...PRODUCTION_SOURCE_INPUTS,
   ...listFiles(resolve(ROOT, 'public')),
   resolve(ROOT, 'index.html'),
   SOURCE_HTML,
   resolve(ROOT, 'vite.config.ts'),
   resolve(ROOT, 'package.json'),
 ];
+
+/** Origins no supported build configuration may ever publish. */
+const UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN = [
+  /googletagmanager|google-analytics|umami|posthog|segment\.com/i,
+] as const;
+
+/**
+ * The supported provider origin is forbidden in the provider-unset bundle built by CI
+ * and this suite. A deliberately configured production build will legitimately contain
+ * this origin through `VITE_HAOO_PLAUSIBLE_SRC`; the source invariant below proves it
+ * cannot enter through a hardcoded production module.
+ */
+export const UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN = [/plausible\.io/i] as const;
+
+/** Credential-only report shapes must never enter any browser bundle. */
+const REPORT_CREDENTIAL_BUNDLE_FORBIDDEN = [
+  /PLAUSIBLE_STATS_API_KEY/,
+  /Authorization/,
+  /Bearer\s/,
+  /\/api\/v2\/query/,
+] as const;
 const BUILD_OUTPUTS = [
   BUILT_HTML,
   resolve(DIST, 'index.html'),
@@ -516,10 +545,29 @@ describe('Phase 1 static build contracts', () => {
     }
   });
 
-  it('ships the unset provider bundle without identity, property, queue, or SDK seams', () => {
+  it('keeps analytics origins out of production source modules', () => {
+    // Reuse BUILD_INPUTS' exact `src/` scope while excluding `src/test/`: the test
+    // sources necessarily contain the forbidden literals that define this contract.
+    const forbiddenOrigins = [
+      ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
+      ...UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN,
+    ];
+
+    for (const path of PRODUCTION_SOURCE_INPUTS) {
+      const source = readText(path);
+      const relativePath = relative(ROOT, path).replace(/\\/g, '/');
+      for (const forbidden of forbiddenOrigins) {
+        expect(source, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
+      }
+    }
+  });
+
+  it('ships the unset provider bundle without identity, property, queue, SDK, or credential seams', () => {
     const bundle = builtBundleText();
     const forbiddenBundlePatterns = [
-      /googletagmanager|google-analytics|plausible\.io|umami|posthog|segment\.com/i,
+      ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
+      ...UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN,
+      ...REPORT_CREDENTIAL_BUNDLE_FORBIDDEN,
       /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
       /\b(?:uuid|fingerprint|clickstream|eventQueue)\b/i,
       /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i,

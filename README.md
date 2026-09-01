@@ -55,16 +55,51 @@ Activating the endpoint and confirming live mail for `info@haoo.online` — subm
 ## HAOO measurement provider
 
 `VITE_HAOO_MEASUREMENT_PROVIDER` is a public build-time selector for the HAOO
-measurement sink. Its finite accepted set currently contains only `none`.
-An unset, blank, `none`, or unknown value therefore selects the same inert no-op
-sink; the value is never interpreted as a URL or dynamically loaded script.
+measurement sink. Its finite accepted set is `none` and `plausible`. An unset,
+blank, `none`, or unrecognised value selects the inert no-op sink. Production
+enablement is currently deferred: do not set the provider variables until the
+analytics processor and collection have received separate privacy-owner approval.
 
-Phase 3 records bare, allowlisted event names through this sink and stores only
-the disclosed bounded browser context. It ships no analytics SDK or account,
-sends no event-property or form-field payload, and maintains no delivery queue,
-retry buffer, identifier, or ordered clickstream. Live aggregate reporting and
-adding a coarse engagement summary to qualification email are Phase 4 work and
-are not available in this build.
+Three public build-time variables configure collection:
+
+- `VITE_HAOO_MEASUREMENT_PROVIDER` — set to the literal `plausible` to select the
+  provider; every other value fails closed to `none`.
+- `VITE_HAOO_PLAUSIBLE_SRC` — the site-specific script URL from Plausible's Site
+  Installation settings. It must be an absolute `https:` URL with no credentials,
+  query, or fragment and a path ending in `.js`; otherwise no sink is created.
+- `VITE_HAOO_PLAUSIBLE_DOMAIN` — the site domain configured in Plausible. An empty
+  value leaves collection disabled.
+
+Vite inlines every `VITE_*` value into the world-readable JavaScript bundle.
+These values are public configuration, not secrets. After enablement is approved,
+pass all three through the deploy workflow's `Build` step `env` block alongside
+`VITE_HAOO_FORM_ENDPOINT`. With any missing or rejected value, the product journey
+continues normally and the bounded local engagement context still works.
+
+The sink sends exactly one bare allowlisted event name per explicit action. It
+disables automatic pageview capture and does not enable automatic outbound-link,
+download, form, revenue, or hash-routing capture. It sends no event properties,
+form values, stable identifiers, retry buffer, or ordered clickstream.
+
+### Plausible dashboard prerequisite
+
+Before enabling collection, create custom-event goals for all ten names in
+`HAOO_MEASUREMENT_EVENTS`: `haoo_page_view`, `haoo_brochure_preview`,
+`haoo_brochure_open`, `haoo_brochure_download`, `haoo_qualify_start`,
+`haoo_qualify_submit`, `haoo_assisted_whatsapp`, `haoo_assisted_phone`,
+`haoo_assisted_email`, and `haoo_self_onboarding`. Create them in Plausible under
+Site Settings → Goals → Add goal → Custom event. Plausible does not backfill events
+into a goal created later, so enabling first would permanently omit earlier activity
+from the owner report.
+
+### Report credential boundary
+
+The report generator reads `PLAUSIBLE_STATS_API_KEY` only from the local process
+environment when `npm run report:haoo` runs. It is a credential: never prefix it
+with `VITE_`, never add it to the browser build, never commit it, and never write it
+into a generated report. The report command sends it only in the Stats API
+authorization header; application code receives query results through an injected
+capability and never sees the key or provider endpoint.
 
 ### Spam handling
 

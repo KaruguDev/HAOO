@@ -612,9 +612,10 @@ describe('credential and provider-origin boundary', () => {
       'utf8',
     );
     const originSource = boundarySuite.match(
-      /\/(googletagmanager\|[^/\n]+)\/i,/,
+      /UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN\s*=\s*\[\/([^/\n]+)\/i\]/,
     )?.[1];
-    expect(originSource, 'analytics-origin pattern in build-output.test.ts').toBeTruthy();
+    expect(originSource, 'unconfigured-provider origin pattern in build-output.test.ts')
+      .toBeTruthy();
 
     const cli = readFileSync(resolve(ROOT, 'scripts/generate-haoo-report.mjs'), 'utf8');
     const endpoint = cli.match(/'(https:\/\/[^']+)'/)?.[1];
