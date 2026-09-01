@@ -16,6 +16,7 @@ import {
   type ReportStageId,
 } from '../reporting/haoo-report';
 import { parseGoalCounts } from '../reporting/stats-response';
+import { validateEchoedQuery } from '../reporting/query-provenance';
 import {
   escapeHtml,
   renderReport,
@@ -163,6 +164,39 @@ function goalRows(counts: Partial<Record<HaooMeasurementEvent, number>>) {
   };
 }
 
+const INDEPENDENT_GOAL_FILTER = [
+  'haoo_page_view',
+  'haoo_brochure_preview',
+  'haoo_brochure_open',
+  'haoo_brochure_download',
+  'haoo_qualify_start',
+  'haoo_qualify_submit',
+  'haoo_assisted_whatsapp',
+  'haoo_assisted_phone',
+  'haoo_assisted_email',
+  'haoo_self_onboarding',
+] as const;
+
+const DEFAULT_ECHOED_RANGES = [
+  ['2026-02-23T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
+  ['2026-02-16T00:00:00+03:00', '2026-02-22T23:59:59+03:00'],
+  ['2026-01-31T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
+  ['2026-01-01T00:00:00+03:00', '2026-01-30T23:59:59+03:00'],
+  ['2025-12-02T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
+  ['2025-09-03T00:00:00+03:00', '2025-12-01T23:59:59+03:00'],
+  ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
+] as const;
+
+function independentlyEchoedQuery(dateRange: readonly [string, string]) {
+  return {
+    site_id: 'example.test',
+    metrics: ['events'],
+    dimensions: ['event:goal'],
+    filters: [['is', 'event:goal', [...INDEPENDENT_GOAL_FILTER]]],
+    date_range: [...dateRange],
+  };
+}
+
 const FIXTURE_CURRENT = goalRows({
   haoo_page_view: 124,
   haoo_brochure_preview: 41,
@@ -194,18 +228,67 @@ interface StubCall {
   readonly headers: Readonly<Record<string, string>>;
 }
 
-function stubFetch(bodies: readonly unknown[]) {
+function stubFetch(
+  bodies: readonly unknown[],
+  echoedRanges: readonly (readonly [string, string])[] = DEFAULT_ECHOED_RANGES,
+) {
   const calls: StubCall[] = [];
   let index = 0;
   const fetchSpy = vi.fn<ReportFetch>(async (url, init) => {
     calls.push({ url, body: init.body, headers: init.headers });
     const body = bodies[Math.min(index, bodies.length - 1)];
+    const range = echoedRanges[Math.min(index, echoedRanges.length - 1)];
     index += 1;
-    return { ok: true, json: async () => body };
+    const responseBody = typeof body === 'object' && body !== null && !Array.isArray(body)
+      ? { query: independentlyEchoedQuery(range), ...body }
+      : body;
+    return { ok: true, json: async () => responseBody };
   });
 
   return { fetchSpy, calls };
 }
+
+describe('validateEchoedQuery', () => {
+  const expected = {
+    siteId: FIXTURE_SITE_ID,
+    events: [...INDEPENDENT_GOAL_FILTER],
+    range: { start: '2026-02-23', end: '2026-03-01' },
+    today: '2026-03-01',
+  } as const;
+  const valid = { query: independentlyEchoedQuery(DEFAULT_ECHOED_RANGES[0]) };
+
+  it('accepts exact bounded provenance without shifting offset timestamps through UTC', () => {
+    expect(validateEchoedQuery(valid, expected)).toEqual({
+      start: '2026-02-23',
+      end: '2026-03-01',
+    });
+  });
+
+  it.each([
+    ['wrong site', { site_id: 'wrong.example' }],
+    ['extra metric', { metrics: ['events', 'visitors'] }],
+    ['wrong dimension', { dimensions: ['event:page'] }],
+    ['missing filter', { filters: [] }],
+    ['extra filter', { filters: [valid.query.filters[0], ['is', 'visit:country', ['KE']]] }],
+    ['wrong goal order', { filters: [['is', 'event:goal', [...INDEPENDENT_GOAL_FILTER].reverse()]] }],
+    ['wrong range', { date_range: ['2026-02-22', '2026-03-01'] }],
+    ['impossible date', { date_range: ['2026-02-30', '2026-03-01'] }],
+  ])('rejects %s', (_label, override) => {
+    expect(validateEchoedQuery({ query: { ...valid.query, ...override } }, expected)).toBeNull();
+  });
+
+  it.each([
+    ['future start', ['2026-03-02', '2026-03-01']],
+    ['start after end', ['2026-02-02', '2026-02-01']],
+    ['stale end', ['2025-01-01', '2026-02-28']],
+    ['future end', ['2025-01-01', '2026-03-02']],
+  ])('rejects all-time %s', (_label, dateRange) => {
+    expect(validateEchoedQuery(
+      { query: { ...valid.query, date_range: dateRange } },
+      { ...expected, range: 'all' },
+    )).toBeNull();
+  });
+});
 
 /** In-memory capability so a document contract never touches the real filesystem. */
 function memoryFs() {
