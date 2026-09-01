@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
-status: verifying
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-09-01T09:06:20.867Z"
+status: gaps_found
+stopped_at: Phase 04 verification found gaps
+last_updated: "2026-09-01T09:17:22.000Z"
 last_activity: 2026-09-01
 last_activity_desc: Phase 04 execution started
-state_head: 40679681162b66dc95cc64de9675e66e5a828a66
+state_head: a6f88e9
 progress:
   total_phases: 5
   completed_phases: 2
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
 Plan: 5 of 5
-Status: Phase complete — ready for verification
+Status: Verification gaps found — gap-closure planning required
 Last activity: 2026-09-01 — Phase 04 execution started
 
 Progress: [████████████████████] 9/9 plans ([████░░░░░░] 40%)
@@ -161,6 +161,7 @@ None yet.
 - [Phase 4] RESOLVED by plan 04-04: the always-visible collection notice and HAOO_MEASUREMENT.disclosure.summaryBoundary now state what is actually attached, in the owner-approved C-1 clause. The superseded sentence returns zero grep hits under src/.
 - [Phase 4] 04-UI-SPEC.md still carries the superseded proposed C-1 clause; the owner approved the A-plus-campaign variant instead, so the UI-SPEC C-1 row and Surface B boundary description need reconciling to the shipped bytes.
 - [Phase 4] 04-UI-SPEC.md's Locked banned vocabulary list and its Caveat block copy contradict each other: the locked caveat contains people, sessions and customer. Plan 04-03 resolved this in code by scoping the ban to everything except the authored denial block; the UI-SPEC itself still needs amending to say so.
+- [Phase 4 verification] Plausible preload options use the wrong vendor contract; report responses do not validate echoed query provenance; rename failure can leave a temporary report; owner setup omits `PLAUSIBLE_SITE_ID`. See 04-VERIFICATION.md and plan gap closure before enabling production analytics.
 
 ### Quick Tasks Completed
 
@@ -179,5 +180,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-09-01T09:06:20.768Z
-Stopped at: Completed 04-05-PLAN.md
+Stopped at: Phase 04 verification found gaps
 Resume file: None

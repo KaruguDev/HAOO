@@ -14,7 +14,7 @@ This milestone turns the existing company landing page into a product-led site b
 - [x] **Phase 1: Discover HAOO and Choose an Onboarding Path** - Ship a responsive, stable HAOO product journey from portfolio discovery to direct assisted or self-service action. (completed 2026-08-29)
 - [ ] **Phase 2: Submit a Qualified HAOO Enquiry** - Let an interested prospect provide structured qualification details through an accessible HAOO-specific form.
 - [ ] **Phase 3: Build Privacy-Bounded Engagement Context** - Measure and retain only the disclosed, coarse engagement signals needed for privacy-first product learning.
-- [x] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring. (completed 2026-09-01)
+- [ ] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring.
 - [ ] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts.
 
 ## Phase Details
@@ -196,5 +196,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 5/5 | Complete    | 2026-09-01 |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 5/5 | Gaps found |  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
