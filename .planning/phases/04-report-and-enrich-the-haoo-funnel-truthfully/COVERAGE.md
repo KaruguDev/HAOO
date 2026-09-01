@@ -11,7 +11,9 @@
 | capability | decision | reason |
 |---|---|---|
 | custom event by name (`plausible('<name>')`) | INTEGRATE | |
-| pre-load event queue (`window.plausible.q` stub) | INTEGRATE | |
+| pre-load event queue (`window.plausible.q` stub) | INTEGRATE | only real event calls enter this queue |
+| pre-load options slot (`window.plausible.o`) | INTEGRATE | mirrors the documented provider bootstrap contract so initialization options are available before the managed script loads |
+| pre-load initializer (`plausible.init(options)`) | INTEGRATE | writes options to `plausible.o`; it is not represented as an event-shaped queue entry |
 | ten exact custom-event goals configured on the site | INTEGRATE | |
 | automatic pageview capture | OPT-OUT | duplicates the explicit `haoo_page_view` event and can send a pageview before campaign parameters are stripped — initialized with `autoCapturePageviews: false` |
 | custom event properties / property bag | OPT-OUT | explicitly out of scope — Phase 3 locks the sink to event-name-only (MEAS-02) |
@@ -34,7 +36,12 @@
 | `date_range` explicit inclusive ISO pair | INTEGRATE | |
 | `date_range: "all"` | INTEGRATE | |
 | bearer authentication from the local process environment | INTEGRATE | |
-| metrics `visitors`, `visits`, `pageviews`, `bounce_rate`, `visit_duration`, `views_per_visit`, `time_on_page`, `scroll_depth` | OPT-OUT | explicitly out of scope — person/session metrics contradict D-04 and MEAS-08; the report counts occurrences only |
+| echoed `query.site_id` provenance | INTEGRATE | counts are accepted only for the exact configured Plausible domain requested by the owner command |
+| echoed `query.metrics`, `query.dimensions`, and goal-filter provenance | INTEGRATE | counts are accepted only for the single `events` metric, `event:goal` dimension, and exact ten-name filter |
+| echoed bounded-range provenance | INTEGRATE | returned ISO timestamps must resolve to the exact inclusive days requested for each current and comparison period |
+| echoed all-time range provenance | INTEGRATE | the resolved end day must equal the report day and the ISO start must be real, ordered, and non-future |
+| response `results` rows | INTEGRATE | rows remain fail-closed for unknown/duplicate goals and invalid event counts after query provenance passes |
+| person/session/engagement metrics | OPT-OUT | `visitors`, `visits`, `pageviews`, bounce/duration/depth metrics contradict D-04 and MEAS-08; the report counts occurrences only |
 | metrics `conversion_rate`, `group_conversion_rate`, `percentage` | OPT-OUT | explicitly out of scope — D-04 forbids percentages and conversion vocabulary |
 | dimensions `event:page`, `event:name`, `visit:*`, `time:*` | OPT-OUT | not needed — visit dimensions carry visitor-derived properties the report must not present |
 | relative presets `7d` / `30d` / `91d` | OPT-OUT | `91d` cannot express the locked 90-day window (D-03); explicit inclusive ISO ranges are used for all bounded periods |
@@ -46,6 +53,14 @@
 | Shared links | OPT-OUT | explicitly out of scope — the report must not be published (A2); the artifact stays local and gitignored |
 | Embed dashboard (iframe) | OPT-OUT | explicitly out of scope — password-protected dashboards cannot be embedded and the standard layout cannot satisfy D-01 through D-04 |
 | Funnels / user journeys | OPT-OUT | explicitly out of scope — asserts cohort progression the anonymous event stream cannot prove (D-04) |
+
+## Operational boundary
+
+Production analytics enablement remains OPT-OUT for this gap-closure run because the privacy owner
+approved the code path but deferred processor approval, dashboard setup, and deployment variables.
+The integration capabilities above are implemented and fixture-verified while the provider selector
+remains unset. `PLAUSIBLE_STATS_API_KEY` and `PLAUSIBLE_SITE_ID` are local report-process inputs;
+neither is a browser capability, and neither may enter a `VITE_*` variable or the published bundle.
 
 ## FormSubmit — AJAX email delivery (re-decided from a full baseline)
 

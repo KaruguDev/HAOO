@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/7 plans executed
 
 **Wave 1**
 
@@ -167,6 +167,11 @@ intent is unchanged.*
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 04-05-PLAN.md — Widen the provider seam to a real privacy-first sink, re-scope the static boundary, and document the credential split.
+
+**Wave 4** *(gap closure; both plans can run in parallel after Wave 3)*
+
+- [ ] 04-06-PLAN.md — Mirror the documented Plausible preload contract, pin it with an independent fixture, and restore MVP goal verification.
+- [ ] 04-07-PLAN.md — Validate Stats query provenance, make report replacement fail-closed, and complete the owner run instructions.
 
 **UI hint**: yes
 
