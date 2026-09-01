@@ -2,82 +2,64 @@
 
 **Generated:** 2026-09-01
 **Phase:** 04-report-and-enrich-the-haoo-funnel-truthfully
-**Status:** Incomplete
+**Status:** Incomplete — production enablement deliberately deferred
 
-Complete these items before `npm run report:haoo` can carry live counts. Claude automated
-everything possible: the report path is fully implemented and fixture-verified, and every
-contract in `src/test/haoo-report.test.ts` runs with no credential and no network access.
-The items below require human access to the Plausible dashboard and to the local shell
-environment.
-
-**These credentials are not required to execute, verify, or review this phase.** They are
-required only to point the generator at a real site.
+The provider integration is implemented and fixture-verified, but production collection must remain disabled until the privacy owner separately approves the analytics processor and collection. The deploy workflow has not been changed and the variables below must remain unset until that approval.
 
 ## Environment Variables
 
 | Status | Variable | Source | Add to |
 |--------|----------|--------|--------|
-| [ ] | `PLAUSIBLE_STATS_API_KEY` | Plausible Dashboard → Settings → API Keys (Business plan feature) | Local process environment ONLY |
-| [ ] | `PLAUSIBLE_SITE_ID` | Plausible Dashboard → Site Settings → Domain (the site's domain string) | Local process environment ONLY |
+| [ ] | `VITE_HAOO_MEASUREMENT_PROVIDER` | Literal public value `plausible` after approval | GitHub Actions `Build` step environment |
+| [ ] | `VITE_HAOO_PLAUSIBLE_SRC` | Plausible Dashboard → Site Settings → Site Installation → site-specific script URL | GitHub Actions `Build` step environment |
+| [ ] | `VITE_HAOO_PLAUSIBLE_DOMAIN` | Plausible Dashboard → Site Settings → General → Domain | GitHub Actions `Build` step environment |
 
-**Never** define either as a `VITE_` variable and never commit either value. Vite inlines
-`VITE_*` into a world-readable bundle; the Stats API key is a bearer credential. Only
-`scripts/generate-haoo-report.mjs` reads `process.env`, and a contract test asserts that
-`src/reporting/generate.ts` carries neither the credential name nor the provider origin.
+All three are public build-time configuration. Never put a secret in a `VITE_*` variable.
 
-## Account Setup
+## Account and Approval
 
-- [ ] **Plausible account with Stats API access**
-  - URL: https://plausible.io
-  - Skip if: the account already exists and is on a plan that exposes API keys
-  - Blocked by: privacy/legal approval of the processor, data location, retention, and
-    Kenya Data Protection Act treatment (carried blocker in `STATE.md`; UI-SPEC checkpoint
-    C-3). Do not enable production collection before that approval.
+- [ ] **Approve the Plausible processor and production collection**
+  - Owner: privacy/product owner
+  - Do not enable collection before this approval.
+- [ ] **Create or select the Plausible site for the HAOO journey**
+  - Skip if an approved site already exists.
 
 ## Dashboard Configuration
 
-- [ ] **Create the ten exact custom-event goals**
+- [ ] **Create all ten custom-event goals before enabling collection**
   - Location: Plausible Dashboard → Site Settings → Goals → Add goal → Custom event
-  - Set to: the ten names in `HAOO_MEASUREMENT_EVENTS` (`src/products/haoo.ts` lines 14-25),
-    byte-identical: `haoo_page_view`, `haoo_brochure_preview`, `haoo_brochure_open`,
-    `haoo_brochure_download`, `haoo_qualify_start`, `haoo_qualify_submit`,
-    `haoo_assisted_whatsapp`, `haoo_assisted_phone`, `haoo_assisted_email`,
-    `haoo_self_onboarding`
-  - Notes: create every goal **before** enabling production collection. Plausible does not
-    backfill events into a goal created later, so a late goal silently reports 0 for the
-    period before it existed.
+  - Names: `haoo_page_view`, `haoo_brochure_preview`, `haoo_brochure_open`, `haoo_brochure_download`, `haoo_qualify_start`, `haoo_qualify_submit`, `haoo_assisted_whatsapp`, `haoo_assisted_phone`, `haoo_assisted_email`, `haoo_self_onboarding`
+  - Notes: Plausible does not backfill events into goals created later.
+- [ ] **Confirm the integration does not rely on automatic capture**
+  - Location: Plausible Dashboard → Site Settings → Site Installation
+  - Notes: Application code disables automatic pageviews and emits only the ten explicit name-only events.
+- [ ] **After approval, expose the three public values to the build**
+  - Location: `.github/workflows/deploy.yml`, `Build` step `env` block
+  - Notes: Add them beside `VITE_HAOO_FORM_ENDPOINT`; do not add `PLAUSIBLE_STATS_API_KEY`.
 
-- [ ] **Set the site reporting timezone to `Africa/Nairobi`**
-  - Location: Plausible Dashboard → Site Settings → General
-  - Set to: `Africa/Nairobi`
-  - Notes: the generator derives "today" in this exact zone and prints it in the report
-    metadata line. A different site timezone would make the inclusive period boundaries in
-    the headings disagree with the periods the provider aggregated.
+## Report Credential
+
+- [ ] **Provide `PLAUSIBLE_STATS_API_KEY` only to the local report process**
+  - Source: Plausible account API-key settings
+  - Add to: the local shell environment used to run `npm run report:haoo`
+  - Never add it to GitHub Pages build variables, source files, or generated reports.
 
 ## Verification
 
-After completing setup, verify with:
+After approval, dashboard setup, and deployment configuration:
 
 ```bash
-# Both values present in the local environment (prints nothing but the check result)
-node -e "process.exit(process.env.PLAUSIBLE_STATS_API_KEY && process.env.PLAUSIBLE_SITE_ID ? 0 : 1)" \
-  && echo "credentials present"
-
-# Generate the report
-npm run report:haoo
-
-# The artifact is local-only and stays out of git
-git status --porcelain .reports   # expect no output
-grep -c '<script' .reports/haoo-funnel-report.html   # expect 0
+npm run build
+npm test
+PLAUSIBLE_STATS_API_KEY='[local secret]' npm run report:haoo
 ```
 
 Expected results:
-- `npm run report:haoo` prints one line naming the resolved report path and exits 0.
-- `.reports/haoo-funnel-report.html` opens with no network access and shows four period
-  sections whose headings name real inclusive dates.
-- A wrong or revoked key prints the error sentence to the terminal, exits 1, and leaves
-  any previous report file byte-identical.
+
+- The HAOO journey continues to work if the analytics script is blocked or fails.
+- Each accepted action creates one name-only custom event and no automatic duplicate.
+- The owner report contains aggregate counts for the configured site without exposing the API key.
 
 ---
 
-**Once all items complete:** Mark status as "Complete" at top of file.
+**Once all items complete:** Mark status as `Complete` at the top of this file.

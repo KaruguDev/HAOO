@@ -14,7 +14,7 @@ This milestone turns the existing company landing page into a product-led site b
 - [x] **Phase 1: Discover HAOO and Choose an Onboarding Path** - Ship a responsive, stable HAOO product journey from portfolio discovery to direct assisted or self-service action. (completed 2026-08-29)
 - [ ] **Phase 2: Submit a Qualified HAOO Enquiry** - Let an interested prospect provide structured qualification details through an accessible HAOO-specific form.
 - [ ] **Phase 3: Build Privacy-Bounded Engagement Context** - Measure and retain only the disclosed, coarse engagement signals needed for privacy-first product learning.
-- [ ] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring.
+- [x] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring. (completed 2026-09-01)
 - [ ] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts.
 
 ## Phase Details
@@ -152,9 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 4/6 plans executed
-
-- [ ] .planner-contributions.md
+**Plans**: 5/5 plans executed
 
 **Wave 1**
 
@@ -168,7 +166,7 @@ intent is unchanged.*
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-05-PLAN.md — Widen the provider seam to a real privacy-first sink, re-scope the static boundary, and document the credential split.
+- [x] 04-05-PLAN.md — Widen the provider seam to a real privacy-first sink, re-scope the static boundary, and document the credential split.
 
 **UI hint**: yes
 
@@ -198,5 +196,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 4/6 | In Progress|  |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 5/5 | Complete    | 2026-09-01 |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
