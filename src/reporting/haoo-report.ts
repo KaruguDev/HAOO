@@ -182,3 +182,124 @@ export function deltaLabel(current: number, previous: number, days: number): str
   if (delta < 0) return `−${Math.abs(delta)} ${suffix}`;
   return `No change ${suffix}`;
 }
+
+/* ------------------------------------------------------------------------------------
+ * Owner-facing copy for the report document.
+ *
+ * Per the 04-PATTERNS.md "Data-driven copy, zero literals in components" pattern, every
+ * word the owner reads lives here, keyed by a closed union wherever one exists, so an
+ * omission is a typecheck error rather than a blank in the document. `render.ts` holds
+ * markup and CSS only — it contains no evidence vocabulary of its own.
+ * --------------------------------------------------------------------------------- */
+
+/** UI-SPEC "Period section headings" — D-03 locks exactly these four views, in order. */
+export const REPORT_PERIOD_IDS = [
+  'last-7-days',
+  'last-30-days',
+  'last-90-days',
+  'all-time',
+] as const;
+
+export type ReportPeriodId = (typeof REPORT_PERIOD_IDS)[number];
+
+/** The visible radio label for each view. Also the first half of each `h2`. */
+export const REPORT_PERIOD_LABELS: Readonly<Record<ReportPeriodId, string>> = {
+  'last-7-days': 'Last 7 days',
+  'last-30-days': 'Last 30 days',
+  'last-90-days': 'Last 90 days',
+  'all-time': 'All time',
+};
+
+/** UI-SPEC "Primary CTA": the 30-day view is the checked default. */
+export const REPORT_DEFAULT_PERIOD_ID: ReportPeriodId = 'last-30-days';
+
+/** UI-SPEC "Period legend". */
+export const REPORT_PERIOD_LEGEND = 'Reporting period';
+
+export type ReportColumnId = 'action' | 'current' | 'previous' | 'change' | 'allTime';
+
+/** UI-SPEC "Table column headers". */
+export const REPORT_COLUMN_HEADERS: Readonly<Record<ReportColumnId, string>> = {
+  action: 'Recorded action',
+  current: 'This period',
+  previous: 'Previous period',
+  change: 'Change',
+  allTime: 'All time',
+};
+
+export type ReportMetadataId = 'generated' | 'timezone' | 'provider' | 'site';
+
+/** UI-SPEC "Metadata" — the header line names all four facts and claims nothing else. */
+export const REPORT_METADATA_LABELS: Readonly<Record<ReportMetadataId, string>> = {
+  generated: 'Generated',
+  timezone: 'Reporting timezone',
+  provider: 'Analytics provider:',
+  site: 'Site',
+};
+
+export const REPORT_METADATA_SEPARATOR = ' · ';
+
+export type ReportProviderState = 'configured' | 'not-configured';
+
+/** UI-SPEC "Metadata" provider states. The report never claims a third state. */
+export const REPORT_PROVIDER_STATE_LABELS: Readonly<Record<ReportProviderState, string>> = {
+  configured: 'configured',
+  'not-configured': 'not configured',
+};
+
+/**
+ * UI-SPEC "All-time comparison line". All time is rendered with this sentence instead of
+ * a comparison, because there is no preceding period and inventing one would be a claim.
+ */
+export const REPORT_ALL_TIME_COMPARISON =
+  'All time has no preceding period to compare with.';
+
+/** UI-SPEC "Comparison line" for the three bounded views. */
+export function comparisonLine(days: number, window: PeriodWindow): string {
+  return `Compared with the previous ${days} days, ${window.start} to ${window.end}.`;
+}
+
+/** UI-SPEC "Empty state heading". */
+export const REPORT_EMPTY_STATE_HEADING = 'No recorded actions in this period';
+
+/**
+ * UI-SPEC "Empty state body". A zero period says what was and was not measured; it is
+ * never a dash, a blank section, or a "no data" placeholder.
+ */
+export function emptyStateBody(start: string, end: string): string {
+  return `Nothing was recorded for any HAOO signal between ${start} and ${end}. Counts `
+    + 'include only actions taken while measurement was configured, and browser privacy '
+    + 'settings can prevent an action from being recorded.';
+}
+
+/**
+ * UI-SPEC "Caveat block copy", one authored sentence per entry, rendered in this order
+ * and always outside every collapsible element.
+ *
+ * These sentences are the report's denial of the claims its own shape might suggest, so
+ * they deliberately name the things the counts are *not* — occurrences rather than
+ * people or sessions, a click rather than a customer. That is why the banned-vocabulary
+ * scan excludes this block and pins it by exact text instead: a negated word here is the
+ * truthful reading, while the same word in a label would be the overstatement MEAS-08
+ * forbids.
+ */
+export const REPORT_CAVEATS: readonly string[] = [
+  'These counts are occurrences of browser actions, not people, sessions, or enquiries.',
+  'One browser can appear in several stages, and a repeated action counts again.',
+  'A stage total is the sum of the actions listed inside it, not evidence that the same '
+  + 'person moved from one stage to the next.',
+  'A validated form send attempt is a request the browser made; it is not proof that the '
+  + 'message reached the inbox.',
+  'An outbound click records that a link was opened; it is not a conversation, a '
+  + 'registration, a customer, or completed onboarding.',
+  'Browser privacy settings and content blockers can prevent an action from being '
+  + 'recorded, so real activity can be higher than the counts shown.',
+];
+
+/**
+ * UI-SPEC "Stage total". The unit noun is always present so a bare integer can never be
+ * read as a count of people, and the singular form is authored rather than derived.
+ */
+export function recordedActionsLabel(total: number): string {
+  return total === 1 ? '1 recorded action' : `${total} recorded actions`;
+}

@@ -1,7 +1,15 @@
-import { HAOO_REPORT_EVENTS, periodWindows } from './haoo-report.ts';
+import {
+  comparisonLine,
+  HAOO_REPORT_EVENTS,
+  periodWindows,
+  REPORT_ALL_TIME_COMPARISON,
+  REPORT_EMPTY_STATE_HEADING,
+  REPORT_PERIOD_LABELS,
+  REPORT_PROVIDER_STATE_LABELS,
+} from './haoo-report.ts';
 import { parseGoalCounts } from './stats-response.ts';
 import { renderReport } from './render.ts';
-import type { PeriodWindow } from './haoo-report.ts';
+import type { PeriodWindow, ReportPeriodId } from './haoo-report.ts';
 import type { ReportModel, ReportPeriodModel } from './render.ts';
 
 /**
@@ -156,9 +164,6 @@ async function queryRange(
 /** D-03 locks exactly these three bounded views. */
 const BOUNDED_PERIOD_DAYS = [7, 30, 90] as const;
 
-/** UI-SPEC empty-state heading, used instead of a date the provider did not report. */
-const NO_RECORDED_DAY = 'No recorded actions in this period';
-
 function totalOf(counts: Readonly<Record<string, number>>): number {
   return HAOO_REPORT_EVENTS.reduce((total, event) => total + (counts[event] ?? 0), 0);
 }
@@ -169,10 +174,11 @@ function totalOf(counts: Readonly<Record<string, number>>): number {
  * the provider resolved no range it names the period alone. Neither case invents a date.
  */
 function allTimeHeading(result: RangeResult): string {
-  if (totalOf(result.counts) === 0) return `All time · ${NO_RECORDED_DAY}`;
+  const label = REPORT_PERIOD_LABELS['all-time'];
+  if (totalOf(result.counts) === 0) return `${label} · ${REPORT_EMPTY_STATE_HEADING}`;
   return result.resolvedStart === null
-    ? 'All time'
-    : `All time · since ${result.resolvedStart}`;
+    ? label
+    : `${label} · since ${result.resolvedStart}`;
 }
 
 export async function generateHaooReport(
@@ -198,13 +204,17 @@ export async function generateHaooReport(
       const previous = await queryRange(options, windows.previous);
       if (previous === null) return { ok: false, reason: `invalid-previous-${days}` };
 
+      const id = `last-${days}-days` as ReportPeriodId;
+      const label = REPORT_PERIOD_LABELS[id];
+
       periods.push({
-        id: `last-${days}-days`,
+        id,
         days,
-        heading: `Last ${days} days · ${windows.current.start} to ${windows.current.end}`,
-        comparisonLine:
-          `Compared with the previous ${days} days, `
-          + `${windows.previous.start} to ${windows.previous.end}.`,
+        label,
+        heading: `${label} · ${windows.current.start} to ${windows.current.end}`,
+        comparisonLine: comparisonLine(days, windows.previous),
+        window: windows.current,
+        empty: totalOf(current.counts) === 0,
         counts: current.counts,
         previousCounts: previous.counts,
       });
@@ -216,8 +226,15 @@ export async function generateHaooReport(
     periods.push({
       id: 'all-time',
       days: null,
+      label: REPORT_PERIOD_LABELS['all-time'],
       heading: allTimeHeading(allTime),
-      comparisonLine: null,
+      comparisonLine: REPORT_ALL_TIME_COMPARISON,
+      // The all-time window is named only when the provider resolved a first recorded
+      // day; otherwise the document carries no dates for it rather than inventing them.
+      window: allTime.resolvedStart === null
+        ? null
+        : { start: allTime.resolvedStart, end: today },
+      empty: totalOf(allTime.counts) === 0,
       counts: allTime.counts,
       previousCounts: null,
     });
@@ -226,7 +243,8 @@ export async function generateHaooReport(
       title: REPORT_TITLE,
       generatedAt: generatedAt.toISOString(),
       timezone: REPORT_TIMEZONE,
-      providerState: 'configured',
+      providerState: REPORT_PROVIDER_STATE_LABELS.configured,
+      siteScope: options.query.siteId,
       periods,
     };
 

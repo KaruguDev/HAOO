@@ -16,7 +16,7 @@ import {
   type ReportStageId,
 } from '../reporting/haoo-report';
 import { parseGoalCounts } from '../reporting/stats-response';
-import { escapeHtml, renderReport } from '../reporting/render';
+import { escapeHtml, renderReport, type ReportModel } from '../reporting/render';
 import {
   generateHaooReport,
   type ReportFetch,
@@ -115,10 +115,30 @@ const BANNED_VOCABULARY = [
   'funnel drop', 'journey', 'delivered', 'received', 'onboarded', 'signed up',
 ] as const;
 
+/** The id of the authored caveat block, excluded from the vocabulary scan below. */
+const CAVEAT_BLOCK_ID = 'report-caveats';
+
+/**
+ * The document's rendered text with the style element and the authored caveat block
+ * removed.
+ *
+ * The style element goes because CSS units would false-positive the percentage check and
+ * declaration names could mask a real hit. The caveat block goes because it is the
+ * report's *denial* of the claims the banned list forbids: to be truthful it has to say
+ * the counts are "not people, sessions, or enquiries" and that a click is "not ... a
+ * customer". Scanning it would force those denials out of the document and leave the
+ * report less honest, not more. The exclusion is safe only because the block is pinned
+ * separately by exact text against the authored copy, so no other sentence can hide
+ * inside it, and because a contract asserts every banned term found anywhere in the
+ * document lies inside this one block.
+ */
 function documentText(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]*>/g, ' ');
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  for (const node of doc.querySelectorAll(`style, #${CAVEAT_BLOCK_ID}`)) {
+    node.remove();
+  }
+
+  return doc.documentElement.textContent ?? '';
 }
 
 function goalRows(counts: Partial<Record<HaooMeasurementEvent, number>>) {
@@ -384,18 +404,22 @@ describe('escapeHtml', () => {
 });
 
 describe('renderReport', () => {
-  const model = {
+  const model: ReportModel = {
     title: 'HAOO funnel report',
     generatedAt: '2026-03-01T09:30:00.000Z',
     timezone: 'Africa/Nairobi',
     providerState: 'configured',
+    siteScope: FIXTURE_SITE_ID,
     periods: [
       {
         id: 'last-30-days',
         days: 30,
+        label: 'Last 30 days',
         heading: 'Last 30 days · 2026-01-31 to 2026-03-01',
         comparisonLine:
           'Compared with the previous 30 days, 2026-01-01 to 2026-01-30.',
+        window: { start: '2026-01-31', end: '2026-03-01' },
+        empty: false,
         counts: Object.fromEntries(HAOO_REPORT_EVENTS.map((event) => [event, 1])),
         previousCounts: Object.fromEntries(HAOO_REPORT_EVENTS.map((event) => [event, 0])),
       },
@@ -700,10 +724,11 @@ describe('all four reporting periods', () => {
     ALL_TIME,
   ];
 
+  /** The markup of one period section, resolved by id rather than by string position. */
   function periodSection(html: string, id: string): string {
-    const opening = html.indexOf(`<section id="${id}">`);
-    expect(opening, id).toBeGreaterThan(-1);
-    return html.slice(opening, html.indexOf('</section>', opening));
+    const section = new DOMParser().parseFromString(html, 'text/html').getElementById(id);
+    expect(section, id).not.toBeNull();
+    return section?.outerHTML ?? '';
   }
 
   async function generateEveryPeriod() {
