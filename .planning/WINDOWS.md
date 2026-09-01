@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 10
+open_count: 11
 waived_count: 0
 fixed_count: 2
-total_count: 12
-last_updated: 2026-09-01T06:45:08.472Z
+total_count: 13
+last_updated: 2026-09-01T07:04:25.198Z
 ---
 
 # Broken Windows Ledger
@@ -27,6 +27,7 @@ last_updated: 2026-09-01T06:45:08.472Z
 | 10 | 04 | unrun-verify | .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-01-PLAN.md |  | 04-01 Task 2 <human-check> not run: needs a real PLAUSIBLE_STATS_API_KEY and PLAUSIBLE_SITE_ID (available only after the 04-05 provider-approval checkpoint) plus a human judging counts against the dashboard; carried as 04-01-SUMMARY coverage D6 | open |  | 2026-09-01T03:46:55.653Z |  |
 | 11 | 04 | unrun-verify | src/products/haoo.ts |  | 04-02 Task 3 <human-check>: a person must read the maximum-length engagement summary as it would appear in the email body and confirm it reads as one coherent paragraph with no score-like or person-like claim. Carried to phase-end UAT as coverage D6. | open |  | 2026-09-01T04:13:09.236Z |  |
 | 12 | 04 | unrun-verify | src/components/MeasurementDisclosure.tsx |  | Task 3 human-check not run: 320px viewport and 200% zoom reading of the new disclosure group and the replaced notice clause; carried to phase-end UAT as 04-04-SUMMARY coverage D6 | open |  | 2026-09-01T06:45:08.472Z |  |
+| 13 | 04 | unrun-verify | src/reporting/render.ts |  | Surface A backstop visual checks at 320px and 200% zoom, and the screen-reader announcement check, could not be run: jsdom computes no layout. Carried to UAT as 04-03 coverage D9 and D10. | open |  | 2026-09-01T07:04:25.198Z |  |
 
 ````json
 [
@@ -172,6 +173,18 @@ last_updated: 2026-09-01T06:45:08.472Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-01T06:45:08.472Z",
+    "resolved_at": null
+  },
+  {
+    "id": 13,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": "src/reporting/render.ts",
+    "line": null,
+    "description": "Surface A backstop visual checks at 320px and 200% zoom, and the screen-reader announcement check, could not be run: jsdom computes no layout. Carried to UAT as 04-03 coverage D9 and D10.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-01T07:04:25.198Z",
     "resolved_at": null
   }
 ]
