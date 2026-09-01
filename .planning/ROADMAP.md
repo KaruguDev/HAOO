@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 
 **Wave 1**
 
@@ -170,7 +170,7 @@ intent is unchanged.*
 
 **Wave 4** *(gap closure; both plans can run in parallel after Wave 3)*
 
-- [ ] 04-06-PLAN.md — Mirror the documented Plausible preload contract, pin it with an independent fixture, and restore MVP goal verification.
+- [x] 04-06-PLAN.md — Mirror the documented Plausible preload contract, pin it with an independent fixture, and restore MVP goal verification.
 - [ ] 04-07-PLAN.md — Validate Stats query provenance, make report replacement fail-closed, and complete the owner run instructions.
 
 **UI hint**: yes
@@ -201,5 +201,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 5/5 | Gaps found |  |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 6/7 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

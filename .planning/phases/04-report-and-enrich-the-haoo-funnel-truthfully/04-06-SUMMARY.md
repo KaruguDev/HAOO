@@ -127,7 +127,18 @@ status: complete
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Excluded a non-plan scratch artifact from roadmap progress**
+- **Found during:** Sequential state and roadmap close-out
+- **Issue:** The generic roadmap updater counted the untracked `.planner-contributions.md` scratch file as an eighth plan and inserted it into the roadmap.
+- **Fix:** Restored the canonical plan index to 6/7, removed the fabricated roadmap entry, and aligned STATE.md with completed Plan 04-06 and next Plan 04-07.
+- **Files modified:** `.planning/ROADMAP.md`, `.planning/STATE.md`
+- **Verification:** Phase 4 contains seven canonical `NN-NN-PLAN.md` files and six matching summaries.
+- **Committed in:** Plan metadata close-out commit
+
+**Total deviations:** 1 auto-fixed tool classification bug.
+**Impact on plan:** Planning progress remains accurate; no product or analytics behavior changed.
 
 ## Issues Encountered
 
