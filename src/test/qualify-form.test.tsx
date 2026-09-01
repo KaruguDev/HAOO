@@ -15,7 +15,7 @@ import {
   QUALIFY_SUMMARY_HEADING,
   validateQualifyValues,
 } from '../components/qualify-form.logic';
-import { CONTEXT_RECORD_KEYS } from '../measurement';
+import { CONTEXT_RECORD_KEYS, createMeasurement } from '../measurement';
 import ProductPage from '../pages/ProductPage';
 import { formatEngagementSummary } from '../products/engagement-summary';
 import {
@@ -2017,5 +2017,381 @@ describe('Phase 4 emailed engagement summary', () => {
 
     // Never spread the stored record into the summary or the body.
     expect(ENGAGEMENT_SUMMARY_SOURCE).not.toMatch(/\.\.\.context/);
+  });
+});
+
+/**
+ * Phase 4 MEAS-05 precision contract. The summary reports bands and facts, never a
+ * count, an ordinal, a date, a rank or a rounded quantity — so there is no rounding or
+ * tie-breaking rule that could be got wrong. What can be got wrong is a threshold, so
+ * each band boundary and one step either side gets its own row with its own expected
+ * sentence rather than a shared pass/fail flag.
+ */
+const SUMMARY_TODAY = new Date('2026-08-31T12:00:00.000Z');
+const DAY_MS = 86_400_000;
+const VISIT_BANDS = ['first', 'returning', 'frequent'] as const;
+const LAST_SEEN_BANDS = ['today', 'this-week', 'this-month', 'earlier'] as const;
+const CAMPAIGN_SOURCE = 'spring-sale';
+const CAMPAIGN_MEDIUM = 'cpc';
+const CAMPAIGN_NAME = 'kenya-landlords';
+
+class SummaryMemoryStorage implements Storage {
+  readonly values = new Map<string, string>();
+  get length() { return this.values.size; }
+  clear() { this.values.clear(); }
+  getItem(key: string) { return this.values.get(key) ?? null; }
+  key(index: number) { return [...this.values.keys()][index] ?? null; }
+  removeItem(key: string) { this.values.delete(key); }
+  setItem(key: string, value: string) { this.values.set(key, value); }
+}
+
+/**
+ * A context produced by the real measurement facade rather than hand-written. The band
+ * thresholds belong to Phase 3's arithmetic, so driving them through `createMeasurement`
+ * is what makes these rows a threshold contract instead of a restatement of the
+ * formatter's own lookup table. `previousOrdinal` is the stored visit count; the facade
+ * increments it on `initialize`, capping at four.
+ */
+function facadeContext(previousOrdinal: number | null, elapsedDays: number) {
+  const storage = new SummaryMemoryStorage();
+
+  if (previousOrdinal !== null) {
+    const previousDay = new Date(SUMMARY_TODAY.getTime() - elapsedDays * DAY_MS);
+
+    storage.setItem(
+      HAOO_MEASUREMENT.storageKey,
+      JSON.stringify({
+        version: HAOO_MEASUREMENT.schemaVersion,
+        visitBand: previousOrdinal >= 4
+          ? 'frequent'
+          : previousOrdinal >= 2 ? 'returning' : 'first',
+        lastSeenBand: 'today',
+        flags: summaryFlags(),
+        visitOrdinal: previousOrdinal,
+        lastSeenDay: previousDay.toISOString().slice(0, 10),
+      }),
+    );
+  }
+
+  const measurement = createMeasurement(HAOO_MEASUREMENT, {
+    storage,
+    now: () => SUMMARY_TODAY,
+    location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+    history: { state: null, replaceState: () => {} },
+  });
+
+  measurement.initialize();
+
+  return measurement.readContext();
+}
+
+function campaignSummary(campaign: Record<string, string>) {
+  return summaryOf(summaryContext(), campaign);
+}
+
+describe('Phase 4 engagement summary sentence matrix', () => {
+  /**
+   * Visit-band thresholds, one row per resulting visit count. Each row names the whole
+   * expected string: a row sharing an expectation with its neighbour would let an
+   * off-by-one band boundary satisfy half the table.
+   */
+  const visitRows = [
+    {
+      name: 'a first visit',
+      previousOrdinal: null,
+      expected: `${SUMMARY_PREFIX} ${VISIT_SENTENCES.first} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    },
+    {
+      name: 'a second visit',
+      previousOrdinal: 1,
+      expected: `${SUMMARY_PREFIX} ${VISIT_SENTENCES.returning} ${LAST_SEEN_SENTENCES['this-week']} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    },
+    {
+      name: 'a third visit',
+      previousOrdinal: 2,
+      expected: `${SUMMARY_PREFIX} ${VISIT_SENTENCES.returning} ${LAST_SEEN_SENTENCES['this-week']} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    },
+    {
+      name: 'a fourth visit',
+      previousOrdinal: 3,
+      expected: `${SUMMARY_PREFIX} ${VISIT_SENTENCES.frequent} ${LAST_SEEN_SENTENCES['this-week']} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    },
+    {
+      name: 'a visit past the capped count',
+      previousOrdinal: 4,
+      expected: `${SUMMARY_PREFIX} ${VISIT_SENTENCES.frequent} ${LAST_SEEN_SENTENCES['this-week']} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+    },
+  ];
+
+  for (const row of visitRows) {
+    it(`describes ${row.name} with its own visit sentence`, () => {
+      expect(summaryOf(facadeContext(row.previousOrdinal, 3))).toBe(row.expected);
+    });
+  }
+
+  /**
+   * Last-seen boundaries and one step either side: 0 is today, 1 and 7 bracket the week,
+   * 8 and 30 bracket the month, 31 falls past it.
+   */
+  const lastSeenRows = [
+    { elapsedDays: 0, expected: LAST_SEEN_SENTENCES.today },
+    { elapsedDays: 1, expected: LAST_SEEN_SENTENCES['this-week'] },
+    { elapsedDays: 7, expected: LAST_SEEN_SENTENCES['this-week'] },
+    { elapsedDays: 8, expected: LAST_SEEN_SENTENCES['this-month'] },
+    { elapsedDays: 30, expected: LAST_SEEN_SENTENCES['this-month'] },
+    { elapsedDays: 31, expected: LAST_SEEN_SENTENCES.earlier },
+  ];
+
+  for (const row of lastSeenRows) {
+    it(`describes ${row.elapsedDays} elapsed days with its own last-seen sentence`, () => {
+      expect(summaryOf(facadeContext(1, row.elapsedDays))).toBe(
+        `${SUMMARY_PREFIX} ${VISIT_SENTENCES.returning} ${row.expected} ${NO_FLAGS_SENTENCE} ${SUMMARY_CLOSING}`,
+      );
+    });
+  }
+
+  it('tells a recipient nothing about a previous visit that never happened', () => {
+    const produced = summaryOf(facadeContext(null, 0));
+
+    // A fresh record carries a same-day last-seen band for internal consistency. Saying
+    // so would imply prior activity, so no last-seen sentence may appear at all.
+    for (const sentence of Object.values(LAST_SEEN_SENTENCES)) {
+      expect(produced, sentence).not.toContain(sentence);
+    }
+  });
+
+  for (const [flag, sentence] of Object.entries(FLAG_SENTENCES)) {
+    it(`describes ${flag} on its own`, () => {
+      const produced = summaryOf(summaryContext({ flags: summaryFlags(flag) }));
+
+      expect(produced).toBe(
+        `${SUMMARY_PREFIX} ${VISIT_SENTENCES.first} ${sentence} ${SUMMARY_CLOSING}`,
+      );
+      for (const other of Object.values(FLAG_SENTENCES)) {
+        if (other !== sentence) {
+          expect(produced, other).not.toContain(other);
+        }
+      }
+      expect(produced).not.toContain(NO_FLAGS_SENTENCE);
+    });
+  }
+
+  it('emits every recorded action in the authored order', () => {
+    const allFlags = HAOO_MEASUREMENT.interactionFlags;
+
+    expect(summaryOf(summaryContext({ flags: summaryFlags(...allFlags) }))).toBe(
+      [
+        SUMMARY_PREFIX,
+        VISIT_SENTENCES.first,
+        FLAG_SENTENCES.brochureViewed,
+        FLAG_SENTENCES.brochureDownloaded,
+        FLAG_SENTENCES.qualifyStarted,
+        FLAG_SENTENCES.assistedContact,
+        FLAG_SENTENCES.selfOnboarding,
+        SUMMARY_CLOSING,
+      ].join(' '),
+    );
+
+    // Authored order, not stored order: a record whose keys arrive reversed must not
+    // reorder the sentences a recipient reads.
+    const reversed = Object.fromEntries(
+      [...allFlags].reverse().map((flag) => [flag, true]),
+    );
+
+    expect(summaryOf(summaryContext({ flags: reversed })))
+      .toBe(summaryOf(summaryContext({ flags: summaryFlags(...allFlags) })));
+  });
+
+  it('says so plainly when nothing was recorded', () => {
+    const produced = summaryOf(summaryContext({ flags: summaryFlags() }));
+
+    expect(produced).toContain(NO_FLAGS_SENTENCE);
+    expect(produced.trim()).not.toBe('');
+    for (const sentence of Object.values(FLAG_SENTENCES)) {
+      expect(produced, sentence).not.toContain(sentence);
+    }
+  });
+
+  const campaignRows: readonly {
+    readonly name: string;
+    readonly campaign: Record<string, string>;
+    readonly expected: string;
+  }[] = [
+    { name: 'no campaign values', campaign: {}, expected: '' },
+    {
+      name: 'only a source',
+      campaign: { utm_source: CAMPAIGN_SOURCE },
+      expected: `Campaign values seen on arrival: source ${CAMPAIGN_SOURCE}.`,
+    },
+    {
+      name: 'only a medium',
+      campaign: { utm_medium: CAMPAIGN_MEDIUM },
+      expected: `Campaign values seen on arrival: medium ${CAMPAIGN_MEDIUM}.`,
+    },
+    {
+      name: 'only a campaign name',
+      campaign: { utm_campaign: CAMPAIGN_NAME },
+      expected: `Campaign values seen on arrival: campaign ${CAMPAIGN_NAME}.`,
+    },
+    {
+      name: 'a source and a campaign name but no medium',
+      campaign: { utm_campaign: CAMPAIGN_NAME, utm_source: CAMPAIGN_SOURCE },
+      expected: `Campaign values seen on arrival: source ${CAMPAIGN_SOURCE}; campaign ${CAMPAIGN_NAME}.`,
+    },
+    {
+      name: 'all three campaign values',
+      campaign: {
+        utm_campaign: CAMPAIGN_NAME,
+        utm_medium: CAMPAIGN_MEDIUM,
+        utm_source: CAMPAIGN_SOURCE,
+      },
+      expected: `Campaign values seen on arrival: source ${CAMPAIGN_SOURCE}; medium ${CAMPAIGN_MEDIUM}; campaign ${CAMPAIGN_NAME}.`,
+    },
+  ];
+
+  for (const row of campaignRows) {
+    it(`renders ${row.name}`, () => {
+      const head = `${SUMMARY_PREFIX} ${VISIT_SENTENCES.first} ${NO_FLAGS_SENTENCE}`;
+
+      // Fixed source, medium, campaign order regardless of the record's own key order,
+      // and no placeholder for a key that was never in the address bar.
+      expect(campaignSummary(row.campaign)).toBe(
+        row.expected === ''
+          ? `${head} ${SUMMARY_CLOSING}`
+          : `${head} ${row.expected} ${SUMMARY_CLOSING}`,
+      );
+    });
+  }
+
+  it('emits no numeric quantity of any kind for any band and flag permutation', () => {
+    const flagKeys = HAOO_MEASUREMENT.interactionFlags;
+    let permutations = 0;
+
+    for (const visitBand of VISIT_BANDS) {
+      for (const lastSeenBand of LAST_SEEN_BANDS) {
+        for (let mask = 0; mask < 2 ** flagKeys.length; mask += 1) {
+          const flags = Object.fromEntries(
+            flagKeys.map((flag, index) => [flag, (mask & (1 << index)) !== 0]),
+          );
+          const produced = summaryOf(
+            summaryContext({ visitBand, lastSeenBand, flags }),
+            {},
+          );
+
+          permutations += 1;
+          expect(produced, `${visitBand}/${lastSeenBand}/${mask}`).not.toMatch(/\d/);
+          expect(produced.startsWith(SUMMARY_PREFIX)).toBe(true);
+          expect(produced.endsWith(SUMMARY_CLOSING)).toBe(true);
+        }
+      }
+    }
+
+    expect(permutations).toBe(
+      VISIT_BANDS.length * LAST_SEEN_BANDS.length * 2 ** flagKeys.length,
+    );
+  });
+
+  const failureRows = [
+    { name: 'a missing record', build: () => null },
+    {
+      name: 'a record with no recorded actions member',
+      build: () => ({ visitBand: 'returning', lastSeenBand: 'today' }),
+    },
+    {
+      // A half-readable record is treated as unreadable. Emitting the prefix and the
+      // boundary sentence around no facts at all would be a silently degraded email
+      // that still reads as a successful summary.
+      name: 'a record with no visit band',
+      build: () => ({ lastSeenBand: 'today', flags: summaryFlags() }),
+    },
+    {
+      name: 'a record with an unauthored visit band',
+      build: () => ({
+        visitBand: 'occasional',
+        lastSeenBand: 'today',
+        flags: summaryFlags(),
+      }),
+    },
+    {
+      name: 'a record with an unauthored last-seen band',
+      build: () => ({
+        visitBand: 'returning',
+        lastSeenBand: 'last-quarter',
+        flags: summaryFlags(),
+      }),
+    },
+    {
+      name: 'a record whose accessor throws',
+      build: () => {
+        const hostile = {};
+
+        Object.defineProperty(hostile, 'visitBand', {
+          enumerable: true,
+          get() {
+            throw new Error('context unavailable');
+          },
+        });
+
+        return hostile;
+      },
+    },
+  ];
+
+  for (const row of failureRows) {
+    it(`falls back rather than failing a submission for ${row.name}`, () => {
+      const build = () => formatEngagementSummary(
+        row.build() as SummaryContext,
+        {},
+        ENGAGEMENT_SUMMARY,
+      );
+
+      expect(build).not.toThrow();
+      expect(build()).toBe(SUMMARY_FALLBACK);
+    });
+  }
+
+  it('refuses a configuration that would ship an unlabelled or empty summary', () => {
+    for (const member of ['emailLabel', 'fallback'] as const) {
+      expect(
+        () => formatEngagementSummary(
+          summaryContext(),
+          {},
+          { ...ENGAGEMENT_SUMMARY, [member]: '  ' },
+        ),
+        member,
+      ).toThrowError(/must declare a/);
+    }
+  });
+
+  it('keeps the longest possible summary one readable, untruncated paragraph', () => {
+    // The held-out maximum: frequent visit band, every flag true, and all three
+    // normalized campaign values at their 32-character cap.
+    const capped = 'a'.repeat(32);
+    const produced = summaryOf(
+      summaryContext({
+        visitBand: 'frequent',
+        lastSeenBand: 'earlier',
+        flags: summaryFlags(...HAOO_MEASUREMENT.interactionFlags),
+      }),
+      { utm_source: capped, utm_medium: capped, utm_campaign: capped },
+    );
+
+    expect(produced.split('\n')).toHaveLength(1);
+    expect(produced).not.toContain('…');
+    expect(produced).not.toContain('...');
+    expect(produced.startsWith(SUMMARY_PREFIX)).toBe(true);
+    expect(produced.endsWith(SUMMARY_CLOSING)).toBe(true);
+    expect(produced).toContain(
+      `Campaign values seen on arrival: source ${capped}; medium ${capped}; campaign ${capped}.`,
+    );
+
+    // Every authored sentence survives intact; nothing is dropped or shortened to fit.
+    for (const sentence of [
+      VISIT_SENTENCES.frequent,
+      LAST_SEEN_SENTENCES.earlier,
+      ...Object.values(FLAG_SENTENCES),
+    ]) {
+      expect(produced, sentence).toContain(sentence);
+    }
   });
 });
