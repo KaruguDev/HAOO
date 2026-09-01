@@ -505,8 +505,9 @@ describe('generateHaooReport', () => {
       now: () => new Date('2026-03-01T22:00:00.000Z'),
     });
 
-    expect(calls[0]?.body).toContain('"date_range":["2026-02-01","2026-03-02"]');
-    expect(calls[1]?.body).toContain('"date_range":["2026-01-02","2026-01-31"]');
+    expect(calls[0]?.body).toContain('"date_range":["2026-02-24","2026-03-02"]');
+    expect(calls[2]?.body).toContain('"date_range":["2026-02-01","2026-03-02"]');
+    expect(calls[3]?.body).toContain('"date_range":["2026-01-02","2026-01-31"]');
   });
 
   it.each([
@@ -626,5 +627,228 @@ describe('credentialed CLI', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain(ERROR_STATE_SENTENCE);
     expect(existsSync(outputPath)).toBe(existedBefore);
+  });
+});
+
+/**
+ * D-03 locks four views: 7-day, 30-day, 90-day and all time. The three bounded views
+ * carry the immediately preceding equal-length period; all time carries no fabricated
+ * comparison. Explicit inclusive calendar ranges are sent for the bounded views because
+ * the provider's nearest relative preset is 91 days, not 90 (RESEARCH Pitfall 4).
+ */
+describe('all four reporting periods', () => {
+  it.each([
+    {
+      label: 'month boundary',
+      days: 7,
+      today: '2026-03-02',
+      current: { start: '2026-02-24', end: '2026-03-02' },
+      previous: { start: '2026-02-17', end: '2026-02-23' },
+    },
+    {
+      label: 'year boundary',
+      days: 7,
+      today: '2026-01-03',
+      current: { start: '2025-12-28', end: '2026-01-03' },
+      previous: { start: '2025-12-21', end: '2025-12-27' },
+    },
+    {
+      label: 'leap day',
+      days: 7,
+      today: '2028-02-29',
+      current: { start: '2028-02-23', end: '2028-02-29' },
+      previous: { start: '2028-02-16', end: '2028-02-22' },
+    },
+    {
+      label: 'thirty days across a leap February',
+      days: 30,
+      today: '2028-03-01',
+      current: { start: '2028-02-01', end: '2028-03-01' },
+      previous: { start: '2028-01-02', end: '2028-01-31' },
+    },
+    {
+      label: 'ninety days',
+      days: 90,
+      today: '2026-03-01',
+      current: { start: '2025-12-02', end: '2026-03-01' },
+      previous: { start: '2025-09-03', end: '2025-12-01' },
+    },
+  ])('windows $days days ending $today across a $label', ({ days, today, current, previous }) => {
+    expect(periodWindows(days, today)).toEqual({ current, previous });
+  });
+
+  const SEVEN_CURRENT = goalRows({
+    haoo_page_view: 10,
+    haoo_assisted_whatsapp: 3,
+    haoo_assisted_phone: 2,
+  });
+  const SEVEN_PREVIOUS = goalRows({ haoo_page_view: 4 });
+  const NINETY_CURRENT = goalRows({ haoo_page_view: 500 });
+  const NINETY_PREVIOUS = goalRows({ haoo_page_view: 400 });
+  const ALL_TIME = {
+    ...goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 }),
+    query: { date_range: ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'] },
+  };
+
+  const EVERY_PERIOD = [
+    SEVEN_CURRENT,
+    SEVEN_PREVIOUS,
+    FIXTURE_CURRENT,
+    FIXTURE_PREVIOUS,
+    NINETY_CURRENT,
+    NINETY_PREVIOUS,
+    ALL_TIME,
+  ];
+
+  function periodSection(html: string, id: string): string {
+    const opening = html.indexOf(`<section id="${id}">`);
+    expect(opening, id).toBeGreaterThan(-1);
+    return html.slice(opening, html.indexOf('</section>', opening));
+  }
+
+  async function generateEveryPeriod() {
+    const { fetchSpy, calls } = stubFetch(EVERY_PERIOD);
+    const { fs, files } = memoryFs();
+    const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    return { calls, fetchSpy, html: files.get(OUTPUT_PATH) ?? '', result };
+  }
+
+  it('issues exactly seven queries and never uses the 91-day preset', async () => {
+    const { calls, fetchSpy } = await generateEveryPeriod();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(7);
+    expect(calls).toHaveLength(7);
+    for (const call of calls) {
+      expect(call.body).not.toContain('91d');
+      expect(call.body).not.toContain('7d');
+      expect(call.body).not.toContain('30d');
+    }
+  });
+
+  it('sends explicit inclusive calendar ranges for the bounded periods and "all" once', async () => {
+    const { calls } = await generateEveryPeriod();
+    const ranges = calls.map((call) => JSON.parse(call.body).date_range);
+
+    expect(ranges).toEqual([
+      ['2026-02-23', '2026-03-01'],
+      ['2026-02-16', '2026-02-22'],
+      ['2026-01-31', '2026-03-01'],
+      ['2026-01-01', '2026-01-30'],
+      ['2025-12-02', '2026-03-01'],
+      ['2025-09-03', '2025-12-01'],
+      'all',
+    ]);
+  });
+
+  it('renders all four period sections with their exact inclusive boundaries', async () => {
+    const { html } = await generateEveryPeriod();
+
+    expect(html).toContain('Last 7 days · 2026-02-23 to 2026-03-01');
+    expect(html).toContain('Last 30 days · 2026-01-31 to 2026-03-01');
+    expect(html).toContain('Last 90 days · 2025-12-02 to 2026-03-01');
+    expect(html).toContain('All time · since 2025-11-04');
+  });
+
+  it('gives every bounded period its own comparison against the preceding equal-length period', async () => {
+    const { html } = await generateEveryPeriod();
+
+    expect(periodSection(html, 'last-7-days')).toContain(
+      'Compared with the previous 7 days, 2026-02-16 to 2026-02-22.',
+    );
+    expect(periodSection(html, 'last-30-days')).toContain(
+      'Compared with the previous 30 days, 2026-01-01 to 2026-01-30.',
+    );
+    expect(periodSection(html, 'last-90-days')).toContain(
+      'Compared with the previous 90 days, 2025-09-03 to 2025-12-01.',
+    );
+  });
+
+  it('gives the all-time period no previous window, no comparison line, and no change value', async () => {
+    const { html } = await generateEveryPeriod();
+    const allTime = periodSection(html, 'all-time');
+
+    expect(allTime).not.toContain('vs previous');
+    expect(allTime).not.toContain('stage-change');
+    expect(allTime).not.toContain('Previous period');
+    expect(allTime).not.toContain('Compared with the previous');
+    expect(allTime).toContain('<th scope="col">All time</th>');
+  });
+
+  it('zero-fills a goal missing from one period without touching another period', async () => {
+    const { html } = await generateEveryPeriod();
+
+    expect(periodSection(html, 'last-7-days')).toMatch(
+      /Outbound self-onboarding clicks<\/th><td>0<\/td>/,
+    );
+    expect(periodSection(html, 'all-time')).toMatch(
+      /Outbound self-onboarding clicks<\/th><td>12<\/td>/,
+    );
+  });
+
+  it('computes each stage total independently per period', async () => {
+    const { html } = await generateEveryPeriod();
+
+    // 7 days: WhatsApp 3 + phone 2 + email 0 + self-onboarding 0.
+    expect(periodSection(html, 'last-7-days')).toContain('5 recorded actions');
+    // 30 days: 7 + 3 + 2 + 6 from the shared fixture.
+    expect(periodSection(html, 'last-30-days')).toContain('18 recorded actions');
+    // 90 days: discovery is 500 and every other stage is empty.
+    expect(periodSection(html, 'last-90-days')).toContain('500 recorded actions');
+    expect(periodSection(html, 'last-90-days')).toContain('0 recorded actions');
+  });
+
+  it('names no recorded day rather than inventing one when the provider reports nothing', async () => {
+    const { fetchSpy } = stubFetch([
+      ...EVERY_PERIOD.slice(0, 6),
+      { results: [] },
+    ]);
+    const { fs, files } = memoryFs();
+
+    await generateHaooReport(generateOptions(fetchSpy, fs));
+    const html = files.get(OUTPUT_PATH) ?? '';
+
+    expect(html).toContain('All time · No recorded actions in this period');
+    expect(html).not.toContain('All time · since');
+  });
+
+  it('aborts the whole report when any one of the seven periods fails validation', async () => {
+    const { fetchSpy } = stubFetch([
+      ...EVERY_PERIOD.slice(0, 4),
+      { results: [{ metrics: [1], dimensions: ['haoo_not_a_goal'] }] },
+    ]);
+    const { fs, files } = memoryFs();
+
+    const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    expect(result.ok).toBe(false);
+    expect(files.size).toBe(0);
+  });
+});
+
+describe('owner command registration', () => {
+  it('maps report:haoo to the credentialed CLI and declares a type-stripping Node floor', () => {
+    const pkg: {
+      scripts: Record<string, string>;
+      engines?: { node?: string };
+    } = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
+
+    expect(pkg.scripts['report:haoo']).toBe('node scripts/generate-haoo-report.mjs');
+
+    const floor = pkg.engines?.node ?? '';
+    expect(floor).toBeTruthy();
+    const [major, minor] = floor.replace(/[^0-9.]/g, '').split('.').map(Number);
+    expect(major > 22 || (major === 22 && minor >= 18)).toBe(true);
+  });
+
+  it('keeps generated owner reports out of the repository', () => {
+    const ignore = readFileSync(resolve(ROOT, '.gitignore'), 'utf8');
+
+    expect(ignore.split(/\r?\n/).filter((line) => line === '.reports/')).toHaveLength(1);
+    expect(
+      spawnSync('git', ['check-ignore', '-q', '.reports/haoo-funnel-report.html'], {
+        cwd: ROOT,
+      }).status,
+    ).toBe(0);
   });
 });
