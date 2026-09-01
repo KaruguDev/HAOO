@@ -884,6 +884,14 @@ describe('credential and provider-origin boundary', () => {
 
     expect(config).toContain("files: ['scripts/**/*.mjs']");
   });
+
+  it('lets terminal diagnostics flush before exiting with a failure status', () => {
+    const cli = readFileSync(resolve(ROOT, 'scripts/generate-haoo-report.mjs'), 'utf8');
+
+    expect(cli).toContain('writeSync(process.stderr.fd');
+    expect(cli).toContain('process.exitCode = 1');
+    expect(cli).not.toContain('process.exit(');
+  });
 });
 
 describe('credentialed CLI', () => {

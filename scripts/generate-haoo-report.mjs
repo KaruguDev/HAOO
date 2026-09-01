@@ -1,4 +1,12 @@
-import { closeSync, mkdirSync, openSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  mkdirSync,
+  openSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+  writeSync,
+} from 'node:fs';
 import { resolve } from 'node:path';
 import { generateHaooReport } from '../src/reporting/generate.ts';
 
@@ -24,6 +32,10 @@ const ROOT = resolve(import.meta.dirname, '..');
 const OUTPUT_PATH = resolve(ROOT, '.reports/haoo-funnel-report.html');
 const STATS_ENDPOINT = 'https://plausible.io/api/v2/query';
 
+function writeTerminalError(...lines) {
+  writeSync(process.stderr.fd, `${lines.join('\n')}\n`);
+}
+
 const apiKey = process.env.PLAUSIBLE_STATS_API_KEY ?? '';
 const siteId = process.env.PLAUSIBLE_SITE_ID ?? '';
 const missingVariables = [
@@ -34,28 +46,30 @@ const missingVariables = [
   .map(([name]) => name);
 
 if (missingVariables.length > 0) {
-  console.error(`Missing required environment variables: ${missingVariables.join(', ')}`);
-  console.error(ERROR_STATE_SENTENCE);
-  process.exit(1);
+  writeTerminalError(
+    `Missing required environment variables: ${missingVariables.join(', ')}`,
+    ERROR_STATE_SENTENCE,
+  );
+  process.exitCode = 1;
+} else {
+  const result = await generateHaooReport({
+    query: { endpoint: STATS_ENDPOINT, apiKey, siteId },
+    fetch: globalThis.fetch,
+    now: () => new Date(),
+    fs: {
+      mkdirSync,
+      reserveTempSync: (path) => closeSync(openSync(path, 'wx')),
+      renameSync,
+      rmSync,
+      writeFileSync,
+    },
+    outputPath: OUTPUT_PATH,
+  });
+
+  if (!result.ok) {
+    writeTerminalError(ERROR_STATE_SENTENCE);
+    process.exitCode = 1;
+  } else {
+    process.stdout.write(`HAOO funnel report written to ${result.outputPath}\n`);
+  }
 }
-
-const result = await generateHaooReport({
-  query: { endpoint: STATS_ENDPOINT, apiKey, siteId },
-  fetch: globalThis.fetch,
-  now: () => new Date(),
-  fs: {
-    mkdirSync,
-    reserveTempSync: (path) => closeSync(openSync(path, 'wx')),
-    renameSync,
-    rmSync,
-    writeFileSync,
-  },
-  outputPath: OUTPUT_PATH,
-});
-
-if (!result.ok) {
-  console.error(ERROR_STATE_SENTENCE);
-  process.exit(1);
-}
-
-process.stdout.write(`HAOO funnel report written to ${result.outputPath}\n`);
