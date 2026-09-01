@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { StrictMode, act } from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +23,24 @@ const CONTEXT_KEY = 'zph.haoo.ctx.v1';
  */
 const APPROVED_COLLECTION_NOTICE =
   'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them and of any campaign values seen on arrival — never a score, an identifier, or your form answers.';
+
+/**
+ * UI-SPEC "Surface B — disclosure copy change", byte-exact. Contents item 4 is present
+ * because blocking checkpoint C-2 resolved `include` (recorded in `04-02-SUMMARY.md`):
+ * normalized campaign values do travel with the enquiry, so the list that describes what
+ * is attached has to say so.
+ */
+const ATTACHED_SUMMARY_HEADING = 'What we attach to your form submission';
+const ATTACHED_SUMMARY_INTRO =
+  'When you send this form, we attach one short readable paragraph of the coarse signals described above so we can reply usefully.';
+const ATTACHED_SUMMARY_CONTENTS = [
+  'Whether this browser is on a first, returning, or frequent visit.',
+  'Roughly when the last visit was, if this is not the first one.',
+  'Which of the listed actions were recorded in this browser.',
+  'Any campaign values described above, if they were present when you arrived.',
+] as const;
+const ATTACHED_SUMMARY_BOUNDARY =
+  'It contains no score, no identifier, no capped visit step, no day-only date, and none of your form answers repeated back. It is written in plain words you could read yourself.';
 
 const SIGNAL_DISCLOSURES = [
   'That you viewed this HAOO page.',
@@ -709,7 +729,10 @@ describe('Phase 3 HAOO measurement disclosure', () => {
       'utm_source',
       'What we never collect for measurement',
       'Name, email address, phone number, or organization.',
-      'No engagement summary is attached to this form submission yet.',
+      ATTACHED_SUMMARY_HEADING,
+      ATTACHED_SUMMARY_INTRO,
+      ...ATTACHED_SUMMARY_CONTENTS,
+      ATTACHED_SUMMARY_BOUNDARY,
       'Clear what this page remembers',
     ];
     let previous = -1;
@@ -817,5 +840,208 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(footer.querySelector('.flex.flex-wrap')).not.toBeNull();
     expect(measurementLink.className).toContain('min-h-11');
     expect(measurementLink.className).not.toMatch(/truncate|line-clamp|whitespace-nowrap/);
+  });
+});
+
+describe('Phase 4 disclosure of the attached engagement summary', () => {
+  /**
+   * The group is owner-approved copy carried as product data, so the byte-exact UI-SPEC
+   * strings are pinned against the shipped configuration rather than against the DOM
+   * alone. A reworded product string fails here first, before any rendering assertion.
+   */
+  it('carries the approved Surface B copy as product data', () => {
+    const { disclosure } = HAOO_MEASUREMENT;
+
+    expect(disclosure.summaryHeading).toBe(ATTACHED_SUMMARY_HEADING);
+    expect(disclosure.summaryIntro).toBe(ATTACHED_SUMMARY_INTRO);
+    expect(disclosure.summaryContents).toEqual([...ATTACHED_SUMMARY_CONTENTS]);
+    expect(disclosure.summaryBoundary).toBe(ATTACHED_SUMMARY_BOUNDARY);
+  });
+
+  it('renders a labelled group listing what the attached summary contains', () => {
+    render(<ProductPage product={HAOO_PRODUCT} />);
+
+    const details = screen
+      .getByText('How we measure this page', { selector: 'summary' })
+      .closest('details') as HTMLElement;
+    const group = within(details).getByRole('region', {
+      name: ATTACHED_SUMMARY_HEADING,
+    });
+    const items = within(group).getAllByRole('listitem');
+
+    expect(within(group).getByText(ATTACHED_SUMMARY_HEADING)).toBeTruthy();
+    expect(within(group).getByText(ATTACHED_SUMMARY_INTRO)).toBeTruthy();
+    expect(items.map((item) => item.textContent))
+      .toEqual([...HAOO_MEASUREMENT.disclosure.summaryContents]);
+    expect(items).toHaveLength(ATTACHED_SUMMARY_CONTENTS.length);
+    expect(within(group).getByText(ATTACHED_SUMMARY_BOUNDARY)).toBeTruthy();
+
+    const groupText = group.textContent ?? '';
+    const listIndex = groupText.indexOf(ATTACHED_SUMMARY_CONTENTS[0]);
+
+    expect(groupText.indexOf(ATTACHED_SUMMARY_HEADING)).toBeLessThan(
+      groupText.indexOf(ATTACHED_SUMMARY_INTRO),
+    );
+    expect(groupText.indexOf(ATTACHED_SUMMARY_INTRO)).toBeLessThan(listIndex);
+    expect(listIndex).toBeLessThan(groupText.indexOf(ATTACHED_SUMMARY_BOUNDARY));
+  });
+
+  it('positions the group after the never-collected group and before the clear control', () => {
+    render(<ProductPage product={HAOO_PRODUCT} />);
+
+    const details = screen
+      .getByText('How we measure this page', { selector: 'summary' })
+      .closest('details') as HTMLElement;
+    const scope = within(details);
+    const neverCollected = scope.getByRole('region', {
+      name: HAOO_MEASUREMENT.disclosure.neverCollectedHeading,
+    });
+    const group = scope.getByRole('region', { name: ATTACHED_SUMMARY_HEADING });
+    const clear = scope.getByRole('button', {
+      name: HAOO_MEASUREMENT.disclosure.clearLabel,
+    });
+
+    expect(neverCollected.compareDocumentPosition(group))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(group.compareDocumentPosition(clear))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(group.contains(clear)).toBe(false);
+  });
+
+  /**
+   * The locked prohibition: the group describes what is attached, it never reflects the
+   * visitor's own measured values back at them. Seeded with a campaign that could not
+   * occur by accident and with every interaction flag set, none of it may reach the
+   * markup — not the values, not the raw flag keys that carry them.
+   */
+  it('reflects none of the visitor own campaign values or flags back into the markup', () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/products/haoo/?utm_source=zebrasource&utm_medium=zebramedium&utm_campaign=zebracampaign',
+    );
+
+    const stored = {
+      version: 1,
+      visitBand: 'frequent',
+      lastSeenBand: 'today',
+      flags: {
+        brochureViewed: true,
+        brochureDownloaded: true,
+        qualifyStarted: true,
+        assistedContact: true,
+        selfOnboarding: true,
+      },
+      visitOrdinal: 9,
+      lastSeenDay: '2026-08-31',
+    };
+    const storage = {
+      getItem: vi.fn(() => JSON.stringify(stored)),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 1,
+    } satisfies Storage;
+
+    const { container } = render(
+      <ProductPage product={HAOO_PRODUCT} measurementAdapters={{ storage }} />,
+    );
+    const details = container.querySelector('#haoo-measurement-disclosure') as HTMLElement;
+    const markup = details.innerHTML;
+
+    for (const value of ['zebrasource', 'zebramedium', 'zebracampaign', 'utm_source=']) {
+      expect(markup, value).not.toContain(value);
+    }
+    for (const flag of HAOO_MEASUREMENT.interactionFlags) {
+      expect(markup, flag).not.toContain(flag);
+    }
+    expect(markup).not.toContain('visitOrdinal');
+    expect(markup).not.toContain('lastSeenDay');
+    expect(markup).not.toContain('2026-08-31');
+    expect(markup).toContain(ATTACHED_SUMMARY_BOUNDARY);
+  });
+
+  it('renders identical group markup whether or not browser storage is available', () => {
+    const readable = {
+      getItem: vi.fn(() => JSON.stringify({
+        version: 1,
+        visitBand: 'returning',
+        lastSeenBand: 'this-week',
+        flags: {
+          brochureViewed: true,
+          brochureDownloaded: false,
+          qualifyStarted: false,
+          assistedContact: false,
+          selfOnboarding: false,
+        },
+        visitOrdinal: 2,
+        lastSeenDay: '2026-08-30',
+      })),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 1,
+    } satisfies Storage;
+    const blocked = {
+      getItem: vi.fn(() => {
+        throw new DOMException('Storage is blocked', 'SecurityError');
+      }),
+      setItem: vi.fn(() => {
+        throw new DOMException('Storage is blocked', 'SecurityError');
+      }),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0,
+    } satisfies Storage;
+
+    function groupMarkup(storage: Storage) {
+      const view = render(
+        <ProductPage product={HAOO_PRODUCT} measurementAdapters={{ storage }} />,
+      );
+      const group = view.container
+        .querySelector('#haoo-measurement-disclosure')
+        ?.querySelector(`[aria-label="${ATTACHED_SUMMARY_HEADING}"]`)?.outerHTML;
+
+      view.unmount();
+
+      return group;
+    }
+
+    const withStorage = groupMarkup(readable);
+
+    expect(withStorage).toBeTruthy();
+    expect(groupMarkup(blocked)).toBe(withStorage);
+  });
+
+  /**
+   * The component is the shell; the copy is the data. Asserting against the shipped
+   * product strings rather than a hand-written blocklist means a string that moves into
+   * the component fails here without anyone remembering to add it.
+   */
+  it('keeps every visitor-facing disclosure string out of the component source', () => {
+    const source = readFileSync(
+      resolve(import.meta.dirname, '../components/MeasurementDisclosure.tsx'),
+      'utf8',
+    );
+    const configured = Object.values(HAOO_MEASUREMENT.disclosure).flatMap((value) => {
+      if (typeof value === 'string') {
+        return [value];
+      }
+
+      return Array.isArray(value) ? value : Object.values(value as object);
+    }) as string[];
+
+    expect(configured).toContain(ATTACHED_SUMMARY_HEADING);
+    expect(configured).toContain(ATTACHED_SUMMARY_BOUNDARY);
+    for (const copy of configured) {
+      expect(source, copy).not.toContain(copy);
+    }
+    expect(source).toContain('disclosure.summaryHeading');
+    expect(source).toContain('disclosure.summaryIntro');
+    expect(source).toContain('disclosure.summaryContents');
+    expect(source).toContain('disclosure.summaryBoundary');
   });
 });
