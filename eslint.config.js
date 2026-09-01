@@ -24,5 +24,18 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
     },
+  },
+  {
+    // The credentialed report CLI is the only `.mjs` module in the project. Without this
+    // block it is parsed but never rule-checked, so `npm run lint` would pass over the
+    // one file that reads `process.env`. Node globals, not browser globals: the browser
+    // set above would leave `process` undefined here.
+    extends: [js.configs.recommended],
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: globals.node,
+    },
   }
 );

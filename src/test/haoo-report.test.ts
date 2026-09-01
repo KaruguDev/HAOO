@@ -491,6 +491,24 @@ describe('generateHaooReport', () => {
     }
   });
 
+  /**
+   * Deriving "today" in UTC would place a run made between midnight and 03:00 in
+   * Nairobi on the previous calendar day, so the report would name a window the
+   * provider did not aggregate. 22:00Z on 1 March is already 2 March in Africa/Nairobi.
+   */
+  it('derives the inclusive window from the reporting timezone, not from UTC', async () => {
+    const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const { fs } = memoryFs();
+
+    await generateHaooReport({
+      ...generateOptions(fetchSpy, fs),
+      now: () => new Date('2026-03-01T22:00:00.000Z'),
+    });
+
+    expect(calls[0]?.body).toContain('"date_range":["2026-02-01","2026-03-02"]');
+    expect(calls[1]?.body).toContain('"date_range":["2026-01-02","2026-01-31"]');
+  });
+
   it.each([
     { label: 'empty api key', apiKey: '', siteId: FIXTURE_SITE_ID },
     { label: 'blank api key', apiKey: '   ', siteId: FIXTURE_SITE_ID },
