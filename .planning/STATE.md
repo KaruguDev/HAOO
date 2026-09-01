@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-09-01T06:44:37.925Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-09-01T07:04:08.270Z"
 last_activity: 2026-09-01
 last_activity_desc: Phase 04 execution started
-state_head: 8a175f0430345fc9b8acf62246339e2906a49b27
+state_head: d2ace41270fd1713e65e8422e39f1adeada52cbf
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-09-01 — Phase 04 execution started
 
@@ -70,6 +70,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 04 P01 | 14 min | 2 tasks | 9 files |
 | Phase 04 P02 | 20 min | 2 tasks | 9 files |
 | Phase 04 P04 | 13 min | 2 tasks | 8 files |
+| Phase 04 P03 | 16 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,10 @@ Recent decisions affecting current work:
 - [Phase 04]: Checkpoint C-1 was resolved by the human product owner as the A-plus-campaign variant rather than the UI-SPEC proposal verbatim; the shipped notice names both the attached engagement summary and any campaign values seen on arrival. — The UI-SPEC clause bound "a summary of them" to an enumeration that excludes campaign values, which under-disclosed once C-2 resolved include. The 04-UI-SPEC.md C-1 row still carries the superseded text and needs reconciling.
 - [Phase 04]: Owner-approved visitor-facing copy has exactly one hand-typed home and one derivation path: qualifyCollectionNotePageContext is the single source, and only measurement-page.test.tsx keeps the approved bytes. — Deriving everywhere prevents drift between surfaces but loses the pin on the approved bytes; one anchor plus a derivation contract keeps both.
 - [Phase 04]: The built-bundle notice assertion checks the approved template static segments rather than one contiguous sentence. — Deriving the sentence in product data means it is assembled at runtime and no longer appears inlined in the bundle; the segments still carry the whole approved clause, and rendered textContent equality covers assembly.
+- [Phase 04]: The banned-vocabulary scan excludes the authored caveat block, which is pinned by exact text instead, because the caveat's job is to deny the very claims the banned list forbids and it cannot do that without naming them.
+- [Phase 04]: The report's period-exposure CSS is written as hide-the-unselected, never show-the-selected, so a browser without :has() support degrades to all four periods visible rather than to an empty document.
+- [Phase 04]: The report stage summary uses display: list-item rather than flex, because a flex summary drops the native disclosure marker in Chromium and that marker is how open/closed state is exposed without colour.
+- [Phase 04]: The generated report carries no percent sign at all, including in its CSS, so the owner can grep their own report for one and expect zero hits.
 
 ### Pending Todos
 
@@ -153,6 +158,7 @@ None yet.
 - [Phase 4] Checkpoint C-2 resolved `include`, so a normalized campaign label now travels to FormSubmit alongside a named enquiry. This widens the standing privacy-ownership approval to cover campaign values leaving the browser, not only page-lifetime memory.
 - [Phase 4] RESOLVED by plan 04-04: the always-visible collection notice and HAOO_MEASUREMENT.disclosure.summaryBoundary now state what is actually attached, in the owner-approved C-1 clause. The superseded sentence returns zero grep hits under src/.
 - [Phase 4] 04-UI-SPEC.md still carries the superseded proposed C-1 clause; the owner approved the A-plus-campaign variant instead, so the UI-SPEC C-1 row and Surface B boundary description need reconciling to the shipped bytes.
+- [Phase 4] 04-UI-SPEC.md's Locked banned vocabulary list and its Caveat block copy contradict each other: the locked caveat contains people, sessions and customer. Plan 04-03 resolved this in code by scoping the ban to everything except the authored denial block; the UI-SPEC itself still needs amending to say so.
 
 ### Quick Tasks Completed
 
@@ -170,6 +176,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-01T06:44:05.576Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-09-01T07:03:42.203Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
