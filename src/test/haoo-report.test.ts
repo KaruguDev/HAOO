@@ -321,6 +321,10 @@ function memoryFs() {
   const files = new Map<string, string>();
   const fs: ReportFs = {
     mkdirSync: () => {},
+    reserveTempSync: (path) => {
+      if (files.has(path)) throw new Error(`already exists ${path}`);
+      files.set(path, '');
+    },
     writeFileSync: (path, data) => {
       files.set(path, data);
     },
@@ -329,6 +333,9 @@ function memoryFs() {
       if (data === undefined) throw new Error(`missing ${from}`);
       files.delete(from);
       files.set(to, data);
+    },
+    rmSync: (path) => {
+      files.delete(path);
     },
   };
 
@@ -816,6 +823,26 @@ describe('generateHaooReport', () => {
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  it('keeps the primary generation failure when owned-temp cleanup also fails', async () => {
+    const { fetchSpy } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const fs: ReportFs = {
+      mkdirSync: () => {},
+      reserveTempSync: () => {},
+      writeFileSync: () => {
+        throw new Error('primary write failure');
+      },
+      renameSync: () => {},
+      rmSync: () => {
+        throw new Error('secondary cleanup failure');
+      },
+    };
+
+    await expect(generateHaooReport(generateOptions(fetchSpy, fs))).resolves.toEqual({
+      ok: false,
+      reason: 'generation-failed',
+    });
   });
 });
 

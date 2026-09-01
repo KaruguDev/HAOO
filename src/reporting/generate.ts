@@ -59,8 +59,10 @@ export type ReportFetch = (
 
 export interface ReportFs {
   mkdirSync(path: string, options: { readonly recursive: true }): void;
+  reserveTempSync(path: string): void;
   writeFileSync(path: string, data: string): void;
   renameSync(from: string, to: string): void;
+  rmSync(path: string, options: { readonly force: true }): void;
 }
 
 export interface GenerateHaooReportOptions {
@@ -175,6 +177,9 @@ export async function generateHaooReport(
     return { ok: false, reason: 'missing-credentials' };
   }
 
+  const temporaryPath = `${options.outputPath}.tmp`;
+  let ownsTemporaryPath = false;
+
   try {
     const generatedAt = options.now();
     const today = reportDay(generatedAt, REPORT_TIMEZONE);
@@ -236,20 +241,35 @@ export async function generateHaooReport(
     };
 
     const document = renderReport(model);
-    const temporaryPath = `${options.outputPath}.tmp`;
     const directory = directoryOf(options.outputPath);
 
     if (directory !== '') {
       options.fs.mkdirSync(directory, { recursive: true });
     }
 
+    // The fixed sibling is reserved exclusively only after every response validates
+    // and the full document exists in memory. A competing invocation therefore fails
+    // before writing and, because it never owns the sibling, must not remove it.
+    options.fs.reserveTempSync(temporaryPath);
+    ownsTemporaryPath = true;
     options.fs.writeFileSync(temporaryPath, document);
     options.fs.renameSync(temporaryPath, options.outputPath);
+    ownsTemporaryPath = false;
 
     return { ok: true, outputPath: options.outputPath };
   } catch {
-    // The failure sentence belongs to the terminal, never to the report file. Nothing
-    // was written, so the previous report is still the last fully validated one.
+    if (ownsTemporaryPath) {
+      try {
+        options.fs.rmSync(temporaryPath, { force: true });
+      } catch {
+        // Cleanup is best effort and must never replace the primary failure reason.
+      }
+    }
+
+    // Caught filesystem failures remove the sibling owned by this invocation. An
+    // uncatchable termination may leave that reserved sibling behind; the next run then
+    // fails closed at exclusive reservation rather than guessing ownership. At no point
+    // is the previous complete destination truncated or partially replaced.
     return { ok: false, reason: 'generation-failed' };
   }
 }

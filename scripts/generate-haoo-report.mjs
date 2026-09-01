@@ -1,4 +1,4 @@
-import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
+import { closeSync, mkdirSync, openSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { generateHaooReport } from '../src/reporting/generate.ts';
 
@@ -36,7 +36,13 @@ const result = await generateHaooReport({
   query: { endpoint: STATS_ENDPOINT, apiKey, siteId },
   fetch: globalThis.fetch,
   now: () => new Date(),
-  fs: { mkdirSync, renameSync, writeFileSync },
+  fs: {
+    mkdirSync,
+    reserveTempSync: (path) => closeSync(openSync(path, 'wx')),
+    renameSync,
+    rmSync,
+    writeFileSync,
+  },
   outputPath: OUTPUT_PATH,
 });
 
