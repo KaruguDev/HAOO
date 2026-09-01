@@ -1214,10 +1214,18 @@ describe('Surface A semantic integrity', () => {
     }
   });
 
-  it('renders no percent sign anywhere in the document text', async () => {
+  /**
+   * The UI-SPEC bans a percentage "anywhere" in this document, so the assertion is made
+   * twice: over the rendered text, which is what the owner reads, and over the whole
+   * file including the style element. The second is only possible because the stylesheet
+   * uses no percentage unit either, and it is worth keeping — it means the owner can grep
+   * their own generated report for a percent sign and expect zero hits.
+   */
+  it('renders no percent sign in the document text or anywhere in the file', async () => {
     const { html } = await generateSurfaceA();
 
     expect(documentText(html)).not.toContain(BANNED_REPORT_PERCENT_SIGN);
+    expect(html).not.toContain(BANNED_REPORT_PERCENT_SIGN);
   });
 
   /**

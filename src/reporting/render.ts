@@ -305,7 +305,11 @@ export const REPORT_STYLES = [
   '  overflow-x: auto;',
   '  border-bottom: 1px solid var(--border);',
   '}',
-  'table { width: 100%; min-width: 320px; border-collapse: collapse; }',
+  // No percentage unit anywhere, not even in CSS: the UI-SPEC prohibits a percentage
+  // "anywhere" in this document, and keeping the stylesheet free of them too means the
+  // owner can grep the whole artifact for a percent sign and expect zero hits. The table
+  // sizes from its own content inside the scroll region instead.
+  '.table-scroll table { min-width: 320px; border-collapse: collapse; }',
   'caption {',
   '  text-align: left;',
   '  padding-bottom: var(--space-sm);',
