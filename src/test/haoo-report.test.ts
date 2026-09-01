@@ -16,7 +16,12 @@ import {
   type ReportStageId,
 } from '../reporting/haoo-report';
 import { parseGoalCounts } from '../reporting/stats-response';
-import { escapeHtml, renderReport, type ReportModel } from '../reporting/render';
+import {
+  escapeHtml,
+  renderReport,
+  REPORT_STYLES,
+  type ReportModel,
+} from '../reporting/render';
 import {
   generateHaooReport,
   type ReportFetch,
@@ -106,14 +111,22 @@ const STAGE_LABELS: Readonly<Record<ReportStageId, string>> = {
 };
 
 /**
- * UI-SPEC "Locked banned vocabulary". Each term claims more than a browser observed, or
- * expresses a proportion the anonymous event stream cannot prove (D-04).
+ * UI-SPEC "Locked banned vocabulary (report, disclosure, and email summary)", copied
+ * verbatim. Each term claims more than a browser observed, or expresses a proportion the
+ * anonymous event stream cannot prove (D-04).
+ *
+ * The list's twenty-second entry, `%`, has no word boundary and is asserted separately by
+ * `BANNED_REPORT_PERCENT_SIGN` below, together with the "any percentage figure" clause it
+ * stands for.
  */
-const BANNED_VOCABULARY = [
+const BANNED_REPORT_VOCABULARY = [
   'visitor', 'visitors', 'user', 'users', 'people', 'unique', 'session', 'lead', 'leads',
   'score', 'customer', 'conversion', 'converted', 'conversion rate', 'drop-off',
   'funnel drop', 'journey', 'delivered', 'received', 'onboarded', 'signed up',
 ] as const;
+
+/** The locked list's percentage entry: a sign, not a word, so it is matched literally. */
+const BANNED_REPORT_PERCENT_SIGN = '%';
 
 /** The id of the authored caveat block, excluded from the vocabulary scan below. */
 const CAVEAT_BLOCK_ID = 'report-caveats';
@@ -490,7 +503,7 @@ describe('generateHaooReport', () => {
     await generateHaooReport(generateOptions(fetchSpy, fs));
     const text = documentText(files.get(OUTPUT_PATH) ?? '');
 
-    for (const term of BANNED_VOCABULARY) {
+    for (const term of BANNED_REPORT_VOCABULARY) {
       expect(text.toLowerCase(), term).not.toMatch(
         new RegExp(`\\b${term.replace(/[-]/g, '\\-')}\\b`),
       );
@@ -1153,5 +1166,180 @@ describe('Surface A document structure', () => {
     expect(meta).toContain('Reporting timezone Africa/Nairobi');
     expect(meta).toContain('Analytics provider: configured');
     expect(meta).toContain(FIXTURE_SITE_ID);
+  });
+});
+
+/**
+ * MEAS-08 semantic integrity (threats T-04-02, T-04-03, T-04-05, T-04-13).
+ *
+ * This is the contract MEAS-08 rests on, so it is written to be hard to satisfy by
+ * accident: every vocabulary assertion runs over the document's rendered *text*, with the
+ * style element removed so CSS units cannot false-positive and with markup removed so a
+ * sentence split across elements cannot false-negative. The authored caveat block is
+ * excluded from the scan and pinned by exact text instead, and a contract below asserts
+ * that exclusion is the only place a banned term is allowed to exist.
+ */
+
+/** A credential that must never reach the document, distinct from the shared fixture. */
+const SENTINEL_CREDENTIAL = 'sentinel-credential-must-never-render-0f3a';
+
+/**
+ * UI-SPEC "Change value" — the only three authored forms, with the minus form using
+ * U+2212 rather than a hyphen. A percentage, a ratio, or a plus-zero is not among them.
+ */
+const AUTHORED_CHANGE_FORM = /^(\+[1-9]\d*|−[1-9]\d*|No change) vs previous (7|30|90) days$/;
+
+function caveatTextOf(doc: Document): string {
+  return normalise(doc.getElementById(CAVEAT_BLOCK_ID)?.textContent ?? '');
+}
+
+function changeValuesOf(doc: Document): string[] {
+  return [...doc.querySelectorAll('.stage-change, td.change')]
+    .map((node) => normalise(node.textContent ?? ''));
+}
+
+describe('Surface A semantic integrity', () => {
+  it('reproduces the locked banned list in full and scans rendered text, not markup', async () => {
+    const { html } = await generateSurfaceA();
+    const text = documentText(html);
+
+    expect([...BANNED_REPORT_VOCABULARY, BANNED_REPORT_PERCENT_SIGN]).toHaveLength(22);
+    expect(text).not.toContain('<');
+    expect(text).toContain('HAOO funnel report');
+
+    for (const term of BANNED_REPORT_VOCABULARY) {
+      expect(text.toLowerCase(), `banned term: ${term}`).not.toMatch(
+        new RegExp(`\\b${term.replace(/-/g, '\\-')}\\b`),
+      );
+    }
+  });
+
+  it('renders no percent sign anywhere in the document text', async () => {
+    const { html } = await generateSurfaceA();
+
+    expect(documentText(html)).not.toContain(BANNED_REPORT_PERCENT_SIGN);
+  });
+
+  /**
+   * The scan excludes the authored caveat block because that block exists to deny the
+   * claims the banned list forbids. This contract keeps the exclusion honest: a banned
+   * term may appear in the document only inside the caveat block, and the caveat block
+   * may only be the authored copy.
+   */
+  it('allows a banned term only inside the exact authored caveat block', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+    const caveat = caveatTextOf(doc);
+
+    expect(caveat).toBe(normalise(CAVEAT_BLOCK.join(' ')));
+
+    const scanned = documentText(html).toLowerCase();
+    const whole = (doc.documentElement.textContent ?? '').toLowerCase();
+
+    for (const term of BANNED_REPORT_VOCABULARY) {
+      const pattern = new RegExp(`\\b${term.replace(/-/g, '\\-')}\\b`, 'g');
+      const inScanned = (scanned.match(pattern) ?? []).length;
+      const inCaveat = (caveat.toLowerCase().match(pattern) ?? []).length;
+      const inWhole = (whole.match(pattern) ?? []).length;
+
+      expect(inScanned, `banned term outside the caveat block: ${term}`).toBe(0);
+      expect(inWhole - inCaveat, `unaccounted occurrence of: ${term}`).toBe(0);
+    }
+  });
+
+  it('carries the whole authored caveat text, whitespace-normalised', async () => {
+    const { html } = await generateSurfaceA();
+    const caveat = caveatTextOf(parseReport(html));
+
+    for (const sentence of CAVEAT_BLOCK) {
+      expect(caveat, sentence).toContain(normalise(sentence));
+    }
+    expect(caveat).toBe(normalise(CAVEAT_BLOCK.join(' ')));
+  });
+
+  it('loads nothing from anywhere: no script, stylesheet, image, frame or absolute URL', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    expect(doc.querySelectorAll('script')).toHaveLength(0);
+    expect(doc.querySelectorAll('link')).toHaveLength(0);
+    expect(doc.querySelectorAll('link[rel~="stylesheet"], link[rel~="preload"]'))
+      .toHaveLength(0);
+    expect(doc.querySelectorAll('img')).toHaveLength(0);
+    expect(doc.querySelectorAll('iframe, object, embed, source, video, audio'))
+      .toHaveLength(0);
+    expect(doc.querySelectorAll('form')).toHaveLength(0);
+
+    const absolute: string[] = [];
+    for (const element of doc.querySelectorAll('*')) {
+      for (const attribute of element.attributes) {
+        if (/^https?:/i.test(attribute.value.trim())) {
+          absolute.push(`${element.tagName}[${attribute.name}]`);
+        }
+      }
+    }
+    expect(absolute).toEqual([]);
+    expect(styleTextOf(doc)).not.toContain('@import');
+    expect(styleTextOf(doc)).not.toContain('url(');
+  });
+
+  it('renders neither a sentinel credential nor an authorization header name', async () => {
+    const { fetchSpy } = stubFetch(SURFACE_A_BODIES);
+    const { fs, files } = memoryFs();
+
+    await generateHaooReport({
+      ...generateOptions(fetchSpy, fs),
+      query: {
+        endpoint: FIXTURE_ENDPOINT,
+        apiKey: SENTINEL_CREDENTIAL,
+        siteId: FIXTURE_SITE_ID,
+      },
+    });
+    const html = files.get(OUTPUT_PATH) ?? '';
+
+    expect(html.length).toBeGreaterThan(0);
+    expect(fetchSpy.mock.calls[0]?.[1].headers.Authorization)
+      .toBe(`Bearer ${SENTINEL_CREDENTIAL}`);
+    expect(html).not.toContain(SENTINEL_CREDENTIAL);
+    expect(html).not.toContain('Authorization');
+    expect(html).not.toContain('Bearer');
+  });
+
+  it('renders every change value in one of exactly three authored forms', async () => {
+    const { html } = await generateSurfaceA();
+    const values = changeValuesOf(parseReport(html));
+
+    expect(values.length).toBeGreaterThan(0);
+    for (const value of values) {
+      expect(value, `change value: ${value}`).toMatch(AUTHORED_CHANGE_FORM);
+      expect(value, `change value: ${value}`).not.toContain('+0');
+      expect(value, `change value: ${value}`).not.toContain('%');
+      expect(value, `change value: ${value}`).not.toMatch(/-\d/);
+    }
+
+    expect(values).toContain('−3 vs previous 7 days');
+    expect(values).toContain('No change vs previous 7 days');
+    expect(values.some((value) => value.startsWith('+'))).toBe(true);
+  });
+
+  it('encodes no count as a shape and colours no change value', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+    const style = styleTextOf(doc);
+
+    expect(doc.querySelectorAll('progress, meter, svg, canvas')).toHaveLength(0);
+    expect(style).not.toMatch(/#(B00020|[0-9A-F]{0,2}(FF)?00[0-9A-F]{2})\b/i);
+    expect(documentText(html)).not.toMatch(/[↑↓→▲▼⬆⬇]/);
+    for (const node of doc.querySelectorAll('.stage-change, td.change')) {
+      expect(node.getAttribute('style')).toBeNull();
+    }
+  });
+
+  it('serves the exported REPORT_STYLES as the only style element', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+
+    expect(doc.querySelectorAll('style')).toHaveLength(1);
+    expect(styleTextOf(doc).trim()).toBe(REPORT_STYLES.trim());
   });
 });
