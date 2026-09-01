@@ -8,6 +8,7 @@ import {
   REPORT_PROVIDER_STATE_LABELS,
 } from './haoo-report.ts';
 import { parseGoalCounts } from './stats-response.ts';
+import { validateEchoedQuery } from './query-provenance.ts';
 import { renderReport } from './render.ts';
 import type { PeriodWindow, ReportPeriodId } from './haoo-report.ts';
 import type { ReportModel, ReportPeriodModel } from './render.ts';
@@ -29,10 +30,6 @@ import type { ReportModel, ReportPeriodModel } from './render.ts';
  * Loaded by a `.mjs` entry through Node's native TypeScript type stripping, so it uses
  * erasable syntax only and imports by explicit `.ts` extension.
  */
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 /** The Plausible site reporting timezone; the report states it and derives its days in it. */
 const REPORT_TIMEZONE = 'Africa/Nairobi';
@@ -100,26 +97,6 @@ function directoryOf(path: string): string {
   return separator > 0 ? path.slice(0, separator) : '';
 }
 
-/**
- * The resolved first day the provider reports for an all-time query.
- *
- * The provider echoes the range it resolved `"all"` to. That value is untrusted like the
- * rest of the body, so it is validated down to a `YYYY-MM-DD` prefix before it can be
- * rendered; anything else yields `null` and the report claims no first recorded day
- * rather than inventing one.
- */
-function resolvedStartDay(body: unknown): string | null {
-  if (!isPlainObject(body)) return null;
-  if (!isPlainObject(body.query)) return null;
-
-  const range = body.query.date_range;
-  if (!Array.isArray(range) || range.length !== 2) return null;
-  if (typeof range[0] !== 'string') return null;
-
-  const day = range[0].slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
-}
-
 interface RangeResult {
   readonly counts: Readonly<Record<string, number>>;
   readonly resolvedStart: string | null;
@@ -136,29 +113,39 @@ interface RangeResult {
 async function queryRange(
   options: GenerateHaooReportOptions,
   range: PeriodWindow | 'all',
+  today: string,
 ): Promise<RangeResult | null> {
+  const requestBody = {
+    site_id: options.query.siteId,
+    metrics: ['events'],
+    date_range: range === 'all' ? 'all' : [range.start, range.end],
+    dimensions: ['event:goal'],
+    filters: [['is', 'event:goal', [...HAOO_REPORT_EVENTS]]],
+  };
   const response = await options.fetch(options.query.endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${options.query.apiKey}`,
     },
-    body: JSON.stringify({
-      site_id: options.query.siteId,
-      metrics: ['events'],
-      date_range: range === 'all' ? 'all' : [range.start, range.end],
-      dimensions: ['event:goal'],
-      filters: [['is', 'event:goal', [...HAOO_REPORT_EVENTS]]],
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) return null;
 
   const body: unknown = await response.json();
+  const provenance = validateEchoedQuery(body, {
+    siteId: options.query.siteId,
+    events: HAOO_REPORT_EVENTS,
+    range,
+    today,
+  });
+  if (provenance === null) return null;
+
   const counts = parseGoalCounts(body, HAOO_REPORT_EVENTS);
   if (counts === null) return null;
 
-  return { counts, resolvedStart: resolvedStartDay(body) };
+  return { counts, resolvedStart: range === 'all' ? provenance.start : null };
 }
 
 /** D-03 locks exactly these three bounded views. */
@@ -198,10 +185,10 @@ export async function generateHaooReport(
     for (const days of BOUNDED_PERIOD_DAYS) {
       const windows = periodWindows(days, today);
 
-      const current = await queryRange(options, windows.current);
+      const current = await queryRange(options, windows.current, today);
       if (current === null) return { ok: false, reason: `invalid-current-${days}` };
 
-      const previous = await queryRange(options, windows.previous);
+      const previous = await queryRange(options, windows.previous, today);
       if (previous === null) return { ok: false, reason: `invalid-previous-${days}` };
 
       const id = `last-${days}-days` as ReportPeriodId;
@@ -220,7 +207,7 @@ export async function generateHaooReport(
       });
     }
 
-    const allTime = await queryRange(options, 'all');
+    const allTime = await queryRange(options, 'all', today);
     if (allTime === null) return { ok: false, reason: 'invalid-all-time' };
 
     periods.push({

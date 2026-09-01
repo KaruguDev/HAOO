@@ -240,7 +240,15 @@ function stubFetch(
     const range = echoedRanges[Math.min(index, echoedRanges.length - 1)];
     index += 1;
     const responseBody = typeof body === 'object' && body !== null && !Array.isArray(body)
-      ? { query: independentlyEchoedQuery(range), ...body }
+      ? {
+          ...body,
+          query: {
+            ...independentlyEchoedQuery(range),
+            ...('query' in body && typeof body.query === 'object' && body.query !== null
+              ? body.query
+              : {}),
+          },
+        }
       : body;
     return { ok: true, json: async () => responseBody };
   });
@@ -265,6 +273,7 @@ describe('validateEchoedQuery', () => {
   });
 
   it.each([
+    ['malformed query', null],
     ['wrong site', { site_id: 'wrong.example' }],
     ['extra metric', { metrics: ['events', 'visitors'] }],
     ['wrong dimension', { dimensions: ['event:page'] }],
@@ -274,7 +283,15 @@ describe('validateEchoedQuery', () => {
     ['wrong range', { date_range: ['2026-02-22', '2026-03-01'] }],
     ['impossible date', { date_range: ['2026-02-30', '2026-03-01'] }],
   ])('rejects %s', (_label, override) => {
-    expect(validateEchoedQuery({ query: { ...valid.query, ...override } }, expected)).toBeNull();
+    const query = override === null ? 'not-an-object' : { ...valid.query, ...override };
+    expect(validateEchoedQuery({ query }, expected)).toBeNull();
+  });
+
+  it('tolerates provider-owned extra top-level query members', () => {
+    expect(validateEchoedQuery(
+      { query: { ...valid.query, order_by: [['events', 'desc']], include: {} } },
+      expected,
+    )).toEqual({ start: '2026-02-23', end: '2026-03-01' });
   });
 
   it.each([
@@ -617,7 +634,19 @@ describe('generateHaooReport', () => {
    * provider did not aggregate. 22:00Z on 1 March is already 2 March in Africa/Nairobi.
    */
   it('derives the inclusive window from the reporting timezone, not from UTC', async () => {
-    const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const marchSecondRanges = [
+      ['2026-02-24T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
+      ['2026-02-17T00:00:00+03:00', '2026-02-23T23:59:59+03:00'],
+      ['2026-02-01T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
+      ['2026-01-02T00:00:00+03:00', '2026-01-31T23:59:59+03:00'],
+      ['2025-12-03T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
+      ['2025-09-04T00:00:00+03:00', '2025-12-02T23:59:59+03:00'],
+      ['2025-11-04T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
+    ] as const;
+    const { fetchSpy, calls } = stubFetch(
+      [FIXTURE_CURRENT, FIXTURE_PREVIOUS],
+      marchSecondRanges,
+    );
     const { fs } = memoryFs();
 
     await generateHaooReport({
@@ -655,6 +684,20 @@ describe('generateHaooReport', () => {
     const result = await generateHaooReport(generateOptions(fetchSpy, fs));
 
     expect(result.ok).toBe(false);
+    expect(files.size).toBe(0);
+  });
+
+  it('leaves the filesystem untouched when echoed provenance belongs to another site', async () => {
+    const mismatched = {
+      ...FIXTURE_CURRENT,
+      query: { ...independentlyEchoedQuery(DEFAULT_ECHOED_RANGES[0]), site_id: 'stale.test' },
+    };
+    const { fetchSpy } = stubFetch([mismatched]);
+    const { fs, files } = memoryFs();
+
+    const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    expect(result).toEqual({ ok: false, reason: 'invalid-current-7' });
     expect(files.size).toBe(0);
   });
 
