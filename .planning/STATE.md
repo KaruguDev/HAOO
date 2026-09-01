@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
-status: "Phase 03 shipped — PR #4"
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-09-01T03:19:41.546Z"
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-09-01T03:46:33.679Z"
 last_activity: 2026-09-01
-last_activity_desc: Phase 04 planning complete
-state_head: 076bc373cd9bc3f62f91ce50a37185fde53a4375
+last_activity_desc: Phase 04 execution started
+state_head: e40baa4245ce7bac56a9db0dcf9858afecc0e90a
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 26
-  completed_plans: 20
+  completed_plans: 21
   percent: 40
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 03 — Build Privacy-Bounded Engagement Context
+**Current focus:** Phase 04 — Report and Enrich the HAOO Funnel Truthfully
 
 ## Current Position
 
-Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — READY TO EXECUTE
-Plan: 4 of 4
-Status: Phase 03 shipped — PR #4
-Last activity: 2026-09-01 — Phase 04 planning complete
+Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-09-01 — Phase 04 execution started
 
-Progress: [████████████████████] 9/9 plans ([██░░░░░░░░] 20%)
+Progress: [████████████████████] 9/9 plans ([████░░░░░░] 40%)
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 03 P02 | 8 min | 2 tasks | 6 files |
 | Phase 03 P03 | 12 min | 3 tasks | 9 files |
 | Phase 03 P04 | 22 min | 2 tasks | 10 files |
+| Phase 04 P01 | 14 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Build the qualification request body before emitting qualify_submit, then emit immediately before fetch. — Serialization failures are not network attempts, while validated admitted fetch attempts are counted truthfully.
 - [Phase 03]: Keep the owner-approved HAOO notice as a literal in HAOO product configuration so the generic copy module remains product-name-free and the exact sentence survives bundling. — The public notice is owner-approved byte-exact copy, while reusable copy helpers are contractually product-generic.
 - [Phase 03]: Enhance the footer fragment by setting the target details open without preventing default or moving focus. — This preserves native fragment navigation and no-JavaScript usefulness while adding a small progressive enhancement.
+- [Phase 04]: The HAOO report derives its calendar day in the Africa/Nairobi reporting timezone through Intl.formatToParts, not in UTC. — A UTC day would place a run made between midnight and 03:00 local on the previous day, so the report would name an inclusive window the provider did not aggregate.
+- [Phase 04]: The ten HAOO event literals are written exactly once: HAOO_REPORT_EVENTS is derived from the label map key order and typed Readonly<Record<HaooMeasurementEvent, ...>>. — Adding an eleventh event or dropping a label then fails npm run typecheck before it fails a contract test; mutation-probed at 1 typecheck error and 8 failing contracts.
+- [Phase 04]: The all-time report heading has three branches and never invents a date: the locked empty-state heading when nothing was recorded, since-{day} when the provider resolved a first day, and a bare All time when it resolved none. — Using the empty-state copy for an unresolved range would have claimed no recorded actions over non-zero counts.
+- [Phase 04]: Only scripts/generate-haoo-report.mjs touches the credential and the provider origin; src/reporting/generate.ts receives endpoint, key and site id through an injected query capability. — A test derives the analytics-origin regex, the Stats API query path and the credential variable name from the files that already own them, so the boundary assertion cannot drift from the 04-05 source scan it protects.
 
 ### Pending Todos
 
@@ -136,6 +141,7 @@ None yet.
 - [Phase 1 review] Informational tenant and agent audiences are not visibly rendered despite the broader PROD-03 audience wording; revisit before shipping if that interpretation is required.
 - [Dependency maintenance] The unused Supabase dependency retains a pre-existing `ws` advisory; review removal or upgrade in a dedicated task before shipping.
 - The five closed option lists are assumed complete enough for real HAOO follow-up routing; unresolved, carried to UAT as human-judgment item 02-02-SUMMARY coverage D6.
+- [Phase 4] A leftover untracked worktree at .claude/worktrees/rf-03-retry-1788205465/ makes Vitest collect and run every suite twice (591 tests instead of ~300); all copies pass, but it doubles runtime and could mask a single-copy regression.
 
 ### Quick Tasks Completed
 
@@ -153,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-31T21:32:49.039Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-UI-SPEC.md
+Last session: 2026-09-01T03:45:52.106Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
