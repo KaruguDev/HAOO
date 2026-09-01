@@ -392,3 +392,17 @@ None — no external service configuration is required by this plan.
 ---
 *Phase: 04-report-and-enrich-the-haoo-funnel-truthfully*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+- All eight modified source files exist on disk (`[ -f ]` confirmed for each), as does
+  `04-04-SUMMARY.md`.
+- All four commit hashes resolve in `git log --oneline --all`: `370628b`, `591f6e1`, `8a175f0`,
+  `fb585d1`.
+- No tracked file was deleted anywhere in the plan's commit range
+  (`git diff --diff-filter=D --name-only f909adc..HEAD` is empty).
+- No stub, TODO, FIXME, placeholder string or skipped test was introduced.
+- Every task-level `<acceptance_criteria>` was re-run at close-out and passes, including the
+  zero-line grep for the superseded clause and its capitalised variant.
+- The unrun Task 3 `<human-check>` (320px / 200% zoom) is recorded in `.planning/WINDOWS.md` as an
+  `unrun-verify` entry and carried as coverage item D6.

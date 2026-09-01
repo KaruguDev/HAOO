@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 9
+open_count: 10
 waived_count: 0
 fixed_count: 2
-total_count: 11
-last_updated: 2026-09-01T04:13:09.236Z
+total_count: 12
+last_updated: 2026-09-01T06:45:08.472Z
 ---
 
 # Broken Windows Ledger
@@ -26,6 +26,7 @@ last_updated: 2026-09-01T04:13:09.236Z
 | 9 | 02 | lint-warning | src/components/QualifyForm.tsx | 28 | react-refresh/only-export-components: QualifyForm.tsx exports helpers beside the component (4 warnings, pre-existing from 02-01, lint exits 0) | open |  | 2026-08-30T08:27:54.452Z |  |
 | 10 | 04 | unrun-verify | .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-01-PLAN.md |  | 04-01 Task 2 <human-check> not run: needs a real PLAUSIBLE_STATS_API_KEY and PLAUSIBLE_SITE_ID (available only after the 04-05 provider-approval checkpoint) plus a human judging counts against the dashboard; carried as 04-01-SUMMARY coverage D6 | open |  | 2026-09-01T03:46:55.653Z |  |
 | 11 | 04 | unrun-verify | src/products/haoo.ts |  | 04-02 Task 3 <human-check>: a person must read the maximum-length engagement summary as it would appear in the email body and confirm it reads as one coherent paragraph with no score-like or person-like claim. Carried to phase-end UAT as coverage D6. | open |  | 2026-09-01T04:13:09.236Z |  |
+| 12 | 04 | unrun-verify | src/components/MeasurementDisclosure.tsx |  | Task 3 human-check not run: 320px viewport and 200% zoom reading of the new disclosure group and the replaced notice clause; carried to phase-end UAT as 04-04-SUMMARY coverage D6 | open |  | 2026-09-01T06:45:08.472Z |  |
 
 ````json
 [
@@ -159,6 +160,18 @@ last_updated: 2026-09-01T04:13:09.236Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-01T04:13:09.236Z",
+    "resolved_at": null
+  },
+  {
+    "id": 12,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": "src/components/MeasurementDisclosure.tsx",
+    "line": null,
+    "description": "Task 3 human-check not run: 320px viewport and 200% zoom reading of the new disclosure group and the replaced notice clause; carried to phase-end UAT as 04-04-SUMMARY coverage D6",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-01T06:45:08.472Z",
     "resolved_at": null
   }
 ]
