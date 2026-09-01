@@ -17,7 +17,7 @@ affects: [phase verification, owner reporting, production analytics enablement, 
 actuals:
   tokens: 9153
   tasks: 3
-  commits: 6
+  commits: 7
 
 tech-stack:
   added: []
@@ -25,6 +25,7 @@ tech-stack:
     - "Untrusted Stats metadata is rebuilt and compared field-by-field before aggregate rows enter the report model"
     - "A fixed temporary sibling is acquired with exclusive create and removed only by the invocation that acquired it"
     - "Credentialed CLI tests preload a fixture-only fetch before module evaluation and audit every attempted URL"
+    - "Terminal failures use synchronous stderr writes and exitCode so captured diagnostics flush before nonzero process shutdown"
 
 key-files:
   created:
@@ -54,10 +55,10 @@ coverage:
     requirement: MEAS-01
     verification:
       - kind: unit
-        ref: "src/test/haoo-report.test.ts#validateEchoedQuery and generateHaooReport provenance contracts; 119 tests passed"
+        ref: "src/test/haoo-report.test.ts#validateEchoedQuery and generateHaooReport provenance contracts; 120 tests passed"
         status: pass
       - kind: integration
-        ref: "npm test; 722 tests passed across the repository and preserved unrelated worktree"
+        ref: "npm test; 723 tests passed across the repository and preserved unrelated worktree"
         status: pass
     human_judgment: false
   - id: D2
@@ -123,6 +124,7 @@ status: complete
 4. **Task 2 GREEN: Preserve reports across filesystem failures** — `38c689a`
 5. **Task 3 RED: Add failing owner CLI contracts** — `ed127df`
 6. **Task 3 GREEN: Make owner report runs self-diagnosing** — `0718fa9`
+7. **Post-merge regression repair: Flush captured CLI diagnostics before failure exit** — `92b42cd`
 
 ## Files Created/Modified
 
@@ -142,11 +144,18 @@ status: complete
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Made captured CLI failure diagnostics deterministic**
+- **Found during:** Post-merge regression gate after Task 3
+- **Issue:** Immediate process termination could occur before `console.error` flushed to a parent process's piped stderr, leaving all three missing-variable cases with the correct status but an empty diagnostic.
+- **Fix:** Write the name-only terminal message synchronously, set `process.exitCode`, and retain the configuration branch so missing inputs cannot reach report generation or networking. Added a source contract prohibiting forced `process.exit` at this boundary.
+- **Files modified:** `scripts/generate-haoo-report.mjs`, `src/test/haoo-report.test.ts`
+- **Commit:** `92b42cd`
 
 ## Issues Encountered
 
-The sandbox blocks nested Node subprocesses during an ordinary test command, so the CLI verification commands were run with the approved local-process permission. The known unrelated `.claude/worktrees/rf-03-retry-1788205465/` directory also causes Vitest's full run to discover an older duplicate suite; all 722 discovered tests passed, and that unrelated tree was left untouched.
+The sandbox blocks nested Node subprocesses during an ordinary test command, so the CLI verification commands were run with the approved local-process permission. The known unrelated `.claude/worktrees/rf-03-retry-1788205465/` directory also causes Vitest's full run to discover an older duplicate suite; all 723 discovered tests passed, and that unrelated tree was left untouched.
 
 ## User Setup Required
 
@@ -159,8 +168,8 @@ CR-02, WR-01, and WR-02 are closed with automated evidence. Phase 4 is ready for
 ## Self-Check: PASSED
 
 - Both created files and all five modified files exist.
-- Task commits `0764031`, `405aee1`, `fcf2bc5`, `38c689a`, `ed127df`, and `0718fa9` exist.
-- The focused 119-report-test and 84-summary-test suites, full 722-test repository run, typecheck, lint, build, and diff check all pass.
+- Task commits `0764031`, `405aee1`, `fcf2bc5`, `38c689a`, `ed127df`, `0718fa9`, and `92b42cd` exist.
+- The focused 120-report-test and 84-summary-test suites, full 723-test repository run, typecheck, lint, build, and diff check all pass.
 
 ---
 *Phase: 04-report-and-enrich-the-haoo-funnel-truthfully*

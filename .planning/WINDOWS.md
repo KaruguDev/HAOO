@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 11
 waived_count: 0
-fixed_count: 2
-total_count: 13
-last_updated: 2026-09-01T07:04:25.198Z
+fixed_count: 3
+total_count: 14
+last_updated: 2026-09-01T19:23:38.574Z
 ---
 
 # Broken Windows Ledger
@@ -28,6 +28,7 @@ last_updated: 2026-09-01T07:04:25.198Z
 | 11 | 04 | unrun-verify | src/products/haoo.ts |  | 04-02 Task 3 <human-check>: a person must read the maximum-length engagement summary as it would appear in the email body and confirm it reads as one coherent paragraph with no score-like or person-like claim. Carried to phase-end UAT as coverage D6. | open |  | 2026-09-01T04:13:09.236Z |  |
 | 12 | 04 | unrun-verify | src/components/MeasurementDisclosure.tsx |  | Task 3 human-check not run: 320px viewport and 200% zoom reading of the new disclosure group and the replaced notice clause; carried to phase-end UAT as 04-04-SUMMARY coverage D6 | open |  | 2026-09-01T06:45:08.472Z |  |
 | 13 | 04 | unrun-verify | src/reporting/render.ts |  | Surface A backstop visual checks at 320px and 200% zoom, and the screen-reader announcement check, could not be run: jsdom computes no layout. Carried to UAT as 04-03 coverage D9 and D10. | open |  | 2026-09-01T07:04:25.198Z |  |
+| 14 | 04 | deviation | scripts/generate-haoo-report.mjs |  | Captured CLI failure diagnostics required synchronous stderr writes before nonzero shutdown | fixed |  | 2026-09-01T19:23:08.473Z | 2026-09-01T19:23:38.574Z |
 
 ````json
 [
@@ -186,6 +187,18 @@ last_updated: 2026-09-01T07:04:25.198Z
     "reason": "",
     "recorded_at": "2026-09-01T07:04:25.198Z",
     "resolved_at": null
+  },
+  {
+    "id": 14,
+    "kind": "deviation",
+    "phase": "04",
+    "file": "scripts/generate-haoo-report.mjs",
+    "line": null,
+    "description": "Captured CLI failure diagnostics required synchronous stderr writes before nonzero shutdown",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-01T19:23:08.473Z",
+    "resolved_at": "2026-09-01T19:23:38.574Z"
   }
 ]
 ````
