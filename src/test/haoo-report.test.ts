@@ -1,12 +1,15 @@
 import { spawnSync } from 'node:child_process';
 import {
   closeSync,
+  copyFileSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   openSync,
   readFileSync,
   renameSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -884,32 +887,129 @@ describe('credential and provider-origin boundary', () => {
 });
 
 describe('credentialed CLI', () => {
-  it('loads the report modules under real Node and refuses without credentials', () => {
-    const outputPath = resolve(ROOT, '.reports/haoo-funnel-report.html');
-    const existedBefore = existsSync(outputPath);
+  const secret = 'secret-header-sentinel-never-render';
+  const site = 'fixture-report.example';
 
-    const result = spawnSync(process.execPath, ['scripts/generate-haoo-report.mjs'], {
-      cwd: ROOT,
-      encoding: 'utf8',
-      env: {},
+  function runCli(environment: Readonly<Record<string, string>>) {
+    const directory = mkdtempSync(join(tmpdir(), 'haoo-report-cli-'));
+    const scriptsDirectory = join(directory, 'scripts');
+    mkdirSync(scriptsDirectory);
+    copyFileSync(
+      resolve(ROOT, 'scripts/generate-haoo-report.mjs'),
+      join(scriptsDirectory, 'generate-haoo-report.mjs'),
+    );
+    symlinkSync(resolve(ROOT, 'src'), join(directory, 'src'), 'dir');
+    const auditPath = join(directory, 'audit.json');
+    const preloadPath = resolve(ROOT, 'src/test/fixtures/haoo-report-cli-fetch-preload.mjs');
+    const result = spawnSync(
+      process.execPath,
+      ['--import', preloadPath, join(scriptsDirectory, 'generate-haoo-report.mjs')],
+      {
+        cwd: directory,
+        encoding: 'utf8',
+        env: { HAOO_REPORT_CLI_AUDIT_PATH: auditPath, ...environment },
+      },
+    );
+    const audit = JSON.parse(readFileSync(auditPath, 'utf8')) as {
+      readonly count: number;
+      readonly urls: readonly string[];
+    };
+
+    return {
+      directory,
+      outputPath: join(directory, '.reports/haoo-funnel-report.html'),
+      result,
+      audit,
+    };
+  }
+
+  it.each([
+    {
+      label: 'both variables',
+      environment: {},
+      missing: ['PLAUSIBLE_STATS_API_KEY', 'PLAUSIBLE_SITE_ID'],
+      supplied: '',
+    },
+    {
+      label: 'only the API key',
+      environment: { PLAUSIBLE_STATS_API_KEY: secret },
+      missing: ['PLAUSIBLE_SITE_ID'],
+      supplied: secret,
+    },
+    {
+      label: 'only the site id',
+      environment: { PLAUSIBLE_SITE_ID: site },
+      missing: ['PLAUSIBLE_STATS_API_KEY'],
+      supplied: site,
+    },
+  ])('names exactly the missing variable names with $label absent', ({ environment, missing, supplied }) => {
+    const execution = runCli(environment);
+
+    try {
+      expect(execution.result.status).toBe(1);
+      expect(execution.result.stderr).toContain(
+        `Missing required environment variables: ${missing.join(', ')}`,
+      );
+      expect(execution.result.stderr).toContain(ERROR_STATE_SENTENCE);
+      if (supplied !== '') {
+        expect(execution.result.stdout).not.toContain(supplied);
+        expect(execution.result.stderr).not.toContain(supplied);
+      }
+      expect(execution.audit).toEqual({ count: 0, urls: [] });
+      expect(existsSync(execution.outputPath)).toBe(false);
+    } finally {
+      rmSync(execution.directory, { recursive: true, force: true });
+    }
+  });
+
+  it('preloads a fixture-only fetch and completes exactly seven requests without leaking secrets', () => {
+    const execution = runCli({
+      PLAUSIBLE_STATS_API_KEY: secret,
+      PLAUSIBLE_SITE_ID: site,
     });
 
-    const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+    try {
+      const terminal = `${execution.result.stdout}${execution.result.stderr}`;
+      const report = readFileSync(execution.outputPath, 'utf8');
 
-    for (const signature of [
-      'Cannot find module',
-      'Failed to resolve',
-      'ERR_MODULE_NOT_FOUND',
-      'ERR_UNKNOWN_FILE_EXTENSION',
-      'SyntaxError',
-      'TypeError',
-    ]) {
-      expect(output, signature).not.toContain(signature);
+      expect(execution.result.status).toBe(0);
+      expect(execution.audit.count).toBe(7);
+      expect(new Set(execution.audit.urls)).toEqual(
+        new Set(['https://plausible.io/api/v2/query']),
+      );
+      expect(terminal).not.toContain(secret);
+      expect(report).not.toContain(secret);
+      expect(report.match(new RegExp(site, 'g'))).toHaveLength(1);
+      expect(terminal).not.toContain('Authorization');
+      expect(report).not.toContain('Authorization');
+    } finally {
+      rmSync(execution.directory, { recursive: true, force: true });
     }
+  });
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain(ERROR_STATE_SENTENCE);
-    expect(existsSync(outputPath)).toBe(existedBefore);
+  it('documents both local report inputs separately from deferred public build inputs', () => {
+    const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
+    const setup = readFileSync(
+      resolve(
+        ROOT,
+        '.planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-USER-SETUP.md',
+      ),
+      'utf8',
+    );
+
+    for (const document of [readme, setup]) {
+      expect(document).toContain('PLAUSIBLE_STATS_API_KEY');
+      expect(document).toContain('PLAUSIBLE_SITE_ID');
+      expect(document).toMatch(/PLAUSIBLE_SITE_ID[^\n]*(domain|hostname)/i);
+      expect(document).toContain(
+        'PLAUSIBLE_STATS_API_KEY="$PLAUSIBLE_STATS_API_KEY" PLAUSIBLE_SITE_ID="$PLAUSIBLE_SITE_ID" npm run report:haoo',
+      );
+      expect(document).toContain('VITE_HAOO_MEASUREMENT_PROVIDER');
+      expect(document).toContain('VITE_HAOO_PLAUSIBLE_SRC');
+      expect(document).toContain('VITE_HAOO_PLAUSIBLE_DOMAIN');
+      expect(document.toLowerCase()).toContain('production collection');
+      expect(document.toLowerCase()).toContain('deferred');
+    }
   });
 });
 
