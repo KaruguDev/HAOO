@@ -163,6 +163,15 @@ export interface ProductMeasurementDisclosure<EventName extends string> {
   readonly campaignDescription: string;
   readonly neverCollectedHeading: string;
   readonly neverCollected: readonly string[];
+  /**
+   * The four parts of the group that describes what the emailed engagement summary
+   * contains. They are required members, so a product configuration that forgets one is
+   * a typecheck failure rather than a disclosure that silently renders a blank where a
+   * promise about the visitor's data should be.
+   */
+  readonly summaryHeading: string;
+  readonly summaryIntro: string;
+  readonly summaryContents: readonly string[];
   readonly summaryBoundary: string;
   readonly clearLabel: string;
   readonly clearSuccess: string;

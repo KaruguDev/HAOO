@@ -109,7 +109,25 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
       'Raw click history.',
       'Any form answer attached to an analytics event.',
     ],
-    summaryBoundary: 'No engagement summary is attached to this form submission yet.',
+    /**
+     * Owner-approved copy, byte-exact from `04-UI-SPEC.md` "Surface B — disclosure copy
+     * change". The visitor reads this before submitting, so it describes the attached
+     * paragraph in fixed words and never reflects their own measured values back. The
+     * campaign item is present because blocking checkpoint C-2 resolved `include`: a
+     * normalized campaign label really does travel with the enquiry, so a list that
+     * omitted it would under-disclose.
+     */
+    summaryHeading: 'What we attach to your form submission',
+    summaryIntro:
+      'When you send this form, we attach one short readable paragraph of the coarse signals described above so we can reply usefully.',
+    summaryContents: [
+      'Whether this browser is on a first, returning, or frequent visit.',
+      'Roughly when the last visit was, if this is not the first one.',
+      'Which of the listed actions were recorded in this browser.',
+      'Any campaign values described above, if they were present when you arrived.',
+    ],
+    summaryBoundary:
+      'It contains no score, no identifier, no capped visit step, no day-only date, and none of your form answers repeated back. It is written in plain words you could read yourself.',
     clearLabel: 'Clear what this page remembers',
     clearSuccess: 'What this page remembered has been cleared.',
     clearBlocked:

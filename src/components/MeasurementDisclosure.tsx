@@ -76,9 +76,18 @@ export default function MeasurementDisclosure<EventName extends string>({
           </ul>
         </section>
 
-        <p className="text-sm font-normal leading-[1.4]">
-          {disclosure.summaryBoundary}
-        </p>
+        <section aria-label={disclosure.summaryHeading}>
+          <p className="text-base font-semibold leading-6">{disclosure.summaryHeading}</p>
+          <p className="mt-2 text-sm font-normal leading-[1.4]">
+            {disclosure.summaryIntro}
+          </p>
+          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm font-normal leading-[1.4]">
+            {disclosure.summaryContents.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          <p className="mt-4 text-sm font-normal leading-[1.4]">
+            {disclosure.summaryBoundary}
+          </p>
+        </section>
 
         <div>
           <button
