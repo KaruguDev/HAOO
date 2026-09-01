@@ -43,6 +43,15 @@ All three are public build-time configuration. Never put a secret in a `VITE_*` 
   - Source: Plausible account API-key settings
   - Add to: the local shell environment used to run `npm run report:haoo`
   - Never add it to GitHub Pages build variables, source files, or generated reports.
+- [ ] **Provide `PLAUSIBLE_SITE_ID` as the exact Plausible-configured domain or hostname**
+  - Source: Plausible Dashboard → Site Settings → General → Domain
+  - Add to: the same local shell environment used to run `npm run report:haoo`
+  - Match the configured spelling exactly; use neither a report label nor a URL with a scheme or path.
+
+These two local report inputs are separate from the three public browser build variables
+`VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_PLAUSIBLE_SRC`, and
+`VITE_HAOO_PLAUSIBLE_DOMAIN`. Production collection remains deferred until privacy-owner
+approval, creation of all ten dashboard goals, and explicit deployment setup.
 
 ## Verification
 
@@ -51,7 +60,7 @@ After approval, dashboard setup, and deployment configuration:
 ```bash
 npm run build
 npm test
-PLAUSIBLE_STATS_API_KEY='[local secret]' npm run report:haoo
+PLAUSIBLE_STATS_API_KEY="$PLAUSIBLE_STATS_API_KEY" PLAUSIBLE_SITE_ID="$PLAUSIBLE_SITE_ID" npm run report:haoo
 ```
 
 Expected results:

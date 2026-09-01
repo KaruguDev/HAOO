@@ -890,7 +890,7 @@ describe('credentialed CLI', () => {
   const secret = 'secret-header-sentinel-never-render';
   const site = 'fixture-report.example';
 
-  function runCli(environment: Readonly<Record<string, string>>) {
+  function runCli(environment: Readonly<Record<string, string | undefined>>) {
     const directory = mkdtempSync(join(tmpdir(), 'haoo-report-cli-'));
     const scriptsDirectory = join(directory, 'scripts');
     mkdirSync(scriptsDirectory);

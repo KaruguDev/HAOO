@@ -26,8 +26,15 @@ const STATS_ENDPOINT = 'https://plausible.io/api/v2/query';
 
 const apiKey = process.env.PLAUSIBLE_STATS_API_KEY ?? '';
 const siteId = process.env.PLAUSIBLE_SITE_ID ?? '';
+const missingVariables = [
+  ['PLAUSIBLE_STATS_API_KEY', apiKey],
+  ['PLAUSIBLE_SITE_ID', siteId],
+]
+  .filter(([, value]) => value.trim() === '')
+  .map(([name]) => name);
 
-if (apiKey.trim() === '' || siteId.trim() === '') {
+if (missingVariables.length > 0) {
+  console.error(`Missing required environment variables: ${missingVariables.join(', ')}`);
   console.error(ERROR_STATE_SENTENCE);
   process.exit(1);
 }

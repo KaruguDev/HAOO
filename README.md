@@ -94,12 +94,27 @@ from the owner report.
 
 ### Report credential boundary
 
-The report generator reads `PLAUSIBLE_STATS_API_KEY` only from the local process
-environment when `npm run report:haoo` runs. It is a credential: never prefix it
-with `VITE_`, never add it to the browser build, never commit it, and never write it
-into a generated report. The report command sends it only in the Stats API
-authorization header; application code receives query results through an injected
-capability and never sees the key or provider endpoint.
+The local report process requires two inputs that are separate from the three public
+browser build variables above:
+
+- `PLAUSIBLE_STATS_API_KEY` is a local-process secret. Never prefix it with `VITE_`,
+  add it to the browser build, commit it, or write it into a generated report. The
+  report command sends it only in the Stats API authorization header.
+- `PLAUSIBLE_SITE_ID` is the domain or hostname exactly as configured for the
+  Plausible site, including the same spelling. It is not a report label and must not
+  be entered as a URL with a scheme or path.
+
+After both values are already set in the local shell, run the report without placing
+an example credential or domain in documentation:
+
+```bash
+PLAUSIBLE_STATS_API_KEY="$PLAUSIBLE_STATS_API_KEY" PLAUSIBLE_SITE_ID="$PLAUSIBLE_SITE_ID" npm run report:haoo
+```
+
+Application code receives query results through an injected capability and never sees
+the key or provider endpoint. Production collection remains deferred until the privacy
+owner approves it, all ten dashboard goals exist, and the deploy workflow is configured
+with the three public `VITE_HAOO_*` values.
 
 ### Spam handling
 
