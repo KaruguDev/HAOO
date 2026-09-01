@@ -461,7 +461,7 @@ discretion. Checkpoint map: **C-1** = `04-04-PLAN.md` Task 1 (collection-notice 
 | Property | Value |
 |----------|-------|
 | Framework | Vitest `3.2.4`, Testing Library `16.3.2`, jsdom `26.1.0`. Verbatim values quoted in Standard Stack. [VERIFIED: package.json:21-40] |
-| Config file | `vite.config.ts` (existing Vite configuration); Vitest uses Vite defaults because no test block is present. [VERIFIED: vite.config.ts:1-20] [ASSUMED] |
+| Config file | `vitest.config.ts` — a **separate** config from `vite.config.ts`. It declares its own `plugins`, `test.environment: jsdom`, `test.globals: false`, and `test.setupFiles`. Vitest does NOT merge `vite.config.ts`, so anything declared only there (notably a `define` block) is absent under the test runner. [VERIFIED: vitest.config.ts:1-11] [VERIFIED: vite.config.ts:1-21] |
 | Quick run command | `npm run test:unit -- --run src/test/measurement.test.ts src/test/qualify-form.test.tsx src/test/haoo-report.test.ts` [ASSUMED] |
 | Full suite command | `npm test` (currently `npm run build && vitest run`). Verbatim script: `"test": "npm run build && vitest run"`. [VERIFIED: package.json:6-14] |
 

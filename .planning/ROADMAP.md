@@ -173,10 +173,16 @@ intent is unchanged.*
 - [x] 04-06-PLAN.md — Mirror the documented Plausible preload contract, pin it with an independent fixture, and restore MVP goal verification.
 - [x] 04-07-PLAN.md — Validate Stats query provenance, make report replacement fail-closed, and complete the owner run instructions.
 
-**Wave 5** *(gap closure round 2; 04-08 and 04-10 run in parallel, 04-09 follows 04-08)*
+**Wave 5** *(gap closure round 2)*
 
 - [ ] 04-08-PLAN.md — Constrain the configured analytics script source to a repository-owned approved origin and path, and document the constraint for the owner.
+
+**Wave 6** *(blocked on 04-08; shares `src/test/measurement.test.ts`)*
+
 - [ ] 04-09-PLAN.md — Require a confirmed automatic-capture opt-out before any provider script insertion or event-sink return, with journey regressions for every refusal path.
+
+**Wave 7** *(blocked on 04-09; all three plans edit `BUILD_INPUTS`-hashed files and drive the shared `dist/` build, so they run strictly serially)*
+
 - [ ] 04-10-PLAN.md — Fix first-run report directory creation on any host and record truthful Phase 4 requirement status with the open human gates.
 
 **UI hint**: yes
