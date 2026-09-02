@@ -103,13 +103,22 @@ function reportDay(date: Date, timeZone: string): string {
  * separator is a backslash on a non-POSIX host. Looking for a forward slash only would
  * extract nothing there, skip creation, and fail a first run before it could write.
  *
+ * The separator set is therefore a property of the destination's shape, not of this
+ * module: only a destination carrying a drive designator such as `C:` or a UNC prefix
+ * such as `\\server` is split on a backslash. On POSIX a backslash is a legal filename
+ * character, so a destination of any other shape is split on a forward slash alone and a
+ * backslash inside a filename can never be mistaken for a separator.
+ *
  * Two shapes deliberately yield no directory: a separator at index zero, where the parent
  * is the filesystem root, and a bare drive designator such as `C:`, because recursively
  * creating a drive root is not a creation the report needs and a refusal there would turn
  * a working run into a caught generation failure.
  */
 function directoryOf(path: string): string {
-  const separator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+  const windowsShaped = /^([A-Za-z]:|\\\\)/.test(path);
+  const separator = windowsShaped
+    ? Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
+    : path.lastIndexOf('/');
 
   if (separator <= 0) {
     return '';
