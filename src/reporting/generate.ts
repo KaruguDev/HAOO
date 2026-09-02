@@ -94,9 +94,30 @@ function reportDay(date: Date, timeZone: string): string {
   return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
+/**
+ * The parent directory of a destination, extracted without importing a Node module so
+ * every filesystem effect keeps arriving through the injected `ReportFs` capability and
+ * this module keeps no host-specific seam.
+ *
+ * The owner command builds its destination with Node's platform-native `resolve`, so the
+ * separator is a backslash on a non-POSIX host. Looking for a forward slash only would
+ * extract nothing there, skip creation, and fail a first run before it could write.
+ *
+ * Two shapes deliberately yield no directory: a separator at index zero, where the parent
+ * is the filesystem root, and a bare drive designator such as `C:`, because recursively
+ * creating a drive root is not a creation the report needs and a refusal there would turn
+ * a working run into a caught generation failure.
+ */
 function directoryOf(path: string): string {
-  const separator = path.lastIndexOf('/');
-  return separator > 0 ? path.slice(0, separator) : '';
+  const separator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+
+  if (separator <= 0) {
+    return '';
+  }
+
+  const directory = path.slice(0, separator);
+
+  return /^[A-Za-z]:$/.test(directory) ? '' : directory;
 }
 
 interface RangeResult {
