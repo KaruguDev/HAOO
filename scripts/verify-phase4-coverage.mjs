@@ -55,7 +55,11 @@ function parseTables(markdown) {
   const tables = new Map();
   let heading = null;
 
-  for (const line of markdown.split(/\r?\n/u)) {
+  for (const rawLine of markdown.split(/\r?\n/u)) {
+    // Trim before anything else. Slicing a raw line to strip its delimiters made a single
+    // trailing space split the row into four cells, which was then skipped silently and
+    // re-reported downstream as a *missing* capability rather than a malformed one.
+    const line = rawLine.trim();
     const headingMatch = line.match(/^## (.+)$/u);
     if (headingMatch) {
       heading = headingMatch[1].trim();
@@ -67,10 +71,21 @@ function parseTables(markdown) {
     }
 
     const cells = line
-      .slice(1, -1)
+      .replace(/^\|/u, '')
+      .replace(/\|$/u, '')
       .split('|')
       .map((cell) => cell.trim());
-    if (cells.length !== 3 || cells[0].toLowerCase() === 'capability') {
+    if (cells.length !== 3) {
+      // Every required table is `capability | decision | reason`. Inside one of them a
+      // wrong cell count is a malformed row, and saying so beats skipping it and letting
+      // the capability be re-reported as absent. Outside them, other sections may shape
+      // their tables however they like, so a mismatch is simply not our row.
+      if (heading in REQUIRED_TABLES) {
+        throw new Error(`${heading}: malformed row with ${cells.length} cells: ${line}`);
+      }
+      continue;
+    }
+    if (cells[0].toLowerCase() === 'capability') {
       continue;
     }
 
@@ -119,7 +134,12 @@ export function auditPhase4Coverage(markdown) {
   )?.[1] ?? '';
   const boundaryChecks = [
     ['production analytics remains OPT-OUT', /Production analytics enablement remains OPT-OUT/iu],
-    ['production enablement remains deferred', /deferred/iu],
+    [
+      // Pinned to the sentence it means to assert. A bare /deferred/ passed on any
+      // occurrence of the word anywhere in the section, including one saying the opposite.
+      'processor approval, dashboard setup, and deployment variables remain deferred',
+      /deferred\s+processor\s+approval,\s+dashboard\s+setup,\s+and\s+deployment\s+variables/iu,
+    ],
     ['provider selector remains unset', /provider selector\s+remains unset/iu],
     ['PLAUSIBLE_STATS_API_KEY stays local', /`PLAUSIBLE_STATS_API_KEY`/u],
     ['PLAUSIBLE_SITE_ID stays local', /`PLAUSIBLE_SITE_ID`/u],
