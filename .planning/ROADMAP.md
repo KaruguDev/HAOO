@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 10/11 plans executed (7/10 executed)
+**Plans**: 13 plans — 10 executed, 3 planned (gap closure round 3)
 
 - [ ] .planner-contributions.md
 
@@ -186,6 +186,12 @@ intent is unchanged.*
 **Wave 7** *(blocked on 04-09; all three plans edit `BUILD_INPUTS`-hashed files and drive the shared `dist/` build, so they run strictly serially)*
 
 - [x] 04-10-PLAN.md — Fix first-run report directory creation on any host and record truthful Phase 4 requirement status with the open human gates.
+
+**Wave 8** *(gap closure round 3; frontmatter waves restart at 1-3 per round. 04-12 and 04-13 both edit `src/measurement/plausible.ts`, so all three run strictly serially)*
+
+- [ ] 04-11-PLAN.md — Select the directory separator set from the destination's shape, extend the bare-root guard to a UNC root, and pin every probed destination shape including the two POSIX rows that regressed.
+- [ ] 04-12-PLAN.md — Decide adopted-versus-installed before any assignment so a non-callable pre-existing provider global is refused intact, and withdraw the unreachable stub-removal claim.
+- [ ] 04-13-PLAN.md — Restate the recorded-opt-out check as what it proves, and downgrade the 04-09 D1 coverage row to a human-judgment row pointing at the live dashboard gate.
 
 **UI hint**: yes
 
