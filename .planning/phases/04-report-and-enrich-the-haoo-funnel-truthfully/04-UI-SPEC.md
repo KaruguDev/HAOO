@@ -181,7 +181,7 @@ Locked color prohibitions:
 ### Surface A — report document order
 
 1. `h1` — report title.
-2. Metadata line: generation timestamp, reporting timezone, provider configuration state, site scope.
+2. Metadata line: generation timestamp, reporting timezone, site scope. Provider configuration state is deliberately absent — the report cannot observe it (see Metadata row below).
 3. Reporting-period control: a `fieldset` with `legend` `Reporting period` containing four radio inputs — `Last 7 days`, `Last 30 days`, `Last 90 days`, `All time`. `Last 30 days` is checked by default.
 4. Four period sections, **all pre-rendered into the document**. Each has an `h2` naming the period and its exact inclusive start and end dates, and — for the three bounded periods — the exact inclusive dates of the immediately preceding equal-length comparison period. The all-time section states its first-recorded-event date and renders **no** comparison.
 5. Inside each period section, four stage cards in this fixed order:
@@ -245,7 +245,7 @@ The Phase 3 fixed order is preserved, with step (f) replaced:
 | Surface | Contract |
 |---------|----------|
 | Report document | Self-contained HTML with `lang="en"`, a descriptive `<title>`, one `<h1>`, one inline `<style>`, and **no `<script>`, no external stylesheet, no web font, no image, and no network request of any kind**. Contains no API key, no `Authorization` value, and no request URL carrying a credential. Written to a gitignored local path. |
-| Report header | Inset band with the title and a metadata line stating generation timestamp, reporting timezone, provider configuration state, and site scope. Never claims freshness beyond its generation timestamp. |
+| Report header | Inset band with the title and a metadata line stating generation timestamp, reporting timezone, and site scope. Never claims freshness beyond its generation timestamp, and never states a provider configuration state. |
 | Reporting-period control | Native `fieldset` / `legend` / four radio inputs with visible labels and 44px targets. Not a tablist, not a select, not a JS toggle. |
 | Period section | `<section>` with an `h2` naming the period and its exact inclusive date boundaries, plus the comparison period's boundaries for bounded ranges only. |
 | Stage card | Native `<details>` with `<summary>` as first child. `summary` holds an `h3` stage label, the stage total with its unit noun, and the change value (omitted in the all-time section). Collapsed by default. |
@@ -309,7 +309,7 @@ The report generator holds the credential; the generated document holds only cou
 | Element | Copy |
 |---------|------|
 | Report title | `HAOO funnel report` |
-| Metadata | `Generated {timestamp} · Reporting timezone {tz} · Analytics provider: {configured / not configured}` |
+| Metadata | `Generated {timestamp} · Reporting timezone {tz} · Site {scope}` — amended 2026-09-02 (WR-03). The line previously carried `Analytics provider: {configured / not configured}`, derived from an all-time count of zero. The Stats API breakdown returns a row only for a goal with events in the period, so a registered-but-unfired goal is indistinguishable from an unregistered one: a live site with no traffic yet read as `not configured`. Real registration needs an endpoint and credential the report does not hold, so the claim was removed rather than reworded. |
 | Period legend | `Reporting period` |
 | Period section headings | `Last 7 days · {start} to {end}` / `Last 30 days · {start} to {end}` / `Last 90 days · {start} to {end}` / `All time · since {first recorded day}` |
 | Comparison line | `Compared with the previous {N} days, {start} to {end}.` |
