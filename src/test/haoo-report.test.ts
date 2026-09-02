@@ -238,6 +238,7 @@ interface StubCall {
   readonly url: string;
   readonly body: string;
   readonly headers: Readonly<Record<string, string>>;
+  readonly signal?: AbortSignal;
 }
 
 function stubFetch(
@@ -247,7 +248,7 @@ function stubFetch(
   const calls: StubCall[] = [];
   let index = 0;
   const fetchSpy = vi.fn<ReportFetch>(async (url, init) => {
-    calls.push({ url, body: init.body, headers: init.headers });
+    calls.push({ url, body: init.body, headers: init.headers, signal: init.signal });
     const body = bodies[Math.min(index, bodies.length - 1)];
     const range = echoedRanges[Math.min(index, echoedRanges.length - 1)];
     index += 1;
@@ -758,6 +759,23 @@ describe('generateHaooReport', () => {
 
     expect(result).toEqual({ ok: false, reason: 'invalid-current-7' });
     expect(files.size).toBe(0);
+  });
+
+  it('gives every Stats request an abort budget rather than letting the run hang forever', async () => {
+    // Node's fetch has no default timeout, so an unbudgeted request wedges the whole
+    // owner command with no output at all.
+    const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT]);
+    const { fs } = memoryFs();
+
+    const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    expect(result.ok).toBe(true);
+    expect(calls).toHaveLength(7);
+    for (const call of calls) {
+      expect(call.signal).toBeInstanceOf(AbortSignal);
+      // The budget outlives the request it guards and is cleared once it settles.
+      expect(call.signal?.aborted).toBe(false);
+    }
   });
 
   it('leaves a previous report byte-identical and leaves no temp file when a query rejects', async () => {

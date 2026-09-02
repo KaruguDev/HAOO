@@ -51,6 +51,9 @@ const REPORT_TIMEZONE = 'Africa/Nairobi';
 export const TIMEZONE_MISMATCH_REASON_PREFIX = 'timezone-mismatch:';
 const REPORT_TITLE = 'HAOO funnel report';
 
+/** Per-request budget; see `ReportRequestInit.signal`. */
+const REPORT_REQUEST_TIMEOUT_MS = 30_000;
+
 export interface ReportQuery {
   readonly endpoint: string;
   readonly apiKey: string;
@@ -66,6 +69,13 @@ export interface ReportRequestInit {
   readonly method: string;
   readonly headers: Readonly<Record<string, string>>;
   readonly body: string;
+  /**
+   * Per-request budget. Node's `fetch` has no default timeout, so a stalled connection
+   * would hang the owner command indefinitely with no output at all -- across seven
+   * sequential requests, any one of which can wedge. The browser submission path already
+   * carries the same budget for the same reason.
+   */
+  readonly signal?: AbortSignal;
 }
 
 export type ReportFetch = (
@@ -198,18 +208,31 @@ async function queryRange(
     dimensions: ['event:goal'],
     filters: [['is', 'event:goal', [...HAOO_REPORT_EVENTS]]],
   };
-  const response = await options.fetch(options.query.endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${options.query.apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REPORT_REQUEST_TIMEOUT_MS);
+  let response: ReportResponse;
+  let body: unknown;
 
-  if (!response.ok) return { ok: false, reason: 'invalid' };
+  try {
+    response = await options.fetch(options.query.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${options.query.apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
 
-  const body: unknown = await response.json();
+    if (!response.ok) return { ok: false, reason: 'invalid' };
+
+    body = await response.json();
+  } finally {
+    // Cleared on every exit, including an abort and a thrown transport error, so a
+    // completed run never leaves a pending timer holding the process open.
+    clearTimeout(timeout);
+  }
+
   const echoed = validateEchoedQuery(body, {
     siteId: options.query.siteId,
     events: HAOO_REPORT_EVENTS,
