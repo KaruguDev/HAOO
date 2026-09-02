@@ -44,15 +44,6 @@ export function isFieldRequired(field: QualifyField, values: QualifyValues): boo
   return rule.values.includes(values[rule.field] ?? '');
 }
 
-/**
- * The email label the disclosed engagement summary is delivered under. It is reserved
- * below rather than treated as an ordinary field label: the summary is written by this
- * page, not by the visitor, so a product field claiming the same label would either
- * overwrite it or put a visitor-supplied value under a name the recipient reads as
- * page-generated context.
- */
-export const ENGAGEMENT_SUMMARY_LABEL = 'HAOO engagement context';
-
 /** Labels that product fields must never be allowed to override. */
 export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
   '_subject',
@@ -64,8 +55,39 @@ export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
   '_autoresponse',
   '_replyto',
   'Source',
-  ENGAGEMENT_SUMMARY_LABEL,
 ]);
+
+/**
+ * The engagement summary is written by this page, not by the visitor, so the label it
+ * ships under must be claimable by nothing else: a product field carrying the same label
+ * would either be overwritten by the summary or put a visitor-supplied value under a name
+ * the recipient reads as page-generated context.
+ *
+ * The rule is structural, so it holds for every product's own wording. Naming one
+ * product's label here instead would make a second product's summary throw on every
+ * submission -- at visitor-submit time, with the enquiry already typed and then lost.
+ *
+ * Call this once from a product module so a misconfigured product fails at import rather
+ * than in front of a visitor.
+ */
+export function assertEngagementSummaryLabel(qualify: ProductQualifyForm): void {
+  const label = qualify.engagementSummary.emailLabel;
+
+  if (label.trim() === '') {
+    throw new Error('Engagement summary email label is empty');
+  }
+
+  if (RESERVED_EMAIL_LABELS.has(label)) {
+    throw new Error(`Engagement summary uses reserved email label "${label}"`);
+  }
+
+  const claimed = qualify.fields.find((field) => field.emailLabel === label);
+  if (claimed !== undefined) {
+    throw new Error(
+      `Engagement summary label "${label}" collides with field "${claimed.name}"`,
+    );
+  }
+}
 
 /**
  * Build the provider request without allowing visitor input to become provider options.
@@ -103,15 +125,11 @@ export function buildSubmissionBody(
   body.Source = qualify.sourceNote;
 
   if (typeof summary === 'string' && summary.trim() !== '') {
-    const label = qualify.engagementSummary.emailLabel;
-
-    // The label the summary ships under must itself be reserved, or a product field
-    // could legitimately claim it and the loop above would not object.
-    if (!RESERVED_EMAIL_LABELS.has(label)) {
-      throw new Error(`Engagement summary uses unreserved email label "${label}"`);
-    }
-
-    body[label] = summary;
+    // The same structural rule the product module asserts at import, re-checked here so
+    // this function is safe standalone. It admits any product's own wording and refuses
+    // only a label something else could legitimately own.
+    assertEngagementSummaryLabel(qualify);
+    body[qualify.engagementSummary.emailLabel] = summary;
   }
 
   return body;

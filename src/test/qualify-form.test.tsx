@@ -4,8 +4,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import QualifyForm from '../components/QualifyForm';
 import {
+  assertEngagementSummaryLabel,
   buildSubmissionBody,
-  ENGAGEMENT_SUMMARY_LABEL,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
   RESERVED_EMAIL_LABELS,
@@ -21,6 +21,7 @@ import { qualifyCollectionNotePageContext } from '../products/copy';
 import { formatEngagementSummary } from '../products/engagement-summary';
 import {
   CONTACT_CHANNEL_OPTIONS,
+  ENGAGEMENT_SUMMARY_LABEL,
   HAOO_MEASUREMENT,
   HAOO_PRODUCT,
   KENYAN_COUNTY_OPTIONS,
@@ -976,16 +977,10 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     for (const sourcePath of genericSources) {
       const source = readFileSync(resolve(import.meta.dirname, sourcePath), 'utf8');
-      // Narrowed, not dropped. `qualify-form.logic.ts` reserves the shipped
-      // engagement-summary label by name so no product field can claim it (MEAS-05),
-      // and that one string is the only product literal any generic module may carry.
-      // Removing exactly that string first leaves every other HAOO mention — in every
-      // one of these files — as strict a failure as it was before.
-      const remaining = sourcePath.endsWith('qualify-form.logic.ts')
-        ? source.split(ENGAGEMENT_SUMMARY_LABEL).join('')
-        : source;
-
-      expect(remaining, sourcePath).not.toMatch(/HAOO/);
+      // No carve-out. The engagement-summary label is the product's own wording and
+      // lives in the product module; the generic form logic reserves it structurally
+      // (MEAS-05) and so carries no product literal at all.
+      expect(source, sourcePath).not.toMatch(/HAOO/);
     }
   });
 
@@ -1897,13 +1892,46 @@ function summaryOf(context: SummaryContext, campaign: Record<string, string> = {
 describe('Phase 4 emailed engagement summary', () => {
   it('reserves the engagement-summary label so no product field can claim it', () => {
     expect(ENGAGEMENT_SUMMARY_LABEL).toBe('HAOO engagement context');
-    expect(RESERVED_EMAIL_LABELS.has(ENGAGEMENT_SUMMARY_LABEL)).toBe(true);
     expect(ENGAGEMENT_SUMMARY.emailLabel).toBe(ENGAGEMENT_SUMMARY_LABEL);
+
+    // The reservation is structural, not a literal in the shared module: the label is
+    // refused only when a provider option or a product field could also own it.
+    expect(RESERVED_EMAIL_LABELS.has(ENGAGEMENT_SUMMARY_LABEL)).toBe(false);
+    expect(() => assertEngagementSummaryLabel(QUALIFY)).not.toThrow();
 
     // No shipped field may already be using it, or the summary would overwrite an answer.
     for (const field of QUALIFY.fields) {
       expect(field.emailLabel, field.name).not.toBe(ENGAGEMENT_SUMMARY_LABEL);
     }
+  });
+
+  it('refuses a summary label a field or a provider option could also own', () => {
+    const claimedByField: ProductQualifyForm = {
+      ...QUALIFY,
+      engagementSummary: { ...ENGAGEMENT_SUMMARY, emailLabel: QUALIFY.fields[0].emailLabel },
+    };
+    const claimedByProvider: ProductQualifyForm = {
+      ...QUALIFY,
+      engagementSummary: { ...ENGAGEMENT_SUMMARY, emailLabel: '_cc' },
+    };
+
+    expect(() => assertEngagementSummaryLabel(claimedByField)).toThrowError(/collides/);
+    expect(() => assertEngagementSummaryLabel(claimedByProvider))
+      .toThrowError(/reserved email label/);
+  });
+
+  it('delivers a second product\u2019s own summary label instead of throwing at submit', () => {
+    // The regression this pins: a product-generic module that hardcoded one product's
+    // label made every other product's submission throw in front of the visitor.
+    const otherProduct: ProductQualifyForm = {
+      ...QUALIFY,
+      engagementSummary: { ...ENGAGEMENT_SUMMARY, emailLabel: 'Zenith engagement context' },
+    };
+    const values = { ...emptyValues(), ...requiredValues() };
+
+    expect(() => assertEngagementSummaryLabel(otherProduct)).not.toThrow();
+    expect(buildSubmissionBody(values, otherProduct, 'Browser context only.'))
+      .toHaveProperty('Zenith engagement context', 'Browser context only.');
   });
 
   it('assembles the first-visit summary in the locked order with no last-seen sentence', () => {

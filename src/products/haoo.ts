@@ -4,7 +4,7 @@ import type {
   ProductMeasurement,
   QualifyOption,
 } from './types';
-import { ENGAGEMENT_SUMMARY_LABEL } from '../components/qualify-form.logic';
+import { assertEngagementSummaryLabel } from '../components/qualify-form.logic';
 import {
   qualifyCollectionNotePageContext,
   qualifyCollectionNoteProcessor,
@@ -12,6 +12,14 @@ import {
 } from './copy';
 
 export type { ProductDefinition } from './types';
+
+/**
+ * The email label this product's disclosed engagement summary is delivered under. It is
+ * this product's own wording, so it lives here rather than in the product-generic form
+ * logic; `assertEngagementSummaryLabel` below enforces the structural rule that keeps it
+ * unclaimable by any field.
+ */
+export const ENGAGEMENT_SUMMARY_LABEL = 'HAOO engagement context';
 
 export const HAOO_MEASUREMENT_EVENTS = [
   'haoo_page_view',
@@ -748,3 +756,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
   },
   measurement: HAOO_MEASUREMENT,
 };
+
+// Fail at import, never at submit: a summary label a field could claim is a configuration
+// error, and the only place it could otherwise surface is a visitor pressing Send.
+assertEngagementSummaryLabel(HAOO_PRODUCT.qualify);

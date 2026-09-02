@@ -3,7 +3,6 @@ import { resolve } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { ENGAGEMENT_SUMMARY_LABEL } from '../components/qualify-form.logic';
 import ProductPage from '../pages/ProductPage';
 import { HAOO_PRODUCT } from '../products/haoo';
 import {
@@ -295,17 +294,10 @@ describe('Phase 1 product shell reuse contracts', () => {
       const source = withoutComments(readFileSync(resolve(ROOT, relativePath), 'utf8'));
       scanned += 1;
 
-      // Narrowed for exactly one file and exactly one string, never dropped:
-      // `qualify-form.logic.ts` reserves the shipped engagement-summary email label by
-      // name so that no product field can claim it (MEAS-05). Removing that one literal
-      // first leaves every other product-name mention in that file, and every mention in
-      // all the others, as loud a failure as before. The label itself stays pinned
-      // byte-for-byte by the engagement-summary suite in `qualify-form.test.tsx`.
-      const executable = relativePath.endsWith('qualify-form.logic.ts')
-        ? source.split(ENGAGEMENT_SUMMARY_LABEL).join('')
-        : source;
-
-      expect(executable, relativePath).not.toMatch(productNamePattern);
+      // No carve-out. The engagement-summary email label is the product's own wording
+      // and lives in the product module; the generic form logic reserves it structurally
+      // (MEAS-05), so no generic source may carry a product name for any reason.
+      expect(source, relativePath).not.toMatch(productNamePattern);
     }
 
     expect(scanned).toBeGreaterThan(0);
