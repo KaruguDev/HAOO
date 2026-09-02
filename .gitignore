@@ -29,6 +29,11 @@ dist-ssr
 .env.*
 !.env.example
 
+# Tool-generated worktrees and local agent state. `.claude/worktrees/` holds whole
+# duplicate checkouts of this repository, so a routine `git add -A` would otherwise
+# commit a second copy of the source tree plus a worktree `.git` pointer file.
+.claude/
+
 # Local GSD runtime and generated research cache
 .gsd/
 .planning/research/.cache/
