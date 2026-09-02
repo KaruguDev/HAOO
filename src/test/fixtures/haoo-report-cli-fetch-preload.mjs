@@ -51,7 +51,11 @@ export function installCliFetchFixture() {
   if (!auditPath) throw new Error('HAOO_REPORT_CLI_AUDIT_PATH is required by the test preload');
 
   const siteId = process.env.PLAUSIBLE_SITE_ID ?? '';
-  const ranges = expectedRanges(nairobiDay());
+  // Resolve the reporting day exactly once. Re-reading the clock per response let a run
+  // that straddles 00:00 Africa/Nairobi echo a range the CLI no longer expects, which
+  // surfaced as an intermittent midnight failure rather than as a real defect.
+  const today = nairobiDay();
+  const ranges = expectedRanges(today);
   const urls = [];
 
   globalThis.fetch = async (url, init) => {
@@ -77,7 +81,6 @@ export function installCliFetchFixture() {
     }
 
     urls.push(requestUrl);
-    const today = nairobiDay();
     const dateRange = expectedRange === 'all'
       ? [`${today}T00:00:00+03:00`, `${today}T23:59:59+03:00`]
       : [
