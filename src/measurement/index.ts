@@ -99,8 +99,11 @@ function visitBand(ordinal: number): VisitBand {
 
 function exactKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
   const actual = Object.keys(value).sort();
-  return actual.length === expected.length
-    && actual.every((key, index) => key === [...expected].sort()[index]);
+  // Sort the expectation once, not once per key: the callback ran on every stored record
+  // read, and the comparison is against a fixed list that cannot change mid-loop.
+  const wanted = [...expected].sort();
+  return actual.length === wanted.length
+    && actual.every((key, index) => key === wanted[index]);
 }
 
 function parseContext(
