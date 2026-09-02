@@ -209,11 +209,17 @@ intent is unchanged.*
 5. A failure to establish the automatic-capture lockdown refuses initialization, leaves every visitor action working, and is visible to the owner rather than silent.
 6. The visitor-facing measurement disclosure states that analytics data is processed in the United States.
 
-**Plans:** 0 plans
+**Plans:** 7 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 04.1 to break down)
+- [ ] 04.1-01-PLAN.md — Restate the withdrawn bundle guarantee with a named successor and pin the PostHog capture contract
+- [ ] 04.1-02-PLAN.md — Decide the PostHog API coverage matrix and re-point the coverage verifier
+- [ ] 04.1-03-PLAN.md — Tracer: one HAOO event reaches a locked-down PostHog, and every Plausible artifact is removed
+- [ ] 04.1-04-PLAN.md — Two independent automatic-capture gates, a visible refusal, and the journey-survives-failure guard
+- [ ] 04.1-05-PLAN.md — Visitor disclosure states that analytics data is processed in the United States
+- [ ] 04.1-06-PLAN.md — Owner report reads PostHog through one HogQL aggregate per range, with the provenance loss stated
+- [ ] 04.1-07-PLAN.md — Owner activation instructions, the re-scoped human gates, and the restated Phase 4 claims
 
 ### Phase 5: Prove the Deployed Journey
 
