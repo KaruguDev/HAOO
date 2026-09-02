@@ -67,8 +67,25 @@ Three public build-time variables configure collection:
 - `VITE_HAOO_PLAUSIBLE_SRC` — the site-specific script URL from Plausible's Site
   Installation settings. It must be an absolute `https:` URL with no credentials,
   query, or fragment and a path ending in `.js`; otherwise no sink is created.
+  It must **also** be on the approved analytics origin `https://plausible.io` and
+  use the approved path `/js/script.js`. Any other origin or path — including an
+  extension-variant script such as an outbound-links, file-downloads, form-capture,
+  hash-routing, or revenue build — resolves to no sink at all.
 - `VITE_HAOO_PLAUSIBLE_DOMAIN` — the site domain configured in Plausible. An empty
   value leaves collection disabled.
+
+### The approved script source is repository configuration, not a deployment value
+
+The approved origin/path set lives in `config/approved-analytics-script-sources.ts`,
+which is version-controlled and outside `src/`. `VITE_HAOO_PLAUSIBLE_SRC` can only
+ever *select from* that set — it can never widen it. Approving another origin or
+another path is a reviewed repository change plus a redeploy; it is never a
+deployment-variable edit. This is what stops a changed or tampered build variable
+from loading arbitrary first-party JavaScript on the product page.
+
+A rejected value fails closed, not open: no script element is appended, no provider
+global is created, and the product journey and the bounded local engagement context
+keep working exactly as they do with no analytics configured at all.
 
 Vite inlines every `VITE_*` value into the world-readable JavaScript bundle.
 These values are public configuration, not secrets. After enablement is approved,

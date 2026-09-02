@@ -168,11 +168,24 @@ function listFiles(dir: string): string[] {
 const PRODUCTION_SOURCE_INPUTS = listFiles(resolve(ROOT, 'src')).filter(
   (path) => !path.startsWith(`${resolve(ROOT, 'src/test')}/`),
 );
+/**
+ * The repository-owned approved analytics script sources and the build wiring that
+ * carries them. The contract lives outside `src/` on purpose, so it is not a production
+ * source input — but it *is* a build input: editing the trusted list changes what a
+ * configured build publishes, so a stale `dist` must fail the freshness case.
+ */
+const APPROVED_SOURCE_CONFIG_INPUT = {
+  contract: resolve(ROOT, 'config/approved-analytics-script-sources.ts'),
+  viteConfig: resolve(ROOT, 'vite.config.ts'),
+} as const;
+/** No production module may reach the approved-source contract by any specifier. */
+const APPROVED_SOURCE_MODULE_FORBIDDEN = /approved-analytics-script-sources/;
 const BUILD_INPUTS = [
   ...PRODUCTION_SOURCE_INPUTS,
   ...listFiles(resolve(ROOT, 'public')),
   resolve(ROOT, 'index.html'),
   SOURCE_HTML,
+  APPROVED_SOURCE_CONFIG_INPUT.contract,
   resolve(ROOT, 'vite.config.ts'),
   resolve(ROOT, 'package.json'),
 ];
@@ -560,6 +573,34 @@ describe('Phase 1 static build contracts', () => {
         expect(source, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
       }
     }
+  });
+
+  it('keeps the approved-source contract out of every production module import graph', () => {
+    // The approved origin has exactly one route into a bundle: the deliberate build-time
+    // constant. An ordinary import from a production module would be a second route, and
+    // that route would publish the origin in the provider-unset bundle. Match the module
+    // by bare name so a relative specifier, a repository-relative path, and an aliased
+    // path are all caught.
+    for (const path of PRODUCTION_SOURCE_INPUTS) {
+      const source = readText(path);
+      const relativePath = relative(ROOT, path).replace(/\\/g, '/');
+      expect(source, `${relativePath} imports the approved-source contract`)
+        .not.toMatch(APPROVED_SOURCE_MODULE_FORBIDDEN);
+    }
+  });
+
+  it('injects the approved-source constant only through the provider-gated selector', () => {
+    // Derived, not restated: a future edit that hardcodes an unconditional approved list
+    // — or drops the constant altogether — fails here rather than silently publishing the
+    // analytics origin in a provider-unset bundle.
+    const viteConfig = readText(APPROVED_SOURCE_CONFIG_INPUT.viteConfig);
+
+    expect(viteConfig).toMatch(/__HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__/);
+    expect(viteConfig).toMatch(
+      /approvedScriptSourcesForProvider\(\s*env\.VITE_HAOO_MEASUREMENT_PROVIDER,?\s*\)/,
+    );
+    expect(existsSync(APPROVED_SOURCE_CONFIG_INPUT.contract)).toBe(true);
+    expect(BUILD_INPUTS).toContain(APPROVED_SOURCE_CONFIG_INPUT.contract);
   });
 
   it('ships the unset provider bundle without identity, property, queue, SDK, or credential seams', () => {

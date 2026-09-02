@@ -11,7 +11,7 @@ The provider integration is implemented and fixture-verified, but production col
 | Status | Variable | Source | Add to |
 |--------|----------|--------|--------|
 | [ ] | `VITE_HAOO_MEASUREMENT_PROVIDER` | Literal public value `plausible` after approval | GitHub Actions `Build` step environment |
-| [ ] | `VITE_HAOO_PLAUSIBLE_SRC` | Plausible Dashboard → Site Settings → Site Installation → site-specific script URL | GitHub Actions `Build` step environment |
+| [ ] | `VITE_HAOO_PLAUSIBLE_SRC` | Plausible Dashboard → Site Settings → Site Installation → site-specific script URL. Copy it **only if** it is on the approved origin `https://plausible.io` and the approved path `/js/script.js`; any other origin or path is rejected and disables analytics entirely. The approved set is repository configuration (`config/approved-analytics-script-sources.ts`) and cannot be widened from here. | GitHub Actions `Build` step environment |
 | [ ] | `VITE_HAOO_PLAUSIBLE_DOMAIN` | Plausible Dashboard → Site Settings → General → Domain | GitHub Actions `Build` step environment |
 
 All three are public build-time configuration. Never put a secret in a `VITE_*` variable.
@@ -30,6 +30,9 @@ All three are public build-time configuration. Never put a secret in a `VITE_*` 
   - Location: Plausible Dashboard → Site Settings → Goals → Add goal → Custom event
   - Names: `haoo_page_view`, `haoo_brochure_preview`, `haoo_brochure_open`, `haoo_brochure_download`, `haoo_qualify_start`, `haoo_qualify_submit`, `haoo_assisted_whatsapp`, `haoo_assisted_phone`, `haoo_assisted_email`, `haoo_self_onboarding`
   - Notes: Plausible does not backfill events into goals created later.
+- [ ] **Confirm the Site Installation snippet offers the base script, not an extension variant**
+  - Location: Plausible Dashboard → Site Settings → Site Installation
+  - Notes: Only `https://plausible.io/js/script.js` is approved. A variant URL such as `script.outbound-links.js`, `script.file-downloads.js`, `script.form-submissions.js`, `script.hash.js`, or `script.revenue.js` fails closed to no analytics at all — it does not partially enable capture. Widening the approved set is a reviewed change to `config/approved-analytics-script-sources.ts` plus a redeploy, never a variable edit.
 - [ ] **Confirm the integration does not rely on automatic capture**
   - Location: Plausible Dashboard → Site Settings → Site Installation
   - Notes: Application code disables automatic pageviews and emits only the ten explicit name-only events.
