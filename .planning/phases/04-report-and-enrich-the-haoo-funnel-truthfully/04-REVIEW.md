@@ -1,19 +1,19 @@
 ---
 phase: 04-report-and-enrich-the-haoo-funnel-truthfully
-reviewed: 2026-09-02T11:23:08Z
+reviewed: 2026-09-02T21:20:00Z
 depth: standard
 files_reviewed: 32
 files_reviewed_list:
-  - .gitignore
-  - README.md
   - config/approved-analytics-script-sources.ts
   - eslint.config.js
+  - .gitignore
   - package.json
+  - README.md
   - scripts/generate-haoo-report.mjs
   - scripts/verify-phase4-coverage.mjs
   - src/components/MeasurementDisclosure.tsx
-  - src/components/QualifyForm.tsx
   - src/components/qualify-form.logic.ts
+  - src/components/QualifyForm.tsx
   - src/measurement/index.ts
   - src/measurement/plausible.ts
   - src/pages/ProductPage.tsx
@@ -38,98 +38,89 @@ files_reviewed_list:
   - vite.config.ts
 findings:
   critical: 1
-  warning: 4
+  warning: 15
   info: 6
-  total: 11
+  total: 22
 status: issues_found
 ---
 
-# Phase 04: Code Review Report (post gap-closure)
+# Phase 4: Code Review Report
 
-**Reviewed:** 2026-09-02T11:23:08Z
+**Reviewed:** 2026-09-02T21:20:00Z
 **Depth:** standard
 **Files Reviewed:** 32
 **Status:** issues_found
 
 ## Summary
 
-The three findings from `04-REVIEW-pre-gap-closure.md` are genuinely closed. `resolvePlausibleScriptSrc`
-now validates the candidate against a repository-owned approved origin/path set that reaches the bundle
-only through a provider-gated build constant (CR-01 closed); `resolveInitializedProvider` refuses a
-missing, throwing, silent, or non-callable provider global before any script insertion or sink creation
-(CR-02 closed); and `directoryOf` now chooses its separator set from the destination's shape and refuses
-bare drive and UNC roots (WR-01 closed). `npm run typecheck`, `npx eslint .`, and `npx vitest run` all
-pass locally.
+The phase adds three things: a Plausible browser sink behind a repository-owned script-source
+allowlist, a disclosed engagement paragraph attached to the qualification email, and a
+credentialed CLI that renders an owner-facing HTML funnel report from the Stats API.
 
-What the gap-closure rounds did not close is the *access* path to the untrusted provider global. 04-12
-hardened the classification of the *value* found at `window.plausible` but left every read of and write to
-that property outside the module's try/catch envelope. A read-only or throwing `plausible` property — the
-shape a content blocker or tag manager installs, and the same class of ambient input the module's own
-comments claim to handle — makes `createPlausibleEventSink` throw out of `ProductPage`'s effect and out of
-`QualifyForm`'s focus handler. There is no error boundary anywhere in `src/`, so the whole product page
-unmounts. That is CR-01 below and it directly falsifies the MEAS-07 claim the 04-12 tests assert on every
-other refusal path.
+What holds up under attack: the HTML renderer escapes every interpolated value and carries no
+script, stylesheet, font, or image, so a hostile Stats response cannot execute in the report;
+`parseGoalCounts` and `validateEchoedQuery` reject untrusted provider data structurally rather
+than trusting it; `resolvePlausibleScriptSrc` compares parsed `url.origin` exactly, so the
+lookalike-host and extension-variant-path attacks it names really are refused; the write path
+is genuinely write-on-success; `buildSubmissionBody` cannot be made to emit visitor-controlled
+provider options. `npm run typecheck` and `npm run lint` are clean and the reporting and
+measurement suites pass.
 
-04-13 was comments-and-docs-only on `src/measurement/plausible.ts` and
-`src/test/fixtures/plausible-preload-contract.ts`. The new prose is mostly precise and well-hedged, but one
-privacy-critical sentence now states something the code does not do (WR-03), and one sentence states an
-unverified vendor runtime behaviour as fact in the same repository where the sibling fixture explicitly
-disclaims exactly that kind of claim (IN-06).
-
-Two process-level defects also surfaced: the lint block that exists specifically to cover `.mjs` modules
-misses one of them (WR-02), and the local test runner is executing 240+ stale tests out of a Phase-3 git
-worktree parked under an un-ignored `.claude/` directory (WR-04), which contaminates the "all tests pass"
-evidence this phase was verified with.
-
-## Narrative Findings (AI reviewer)
+What does not hold up: the module that documents `window.plausible` as "untrusted input of
+arbitrary type" then reads and writes that global with no guard, on a path that runs inside a
+React effect (CR-01). The report asserts four "facts" in its metadata line of which two are
+unverified constants (WR-02, WR-03), and every bounded period silently mixes a partial current
+day against complete comparison windows (WR-01) — three truthfulness defects in the artifact
+whose stated purpose is not overstating. The credentialed CLI omits the request timeout the
+codebase documents as mandatory two files away (WR-05). The coverage audit that is supposed to
+make the capability matrix executable is wired to nothing (WR-08). And `.gitignore` — edited in
+this phase specifically for artifact hygiene — misses `.claude/`, so `vitest` currently collects
+ten stale duplicate suites from a worktree copy (WR-11).
 
 ## Critical Issues
 
-### CR-01 (BLOCKER): Untrusted provider-global access escapes the isolation envelope and can unmount the product page
+### CR-01: Unguarded reads and writes to a foreign `window.plausible` can throw out of `initialize()` and blank the product page
 
-**Classification:** BLOCKER
+**File:** `src/measurement/plausible.ts:154`, `src/measurement/plausible.ts:161`, `src/measurement/plausible.ts:168`, `src/measurement/plausible.ts:173`, `src/measurement/plausible.ts:99`, `src/measurement/index.ts:322-324`, `src/measurement/index.ts:330`, `src/pages/ProductPage.tsx:73-79`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/measurement/plausible.ts:99,154,161,168,173`
-**Also:** `src/measurement/index.ts:322-324,330,348`, `src/pages/ProductPage.tsx:73-79`, `src/components/QualifyForm.tsx:197-200`
+**Issue:** `resolveInitializedProvider` is the one function in `plausible.ts` with no `try`.
+Every other browser touch in the module is wrapped (`resolveScope`, `resolveDocument`,
+`appendProviderScript`, `provider.init(options)`, the returned sink), and the docblock at
+lines 141-148 states the design premise: *"An ambient `window.plausible` defined by another
+snippet is untrusted input of arbitrary type."* Three interactions with that untrusted value
+are unprotected:
 
-**Issue:** `resolveScope` and `resolveDocument` wrap their `?? window.x` defaults in `try`, and
-`appendProviderScript`, `provider.init(...)`, and the returned sink are all wrapped too. The three
-operations that actually touch the foreign global are not:
+- line 154 `const existing = scope.plausible;` — a throwing accessor on the global throws here.
+- line 168 → line 99 `scope.plausible = stub;` — ES modules are strict mode, so assigning to a
+  non-writable data property or an accessor-only property (installed by a browser extension,
+  a tag manager, or a defensive snippet via `Object.defineProperty`) throws `TypeError`.
+- line 173 `typeof provider.init !== 'function'` — reads a property off the adopted foreign
+  object; a throwing getter throws here too.
+
+The throw is not contained anywhere upstream. `createPlausibleEventSink` has no try; its call
+site in `initialize()` has none either:
 
 ```ts
-const existing = scope.plausible;                       // line 154 — unguarded read
-if (existing !== undefined && typeof existing !== 'function') return null;
-const provider = existing ?? installProviderStub(scope); // line 168 → line 99: scope.plausible = stub
-if (typeof provider.init !== 'function') return null;    // line 173 — unguarded read
+// src/measurement/index.ts:322-324
+if (eventSink === undefined) {
+  eventSink = createPlausibleEventSink(config, adapters.providerAdapters);
+}
 ```
 
-ES modules are strict mode, so `scope.plausible = stub` throws `TypeError: Cannot assign to read only
-property` whenever the page has `Object.defineProperty(window, 'plausible', { value: undefined, writable:
-false })` — the exact shape a content blocker's constant-stub scriptlet, a frozen window, or a tag manager
-installs. A getter that throws breaks line 154 or 173 the same way. Verified both behaviours directly under
-Node.
+`initialize()` is called from two unguarded places: `track()` at line 330 (`if (!initialized)
+initialize();` — outside both of that function's try blocks) and `ProductPage`'s effect at
+`ProductPage.tsx:77`. An error thrown from a passive effect with no error boundary above it
+makes React 18 unmount the entire root — a blank page instead of the product page. Thrown from
+`track()`, it aborts whatever visitor action called it, which directly contradicts the
+comments at `index.ts:335` and `plausible.ts:237` ("Provider delivery is deliberately isolated
+from every visitor action").
 
-The escape path is not contained. `createPlausibleEventSink` is called from `initialize()`
-(`src/measurement/index.ts:322-324`), which is called untried from `track()` (line 330), from
-`currentContext()` (line 348), from `ProductPage`'s mount effect (`ProductPage.tsx:77`), and from
-`QualifyForm.handleQualifyStart` (`QualifyForm.tsx:200`, an `onFocus`/`onChange` handler with no
-try/catch). `grep` for `ErrorBoundary|componentDidCatch|getDerivedStateFromError` over `src/` returns
-nothing, so an uncaught throw in the mount effect unmounts the React root: the visitor gets a blank page,
-and the `<noscript>` recovery panel in `products/haoo/index.html` does not render because JavaScript is
-enabled.
+Reachability: the path is currently dormant because `config.provider !== 'plausible'` returns
+early at `plausible.ts:209` in a provider-unset build. It becomes live the moment the deferred
+enablement described in README happens — i.e. this must be fixed before the code it belongs to
+is switched on, not after.
 
-This contradicts the module's own contract in three places: "Every browser capability this adapter needs
-arrives through an optional adapter ... wrapped in try" (lines 36-41), "provider delivery is deliberately
-isolated from every visitor action" (lines 196-203), and "An ambient `window.plausible` defined by another
-snippet is untrusted input of arbitrary type" (lines 141-148) — the code treats the *value* as untrusted
-but the *property access* as safe. It also falsifies the MEAS-07 guarantee the 04-12 suite asserts on every
-other refusal path ("keeps the whole journey working when the pre-existing global is not callable",
-`src/test/measurement.test.ts:936`). No test covers a non-writable or throwing property: every fixture
-(`bareCallableScope`, `throwingInitScope`, `silentInitScope`, `nonFunctionGlobalScope`, `recordingScope`)
-injects an ordinary object literal.
-
-**Fix:** Put the classification and the install inside the same envelope as everything else, and defend
-`initialize()` at the facade so no provider concern can ever reach a visitor action.
+**Fix:**
 
 ```ts
 // src/measurement/plausible.ts
@@ -137,305 +128,486 @@ function resolveInitializedProvider(
   scope: PlausibleScope,
   options: PlausibleInitOptions,
 ): PlausibleGlobal | null {
-  let provider: PlausibleGlobal;
-
   try {
     const existing = scope.plausible;
     if (existing !== undefined && typeof existing !== 'function') return null;
-    provider = existing ?? installProviderStub(scope);
-    if (typeof provider.init !== 'function') return null;
-  } catch {
-    // A read-only, sealed, or throwing provider slot is somebody else's state and
-    // leaves the opt-out unprovable. Refuse exactly as a throwing initializer does.
-    return null;
-  }
 
-  try {
+    const provider = existing ?? installProviderStub(scope);
+    if (typeof provider.init !== 'function') return null;
+
     provider.init(options);
     if (!recordsOptOut(provider.o, options.domain)) return null;
+
+    return provider;
   } catch {
+    // A global that refuses inspection, refuses assignment, or throws on init leaves the
+    // opt-out unproven. Refuse rather than guess, and never propagate into the journey.
     return null;
   }
-
-  return provider;
 }
 ```
 
 ```ts
-// src/measurement/index.ts, inside initialize()
+// src/measurement/index.ts:322-324 — belt and braces at the seam the facade owns
 if (eventSink === undefined) {
   try {
     eventSink = createPlausibleEventSink(config, adapters.providerAdapters);
   } catch {
-    // Sink construction is provider work; the local bounded context is not.
+    // Sink construction is isolated from initialization exactly as delivery is from track.
   }
 }
 ```
 
-Add regression rows for (a) a scope whose `plausible` property is defined `writable: false` and (b) a
-scope whose `plausible` getter throws, asserting in each case: no throw, no sink, no script appended, and
-the full three-action journey (`haoo_brochure_download`, `haoo_qualify_start`, `haoo_self_onboarding`) still
-returns `true` with its local flags recorded — the same shape as the existing `refusedRows` table.
+Note the existing comment at `plausible.ts:163-167` ("A refusal after this installation is
+therefore unreachable and there is nothing to withdraw") stays true under this fix and should
+be kept; it is a statement about refusal, not about throwing.
 
 ## Warnings
 
-### WR-01 (WARNING): The CLI's structured failure reason is discarded, and a stale `.tmp` sibling gives owners advice that cannot work
+### WR-01: Every bounded period compares a partial current day against complete previous days, and no caveat says so
 
-**Classification:** WARNING
+**File:** `src/reporting/haoo-report.ts:149-157`, `src/reporting/generate.ts:224-247`, `src/reporting/haoo-report.ts:286-297`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/reporting/generate.ts:214,287,294-308`
-**Also:** `scripts/generate-haoo-report.mjs:26-29,69-71`
+**Issue:** `periodWindows(days, todayIso)` returns `current = [today-(days-1), today]` — the
+last day of every current window is *today*, still in progress — while
+`previous = [currentStart-days, currentStart-1]` is entirely complete days. `deltaLabel` then
+prints `"−N vs previous 7 days"` from those two unequal quantities. A report generated at 09:00
+compares roughly 6.4 days of activity against 7, so every Change value carries a systematic
+negative bias, and a report generated just after midnight compares ~6.0 against 7. The six
+sentences in `REPORT_CAVEATS` name what the counts are not (people, sessions, enquiries,
+customers) but none mentions that the newest day is incomplete — which is the one distortion
+the owner will actually act on, because it is the direction the arrow points.
 
-**Issue:** `generateHaooReport` computes a precise `reason` for every failure —
-`missing-credentials`, `invalid-current-7`, `invalid-previous-30`, `invalid-all-time`,
-`generation-failed` — and the only consumer throws it away:
+**Fix:** Either end the current window on the last complete day
+(`shiftDay(todayIso, -1)`) so both sides are complete, or add a caveat to `REPORT_CAVEATS`,
+e.g. `'The most recent day of each period is still in progress, so a change value can look '
++ 'lower than it will be once the day completes.'` The first is the truthful default; the
+second is the minimum. Whichever is chosen, `comparisonLine` and the period heading must keep
+naming the exact boundaries used.
+
+### WR-02: The reporting timezone is a hardcoded constant printed as a verified fact
+
+**File:** `src/reporting/generate.ts:35`, `src/reporting/generate.ts:85-95`, `src/reporting/generate.ts:219`, `src/reporting/haoo-report.ts:233-238`, `README.md`
+
+**Issue:** `const REPORT_TIMEZONE = 'Africa/Nairobi'` is used for two different things: to
+derive `today`, and to print `Reporting timezone Africa/Nairobi` in the header as a stated
+fact. Nothing anywhere verifies the timezone actually configured on the Plausible site.
+Plausible interprets an explicit `date_range` ISO pair in the *site's* timezone, so if the site
+is configured as (say) UTC, the day boundaries the provider aggregates are not the day
+boundaries the report names — a run between 00:00 and 03:00 Nairobi asks for a window whose
+last day has not started at the provider yet. `validateEchoedQuery` cannot catch this: it
+compares the echoed date strings against the ones just sent, which match by construction. The
+failure is therefore silent and produces plausible-looking but mis-attributed numbers. The
+README section added in this phase never mentions the timezone requirement at all.
+
+**Fix:** Make the assumption checkable rather than assumed. Minimum: document in the README's
+"Report credential boundary" section that the Plausible site timezone must be `Africa/Nairobi`
+and that the report is wrong if it is not. Better: read the site timezone from the provider and
+refuse to render on mismatch, or move `REPORT_TIMEZONE` into the injected `ReportQuery`
+capability so the owner command states it explicitly next to the site id it belongs to.
+
+### WR-03: The report always claims `Analytics provider: configured`; the `not-configured` state is unreachable
+
+**File:** `src/reporting/generate.ts:272`, `src/reporting/haoo-report.ts:242-248`
+
+**Issue:** `ReportProviderState` models two states and `REPORT_PROVIDER_STATE_LABELS` authors
+both, but `generate.ts` hardcodes `REPORT_PROVIDER_STATE_LABELS.configured`. `'not-configured'`
+/ `'not configured'` is dead code that no input can select. The rendered claim is therefore not
+derived from anything — the CLI knows only that it holds Stats credentials, which
+`generateHaooReport` has already guaranteed at line 210. Meanwhile the phase's own operational
+boundary states production analytics enablement remains OPT-OUT and the provider selector
+remains unset, so a report run today prints "Analytics provider: configured" about a site whose
+browser build has no provider configured at all. `haoo-report.test.ts:1666` pins the false
+claim rather than catching it.
+
+**Fix:** Either derive the state from something real and let both branches occur — e.g. treat
+"no goal produced a non-zero count in any period" or an explicit `providerConfigured` flag
+supplied by the owner command as `not-configured` — or delete the union, the label map, and the
+metadata row, and stop asserting a fact the report cannot establish.
+
+### WR-04: A stale `.tmp` sibling disables the report permanently, and the error text sends the owner to the wrong cause
+
+**File:** `src/reporting/generate.ts:214`, `src/reporting/generate.ts:287`, `src/reporting/generate.ts:294-307`, `scripts/generate-haoo-report.mjs:26-29`, `scripts/generate-haoo-report.mjs:61`
+
+**Issue:** The temporary path is fixed (`${outputPath}.tmp`) and reserved with
+`openSync(path, 'wx')`, which throws `EEXIST` if the file already exists. When a run is killed
+between reservation and rename, `ownsTemporaryPath` is still `false` on the *next* run (the
+throw happens inside `reserveTempSync`, before line 288), so the cleanup branch does not fire
+and the stale sibling is never removed. Every subsequent `npm run report:haoo` then fails
+forever. The only message the owner sees is `ERROR_STATE_SENTENCE`: *"Check the API key and
+network connection, then run the command again."* — which names two causes, neither of them the
+real one, and prescribes an action that cannot work. The code comment at lines 303-306
+acknowledges the lockout; the operator-facing surface does not, and README documents no
+recovery.
+
+**Fix:** Distinguish the reservation failure from a generation failure and say what to do:
 
 ```js
-if (!result.ok) {
-  writeTerminalError(ERROR_STATE_SENTENCE);   // reason never printed
-  process.exitCode = 1;
+// generate.ts — return a specific reason
+try {
+  options.fs.reserveTempSync(temporaryPath);
+} catch {
+  return { ok: false, reason: 'temporary-path-reserved' };
+}
+ownsTemporaryPath = true;
+```
+
+```js
+// scripts/generate-haoo-report.mjs — name the file and the fix
+if (result.reason === 'temporary-path-reserved') {
+  writeTerminalError(
+    `A previous run left ${OUTPUT_PATH}.tmp behind. Delete that file and run the command again.`,
+  );
+} else {
+  writeTerminalError(ERROR_STATE_SENTENCE);
 }
 ```
 
-The single sentence says "Check the API key and network connection, then run the command again." One
-reachable failure makes that instruction permanently wrong. `temporaryPath` is a fixed sibling
-(`${outputPath}.tmp`) reserved with `openSync(path, 'wx')`. If a run is killed between reservation and
-rename — Ctrl-C, SIGKILL, a laptop lid — the sibling survives, `ownsTemporaryPath` is `false` on the next
-run so the cleanup branch deliberately does not remove it, and every subsequent run fails at reservation
-with `generation-failed`. The owner is told to check a key and a network that are both fine, and nothing
-anywhere names the leftover file. The code comment at lines 303-306 knows this state exists; the
-owner-facing output does not.
+### WR-05: The credentialed CLI issues seven `fetch` calls with no timeout, in a codebase that documents the timeout as mandatory
 
-**Fix:** Surface the reason, and name the recoverable state explicitly.
+**File:** `src/reporting/generate.ts:161-168`, `scripts/generate-haoo-report.mjs:55-67`
 
-```js
-if (!result.ok) {
-  writeTerminalError(`Report not updated (${result.reason}).`, ERROR_STATE_SENTENCE);
-  if (result.reason === 'generation-failed') {
-    writeTerminalError(
-      `If a previous run was interrupted, remove the reserved sibling ${OUTPUT_PATH}.tmp and run again.`,
-    );
-  }
-  process.exitCode = 1;
-}
-```
+**Issue:** `src/components/qualify-form.logic.ts:24-28` states the project's own rule — *"`fetch`
+has no default timeout in any browser, so a request that never settles is treated as a
+failure"* — and `QualifyForm.tsx:321-338` implements it with an `AbortController` and
+`QUALIFY_REQUEST_TIMEOUT_MS`. The new report path does neither: `queryRange` awaits
+`options.fetch(...)` with no `signal`, and the CLI passes bare `globalThis.fetch`. Node's
+`fetch` has no default request timeout either, so a provider that accepts the connection and
+never responds hangs `npm run report:haoo` indefinitely — no output, no exit, no error state,
+seven sequential opportunities per run.
 
-Prefer distinguishing the reservation failure from other filesystem failures with its own reason
-(`temporary-path-reserved`) so the message is driven by a fact rather than by a guess. Add a test that
-pre-creates the `.tmp` sibling and asserts both the non-zero exit and the sibling being named in stderr.
-
-### WR-02 (WARNING): The `.mjs` lint block misses one of the project's `.mjs` modules, and its comment is now false
-
-**Classification:** WARNING
-
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/eslint.config.js:113-125`
-
-**Issue:** The block is introduced by "The credentialed report CLI is the only `.mjs` module in the
-project. Without this block it is parsed but never rule-checked". The project now has three `.mjs`
-modules: `scripts/generate-haoo-report.mjs`, `scripts/assert-phase1-red.mjs`, and
-`src/test/fixtures/haoo-report-cli-fetch-preload.mjs`. The `files: ['scripts/**/*.mjs']` pattern covers the
-first two and misses the third, which lands in exactly the state the comment describes as unacceptable —
-confirmed:
-
-```text
-$ npx eslint --print-config src/test/fixtures/haoo-report-cli-fetch-preload.mjs   → rules: 0, globals: []
-$ npx eslint --print-config scripts/generate-haoo-report.mjs                      → rules: 61
-```
-
-That unchecked file replaces `globalThis.fetch`, reads `process.env`, parses request bodies, and registers
-a `process.once('exit')` writer; it is the module that decides whether the credentialed-CLI test can see
-the network at all. `npm run lint` cannot catch a defect in it.
-
-**Fix:** Widen the pattern and correct the comment.
+**Fix:** Add the same budget at the seam that already owns the transport:
 
 ```js
-files: ['scripts/**/*.mjs', 'src/test/fixtures/**/*.mjs'],
+// scripts/generate-haoo-report.mjs
+const QUERY_TIMEOUT_MS = 30_000;
+
+fetch: (url, init) => globalThis.fetch(url, {
+  ...init,
+  signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+}),
 ```
 
-or simply `files: ['**/*.mjs']`. Then re-run `npx eslint --print-config` on the fixture and assert a
-non-zero rule count, mirroring the source-boundary assertions already in `build-output.test.ts`.
+An abort rejects the promise, which the outer `try` in `generateHaooReport` already converts to
+`generation-failed` and leaves the previous report untouched.
 
-### WR-03 (WARNING): 04-13 prose asserts a name-only guarantee the type does not provide
+### WR-06: `VITE_HAOO_PLAUSIBLE_DOMAIN` reaches the provider with no validation, while the script URL is guarded by a repository trust anchor
 
-**Classification:** WARNING
+**File:** `src/products/haoo.ts:181`, `src/measurement/plausible.ts:212`, `src/measurement/plausible.ts:223-226`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/measurement/plausible.ts:18-29`
-
-**Issue:** The new docblock says: "There is no property-bag parameter here because the seam does not carry
-one — the shape of this type is part of the name-only contract." The type immediately below is:
+**Issue:** The phase builds an elaborate approval mechanism for `VITE_HAOO_PLAUSIBLE_SRC`
+(origin allowlist outside `src/`, provider-gated `define`, exact origin+path equality) because a
+tampered build variable must not be able to change what code loads. The variable that decides
+*which Plausible site receives this site's visitor events* gets one line:
 
 ```ts
-export interface PlausibleGlobal {
-  (...args: unknown[]): void;
-  ...
+domain: (import.meta.env.VITE_HAOO_PLAUSIBLE_DOMAIN ?? '').trim(),
+```
+
+Any non-empty string passes. `createPlausibleEventSink` checks only `!== ''` and hands it
+straight to `plausible.init({ domain })`. A typo silently sends every event nowhere with no
+signal; a substituted value sends this site's funnel events to a third party's Plausible site.
+The threat model that justified the script allowlist ("a changed or tampered build variable")
+applies identically here, and the mitigation is absent.
+
+**Fix:** Validate the shape at minimum, and prefer the same repository-owned approval as the
+script source:
+
+```ts
+const DOMAIN_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+
+export function resolvePlausibleDomain(configuredValue?: string): string {
+  const candidate = (configuredValue ?? '').trim().toLowerCase();
+  return DOMAIN_PATTERN.test(candidate) ? candidate : '';
 }
 ```
 
-`(...args: unknown[]): void` accepts any number of arguments of any type, including a property bag. The
-type carries no name-only contract at all — and it cannot, because the same signature has to accept the
-queue-forwarding stub. The actual enforcement lives in the sink body (`provider(event)`, line 236), in
-`MEASUREMENT_TRACK_ARGUMENT_COUNT`, and in the `build-output.test.ts` scans
-(`/(?:track|eventSink)\s*\([^,\n]+,/` and `expect(source).not.toMatch(/eventSink\?\.\(event\s*,/)`). Since
-"no property bag" is one of this phase's load-bearing privacy claims and 04-13 was a truthfulness pass,
-prose that credits the guarantee to the wrong mechanism is a defect in exactly the artifact 04-13 produced:
-a future reader may weaken the sink believing the type still holds the line.
+An empty result already fails closed at `plausible.ts:212`.
 
-**Fix:** Attribute the guarantee to the mechanism that provides it.
+### WR-07: `All time · since {date}` names the site's first recorded activity, not the first day these goals existed
 
-```ts
-/**
- * ... The call signature is variadic because the pre-load stub must forward whatever it
- * is handed, so the name-only contract is NOT enforced by this type: it is enforced by
- * the sink below, which passes exactly `event`, by MEASUREMENT_TRACK_ARGUMENT_COUNT, and
- * by the second-argument scans in `src/test/build-output.test.ts`.
- */
+**File:** `src/reporting/generate.ts:199-205`, `src/reporting/generate.ts:249-266`
+
+**Issue:** `resolvedStart` is the start of the range the provider echoed for
+`date_range: "all"`, which is a property of the *site*, not of the ten goal filters applied to
+it. The README added in this phase states the relevant fact directly: *"Plausible does not
+backfill events into a goal created later."* So a site that existed before the ten custom-event
+goals were created yields a heading reading `All time · since 2024-06-01` above counts that
+could only start accruing months afterwards, and the all-time `window` handed to the renderer
+carries the same date. The report implies measurement coverage it does not have.
+
+**Fix:** Either drop the `since` clause and render `All time` alone (the code already does
+exactly this when `resolvedStart` is `null`, so the branch exists), or qualify it in the
+authored copy — e.g. `All time · site data since {date}` plus a caveat that goals created later
+have no earlier data. Do not derive a measurement start date from a site start date.
+
+### WR-08: `scripts/verify-phase4-coverage.mjs` is never executed by any command
+
+**File:** `scripts/verify-phase4-coverage.mjs:88`, `scripts/verify-phase4-coverage.mjs:144-161`, `package.json:6-16`, `.github/workflows/deploy.yml`
+
+**Issue:** 161 lines that encode the phase's capability decisions as an executable audit, with
+`auditPhase4Coverage` exported for reuse — and nothing calls it. There is no npm script, the
+deploy workflow runs only `typecheck`, `lint`, `build`, `test:unit`, and no test file imports
+it (the only non-planning reference in the repository is the file itself). The claim that the
+coverage matrix is executable rather than documentary is therefore not true of any automated
+run; it holds only if a human remembers the exact `node scripts/... <path>` invocation.
+
+**Fix:** Wire it. Add `"verify:coverage": "node scripts/verify-phase4-coverage.mjs .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-COVERAGE.md"`
+to `package.json` scripts and a step to the workflow, or import `auditPhase4Coverage` from a
+test so `npm run test:unit` enforces it. An audit nobody runs is documentation with extra steps.
+
+### WR-09: The coverage markdown parser mis-reads ordinary table syntax
+
+**File:** `scripts/verify-phase4-coverage.mjs:65-82`
+
+**Issue:** Two concrete defects in the row parser:
+
+- `line.slice(1, -1)` assumes the line's last character is the closing `|`. A single trailing
+  space after it (invisible, produced by most editors and by many formatters) shifts the cut, so
+  `split('|')` yields four cells, `cells.length !== 3` skips the row, and a capability row that
+  is present and correct is reported as `missing capability row`.
+- The separator guard `/^\|\s*-+/u` does not match alignment separators such as `|:---|:---:|`.
+  Those rows fall through, produce `cells.length === 3`, and are recorded as a capability named
+  `:---` with decision `:---:`. It happens to cause no error today only because that decision is
+  not `OPT-OUT`, so the blank-reason check at line 111 skips it — and it would also make a
+  second aligned table under the same heading throw a spurious `duplicate capability row`.
+
+**Fix:**
+
+```js
+const cells = line
+  .replace(/^\s*\|/u, '')
+  .replace(/\|\s*$/u, '')
+  .split('|')
+  .map((cell) => cell.trim());
+
+if (cells.every((cell) => /^:?-{3,}:?$/u.test(cell))) continue; // separator row
+if (cells.length !== 3 || cells[0].toLowerCase() === 'capability') continue;
 ```
 
-### WR-04 (WARNING): The local test run executes 240+ stale tests from an un-ignored Phase-3 git worktree
+### WR-10: The eslint `.mjs` block documents a false premise and leaves the test fixture unlinted
 
-**Classification:** WARNING
+**File:** `eslint.config.js:28-40`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/.gitignore:78-85`
-**Also:** `vitest.config.ts` (no `test.exclude`), `package.json:11-12`
+**Issue:** The comment states *"The credentialed report CLI is the only `.mjs` module in the
+project."* The repository contains four: `scripts/generate-haoo-report.mjs`,
+`scripts/assert-phase1-red.mjs`, `scripts/verify-phase4-coverage.mjs` (two of them added in
+this phase), and `src/test/fixtures/haoo-report-cli-fetch-preload.mjs`. The glob
+`scripts/**/*.mjs` covers the first three; the fixture is matched by no block in the config, so
+no rules apply to it at all. That fixture reassigns `globalThis.fetch`, reads `process.env`,
+registers a `process.once('exit')` handler and executes a side effect at import — exactly the
+kind of module the block was added to stop shipping unchecked. `haoo-report.test.ts:1030` pins
+the literal string `files: ['scripts/**/*.mjs']`, so the gap is locked in by a test.
 
-**Issue:** `npx vitest run` in this repository reports `Test Files 21 passed / Tests 761 passed`, and ten of
-those files are not in `src/test/` at all:
+**Fix:** Broaden the glob to `['scripts/**/*.mjs', 'src/test/fixtures/**/*.mjs']`, correct the
+comment to say which modules it covers, and update the assertion at `haoo-report.test.ts:1030`
+to match the corrected pattern.
 
-```text
-✓ .claude/worktrees/rf-03-retry-1788205465/src/test/measurement.test.ts    (77 tests)
-✓ .claude/worktrees/rf-03-retry-1788205465/src/test/build-output.test.ts   (25 tests)
-✓ .claude/worktrees/rf-03-retry-1788205465/src/test/qualify-data.test.ts   (41 tests)
-... 10 files total
-```
+### WR-11: `.gitignore` misses `.claude/`, and `vitest` is currently collecting ten stale duplicate suites from a worktree copy
 
-`git worktree list` shows `.claude/worktrees/rf-03-retry-1788205465` is a registered worktree pinned at
-commit `8974958` on `gsd-reviewfix/03-retry-...` — a Phase-3 snapshot with its own `src/`, `dist/`, and
-`node_modules/` (21 MB). Vitest's default `exclude` covers `**/node_modules/**` and `**/dist/**` but not
-`.claude/**`, so the runner picks the snapshot up. Three consequences:
+**File:** `.gitignore:32-39`, `package.json:12`
 
-1. The phase's "all tests pass" evidence mixes 137 current `measurement.test.ts` cases with 77 superseded
-   ones. Nothing in the output distinguishes them.
-2. The stale `build-output.test.ts` resolves `ROOT` to the worktree, so it asserts freshness and boundary
-   compliance against *that* tree's `src/` and `dist/`. It is green regardless of what the reviewed tree
-   contains, which is a false signal that reads as coverage.
-3. `.gitignore` was edited in this phase (`.reports/`, `.env.*`) but does not list `.claude/`, and
-   `git check-ignore -v .claude/worktrees` exits 1 — `git status` reports `?? .claude/`, so a
-   `git add -A` invites a duplicate source tree into a commit.
+**Issue:** This phase edited `.gitignore` specifically for artifact hygiene, adding `.env*`,
+`.gsd/`, `.planning/research/.cache/` and `.reports/` — and did not add `.claude/`, which is
+untracked and not ignored (`git check-ignore .claude/` exits 1). It currently holds two complete
+worktree copies of the repository. `vitest` has no `exclude` for it, so `npx vitest list
+--filesOnly` returns 21 test files: the 11 real ones plus 10 stale duplicates under
+`.claude/worktrees/rf-03-retry-1788205465/src/test/`. `npm run test:unit` therefore runs a
+snapshot of an older revision alongside the real suite, and its result is reported as this
+project's. Separately, a `git add -A` would commit the entire duplicated tree.
 
-CI is unaffected (the directory is untracked, so `npm run test:unit` on a fresh checkout sees only
-`src/test/`), which is precisely why this only degrades the *local* verification evidence the phase was
-signed off with.
-
-**Fix:** Ignore the agent runtime directory and pin the runner's scope.
+**Fix:** Add to `.gitignore`:
 
 ```gitignore
-# Local agent runtime, including throwaway git worktrees that carry their own src/ and dist/.
+# Agent worktrees hold complete copies of the repository. Unignored they are one
+# `git add -A` away from being committed, and the test runner collects their stale suites.
 .claude/
 ```
 
+and constrain the runner in `vitest.config.ts`:
+
 ```ts
-// vitest.config.ts
 test: {
-  include: ['src/test/**/*.test.{ts,tsx}'],
-  exclude: ['**/node_modules/**', '**/dist/**', '.claude/**'],
-  ...
+  include: ['src/**/*.{test,spec}.{ts,tsx}'],
+  // ...
 }
 ```
 
-Then remove the stale worktrees with `git worktree remove` (or `git worktree prune` after deleting them)
-and re-run the suite so the recorded pass count describes the reviewed tree only.
+### WR-12: `vite.config.ts` is outside `npm run typecheck`, so the build wiring that gates the approved analytics origin has no type gate
+
+**File:** `package.json:15`, `tsconfig.app.json`, `tsconfig.node.json`, `vite.config.ts:27-31`
+
+**Issue:** `npm run typecheck` is `tsc --noEmit -p tsconfig.app.json`, whose `include` is
+`["src"]`. `vite.config.ts` is covered only by `tsconfig.node.json`, which no script and no CI
+step ever runs, and Vite's own build transpiles without typechecking. The single route by which
+the approved analytics origin may reach a bundle — the `define` block and its
+`approvedScriptSourcesForProvider(env.VITE_HAOO_MEASUREMENT_PROVIDER)` call — is therefore
+never type-verified in CI. (`config/approved-analytics-script-sources.ts` is checked only
+incidentally, because `src/test/measurement.test.ts:20` imports it.)
+
+**Fix:** Change the script to build both projects: `"typecheck": "tsc --noEmit -b"` (the root
+`tsconfig.json` already references both), or add a second invocation
+`&& tsc --noEmit -p tsconfig.node.json`.
+
+### WR-13: The three new public build variables are not declared in `ImportMetaEnv`, so they are typed `any`
+
+**File:** `src/vite-env.d.ts:18-20`, `src/products/haoo.ts:178-182`
+
+**Issue:** `ImportMetaEnv` declares only `VITE_HAOO_FORM_ENDPOINT`, but this phase reads three
+more: `VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_PLAUSIBLE_SRC` and
+`VITE_HAOO_PLAUSIBLE_DOMAIN`. Vite's ambient index signature makes those reads `any`, so a
+typo in a variable name typechecks cleanly and fails closed at runtime — an unset provider,
+which is indistinguishable from a deliberate opt-out and produces no diagnostic anywhere. The
+docblock above the interface calls itself "Public build-time configuration (D-04)", which is now
+incomplete rather than authoritative.
+
+**Fix:** Declare all four:
+
+```ts
+interface ImportMetaEnv {
+  readonly VITE_HAOO_FORM_ENDPOINT?: string;
+  readonly VITE_HAOO_MEASUREMENT_PROVIDER?: string;
+  readonly VITE_HAOO_PLAUSIBLE_SRC?: string;
+  readonly VITE_HAOO_PLAUSIBLE_DOMAIN?: string;
+}
+```
+
+The file's "no import or export may be added" constraint is unaffected.
+
+### WR-14: The appended third-party script has no integrity constraint, only a URL constraint
+
+**File:** `src/measurement/plausible.ts:70-83`
+
+**Issue:** The approved-source allowlist proves *where* the script comes from and nothing about
+*what it is*. `appendProviderScript` sets only `defer` and `src`, with no `integrity`, no
+`crossorigin`, and no Content-Security-Policy backing it (the deployed pages carry no CSP
+meta or header). Once appended, the script runs with full page privileges on a page that also
+renders the qualification form — it can read form fields, which is precisely the boundary every
+disclosure sentence in this phase promises. The URL allowlist does not mitigate a compromised
+or changed vendor asset.
+
+**Fix:** SRI is impractical against a mutable vendor script, so the honest options are: (a) add
+a CSP that constrains `script-src` to `'self' https://plausible.io` and `connect-src`
+accordingly, so a swapped script cannot exfiltrate to an arbitrary origin; and (b) record the
+residual risk in the README section that currently claims the mechanism "stops a changed or
+tampered build variable from loading arbitrary first-party JavaScript" — true of the variable,
+not of the vendor.
+
+### WR-15: Clearing remembered context is silently undone by the next tracked interaction, while the copy implies it is not
+
+**File:** `src/measurement/index.ts:352-364`, `src/measurement/index.ts:327-345`, `src/products/haoo.ts:244-247`
+
+**Issue:** `clearContext()` removes the storage record and resets the in-memory context to
+`freshContext`, but sets no "cleared" flag. The next `track()` call reads through
+`currentContext()`/`reconcileContext()` (storage empty → fresh) and then calls `writeContext`,
+which does `storage.setItem(config.storageKey, ...)` — re-creating in localStorage the record
+the visitor just asked to delete, on their very next click. The success copy says *"What this
+page remembered has been cleared."* with no hint of that, while the blocked copy explicitly
+promises the stronger behaviour: *"This page stopped using remembered context for this visit."*
+The mismatch matters more after this phase than before it, because the record now travels
+outside the browser in the qualification email (`buildSubmissionBody` +
+`formatEngagementSummary`) — and after a clear, that email will assert "first visit" about a
+browser that is not on its first visit.
+
+**Fix:** Honour the clear for the remainder of the page lifetime:
+
+```ts
+let suppressed = false;
+
+function writeContext(next: EngagementContext) {
+  context = next;
+  if (storage === null || suppressed) return;
+  // ...
+}
+
+function clearContext(): boolean {
+  suppressed = true;
+  // ...
+}
+```
+
+Then either keep the current success sentence (now true) or amend it to state that a new record
+starts on the next visit.
 
 ## Info
 
-### IN-01: Three consumed `VITE_` variables are undeclared and untyped, and the provider domain is unvalidated
+### IN-01: Unreachable defensive fallbacks in `stageCard`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/vite-env.d.ts:16-22` and
-`src/products/haoo.ts:174-179`
+**File:** `src/reporting/render.ts:390-394`
 
-**Issue:** `ImportMetaEnv` declares only `VITE_HAOO_FORM_ENDPOINT?`, but `haoo.ts` also reads
-`VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_PLAUSIBLE_SRC`, and `VITE_HAOO_PLAUSIBLE_DOMAIN`. Those
-compile only through `vite/client`'s `[key: string]: any` index signature, so all three are `any` at the
-build-configuration boundary the file's own docblock exists to document. Separately, `src` is validated
-exhaustively (protocol, credentials, query, fragment, extension, exact origin, exact path) while `domain`
-is only `.trim()`ed before being handed to a foreign global's `init`.
+**Issue:** `bounded` already narrows `period.previousCounts !== null && period.days !== null`,
+so `period.previousCounts ?? {}` and `period.days ?? 0` inside the `bounded` branch can never
+take their fallback. The `?? 0` is the more misleading of the two: it implies a zero-day
+comparison is a representable state.
 
-**Fix:** Declare all four keys as `readonly ... ?: string` in `ImportMetaEnv` so a typo is a typecheck
-error, and give the domain a minimal shape guard (a lowercase hostname pattern) that fails closed to `''`
-the way `resolvePlausibleScriptSrc` does.
+**Fix:** Destructure once above the branch and let the narrowing carry, or cast through a small
+local `const previousCounts = period.previousCounts; const days = period.days;` guarded by an
+`if (previousCounts !== null && days !== null)`.
 
-### IN-02: Unreachable defensive fallbacks in the report renderer
+### IN-02: `exactKeys` re-sorts the expected key list on every element comparison
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/reporting/render.ts:390-394`
+**File:** `src/measurement/index.ts:100-104`
 
-**Issue:** `bounded` is `period.previousCounts !== null && period.days !== null`, so inside the `bounded`
-branch `period.previousCounts ?? {}` and `period.days ?? 0` can never take their right-hand side. The dead
-`?? 0` in particular would silently render "vs previous 0 days" if the guard were ever loosened.
+**Issue:** `[...expected].sort()[index]` is evaluated inside the `every` callback, so the copy
+and sort happen once per key rather than once per call. Behaviour is correct; the shape reads
+as an oversight and invites a reader to assume `expected` is mutated. Pre-dates this phase but
+sits in a file it changed.
 
-**Fix:** Narrow once and use the narrowed values:
-`if (period.previousCounts !== null && period.days !== null) { const previous = period.previousCounts; const days = period.days; ... }`.
+**Fix:** Hoist: `const wanted = [...expected].sort();` before the `every`.
 
-### IN-03: Duplicate `emailLabel` values across product fields silently drop a field from the delivered email
+### IN-03: One metadata label carries a colon and three do not
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/components/qualify-form.logic.ts:259-271`
+**File:** `src/reporting/haoo-report.ts:233-238`
 
-**Issue:** The loop throws for a reserved label but writes `body[field.emailLabel] = value` without
-checking whether an earlier field already claimed that key. Two fields sharing an `emailLabel` means the
-later one silently overwrites the earlier one and an answer the visitor typed never reaches the inbox —
-the same failure mode the reserved-label guard exists to prevent, one step down.
+**Issue:** `provider: 'Analytics provider:'` versus `generated: 'Generated'`,
+`timezone: 'Reporting timezone'`, `site: 'Site'`. The rendered line reads
+`Generated 2026-… · Reporting timezone Africa/Nairobi · Analytics provider: configured · Site …`
+— inconsistent punctuation in a header the UI-SPEC locks byte-for-byte.
 
-**Fix:** Track seen labels and throw with the same fail-closed shape:
+**Fix:** Pick one convention for all four labels and update the pinned expectations in
+`haoo-report.test.ts:1665-1666`.
 
-```ts
-if (Object.prototype.hasOwnProperty.call(body, field.emailLabel)) {
-  throw new Error(`Field "${field.name}" reuses email label "${field.emailLabel}"`);
-}
-```
+### IN-04: The collection-notice docblock forbids a restatement that the phase's own test makes
 
-### IN-04: `formatEngagementSummary`'s docblock says it never throws, but its guard runs outside the try
+**File:** `src/products/copy.ts:111-112`, `src/test/measurement-page.test.tsx:25`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/products/engagement-summary.ts:140-160`
+**Issue:** The docblock says *"Do not restate this string anywhere. Product data and tests
+derive it from this builder so an approved wording change cannot land on some surfaces and not
+others."* `measurement-page.test.tsx:25` restates the full sentence as a literal
+(`APPROVED_COLLECTION_NOTICE`) — deliberately, with its own docblock explaining that pinning the
+approved bytes is the point. Both rationales are defensible; only one can be the stated rule,
+and a future maintainer following the comment will delete a deliberate golden assertion.
 
-**Issue:** "Any failure yields the authored fallback rather than throwing, because a summary must never
-block, delay, or fail a submission." `requireSummaryCopy(config)` is called on line 152, before the `try`,
-and throws on a missing `emailLabel` or `fallback`. Behaviour is currently fine because
-`QualifyForm.engagementSummary()` catches it (`QualifyForm.tsx:286-290`), but the sentence describes a
-property this function does not have.
+**Fix:** Amend the `copy.ts` docblock to say that exactly one test pins the approved bytes and
+every other surface derives from the builder.
 
-**Fix:** Either move the guard inside the `try` and return `config?.fallback ?? ''`, or amend the sentence
-to say that a *misconfigured product* throws deliberately and only *runtime* failures fall back.
+### IN-05: `.gitignore` negates a file that does not exist
 
-### IN-05: The Phase 4 capability audit is not wired into any script or workflow
+**File:** `.gitignore:30`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/scripts/verify-phase4-coverage.mjs:144-161`
-**Also:** `package.json:6-16`, `.github/workflows/deploy.yml`
+**Issue:** `!.env.example` re-includes a checked-in example that the repository does not
+contain, and the comment above it says "keep the checked-in example". Harmless, but the comment
+describes a file a reader will go looking for.
 
-**Issue:** `auditPhase4Coverage` enforces 41 required capability decisions and the operational-boundary
-sentences, but nothing runs it: there is no `npm run` entry and no CI step, and every reference outside the
-file itself is a hand-typed command line in a planning document. A `COVERAGE.md` edit that flips an OPT-OUT
-row to INTEGRATE — the row set that gates automatic capture — would not fail any automated gate.
+**Fix:** Add the `.env.example` the comment promises (documenting the four public `VITE_HAOO_*`
+names with empty values), or drop the negation and the clause.
 
-**Fix:** Add `"verify:coverage": "node scripts/verify-phase4-coverage.mjs .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/COVERAGE.md"`
-to `package.json` and invoke it from the workflow's verification job (or from a Vitest case that imports
-`auditPhase4Coverage` directly, which keeps it inside `npm run test:unit`).
+### IN-06: The new disclosure group is not in the document heading outline
 
-### IN-06: A vendor runtime behaviour is stated as fact where the sibling fixture disclaims exactly that claim
+**File:** `src/components/MeasurementDisclosure.tsx:79-90`
 
-**File:** `/home/paul/Documents/Vibe Coding Projects/ZERO-PAPERHUB/src/measurement/plausible.ts:85-91`
+**Issue:** The added "What we attach to your form submission" group uses
+`<section aria-label>` plus a styled `<p className="text-base font-semibold">` where a heading
+element belongs, so the group that describes what leaves the browser is unreachable by heading
+navigation. Consistent with the four sibling sections, which have the same shape — this
+extends the pattern rather than introducing it, and the `aria-label` keeps the region
+discoverable, but the outline stays empty inside a `<details>` the footer link opens on purpose.
 
-**Issue:** "calls made before the site script arrives are pushed onto `q` and drained by the script on
-load, so an accepted event emitted during the first moments of a visit is not silently lost." The draining
-is the vendor script's behaviour, not this module's, and `src/test/fixtures/plausible-preload-contract.ts:390-401`
-— the other file 04-13 touched — is explicit that a documentation transcription "is not evidence about what
-the real script does at runtime" and defers the question to the live gate in `04-USER-SETUP.md`. The
-`recordsOptOut` docblock (lines 104-123) hedges correctly for the same class of claim. This one does not,
-so within one file the same standard is applied inconsistently.
-
-**Fix:** Hedge it the same way: "...pushed onto `q`, which the documented vendor preload contract says the
-site script drains on load. Whether it does so is an external contract settled by the live gate; what this
-module guarantees is that an accepted event is enqueued rather than dropped."
+**Fix:** Promote the five section titles to `<h3>` and drop the now-redundant `aria-label`s, so
+the region names come from the headings themselves.
 
 ---
 
-_Reviewed: 2026-09-02T11:23:08Z_
+_Reviewed: 2026-09-02T21:20:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
