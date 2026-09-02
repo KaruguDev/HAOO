@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMeasurement } from '../measurement';
 import {
   createPlausibleEventSink,
+  type PlausibleGlobal,
   type PlausibleInitOptions,
   type PlausibleScope,
 } from '../measurement/plausible';
@@ -506,6 +507,48 @@ function recordingScope() {
   return { scope, recorded };
 }
 
+/**
+ * Three minimal provider globals, each isolating exactly one initialization defect an
+ * ambient page snippet could present. Every one records forwarded calls, so asserting
+ * that a refused initialization forwarded nothing is a real assertion and not a vacuous
+ * one against a provider that could not have recorded a call in the first place.
+ */
+function bareCallableScope() {
+  const forwarded: unknown[][] = [];
+  const provider = function bareCallable(...args: unknown[]) {
+    forwarded.push(args);
+  } as PlausibleGlobal;
+
+  const scope: PlausibleScope = { plausible: provider };
+  return { scope, provider, forwarded };
+}
+
+function throwingInitScope() {
+  const forwarded: unknown[][] = [];
+  const provider = function throwingInitCallable(...args: unknown[]) {
+    forwarded.push(args);
+  } as PlausibleGlobal;
+  provider.init = () => {
+    throw new Error('initializer unavailable');
+  };
+
+  const scope: PlausibleScope = { plausible: provider };
+  return { scope, provider, forwarded };
+}
+
+function silentInitScope() {
+  const forwarded: unknown[][] = [];
+  const provider = function silentInitCallable(...args: unknown[]) {
+    forwarded.push(args);
+  } as PlausibleGlobal;
+  // A cosmetic initializer: it neither throws nor records the opt-out, so nothing about
+  // automatic capture is established by calling it.
+  provider.init = () => undefined;
+
+  const scope: PlausibleScope = { plausible: provider };
+  return { scope, provider, forwarded };
+}
+
 function silentConsole() {
   return {
     log: vi.spyOn(console, 'log').mockImplementation(() => undefined),
@@ -710,6 +753,38 @@ describe('name-only provider sink', () => {
     expect(scope.plausible?.o).toEqual(options);
     expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
     expect(scope.plausible?.q).toEqual(vendorScope.plausible?.q);
+  });
+});
+
+describe('fail-closed provider initialization', () => {
+  it('returns no sink and appends no script when the existing provider has no initializer', () => {
+    const documentRef = document.implementation.createHTMLDocument('absent-init');
+    const { scope, provider } = bareCallableScope();
+
+    expect(
+      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
+    ).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    // Somebody else's global is left byte-identical: not replaced, not wrapped, and
+    // not decorated with an options slot or a pre-load queue.
+    expect(scope.plausible).toBe(provider);
+    expect('o' in provider).toBe(false);
+    expect('q' in provider).toBe(false);
+  });
+
+  it('returns no sink and appends no script when the existing initializer throws', () => {
+    const documentRef = document.implementation.createHTMLDocument('throwing-init');
+    const { scope, provider } = throwingInitScope();
+    let sink: ((event: HaooMeasurementEvent) => void) | undefined;
+
+    expect(() => {
+      sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+    }).not.toThrow();
+
+    expect(sink).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(scope.plausible).toBe(provider);
+    expect('o' in provider).toBe(false);
   });
 });
 
