@@ -823,6 +823,79 @@ describe('fail-closed provider initialization', () => {
   });
 });
 
+/**
+ * MEAS-07 on every refused-initialization path.
+ *
+ * Refusing to collect is a privacy decision, never a degradation of the journey: with no
+ * script, no sink, and no provider call, the qualification journey and the bounded local
+ * context must be indistinguishable from an unconfigured build.
+ */
+describe('fail-closed provider initialization in the full journey', () => {
+  function configuredMeasurement(
+    documentRef: Document,
+    scope: PlausibleScope,
+    storage: Storage,
+  ) {
+    return createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage,
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { documentRef, scope },
+    });
+  }
+
+  const refusedRows: readonly [string, () => ReturnType<typeof bareCallableScope>][] = [
+    ['the existing provider has no initializer', bareCallableScope],
+    ['the existing initializer throws', throwingInitScope],
+    ['the existing initializer records no options', silentInitScope],
+  ];
+
+  it.each(refusedRows)(
+    'keeps the whole journey working when %s',
+    (label, buildScope) => {
+      const spies = silentConsole();
+      const documentRef = document.implementation.createHTMLDocument('refused-journey');
+      const { scope, provider, forwarded } = buildScope();
+      const measurement = configuredMeasurement(documentRef, scope, new MemoryStorage());
+
+      measurement.initialize();
+
+      expect(measurement.track('haoo_brochure_download'), label).toBe(true);
+      expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+
+      // Refusal is not a one-shot degradation: the second and third actions of the
+      // journey still record their bounded local flags.
+      expect(measurement.track('haoo_qualify_start')).toBe(true);
+      expect(measurement.readContext().flags.qualifyStarted).toBe(true);
+      expect(measurement.track('haoo_self_onboarding')).toBe(true);
+      expect(measurement.readContext().flags.selfOnboarding).toBe(true);
+
+      expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+      // No sink was silently wired: the pre-existing provider saw nothing at all.
+      expect(forwarded).toEqual([]);
+      expect(scope.plausible).toBe(provider);
+      expectSilent(spies);
+    },
+  );
+
+  it('leaves a refused provider global at its original identity', () => {
+    const documentRef = document.implementation.createHTMLDocument('refused-identity');
+    const { scope, provider, forwarded } = bareCallableScope();
+    const before = scope.plausible;
+
+    expect(
+      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
+    ).toBeUndefined();
+
+    expect(scope.plausible).toBe(before);
+    expect(scope.plausible).toBe(provider);
+    expect(Object.prototype.hasOwnProperty.call(provider, 'o')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(provider, 'q')).toBe(false);
+    expect(forwarded).toEqual([]);
+  });
+});
+
 describe('provider failure isolation', () => {
   function configuredMeasurement(
     documentRef: Document,
