@@ -13,6 +13,11 @@ interface QualifyFallbackProps {
   readonly headingRef?: Ref<HTMLHeadingElement>;
   readonly onRetry?: () => void;
   readonly productName: string;
+  /**
+   * Overrides the transport-failure body. A caller that never reached the provider must
+   * supply its own sentence rather than borrow one that names an email provider.
+   */
+  readonly body?: string;
 }
 
 const focusClasses =
@@ -33,6 +38,7 @@ export default function QualifyFallback({
   headingRef,
   onRetry,
   productName,
+  body,
 }: QualifyFallbackProps) {
   return (
     <div className="mt-6 max-w-[560px] rounded-2xl border-2 border-[#B00020] bg-[#FFF5F5] p-6 text-[#18275F] md:p-8">
@@ -44,7 +50,7 @@ export default function QualifyFallback({
         We couldn't send your details
       </h3>
       <p className="mt-2 text-base font-normal leading-6">
-        {qualifyFallbackBody(productName)}
+        {body ?? qualifyFallbackBody(productName)}
       </p>
       {onRetry ? (
         <button

@@ -759,6 +759,40 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     })).toHaveLength(1);
   });
 
+  it('never claims a provider round-trip for a submission it refused to start', async () => {
+    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    // A product misconfiguration: `buildSubmissionBody` throws before any request. The
+    // page must not borrow the transport-failure copy, which names an email provider,
+    // and must not offer a retry that would fail identically every time.
+    const misconfigured = {
+      ...HAOO_PRODUCT,
+      qualify: {
+        ...HAOO_PRODUCT.qualify,
+        fields: HAOO_PRODUCT.qualify.fields.map((field, index) => (
+          index === 0 ? { ...field, emailLabel: '_cc' } : field
+        )),
+      },
+    };
+
+    render(<ProductPage product={misconfigured} />);
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() =>
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.blocked),
+    );
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    const panel = within(qualifySection()).getByRole('heading', {
+      name: "We couldn't send your details",
+    }).parentElement as HTMLElement;
+
+    expect(panel.textContent).toContain('nothing was sent');
+    expect(panel.textContent).not.toContain('email provider');
+    expect(within(qualifySection()).queryByRole('button', { name: 'Try sending again' }))
+      .toBeNull();
+  });
+
   it('admits exactly one retry while the retained request is in flight', async () => {
     let settleRetry: (value: { ok: boolean }) => void = () => {};
     const retry = new Promise<{ ok: boolean }>((resolve) => {

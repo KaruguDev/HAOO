@@ -2,7 +2,18 @@ import type { ProductQualifyForm, QualifyField } from '../products/types';
 
 export type QualifyValues = Record<string, string>;
 export type QualifyErrors = Record<string, string>;
-export type SubmissionState = 'idle' | 'submitting' | 'succeeded' | 'failed';
+/**
+ * `blocked` is the state for a submission this page refused to start: the request body
+ * could not be assembled, so nothing was sent and no provider round-trip happened. It is
+ * separate from `failed` because `failed` reports a transport event, and reporting one
+ * that never occurred would be a claim this page cannot support.
+ */
+export type SubmissionState =
+  | 'idle'
+  | 'submitting'
+  | 'succeeded'
+  | 'failed'
+  | 'blocked';
 
 /** Locked UI-SPEC control copy. Every string below is rendered byte-identically. */
 export const QUALIFY_SUBMIT_LABEL = 'Send my details';
@@ -19,6 +30,7 @@ export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> 
   submitting: 'Sending your details…',
   succeeded: 'Your details were sent.',
   failed: "We couldn't send your details.",
+  blocked: "We couldn't send your details.",
 };
 
 /**

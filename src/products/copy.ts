@@ -68,6 +68,15 @@ export function qualifyFallbackBody(productName: string) {
 }
 
 /**
+ * Body for a submission this page never started. It names no provider and offers no
+ * retry, because no request was made and repeating the attempt would fail identically:
+ * the cause is this page's own configuration, not the network or the email provider.
+ */
+export function qualifyBlockedBody(productName: string) {
+  return `This page couldn't prepare your details for sending, so nothing was sent. Your answers are still here — please reach ${requireIdentity(productName, 'name')} directly.`;
+}
+
+/**
  * Confirmation body. Every claim here is browser-observable: the page saw the provider
  * accept the request, which is not proof that a mailbox received it. The response-time
  * sentence is therefore phrased as the visitor's fallback trigger, never as a delivery

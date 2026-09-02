@@ -6,6 +6,7 @@ import type {
   QualifyField,
 } from '../products/types';
 import {
+  qualifyBlockedBody,
   qualifyContactActionLabels,
   qualifyConfirmationBody,
   requireIdentity,
@@ -215,7 +216,7 @@ export default function QualifyForm({
   useEffect(() => {
     if (state === 'succeeded') {
       confirmationRef.current?.focus();
-    } else if (state === 'failed') {
+    } else if (state === 'failed' || state === 'blocked') {
       failureRef.current?.focus();
     }
   }, [state]);
@@ -312,6 +313,25 @@ export default function QualifyForm({
       return;
     }
 
+    // Assembled before any transport state is entered. `buildSubmissionBody` throws on a
+    // product misconfiguration, and a throw inside the transport `try` below would be
+    // reported as an email-provider failure -- a claim this page cannot support, because
+    // no request was ever made -- behind a retry that could never succeed.
+    let body: string;
+    try {
+      body = JSON.stringify(
+        buildSubmissionBody(submittedValues, qualify, engagementSummary()),
+      );
+    } catch {
+      // `attempts` is the invalid-submit counter and drives the error-summary focus
+      // target; a blocked submission has no summary, and announces through the fallback
+      // panel's own heading focus instead.
+      setNotice('');
+      setState('blocked');
+
+      return;
+    }
+
     inFlightRef.current = true;
     // The region is handed to the submission for the duration; a requiredness sentence
     // left over from the last edit must not survive into the terminal message.
@@ -322,10 +342,6 @@ export default function QualifyForm({
     const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
 
     try {
-      const body = JSON.stringify(
-        buildSubmissionBody(submittedValues, qualify, engagementSummary()),
-      );
-
       track(measurementEvents.submit);
       const response = await fetch(qualify.endpoint, {
         method: 'POST',
@@ -592,12 +608,15 @@ export default function QualifyForm({
         </>
       )}
 
-      {state === 'failed' ? (
+      {state === 'failed' || state === 'blocked' ? (
         <QualifyFallback
           contacts={contacts}
           headingRef={failureRef}
-          onRetry={() => void submitValues()}
+          // A blocked submission is deterministic, so no retry affordance is offered and
+          // the body names no provider round-trip.
+          onRetry={state === 'failed' ? () => void submitValues() : undefined}
           productName={productName}
+          body={state === 'blocked' ? qualifyBlockedBody(productName) : undefined}
         />
       ) : null}
 
