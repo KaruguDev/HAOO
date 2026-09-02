@@ -884,6 +884,21 @@ const DIRECTORY_EXTRACTION_TABLE = [
     outputPath: 'C:\\haoo-funnel-report.html',
     expectedDirectory: null,
   },
+  {
+    label: 'POSIX destination whose filename contains a backslash',
+    outputPath: '/home/u/.reports/re\\port.html',
+    expectedDirectory: '/home/u/.reports',
+  },
+  {
+    label: 'relative POSIX destination whose filename contains a backslash',
+    outputPath: 'out\\report.html',
+    expectedDirectory: null,
+  },
+  {
+    label: 'mixed-separator destination under a drive designator',
+    outputPath: 'c:/project/.reports/haoo.html',
+    expectedDirectory: 'c:/project/.reports',
+  },
 ] as const;
 
 interface RecordedCall {
