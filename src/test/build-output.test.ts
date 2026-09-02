@@ -245,6 +245,55 @@ function noScriptFormRecoveryMarkup(html: string) {
   )?.[1] ?? '';
 }
 
+describe('public build-time configuration declarations', () => {
+  const DECLARATIONS = resolve(ROOT, 'src/vite-env.d.ts');
+  const ENV_KEY = /import\.meta\.env\.(VITE_[A-Z0-9_]+)/gu;
+
+  /**
+   * Vite ships `interface ImportMetaEnv { [key: string]: any }`, and the project's own
+   * declaration merges with it rather than replacing it. So a renamed or misspelled
+   * variable still types as `any`, compiles clean, resolves to `undefined`, and fails
+   * closed — analytics silently off with no build-time signal at all. The type system
+   * cannot close that hole; this scan is the build-time signal instead.
+   */
+  it('declares every public build variable the production sources read', () => {
+    const declarations = readFileSync(DECLARATIONS, 'utf8');
+    const referenced = new Set<string>();
+
+    for (const path of PRODUCTION_SOURCE_INPUTS) {
+      if (path === DECLARATIONS) continue;
+      for (const match of readFileSync(path, 'utf8').matchAll(ENV_KEY)) {
+        referenced.add(match[1]);
+      }
+    }
+
+    expect(referenced.size).toBeGreaterThan(0);
+    const undeclared = [...referenced].filter(
+      (key) => !new RegExp(`readonly ${key}\\?*:`, 'u').test(declarations),
+    );
+
+    expect(
+      undeclared,
+      `Undeclared public build variable(s) ${undeclared.join(', ')}. Add them to src/vite-env.d.ts or fix the spelling; an undeclared key types as \`any\` and silently resolves to undefined.`,
+    ).toEqual([]);
+  });
+
+  it('declares no public build variable no production source reads', () => {
+    const declared = [
+      ...readFileSync(DECLARATIONS, 'utf8').matchAll(/readonly (VITE_[A-Z0-9_]+)\??:/gu),
+    ].map((match) => match[1]);
+    const referenced = new Set(
+      PRODUCTION_SOURCE_INPUTS
+        .filter((path) => path !== DECLARATIONS)
+        .flatMap((path) => [...readFileSync(path, 'utf8').matchAll(ENV_KEY)]
+          .map((match) => match[1])),
+    );
+
+    expect(declared.length).toBeGreaterThan(0);
+    expect(declared.filter((key) => !referenced.has(key))).toEqual([]);
+  });
+});
+
 describe('Phase 1 build artifact freshness', () => {
   it('requires every production build output to exist', () => {
     const missingOutputs = BUILD_OUTPUTS.filter((path) => !existsSync(path));
