@@ -141,8 +141,14 @@ function campaignSentences(
  * Assemble the summary in the locked order: prefix, visit band, last seen (omitted on a
  * first visit), the recorded interaction sentences, the campaign clause when values were
  * present on arrival, then the boundary sentence that says what the whole paragraph is
- * and is not. Any failure yields the authored fallback rather than throwing, because a
- * summary must never block, delay, or fail a submission.
+ * and is not.
+ *
+ * This function is deliberately **not** total. `requireSummaryCopy` runs first and outside
+ * the `try`, so a product that has not authored its summary copy throws here rather than
+ * silently shipping a wordless field. Any failure *after* that configuration guard yields
+ * the authored fallback rather than throwing, because a summary must never block, delay,
+ * or fail a submission. Callers must therefore still wrap the call — `QualifyForm`'s
+ * `engagementSummary()` does — since the guard is the one exit that escapes.
  */
 export function formatEngagementSummary(
   record: EngagementSummaryContext,
