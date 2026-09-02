@@ -635,10 +635,15 @@ describe('fail-closed provider resolution', () => {
     // Hostnames are case-insensitive, so `URL.origin` lowercases this to the approved
     // origin and it is legitimately accepted — pinned here to prove the comparison is a
     // parsed-origin equality and not a raw-string compare that a case flip could defeat.
+    //
+    // The resolver returns the *normalized* URL, so the accepted value is byte-identical
+    // to the one the approval decision ran against: the emitted `src` attribute can
+    // never be a second spelling the checks above never saw, and the exact-string
+    // duplicate guard in `appendProviderScript` sees one spelling per approved URL.
     [
       'the approved host with an uppercase spelling',
       'https://PLAUSIBLE.IO/js/script.js',
-      'https://PLAUSIBLE.IO/js/script.js',
+      SCRIPT_SRC,
     ],
     // Ports are part of the origin, so a different port is a different origin.
     ['the approved host on a non-default port', 'https://plausible.io:8443/js/script.js', ''],

@@ -143,7 +143,13 @@ export function resolvePlausibleScriptSrc(
       return '';
     }
 
-    return candidate;
+    // The normalized form, never the raw candidate. Every check above ran against the
+    // parsed URL, so returning the untouched input would make the value that was
+    // approved and the value that reaches `setAttribute('src', ...)` two different
+    // strings -- exactly the parser-differential shape this resolver exists to prevent.
+    // It also gives `alreadyAppended`, which compares the attribute by exact string, a
+    // single spelling per approved URL instead of one per accepted input.
+    return url.href;
   } catch {
     return '';
   }
