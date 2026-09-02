@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
-status: gaps_found
-stopped_at: Phase 04 re-verification found two analytics-loader gaps
-last_updated: "2026-09-01T19:54:30.644Z"
-last_activity: 2026-09-01
-last_activity_desc: Phase 04 gap execution completed; re-verification found two new blockers
-state_head: ad283c1162046f6857644527f903dcd91f28d9a2
+status: executing
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-09-02T05:26:08.333Z"
+last_activity: 2026-09-02
+last_activity_desc: Phase 04 execution started
+state_head: 3435fd959b988a1c23223cda69839163631516f6
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 28
-  completed_plans: 27
+  total_plans: 31
+  completed_plans: 28
   percent: 40
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — GAPS FOUND
-Plan: 7 of 7
-Status: gaps_found
-Last activity: 2026-09-01 — Gap execution completed; re-verification found two analytics-loader blockers
+Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
+Plan: 2 of 11
+Status: Ready to execute
+Last activity: 2026-09-02 — Phase 04 execution started
 
 Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 
@@ -74,6 +74,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P05 | 1h 30m | 3 tasks | 9 files |
 | Phase 04 P06 | 5 min | 2 tasks | 6 files |
 | Phase 04 P07 | 10 min | 3 tasks | 7 files |
+| Phase 04 P08 | 11 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -150,6 +151,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Stats counts enter the report only after exact echoed-query and calendar provenance validation. — Local labels must never be attached to counts belonging to another site, goal scope, or range.
 - [Phase 04]: Report temp cleanup follows exclusive reservation ownership. — Concurrent losers must neither overwrite nor delete another invocation's business-data artifact.
 - [Phase 04]: Local report failures name absent variables only while production collection stays deferred. — Owner diagnostics must be actionable without echoing credentials or silently enabling browser analytics.
+- [Phase 04]: Approved analytics script sources live in version-controlled config/ outside src/, and reach the browser only as a provider-gated Vite build-time constant — Putting the origin literal under src/ would inline it into every build and break the provider-unset bundle scan; sourcing approval from a public build variable would let a tampered deployment load arbitrary first-party JavaScript
+- [Phase 04]: resolvePlausibleScriptSrc approves a script source by exact URL.origin equality plus exact approved-pathname membership — A substring, prefix, or suffix host test would accept a lookalike host; only the base script path is approved because every extension variant is an OPT-OUT coverage row
 
 ### Pending Todos
 
@@ -186,6 +189,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-01T19:12:24.539Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-09-02T05:26:08.230Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
