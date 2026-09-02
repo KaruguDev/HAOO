@@ -19,7 +19,12 @@ export interface VendorPlausibleScope {
  *
  * Event calls are queued in `q`, while initialization options are assigned to `o`
  * for the managed script to consume when it loads. This fixture intentionally imports
- * no production measurement types or helpers so it remains an external contract oracle.
+ * no production measurement types or helpers, which keeps the shape it declares
+ * independent of the shape the adapter declares. It pins shape agreement only, not vendor behaviour:
+ * this file is a transcription of documentation, so it is not evidence about what the
+ * real script does at runtime. The vendor script honouring the recorded slot is
+ * confirmed by the live gate recorded in
+ * `.planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-USER-SETUP.md`.
  */
 export function installPlausibleVendorPreload(
   scope: VendorPlausibleScope,

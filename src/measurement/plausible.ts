@@ -105,10 +105,22 @@ function installProviderStub(scope: PlausibleScope): PlausibleGlobal {
  * Confirm the provider actually recorded the opt-out this project sent.
  *
  * The recorded slot is untrusted input: it may come from a foreign global, so it is
- * inspected structurally rather than trusted to match its declared type. Requiring the
- * recorded value — rather than merely a non-throwing `init` call — is what makes
- * "automatic pageview capture is disabled" provable instead of assumed, and it is what
- * closes a silent no-op initializer that a throw-only check would accept.
+ * inspected structurally rather than trusted to match its declared type. What requiring
+ * the recorded value establishes is exactly this: the opt-out this project sends is
+ * recorded and re-read for the configured domain. Whether the vendor script honours it is
+ * an external contract settled by the live human gate. Requiring the recorded value —
+ * rather than merely a non-throwing `init` call — is still what closes a silent no-op
+ * initializer that a throw-only check would accept, and it is still the gate that keeps
+ * script insertion and sink creation unreachable.
+ *
+ * Two facts bound that reading, recorded here rather than only in a planning artifact. On
+ * the path where this module installs its own stub, the value re-read here is the object
+ * this module handed the stub, so the comparison confirms storage rather than vendor
+ * behaviour. On the adopted path a foreign global that assigns the options it receives
+ * satisfies this check while remaining free to capture automatically, which is why the
+ * deployed page must be confirmed to carry no other provider global. Both confirmations
+ * are recorded as owner-facing gates in
+ * `.planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-USER-SETUP.md`.
  */
 function recordsOptOut(recorded: unknown, domain: string): boolean {
   if (typeof recorded !== 'object' || recorded === null) return false;
@@ -118,12 +130,13 @@ function recordsOptOut(recorded: unknown, domain: string): boolean {
 }
 
 /**
- * Resolve a provider that is *known* to have disabled automatic capture, or `null`.
+ * Resolve a provider that has recorded the opt-out this project sent, or `null`.
  *
  * Order of operations is the privacy contract: decide the provider, initialize it,
- * confirm the recorded opt-out, and only then let the caller append the managed script.
+ * re-read the recorded opt-out, and only then let the caller append the managed script.
  * Every unconfirmed outcome returns `null`, so no script insertion and no event sink can
- * exist while automatic capture is unproven.
+ * exist until that re-read has succeeded. Whether the vendor script then honours the
+ * recorded value is settled by the live human gate, not here.
  *
  * An ambient `window.plausible` defined by another snippet is untrusted input of arbitrary
  * type, so the classification is decided before anything is written to the scope. A
@@ -202,9 +215,11 @@ export function createPlausibleEventSink<EventName extends string>(
   const documentRef = resolveDocument(adapters);
   if (scope === null || documentRef === null) return undefined;
 
-  // Collection is refused until the recorded automatic-capture opt-out is confirmed:
-  // the script is appended only on a confirmed provider, so a managed script can never
-  // load while automatic capture is unproven.
+  // Script insertion and sink creation stay unreachable until the recorded opt-out has
+  // been re-read for the configured domain. That is a fail-closed gate on this module's
+  // own behaviour — the script is appended only after the re-read succeeds — and not a
+  // proof about the vendor script, whose honouring of the recorded value is settled by
+  // the live human gate.
   const provider = resolveInitializedProvider(scope, {
     domain: providerScript.domain,
     autoCapturePageviews: false,
