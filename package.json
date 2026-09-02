@@ -12,7 +12,7 @@
     "test:unit": "vitest run",
     "test:phase1:red": "node scripts/assert-phase1-red.mjs",
     "report:haoo": "node scripts/generate-haoo-report.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
   },
   "engines": {
     "node": ">=22.18.0"
