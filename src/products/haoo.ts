@@ -47,20 +47,62 @@ export function resolveMeasurementProvider(configuredValue?: string): Measuremen
 }
 
 /**
+ * One approved analytics script origin and the exact paths approved on it.
+ *
+ * Declared locally rather than imported so no production module gains an import edge
+ * into the repository-owned approval configuration — the approved origin must reach a
+ * bundle only through the build-time constant, never through ordinary module bundling.
+ */
+export interface ApprovedScriptSource {
+  readonly origin: string;
+  readonly paths: readonly string[];
+}
+
+/**
+ * The build-time approved set, or an empty set when it is absent.
+ *
+ * The constant is statically replaced by the production build. Under the test runner —
+ * and under any hypothetical build that failed to inject it — the identifier does not
+ * exist and evaluating it throws a `ReferenceError`, which is swallowed here into the
+ * empty list. Failing closed is the point: an absent contract must approve nothing, not
+ * everything.
+ */
+function buildTimeApprovedScriptSources(): readonly ApprovedScriptSource[] {
+  try {
+    return Array.isArray(__HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__)
+      ? __HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Fail-closed provider script source, modelled on `resolveQualifyEndpoint` below.
  *
- * The URL is validated structurally and its host is deliberately NOT compared against a
- * hardcoded origin: writing the analytics origin as a literal in `src/` would inline it
- * into every build, including builds with no provider configured, which is exactly what
- * the bundle prohibition exists to prevent. The origin therefore reaches a bundle only
- * through `VITE_HAOO_PLAUSIBLE_SRC`.
+ * The analytics origin is deliberately NOT written as a literal in `src/`: that would
+ * inline it into every build, including builds with no provider configured, which is
+ * exactly what the bundle prohibition exists to prevent. It arrives instead as the
+ * provider-gated build-time constant read above, sourced from version-controlled
+ * repository configuration — so `VITE_HAOO_PLAUSIBLE_SRC` can only ever *select from*
+ * the approved set and can never widen it (T-04-27).
  *
  * Accepted only when the value is an absolute `https:` URL carrying no username, no
- * password, no query string and no fragment, whose path ends in `.js`. Every other
- * input — including a bare origin, an `http:` URL and any unparsable string — returns
+ * password, no query string and no fragment, whose path ends in `.js`, AND whose parsed
+ * origin equals an approved origin exactly while its pathname is one of that entry's
+ * approved paths. Every other input — a foreign origin, a lookalike host that merely
+ * ends with the approved host, an approved host on another port, an unapproved
+ * extension-variant path, a bare origin, an `http:` URL, any unparsable string — returns
  * the empty string, which stops the sink being created at all.
+ *
+ * `approvedSources` is injectable so tests can assert against the canonical contract;
+ * its default is the build-time constant, which is empty unless the build deliberately
+ * selected the provider.
  */
-export function resolvePlausibleScriptSrc(configuredValue?: string): string {
+export function resolvePlausibleScriptSrc(
+  configuredValue?: string,
+  approvedSources: readonly ApprovedScriptSource[] = buildTimeApprovedScriptSources(),
+): string {
   const candidate = (configuredValue ?? '').trim();
 
   if (candidate === '') {
@@ -79,6 +121,17 @@ export function resolvePlausibleScriptSrc(configuredValue?: string): string {
     }
 
     if (!url.pathname.endsWith('.js')) {
+      return '';
+    }
+
+    // Exact origin equality against the parsed origin — never a substring, prefix or
+    // suffix test, which a lookalike host carrying the approved host as a leading label
+    // of an attacker-controlled domain would defeat.
+    const approved = approvedSources.some(
+      (source) => source.origin === url.origin && source.paths.includes(url.pathname),
+    );
+
+    if (!approved) {
       return '';
     }
 
