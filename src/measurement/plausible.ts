@@ -147,7 +147,11 @@ function resolveInitializedProvider(
   // restore.
   if (existing !== undefined && typeof existing !== 'function') return null;
 
-  const adopted = existing !== undefined;
+  // The stub is installed only onto a scope that carried no provider value, and its own
+  // initializer assigns the options it is handed and cannot throw, so it cannot fail the
+  // recorded-opt-out check below. A refusal after this installation is therefore
+  // unreachable and there is nothing to withdraw. That is a reachability fact about the
+  // one component here the project fully controls, not a mitigation.
   const provider = existing ?? installProviderStub(scope);
 
   // No initializer means no way to establish the opt-out. Leave the foreign global
@@ -155,18 +159,13 @@ function resolveInitializedProvider(
   // else's global is not this adapter's to do.
   if (typeof provider.init !== 'function') return null;
 
-  function refuse(): null {
-    if (!adopted) delete scope.plausible;
-    return null;
-  }
-
   try {
     provider.init(options);
-    if (!recordsOptOut(provider.o, options.domain)) return refuse();
+    if (!recordsOptOut(provider.o, options.domain)) return null;
   } catch {
     // A throwing initializer leaves the opt-out unproven, which is indistinguishable
     // from automatic capture being enabled. Refuse rather than guess.
-    return refuse();
+    return null;
   }
 
   return provider;

@@ -27,7 +27,7 @@ tech-stack:
   patterns:
     - "Confirm-then-act ordering: a privacy precondition is proven from a recorded observable before the capability it guards is enabled"
     - "Untrusted ambient globals are structurally inspected, never trusted to match their declared TypeScript type"
-    - "Self-installed state is removed on refusal so a rejected initialization leaves nothing behind on a shared scope"
+    - "A pre-existing provider global is never replaced on any refusal path, whatever its type, because the adopted-versus-installed classification is decided before anything is assigned to the scope"
 
 key-files:
   created: []
@@ -38,7 +38,7 @@ key-files:
 key-decisions:
   - "Confirm the recorded options slot rather than a non-throwing `init` call — a cosmetic no-op initializer would otherwise satisfy a throw-only check and leave automatic capture unproven"
   - "A pre-existing full provider implementation that does not expose the documented `o` options slot is treated as unconfirmable and yields no sink — a deliberate fail-closed outcome, accepting lost analytics over unproven privacy"
-  - "A stub installed by this call is deleted from the scope when initialization is refused, so no partially initialized provider is left on the page"
+  - "No pre-existing provider global is replaced, wrapped, mutated, or deleted on any refusal path, whatever its type — the classification decides before it assigns, so a refusal has nothing left behind to withdraw (amended by plan 04-12; see the dated amendment note at the end of this file)"
   - "The `recordingScope()` test fixture now mirrors the documented vendor preload by assigning received options to `o`, replacing a cooperative-but-unrealistic mock"
 
 patterns-established:
@@ -220,3 +220,38 @@ None - no external service configuration required.
 - All three task commits verified in git history: `883937e` (RED), `a097269` (GREEN), `f613c01` (Task 2). The metadata commit is this file's own `docs(04-09)` commit, so its hash is intentionally not quoted here.
 - No tracked files were deleted by any plan commit; no untracked files left under `src/`.
 - `MEAS-01` and `MEAS-08` were NOT marked complete: `requirements.ready-ids` returned `0/2 ready` because sibling plans in phase 04 also declare both IDs and have not produced summaries yet (shared-ID gate, #2388). They will be marked when the last declaring plan finishes.
+
+## Amendment 2026-09-02 (plan 04-12)
+
+*Two claims recorded by this plan are withdrawn. The `key-decisions` entry "A stub
+installed by this call is deleted from the scope when initialization is refused, so no
+partially initialized provider is left on the page" and the matching `tech-stack.patterns`
+entry "Self-installed state is removed on refusal so a rejected initialization leaves
+nothing behind on a shared scope" both described the `if (!adopted) delete scope.plausible`
+branch inside the `refuse()` closure in `src/measurement/plausible.ts`. That branch had no
+executable path: it can only run when the stub was self-installed, and the stub's own
+`init` assigns the options it is handed and cannot throw, so the recorded-opt-out check
+that guards the branch cannot fail on that path. Both claims asserted a mitigation with no
+reachable code behind them.*
+
+*`04-VERIFICATION.md` recorded the defect as **gap 2** with status **failed**: the
+non-function pre-existing global probe `{ plausible: { o: 'foreign' } }` was replaced by
+the stub, a sink was returned, one script was appended, and nothing was ever restored. The
+same file records the prohibition "No pre-existing provider global replaced, wrapped, or
+mutated when its initializer is absent (04-09)" as VIOLATED.*
+
+*Plan 04-12 replaced the withdrawn claims with a stronger and reachable guarantee: the
+adopted-versus-installed classification is now decided before any assignment to the scope,
+so a defined non-callable value is refused outright and left at its identical reference,
+and the stub is installed only onto a scope that carried no provider value at all. There is
+consequently no refusal path on which anything needs restoring, and the unreachable branch,
+its closure, and the docstring sentence that recorded it were removed. The new guarantee is
+covered by two cases added in 04-12 — an adapter-boundary case asserting no sink, zero
+appended script elements, and an unchanged original property set, and a full-journey MEAS-07
+case asserting three successful tracked actions, the matching bounded local flags, zero
+script elements, and a silent console.*
+
+*The D1 `coverage` row in this file is a separate correction, owned by plan 04-13, and is
+deliberately untouched here. Plan 04-12 edited only the third `key-decisions` entry, the
+third `tech-stack.patterns` entry, and this note; the D1, D2 and D3 `coverage` rows, the
+`requirements-completed` list, and the `actuals` block are unchanged.*
