@@ -57,7 +57,6 @@ export interface ReportModel {
   readonly title: string;
   readonly generatedAt: string;
   readonly timezone: string;
-  readonly providerState: string;
   readonly siteScope: string;
   readonly periods: readonly ReportPeriodModel[];
 }
@@ -484,12 +483,11 @@ function periodControl(model: ReportModel): string {
   ].join('\n');
 }
 
-/** UI-SPEC "Metadata": four facts and no claim of freshness beyond the timestamp. */
+/** UI-SPEC "Metadata": three witnessed facts and no claim of freshness beyond the timestamp. */
 function metadataLine(model: ReportModel): string {
   return [
     `${REPORT_METADATA_LABELS.generated} ${model.generatedAt}`,
     `${REPORT_METADATA_LABELS.timezone} ${model.timezone}`,
-    `${REPORT_METADATA_LABELS.provider} ${model.providerState}`,
     `${REPORT_METADATA_LABELS.site} ${model.siteScope}`,
   ].join(REPORT_METADATA_SEPARATOR);
 }

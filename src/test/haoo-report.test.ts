@@ -581,7 +581,6 @@ describe('renderReport', () => {
     title: 'HAOO funnel report',
     generatedAt: '2026-03-01T09:30:00.000Z',
     timezone: 'Africa/Nairobi',
-    providerState: 'configured',
     siteScope: FIXTURE_SITE_ID,
     periods: [
       {
@@ -1742,26 +1741,29 @@ describe('Surface A document structure', () => {
     expect(style).toContain('44px');
   });
 
-  it('states the generation timestamp, timezone, provider state and site scope', async () => {
+  it('states the generation timestamp, timezone and site scope', async () => {
     const { html } = await generateSurfaceA();
     const doc = parseReport(html);
     const meta = normalise(doc.querySelector('.report-meta')?.textContent ?? '');
 
     expect(meta).toContain('Generated 2026-03-01T09:30:00.000Z');
     expect(meta).toContain('Reporting timezone Africa/Nairobi');
-    expect(meta).toContain('Analytics provider: configured');
     expect(meta).toContain(FIXTURE_SITE_ID);
   });
 
-  it('states the provider is not configured only when nothing was ever recorded', async () => {
-    // The regression: the state was a constant, so the document asserted "configured"
-    // even for a site that had never collected a single event. It is now the one thing
-    // the responses can actually show -- an all-time total of zero across every goal.
-    const { html } = await generateSurfaceA(SURFACE_A_BODIES.map(() => ({ results: [] })));
-    const meta = normalise(parseReport(html).querySelector('.report-meta')?.textContent ?? '');
+  it('never claims a provider configuration state it cannot observe', async () => {
+    // The report printed "configured"/"not configured" from an inference over the counts,
+    // but the breakdown returns a row only for a goal with events in the period, so a
+    // registered-but-unfired goal is indistinguishable from an unregistered one. A live
+    // site with no traffic yet read as "not configured". The line now carries only
+    // witnessed facts, in both the populated and the entirely-empty case.
+    for (const bodies of [undefined, SURFACE_A_BODIES.map(() => ({ results: [] }))]) {
+      const { html } = await generateSurfaceA(bodies);
+      const meta = normalise(parseReport(html).querySelector('.report-meta')?.textContent ?? '');
 
-    expect(meta).toContain('Analytics provider: not configured');
-    expect(meta).not.toContain('Analytics provider: configured');
+      expect(meta).not.toContain('Analytics provider');
+      expect(meta).not.toContain('not configured');
+    }
   });
 });
 

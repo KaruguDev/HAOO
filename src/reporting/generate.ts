@@ -5,7 +5,6 @@ import {
   REPORT_ALL_TIME_COMPARISON,
   REPORT_EMPTY_STATE_HEADING,
   REPORT_PERIOD_LABELS,
-  REPORT_PROVIDER_STATE_LABELS,
 } from './haoo-report.ts';
 import { parseGoalCounts } from './stats-response.ts';
 import { validateEchoedQuery } from './query-provenance.ts';
@@ -364,14 +363,6 @@ export async function generateHaooReport(
       title: REPORT_TITLE,
       generatedAt: generatedAt.toISOString(),
       timezone: REPORT_TIMEZONE,
-      // Derived, never asserted. A constant here printed "configured" in a document
-      // generated before any collection existed, which is a claim about the site that
-      // the report cannot make. The observable signal is the data itself: an all-time
-      // total of zero across every recorded goal means nothing has ever been collected
-      // for this site, and any non-zero count is proof that collection is working.
-      providerState: periods.every((period) => period.empty)
-        ? REPORT_PROVIDER_STATE_LABELS['not-configured']
-        : REPORT_PROVIDER_STATE_LABELS.configured,
       siteScope: options.query.siteId,
       periods,
     };

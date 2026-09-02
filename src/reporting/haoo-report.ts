@@ -227,25 +227,25 @@ export const REPORT_COLUMN_HEADERS: Readonly<Record<ReportColumnId, string>> = {
   allTime: 'All time',
 };
 
-export type ReportMetadataId = 'generated' | 'timezone' | 'provider' | 'site';
+export type ReportMetadataId = 'generated' | 'timezone' | 'site';
 
-/** UI-SPEC "Metadata" — the header line names all four facts and claims nothing else. */
+/**
+ * UI-SPEC "Metadata" — the header line names only facts the report witnessed.
+ *
+ * Provider configuration is not among them. It was printed from an inference over the
+ * counts, but the Stats API breakdown returns a row only for a goal with events in the
+ * period, so a registered-but-unfired goal is indistinguishable from an unregistered one
+ * (see `parseGoalCounts`). A live site with no traffic yet would have been labelled "not
+ * configured", which is a claim about the site the report cannot support. Reading real
+ * registration needs a different endpoint and credential than this report holds.
+ */
 export const REPORT_METADATA_LABELS: Readonly<Record<ReportMetadataId, string>> = {
   generated: 'Generated',
   timezone: 'Reporting timezone',
-  provider: 'Analytics provider:',
   site: 'Site',
 };
 
 export const REPORT_METADATA_SEPARATOR = ' · ';
-
-export type ReportProviderState = 'configured' | 'not-configured';
-
-/** UI-SPEC "Metadata" provider states. The report never claims a third state. */
-export const REPORT_PROVIDER_STATE_LABELS: Readonly<Record<ReportProviderState, string>> = {
-  configured: 'configured',
-  'not-configured': 'not configured',
-};
 
 /**
  * UI-SPEC "All-time comparison line". All time is rendered with this sentence instead of
