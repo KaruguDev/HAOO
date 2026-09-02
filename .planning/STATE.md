@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-09-02T05:26:08.333Z"
+stopped_at: Completed 04-09-PLAN.md
+last_updated: "2026-09-02T05:36:01.251Z"
 last_activity: 2026-09-02
 last_activity_desc: Phase 04 execution started
-state_head: 3435fd959b988a1c23223cda69839163631516f6
+state_head: f613c0132a62637eb33528043af9bef2803af393
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 31
-  completed_plans: 28
+  completed_plans: 29
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-09-02 — Phase 04 execution started
 
@@ -75,6 +75,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P06 | 5 min | 2 tasks | 6 files |
 | Phase 04 P07 | 10 min | 3 tasks | 7 files |
 | Phase 04 P08 | 11 min | 2 tasks | 8 files |
+| Phase 04 P09 | 6 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Local report failures name absent variables only while production collection stays deferred. — Owner diagnostics must be actionable without echoing credentials or silently enabling browser analytics.
 - [Phase 04]: Approved analytics script sources live in version-controlled config/ outside src/, and reach the browser only as a provider-gated Vite build-time constant — Putting the origin literal under src/ would inline it into every build and break the provider-unset bundle scan; sourcing approval from a public build variable would let a tampered deployment load arbitrary first-party JavaScript
 - [Phase 04]: resolvePlausibleScriptSrc approves a script source by exact URL.origin equality plus exact approved-pathname membership — A substring, prefix, or suffix host test would accept a lookalike host; only the base script path is approved because every extension variant is an OPT-OUT coverage row
+- [Phase 04]: Confirm the recorded provider options slot, not merely a non-throwing init call, before enabling analytics collection — a cosmetic no-op initializer would otherwise satisfy a throw-only check and leave automatic capture unproven
+- [Phase 04]: A pre-existing window.plausible that does not expose the documented options slot is treated as unconfirmable and yields no event sink — analytics availability is traded for a provable privacy posture
+- [Phase 04]: A provider stub installed by the adapter is deleted from the scope when initialization is refused, so no partially initialized provider is left on the page
 
 ### Pending Todos
 
@@ -189,6 +193,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T05:26:08.230Z
-Stopped at: Completed 04-08-PLAN.md
+Last session: 2026-09-02T05:35:51.698Z
+Stopped at: Completed 04-09-PLAN.md
 Resume file: None

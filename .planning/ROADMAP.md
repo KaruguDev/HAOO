@@ -152,7 +152,7 @@ MEAS-08. The Phase 3 closed event allowlist in `src/products/haoo.ts:14-25` emit
 event and Phase 4 may not add one, so the category was unreportable by construction. The precision
 intent is unchanged.*
 
-**Plans**: 8/11 plans executed (7/10 executed)
+**Plans**: 9/11 plans executed (7/10 executed)
 
 - [ ] .planner-contributions.md
 
@@ -181,7 +181,7 @@ intent is unchanged.*
 
 **Wave 6** *(blocked on 04-08; shares `src/test/measurement.test.ts`)*
 
-- [ ] 04-09-PLAN.md — Require a confirmed automatic-capture opt-out before any provider script insertion or event-sink return, with journey regressions for every refusal path.
+- [x] 04-09-PLAN.md — Require a confirmed automatic-capture opt-out before any provider script insertion or event-sink return, with journey regressions for every refusal path.
 
 **Wave 7** *(blocked on 04-09; all three plans edit `BUILD_INPUTS`-hashed files and drive the shared `dist/` build, so they run strictly serially)*
 
@@ -215,5 +215,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Discover HAOO and Choose an Onboarding Path | 9/9 | Complete    | 2026-08-29 |
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
-| 4. Report and Enrich the HAOO Funnel Truthfully | 8/11 | In Progress|  |
+| 4. Report and Enrich the HAOO Funnel Truthfully | 9/11 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
