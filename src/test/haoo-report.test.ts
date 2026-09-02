@@ -849,6 +849,116 @@ describe('generateHaooReport', () => {
   });
 });
 
+/**
+ * WR-01: the documented owner command builds its destination with Node's platform-native
+ * `resolve`, so on a non-POSIX host the path arrives separated by backslashes. A parser
+ * that looks for a forward slash only extracts no directory at all, skips creation, and a
+ * first run fails before it can write. The table below pins the extraction contract for
+ * every destination shape the CLI can hand over, and pins that whenever a directory is
+ * created it is created strictly before the temporary sibling is exclusively reserved —
+ * creating it afterwards would reserve into a directory that does not exist yet.
+ */
+const DIRECTORY_EXTRACTION_TABLE = [
+  {
+    label: 'POSIX nested destination',
+    outputPath: '/virtual/.reports/haoo-funnel-report.html',
+    expectedDirectory: '/virtual/.reports',
+  },
+  {
+    label: 'Windows-style destination',
+    outputPath: 'C:\\project\\.reports\\haoo-funnel-report.html',
+    expectedDirectory: 'C:\\project\\.reports',
+  },
+  {
+    label: 'bare filename destination',
+    outputPath: 'haoo-funnel-report.html',
+    expectedDirectory: null,
+  },
+  {
+    label: 'POSIX root-level destination',
+    outputPath: '/haoo-funnel-report.html',
+    expectedDirectory: null,
+  },
+  {
+    label: 'drive-root destination',
+    outputPath: 'C:\\haoo-funnel-report.html',
+    expectedDirectory: null,
+  },
+] as const;
+
+interface RecordedCall {
+  readonly op: string;
+  readonly args: readonly unknown[];
+}
+
+/**
+ * An in-memory capability that also records the ordered call log, so a contract can assert
+ * both the exact directory argument and its position relative to the reservation.
+ */
+function recordingFs() {
+  const calls: RecordedCall[] = [];
+  const files = new Map<string, string>();
+  const fs: ReportFs = {
+    mkdirSync: (path, options) => {
+      calls.push({ op: 'mkdirSync', args: [path, options] });
+    },
+    reserveTempSync: (path) => {
+      calls.push({ op: 'reserveTempSync', args: [path] });
+      if (files.has(path)) throw new Error(`already exists ${path}`);
+      files.set(path, '');
+    },
+    writeFileSync: (path, data) => {
+      calls.push({ op: 'writeFileSync', args: [path] });
+      files.set(path, data);
+    },
+    renameSync: (from, to) => {
+      calls.push({ op: 'renameSync', args: [from, to] });
+      const data = files.get(from);
+      if (data === undefined) throw new Error(`missing ${from}`);
+      files.delete(from);
+      files.set(to, data);
+    },
+    rmSync: (path) => {
+      calls.push({ op: 'rmSync', args: [path] });
+      files.delete(path);
+    },
+  };
+
+  return { fs, calls, files };
+}
+
+describe('report output directory extraction', () => {
+  it.each(DIRECTORY_EXTRACTION_TABLE)(
+    'creates the expected directory for the $label',
+    async ({ outputPath, expectedDirectory }) => {
+      const { fetchSpy } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+      const { fs, calls, files } = recordingFs();
+
+      const result = await generateHaooReport(generateOptions(fetchSpy, fs, outputPath));
+
+      expect(result).toEqual({ ok: true, outputPath });
+      expect((files.get(outputPath) ?? '').length).toBeGreaterThan(0);
+
+      const directoryCalls = calls.filter((call) => call.op === 'mkdirSync');
+
+      if (expectedDirectory === null) {
+        expect(directoryCalls).toEqual([]);
+        return;
+      }
+
+      expect(directoryCalls).toEqual([
+        { op: 'mkdirSync', args: [expectedDirectory, { recursive: true }] },
+      ]);
+
+      const directoryIndex = calls.findIndex((call) => call.op === 'mkdirSync');
+      const reservationIndex = calls.findIndex((call) => call.op === 'reserveTempSync');
+
+      expect(reservationIndex).toBeGreaterThan(-1);
+      expect(directoryIndex).toBeLessThan(reservationIndex);
+    },
+  );
+});
+
 describe('credential and provider-origin boundary', () => {
   /**
    * Each pattern is derived from the source that already owns it, so this assertion
