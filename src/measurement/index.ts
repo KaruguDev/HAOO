@@ -352,10 +352,17 @@ export function createMeasurement<const EventName extends string>(
   function clearContext(): boolean {
     const next = freshContext(config, currentDay(adapters));
     context = next;
-    if (storage === null) return false;
+
+    // Never report a refusal the browser was not asked for. `storage` is latched to
+    // null by any failing read or write, but removeItem is a different operation and
+    // routinely succeeds when a quota-pressured setItem throws -- so re-resolve the
+    // handle and let the removal itself decide whether the record survived.
+    const handle = storage ?? browserStorage(adapters);
+    if (handle === null) return false;
 
     try {
-      storage.removeItem(config.storageKey);
+      handle.removeItem(config.storageKey);
+      storage = handle;
       return true;
     } catch {
       storage = null;
