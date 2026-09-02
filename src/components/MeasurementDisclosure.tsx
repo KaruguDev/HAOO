@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ProductMeasurementDisclosure } from '../products/types';
-import { requireIdentity } from '../products/copy';
+import { measurementDisclosureId } from '../products/copy';
 
 interface MeasurementDisclosureProps<EventName extends string> {
   readonly slug: string;
@@ -26,7 +26,7 @@ export default function MeasurementDisclosure<EventName extends string>({
 
   return (
     <details
-      id={`${requireIdentity(slug, 'slug')}-measurement-disclosure`}
+      id={measurementDisclosureId(slug)}
       className="mt-4 scroll-mt-4 rounded-lg border border-[#DFE4F0] bg-[#E9EDFF] p-6 text-[#18275F] md:p-8"
     >
       <summary

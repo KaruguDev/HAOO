@@ -15,6 +15,7 @@ import QualifyForm from '../components/QualifyForm';
 import {
   brochureLead,
   contentAnchorId,
+  measurementDisclosureId,
   parentRelationshipLine,
   skipToContentLabel,
 } from '../products/copy';
@@ -79,9 +80,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
   }, [measurement, product.measurement.pageViewEvent]);
 
   function handleMeasurementDisclosureLink() {
-    const disclosure = document.getElementById(
-      `${product.slug}-measurement-disclosure`,
-    );
+    const disclosure = document.getElementById(measurementDisclosureId(product.slug));
 
     if (disclosure instanceof HTMLDetailsElement) {
       disclosure.open = true;
@@ -301,7 +300,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.emailHref}>{product.contacts.email}</a>
             <a
               className={`${footerLinkClasses} text-[#4054C6]`}
-              href={`#${product.slug}-measurement-disclosure`}
+              href={`#${measurementDisclosureId(product.slug)}`}
               onClick={handleMeasurementDisclosureLink}
             >
               How we measure this page

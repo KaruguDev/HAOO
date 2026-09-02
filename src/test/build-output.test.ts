@@ -737,7 +737,7 @@ describe('Phase 1 static build contracts', () => {
 
     expect(PRODUCT_SOURCE_BOUNDARY['src/components/MeasurementDisclosure.tsx'])
       .toEqual(FULL_BOUNDARY);
-    expect(pageSource).toContain('href={`#${product.slug}-measurement-disclosure`}');
+    expect(pageSource).toContain('href={`#${measurementDisclosureId(product.slug)}`}');
     expect(pageSource).toContain('handleMeasurementDisclosureLink');
     expect(pageSource).not.toMatch(/handleMeasurementDisclosureLink[\s\S]{0,300}preventDefault/);
     expect(disclosureSource).toContain('<details');

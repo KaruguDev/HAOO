@@ -165,3 +165,13 @@ export function contentAnchorId(slug: string) {
 export function mobileNavigationId(slug: string) {
   return `${requireIdentity(slug, 'slug')}-mobile-navigation`;
 }
+
+/**
+ * The disclosure's element id, its footer link target, and the lookup that opens it are
+ * one contract. Derived in three places it was three literals: a rename in any one of
+ * them leaves `getElementById` returning null, the guard swallowing it, and the anchor
+ * jumping nowhere — with no test failure, because the tests query by rendered text.
+ */
+export function measurementDisclosureId(slug: string) {
+  return `${requireIdentity(slug, 'slug')}-measurement-disclosure`;
+}
