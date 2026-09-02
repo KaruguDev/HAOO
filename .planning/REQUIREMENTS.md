@@ -38,10 +38,26 @@
 - [x] **MEAS-02**: Analytics events use a closed allowlist and contain no names, contact details, free-text form values, exact portfolio/location values, or stable visitor identifiers
 - [x] **MEAS-03**: Browser stores at most bounded visit bands, coarse date bands, and HAOO interaction flags without a UUID, raw clickstream, or cross-site identity
 - [x] **MEAS-04**: Visitor can read a privacy disclosure describing aggregate analytics, bounded browser context, and the engagement summary attached after voluntary form submission
-- [ ] **MEAS-05**: Submitted qualification email includes a disclosed human-readable summary of relevant HAOO engagement signals without an opaque lead score
+- [x] **MEAS-05**: Submitted qualification email includes a disclosed human-readable summary of relevant HAOO engagement signals without an opaque lead score
 - [x] **MEAS-06**: Campaign parameters are allowlisted and normalized before use and never include or receive personal information
 - [x] **MEAS-07**: Product journey remains fully functional when analytics scripts or browser storage are blocked or unavailable
 - [ ] **MEAS-08**: Reports describe browser-observable events truthfully as views, attempts, and outbound clicks rather than confirmed delivery, customers, or completed onboarding
+
+*Status note 2026-09-02 (Phase 4 gap closure): plans 04-08 and 04-09 close the two code-level
+blockers named in `04-VERIFICATION.md` — the analytics script was accepting an unapproved origin,
+and provider initialization did not fail closed on an unproven automatic-capture opt-out. Closing
+those two paths is necessary but not sufficient. MEAS-01 additionally requires production privacy
+approval of the processor, creation of the exact ten dashboard goals, and live confirmation that
+each explicit action emits one name-only event with no automatic duplicate; all three are deferred
+human gates that no executor can perform or assert. MEAS-08 additionally requires live report
+reconciliation — running the documented command against the approved site and key and comparing the
+7/30/90/all-time counts and dates against the raw provider dashboard. Separately, the MVP outcome
+and privacy readability judgment at 320px and 200% zoom with keyboard and screen-reader use is a
+human gate covering the generated report, the privacy disclosure, and the maximum-context
+engagement summary. No MEAS-01 or MEAS-08 box may be checked until `/gsd-verify-work 04` confirms
+the code-level closure and the named human gates above are cleared. MEAS-05 is checked on the
+verifier's recorded `MEAS-05 ✓ SATISFIED` finding together with roadmap success criterion 2
+recorded as verified; it is the only status promoted by these gap-closure plans.*
 
 *Amended 2026-09-01 (Phase 4 planning): `redirect returns` was removed from MEAS-08. The Phase 3
 closed event allowlist in `src/products/haoo.ts:14-25` contains no redirect-return event, and no
@@ -119,7 +135,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | MEAS-02 | Phase 3 | Complete |
 | MEAS-03 | Phase 3 | Complete |
 | MEAS-04 | Phase 3 | Complete |
-| MEAS-05 | Phase 4 | Gaps Found |
+| MEAS-05 | Phase 4 | Complete |
 | MEAS-06 | Phase 3 | Complete |
 | MEAS-07 | Phase 3 | Complete |
 | MEAS-08 | Phase 4 | Gaps Found |
