@@ -109,10 +109,12 @@ function reportDay(date: Date, timeZone: string): string {
  * character, so a destination of any other shape is split on a forward slash alone and a
  * backslash inside a filename can never be mistaken for a separator.
  *
- * Two shapes deliberately yield no directory: a separator at index zero, where the parent
- * is the filesystem root, and a bare drive designator such as `C:`, because recursively
- * creating a drive root is not a creation the report needs and a refusal there would turn
- * a working run into a caught generation failure.
+ * Three shapes deliberately yield no directory: a separator at index zero, a bare drive
+ * designator such as `C:`, and a bare UNC root such as `\\server` or `\\server\share`. In
+ * each case the parent is a filesystem root the report does not need to create, and
+ * handing one to a recursive creation would turn a working run into a caught generation
+ * failure. A destination nested any deeper than a share still yields its real parent, so
+ * the guard refuses roots rather than refusing UNC destinations generally.
  */
 function directoryOf(path: string): string {
   const windowsShaped = /^([A-Za-z]:|\\\\)/.test(path);
@@ -125,8 +127,10 @@ function directoryOf(path: string): string {
   }
 
   const directory = path.slice(0, separator);
+  const bareRoot = /^[A-Za-z]:$/.test(directory)
+    || /^\\\\[^\\/]+(?:\\[^\\/]+)?$/.test(directory);
 
-  return /^[A-Za-z]:$/.test(directory) ? '' : directory;
+  return bareRoot ? '' : directory;
 }
 
 interface RangeResult {
