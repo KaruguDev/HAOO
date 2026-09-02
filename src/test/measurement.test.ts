@@ -13,6 +13,10 @@ import {
   type HaooMeasurementEvent,
 } from '../products/haoo';
 import type { MeasurementProvider, ProductMeasurement } from '../products/types';
+import {
+  APPROVED_ANALYTICS_SCRIPT_SOURCES,
+  approvedScriptSourcesForProvider,
+} from '../../config/approved-analytics-script-sources';
 import { installPlausibleVendorPreload } from './fixtures/plausible-preload-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
@@ -453,8 +457,13 @@ describe('browser failure containment and clear result', () => {
  * suite's source scan asserts that no file under `src/` outside `src/test/` contains an
  * analytics origin, so the origin can only ever enter a bundle through the public
  * build-time variable these rows exercise.
+ *
+ * The *accepted* source is not re-typed here — it is derived from the canonical
+ * repository-owned contract, so deleting or changing the approved entry makes the
+ * acceptance rows fail instead of letting the table drift away from the trusted list.
  */
-const SCRIPT_SRC = 'https://plausible.io/js/script.js';
+const APPROVED_SOURCE = APPROVED_ANALYTICS_SCRIPT_SOURCES[0];
+const SCRIPT_SRC = `${APPROVED_SOURCE.origin}${APPROVED_SOURCE.paths[0]}`;
 const SITE_DOMAIN = 'www.zero-paperhub.com';
 const PRODUCT_HREF = 'https://www.zero-paperhub.com/products/haoo/';
 
@@ -546,12 +555,68 @@ describe('fail-closed provider resolution', () => {
     ['a non-URL string', 'script.js', ''],
     ['undefined', undefined, ''],
     ['the empty string', '', ''],
+    // Origin/path approval (T-04-27, T-04-28, T-04-29). Each of these is a
+    // *structurally valid* absolute https `.js` URL — the structural checks above pass
+    // them — so only an exact match against the repository-owned approved contract can
+    // reject them.
+    ['a structurally valid foreign origin', 'https://cdn.attacker.example/js/script.js', ''],
+    [
+      'a lookalike host carrying the approved host as a suffix-style label',
+      'https://plausible.io.attacker.example/js/script.js',
+      '',
+    ],
+    [
+      'the approved origin on an unapproved extension-variant path',
+      'https://plausible.io/js/script.outbound-links.js',
+      '',
+    ],
+    ['the approved origin on an unapproved nested path', 'https://plausible.io/js/../js/other.js', ''],
+    // Hostnames are case-insensitive, so `URL.origin` lowercases this to the approved
+    // origin and it is legitimately accepted — pinned here to prove the comparison is a
+    // parsed-origin equality and not a raw-string compare that a case flip could defeat.
+    [
+      'the approved host with an uppercase spelling',
+      'https://PLAUSIBLE.IO/js/script.js',
+      'https://PLAUSIBLE.IO/js/script.js',
+    ],
+    // Ports are part of the origin, so a different port is a different origin.
+    ['the approved host on a non-default port', 'https://plausible.io:8443/js/script.js', ''],
   ];
 
   it.each(scriptSrcRows)(
     'resolves %s to the named script source',
     (_label, configured, expected) => {
-      expect(resolvePlausibleScriptSrc(configured)).toBe(expected);
+      expect(resolvePlausibleScriptSrc(configured, APPROVED_ANALYTICS_SCRIPT_SOURCES)).toBe(
+        expected,
+      );
+    },
+  );
+
+  it('fails closed when no approved-source contract is supplied', () => {
+    // The test runner uses `vitest.config.ts`, which has no `define`, so the build-time
+    // constant is absent here. The one-argument call is therefore the exact shape a
+    // bundle would take if the constant were ever missing — and it must resolve to no
+    // sink rather than to the approved URL.
+    expect(resolvePlausibleScriptSrc(SCRIPT_SRC)).toBe('');
+    expect(resolvePlausibleScriptSrc(SCRIPT_SRC, [])).toBe('');
+  });
+
+  const providerGatingRows: readonly [string, string | undefined, boolean][] = [
+    ['the provider name exactly', 'plausible', true],
+    ['the provider name padded and mixed case', '  PlAuSiBlE\n', true],
+    ['undefined', undefined, false],
+    ['the empty string', '', false],
+    ['the no-op literal', 'none', false],
+    ['an unknown word', 'matomo', false],
+  ];
+
+  it.each(providerGatingRows)(
+    'carries the approved contract into the build for %s only when entitled',
+    (_label, configured, entitled) => {
+      const selected = approvedScriptSourcesForProvider(configured);
+
+      expect(selected).toEqual(entitled ? APPROVED_ANALYTICS_SCRIPT_SOURCES : []);
+      expect(selected.length > 0).toBe(entitled);
     },
   );
 });
@@ -805,5 +870,49 @@ describe('facade contract under the widened provider seam', () => {
     expect(documentRef.querySelectorAll('script')).toHaveLength(1);
     expect(recorded.filter((call) => call.kind === 'event').map((call) => call.args[0]))
       .toEqual(['haoo_qualify_submit']);
+  });
+
+  /**
+   * MEAS-07 on the *source-rejection* path (T-04-32).
+   *
+   * The rejected value is not hand-written: `providerScript.src` is the actual return
+   * value of the resolver applied to a tampered foreign-origin URL, so this is exactly
+   * the configuration a tampered deployment variable would produce. The journey must be
+   * indistinguishable from an unconfigured build — analytics off, everything else on.
+   */
+  it('leaves the whole journey working when the configured script source is rejected', () => {
+    const spies = silentConsole();
+    const documentRef = document.implementation.createHTMLDocument('rejected-source');
+    const scope: PlausibleScope = {};
+    const storage = new MemoryStorage();
+    const rejectedSrc = resolvePlausibleScriptSrc(
+      'https://cdn.attacker.example/js/script.js',
+      APPROVED_ANALYTICS_SCRIPT_SOURCES,
+    );
+
+    expect(rejectedSrc).toBe('');
+
+    const measurement = createMeasurement(
+      {
+        ...HAOO_MEASUREMENT,
+        provider: 'plausible',
+        providerScript: { src: rejectedSrc, domain: SITE_DOMAIN },
+      },
+      {
+        storage,
+        now: () => TODAY,
+        location: { href: PRODUCT_HREF },
+        history: { state: null, replaceState: vi.fn() },
+        providerAdapters: { documentRef, scope },
+      },
+    );
+
+    measurement.initialize();
+
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(scope.plausible).toBeUndefined();
+    expect(measurement.track('haoo_brochure_download')).toBe(true);
+    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    expectSilent(spies);
   });
 });
