@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 11
+open_count: 14
 waived_count: 0
 fixed_count: 3
-total_count: 14
-last_updated: 2026-09-01T19:23:38.574Z
+total_count: 17
+last_updated: 2026-09-02T05:45:11.913Z
 ---
 
 # Broken Windows Ledger
@@ -29,6 +29,9 @@ last_updated: 2026-09-01T19:23:38.574Z
 | 12 | 04 | unrun-verify | src/components/MeasurementDisclosure.tsx |  | Task 3 human-check not run: 320px viewport and 200% zoom reading of the new disclosure group and the replaced notice clause; carried to phase-end UAT as 04-04-SUMMARY coverage D6 | open |  | 2026-09-01T06:45:08.472Z |  |
 | 13 | 04 | unrun-verify | src/reporting/render.ts |  | Surface A backstop visual checks at 320px and 200% zoom, and the screen-reader announcement check, could not be run: jsdom computes no layout. Carried to UAT as 04-03 coverage D9 and D10. | open |  | 2026-09-01T07:04:25.198Z |  |
 | 14 | 04 | deviation | scripts/generate-haoo-report.mjs |  | Captured CLI failure diagnostics required synchronous stderr writes before nonzero shutdown | fixed |  | 2026-09-01T19:23:08.473Z | 2026-09-01T19:23:38.574Z |
+| 15 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MEAS-01 human gate open: production privacy approval, ten dashboard goals, and live event-uniqueness confirmation are unrun | open |  | 2026-09-02T05:45:11.601Z |  |
+| 16 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MEAS-08 human gate open: live report reconciliation against the raw provider dashboard is unrun | open |  | 2026-09-02T05:45:11.752Z |  |
+| 17 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MVP outcome and privacy readability judgment at 320px and 200% zoom with keyboard and screen-reader use is unrun; carries the five backstop UI considerations E1, E2, E3, E4, E7 | open |  | 2026-09-02T05:45:11.913Z |  |
 
 ````json
 [
@@ -199,6 +202,42 @@ last_updated: 2026-09-01T19:23:38.574Z
     "reason": "",
     "recorded_at": "2026-09-01T19:23:08.473Z",
     "resolved_at": "2026-09-01T19:23:38.574Z"
+  },
+  {
+    "id": 15,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": ".planning/REQUIREMENTS.md",
+    "line": null,
+    "description": "MEAS-01 human gate open: production privacy approval, ten dashboard goals, and live event-uniqueness confirmation are unrun",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-02T05:45:11.601Z",
+    "resolved_at": null
+  },
+  {
+    "id": 16,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": ".planning/REQUIREMENTS.md",
+    "line": null,
+    "description": "MEAS-08 human gate open: live report reconciliation against the raw provider dashboard is unrun",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-02T05:45:11.752Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "unrun-verify",
+    "phase": "04",
+    "file": ".planning/REQUIREMENTS.md",
+    "line": null,
+    "description": "MVP outcome and privacy readability judgment at 320px and 200% zoom with keyboard and screen-reader use is unrun; carries the five backstop UI considerations E1, E2, E3, E4, E7",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-02T05:45:11.913Z",
+    "resolved_at": null
   }
 ]
 ````

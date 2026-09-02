@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-09-PLAN.md
-last_updated: "2026-09-02T05:36:01.251Z"
+stopped_at: Completed 04-10-PLAN.md
+last_updated: "2026-09-02T05:44:41.804Z"
 last_activity: 2026-09-02
 last_activity_desc: Phase 04 execution started
-state_head: f613c0132a62637eb33528043af9bef2803af393
+state_head: ed7ed7a3f4c08c4c25b619b56fdadc816385bd5d
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 30
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-09-02 — Phase 04 execution started
 
@@ -76,6 +76,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P07 | 10 min | 3 tasks | 7 files |
 | Phase 04 P08 | 11 min | 2 tasks | 8 files |
 | Phase 04 P09 | 6 min | 2 tasks | 2 files |
+| Phase 04 P10 | 7 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Confirm the recorded provider options slot, not merely a non-throwing init call, before enabling analytics collection — a cosmetic no-op initializer would otherwise satisfy a throw-only check and leave automatic capture unproven
 - [Phase 04]: A pre-existing window.plausible that does not expose the documented options slot is treated as unconfirmable and yields no event sink — analytics availability is traded for a provable privacy posture
 - [Phase 04]: A provider stub installed by the adapter is deleted from the scope when initialization is refused, so no partially initialized provider is left on the page
+- [Phase 04]: Report output-directory extraction is separator-agnostic with a drive-root guard, fixed inside generate.ts rather than via node:path — Importing a Node module would break the module's capability-injection design and the credential-and-provider-origin boundary case that depends on it
+- [Phase 04]: Only MEAS-05 promoted to Complete; MEAS-01 and MEAS-08 remain unchecked at Gaps Found — Re-verification owns those transitions; a gap-closure executor must not pre-empt three open human gates (production privacy approval with live event uniqueness, live report reconciliation, MVP readability judgment)
 
 ### Pending Todos
 
@@ -193,6 +196,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T05:35:51.698Z
-Stopped at: Completed 04-09-PLAN.md
+Last session: 2026-09-02T05:44:41.708Z
+Stopped at: Completed 04-10-PLAN.md
 Resume file: None
