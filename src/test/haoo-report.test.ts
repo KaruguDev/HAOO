@@ -899,6 +899,26 @@ const DIRECTORY_EXTRACTION_TABLE = [
     outputPath: 'c:/project/.reports/haoo.html',
     expectedDirectory: 'c:/project/.reports',
   },
+  {
+    label: 'bare UNC server root destination',
+    outputPath: '\\\\server\\haoo.html',
+    expectedDirectory: null,
+  },
+  {
+    label: 'UNC share root destination',
+    outputPath: '\\\\server\\share\\haoo.html',
+    expectedDirectory: null,
+  },
+  {
+    label: 'destination nested below a UNC share',
+    outputPath: '\\\\server\\share\\.reports\\haoo.html',
+    expectedDirectory: '\\\\server\\share\\.reports',
+  },
+  {
+    label: 'drive-relative destination',
+    outputPath: 'C:haoo.html',
+    expectedDirectory: null,
+  },
 ] as const;
 
 interface RecordedCall {
