@@ -195,6 +195,26 @@ intent is unchanged.*
 
 **UI hint**: yes
 
+### Phase 04.1: Migrate Measurement from Plausible to PostHog (INSERTED)
+
+**Goal**: PostHog fully replaces Plausible as the HAOO measurement provider, with every Phase 3 and Phase 4 privacy contract preserved and provably enforced against PostHog's automatic-capture defaults.
+**Depends on**: Phase 4
+**Requirements**: MEAS-01, MEAS-02, MEAS-03, MEAS-04, MEAS-06, MEAS-07, MEAS-08
+**Success Criteria** (what must be TRUE):
+
+1. The site sends HAOO measurement to PostHog Cloud US, and no Plausible adapter, approved-source entry, preload fixture, test, environment variable, or instruction remains anywhere in the repository.
+2. Autocapture, automatic `$pageview`/`$pageleave`, session recording, and surveys/heatmaps/exception/web-vitals capture are all off, proven by both a fail-closed configuration assertion at the initialization boundary and a network-payload regression showing only the ten allowlisted bare event names leave the page.
+3. No stable visitor identifier is persisted, no PostHog person profile is created, and no analytics event can be joined to a qualification submission.
+4. The owner report produces the same 7/30/90/all-time literal counts from PostHog, rejecting an unknown event name, a duplicate row, or a non-integer count before writing anything.
+5. A failure to establish the automatic-capture lockdown refuses initialization, leaves every visitor action working, and is visible to the owner rather than silent.
+6. The visitor-facing measurement disclosure states that analytics data is processed in the United States.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 04.1 to break down)
+
 ### Phase 5: Prove the Deployed Journey
 
 **Goal**: Visitors can rely on the production HAOO funnel across supported devices and accessibility modes, and the team has direct evidence that its static routes, assets, checks, and email delivery work live.
