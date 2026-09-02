@@ -1706,6 +1706,17 @@ describe('Surface A document structure', () => {
     expect(meta).toContain('Analytics provider: configured');
     expect(meta).toContain(FIXTURE_SITE_ID);
   });
+
+  it('states the provider is not configured only when nothing was ever recorded', async () => {
+    // The regression: the state was a constant, so the document asserted "configured"
+    // even for a site that had never collected a single event. It is now the one thing
+    // the responses can actually show -- an all-time total of zero across every goal.
+    const { html } = await generateSurfaceA(SURFACE_A_BODIES.map(() => ({ results: [] })));
+    const meta = normalise(parseReport(html).querySelector('.report-meta')?.textContent ?? '');
+
+    expect(meta).toContain('Analytics provider: not configured');
+    expect(meta).not.toContain('Analytics provider: configured');
+  });
 });
 
 /**

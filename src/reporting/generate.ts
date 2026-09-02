@@ -329,7 +329,14 @@ export async function generateHaooReport(
       title: REPORT_TITLE,
       generatedAt: generatedAt.toISOString(),
       timezone: REPORT_TIMEZONE,
-      providerState: REPORT_PROVIDER_STATE_LABELS.configured,
+      // Derived, never asserted. A constant here printed "configured" in a document
+      // generated before any collection existed, which is a claim about the site that
+      // the report cannot make. The observable signal is the data itself: an all-time
+      // total of zero across every recorded goal means nothing has ever been collected
+      // for this site, and any non-zero count is proof that collection is working.
+      providerState: periods.every((period) => period.empty)
+        ? REPORT_PROVIDER_STATE_LABELS['not-configured']
+        : REPORT_PROVIDER_STATE_LABELS.configured,
       siteScope: options.query.siteId,
       periods,
     };
