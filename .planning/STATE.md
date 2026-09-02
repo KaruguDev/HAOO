@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
-status: planned
-stopped_at: Planned 04-11/04-12/04-13 (gap closure round 3)
-last_updated: "2026-09-02T10:28:42.908Z"
+status: executing
+stopped_at: Completed 04-11-PLAN.md
+last_updated: "2026-09-02T10:41:29.661Z"
 last_activity: 2026-09-02
-last_activity_desc: Phase 04 gap-closure round 3 planned (3 plans)
-state_head: b7ffe5d4513f20739db982ec2181b4f26b86830d
+last_activity_desc: Phase 04 execution started
+state_head: 4476776cf50ee83d346f72f60a201f295edb09ef
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 37
-  completed_plans: 30
+  total_plans: 34
+  completed_plans: 31
   percent: 40
 ---
 
@@ -27,11 +27,11 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — READY TO EXECUTE
-Plan: 10 of 13 executed
-Total Plans in Phase: 13
+Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
+Plan: 2 of 14
+Total Plans in Phase: 14
 Status: Ready to execute
-Last activity: 2026-09-02 — Phase 04 gap-closure round 3 planned (04-11, 04-12, 04-13)
+Last activity: 2026-09-02 — Phase 04 execution started
 
 Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 
@@ -78,6 +78,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P08 | 11 min | 2 tasks | 8 files |
 | Phase 04 P09 | 6 min | 2 tasks | 2 files |
 | Phase 04 P10 | 7 min | 2 tasks | 3 files |
+| Phase 04 P11 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,9 @@ Recent decisions affecting current work:
 - [Phase 04]: A provider stub installed by the adapter is deleted from the scope when initialization is refused, so no partially initialized provider is left on the page
 - [Phase 04]: Report output-directory extraction is separator-agnostic with a drive-root guard, fixed inside generate.ts rather than via node:path — Importing a Node module would break the module's capability-injection design and the credential-and-provider-origin boundary case that depends on it
 - [Phase 04]: Only MEAS-05 promoted to Complete; MEAS-01 and MEAS-08 remain unchecked at Gaps Found — Re-verification owns those transitions; a gap-closure executor must not pre-empt three open human gates (production privacy approval with live event uniqueness, live report reconciliation, MVP readability judgment)
+- [Phase 04]: directoryOf selects its separator set from the destination shape: only a drive designator or a UNC prefix makes a backslash a separator — Restores the pre-04-10 POSIX extraction (a backslash is a legal POSIX filename character) without trading away the 04-10 Windows fix
+- [Phase 04]: The bare-root guard refuses both root families (drive designator and UNC server/share root) while a destination nested below a share still yields its real parent — Handing a filesystem root to a recursive creation turns a working run into a caught generation failure; the positive nested-UNC row proves the guard refuses roots, not UNC destinations
+- [Phase 04]: Plan 04-11 promotes no requirement status: requirements-completed is left empty despite the template asking for the plan requirement IDs — The plan prohibitions forbid promoting a requirement checkbox, and MEAS-01 and MEAS-08 both retain open human gates in 04-VERIFICATION.md
 
 ### Pending Todos
 
@@ -197,6 +201,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T05:44:41.708Z
-Stopped at: Completed 04-10-PLAN.md
+Last session: 2026-09-02T10:41:05.392Z
+Stopped at: Completed 04-11-PLAN.md
 Resume file: None
