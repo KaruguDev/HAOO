@@ -1,4 +1,5 @@
 import type { PeriodWindow } from './haoo-report.ts';
+import { isPlainObject } from './untrusted.ts';
 
 export interface EchoedQueryProvenance {
   readonly start: string;
@@ -39,10 +40,6 @@ export interface ExpectedEchoedQuery {
 }
 
 const DAY_MILLISECONDS = 86_400_000;
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 function sameStrings(value: unknown, expected: readonly string[]): boolean {
   return Array.isArray(value)

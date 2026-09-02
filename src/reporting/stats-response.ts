@@ -9,9 +9,7 @@
  * `null` and never throws; the caller aborts without writing.
  */
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { isPlainObject } from './untrusted.ts';
 
 /**
  * Reads a Stats API v2 aggregate response into one integer per allowlisted goal.
