@@ -49,7 +49,7 @@ requirements-completed: [MEAS-01, MEAS-08]
 
 coverage:
   - id: D1
-    description: "Automatic pageview capture is confirmed disabled before any provider script is appended or any event sink is returned — script insertion is unreachable until `resolveInitializedProvider` returns a non-null provider"
+    description: "A provider script is appended and an event sink returned only after `resolveInitializedProvider` returns a non-null provider, and the `autoCapturePageviews: false` opt-out this project sends is recorded and re-read for the configured domain before that happens — script insertion is unreachable until then"
     requirement: "MEAS-01"
     verification:
       - kind: unit
@@ -58,7 +58,11 @@ coverage:
       - kind: other
         ref: "grep -n 'appendProviderScript|resolveInitializedProvider' src/measurement/plausible.ts — the sole call site (line 206) follows the null guard (line 204)"
         status: pass
-    human_judgment: false
+      - kind: manual_procedural
+        ref: "04-VERIFICATION.md behavior_unverified_items[0], recorded as an owner-facing gate in 04-USER-SETUP.md — after production enablement, load the HAOO page once with the approved script and site values and watch the provider dashboard live view, expecting exactly one page-view occurrence for the visit, no additional automatic pageview, and no pageview carrying campaign parameter values"
+        status: unknown
+    human_judgment: true
+    rationale: "The assertion is about the vendor script honouring the recorded `autoCapturePageviews: false` value. The repository can only prove that it wrote and re-read that value; no test in this tree can observe the real script's behaviour. Only the live dashboard gate settles it, so this row routes to a human rather than auto-passing on the structural evidence above."
   - id: D2
     description: "The verifier's first adversarial probe: an existing callable provider with no `init` returns `undefined`, appends zero scripts, and leaves the pre-existing global at the identical reference with no options slot and no queue"
     requirement: "MEAS-08"
@@ -255,3 +259,34 @@ script elements, and a silent console.*
 deliberately untouched here. Plan 04-12 edited only the third `key-decisions` entry, the
 third `tech-stack.patterns` entry, and this note; the D1, D2 and D3 `coverage` rows, the
 `requirements-completed` list, and the `actuals` block are unchanged.*
+
+## Amendment 2026-09-02 (plan 04-13)
+
+*The `D1` `coverage` row in this file is downgraded from an executable claim to a
+human-judgment row, on the finding recorded as **gap 3** of `04-VERIFICATION.md`: the
+recorded opt-out was described as proof that automatic pageview capture is disabled, when
+on the primary path the value re-read is the object this module handed its own stub, and on
+the adopted path a foreign global that assigns the options it receives satisfies the check
+while remaining free to capture automatically. `D1` now carries `human_judgment: true` with
+a rationale, its `description` records only the structural fact its two passing checks do
+prove, and both of those checks are kept with their refs and `pass` statuses unchanged.*
+
+*No control flow was changed. The fail-closed gate still holds exactly as shipped: script
+insertion and sink creation remain unreachable until `resolveInitializedProvider` returns a
+non-null provider, and requiring the recorded value — rather than merely a non-throwing
+`init` call — still closes a silent no-op initializer that a throw-only check would accept.
+Plan 04-13 edited comments and documentation only, and the full suite passed with every
+expectation unedited.*
+
+*The claim `D1` used to make is now carried by a human gate, not by a test: the live
+dashboard confirmation recorded as `behavior_unverified_items[0]` in `04-VERIFICATION.md`
+and written into `04-USER-SETUP.md` as an unchecked owner-facing item — load the HAOO page
+once after production enablement and watch the provider dashboard live view. It is added to
+this row as a `manual_procedural` verification entry with status `unknown` because it has
+not been performed, and nothing in this repository can perform it.*
+
+*Plan 04-13 also restated the matching prose in `src/measurement/plausible.ts` and in
+`src/test/fixtures/plausible-preload-contract.ts`, so the record and the code now say the
+same thing. `D2` and `D3`, the remaining `coverage` rows, `requirements-completed`,
+`actuals`, `provides`, `tech-stack`, `key-files`, and the `key-decisions` and `patterns`
+entries as left by plan 04-12 are unchanged.*
