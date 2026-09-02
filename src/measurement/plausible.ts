@@ -125,21 +125,30 @@ function recordsOptOut(recorded: unknown, domain: string): boolean {
  * Every unconfirmed outcome returns `null`, so no script insertion and no event sink can
  * exist while automatic capture is unproven.
  *
- * An ambient `window.plausible` defined by another snippet is untrusted input. It is
- * adopted, never replaced or wrapped, and only when it exposes a usable initializer that
- * records the opt-out. A pre-existing full provider implementation that does not expose
- * the documented options slot is treated as unconfirmable and yields no sink — a
- * deliberate fail-closed outcome for this privacy posture. When this call installed the
- * stub itself, a refusal removes it again, so a refused initialization never leaves a
- * partially initialized provider behind on a shared scope.
+ * An ambient `window.plausible` defined by another snippet is untrusted input of arbitrary
+ * type, so the classification is decided before anything is written to the scope. A
+ * callable value is adopted, never replaced or wrapped, and only when it exposes a usable
+ * initializer that records the opt-out; a pre-existing full provider implementation that
+ * does not expose the documented options slot is treated as unconfirmable and yields no
+ * sink, a deliberate fail-closed outcome for this privacy posture. A defined non-callable
+ * value is refused outright and left untouched. The stub is installed only onto a scope
+ * that carried no provider value at all.
  */
 function resolveInitializedProvider(
   scope: PlausibleScope,
   options: PlausibleInitOptions,
 ): PlausibleGlobal | null {
   const existing = scope.plausible;
-  const adopted = typeof existing === 'function';
-  const provider = adopted ? existing : installProviderStub(scope);
+
+  // Decide before assigning. A defined value that is not callable — an object-shaped
+  // provider, or a value left by a tag manager — carries no way to establish the opt-out,
+  // and overwriting somebody else's global is not this adapter's to do. Refusing here,
+  // before the stub could have replaced it, is why no refusal path ever has anything to
+  // restore.
+  if (existing !== undefined && typeof existing !== 'function') return null;
+
+  const adopted = existing !== undefined;
+  const provider = existing ?? installProviderStub(scope);
 
   // No initializer means no way to establish the opt-out. Leave the foreign global
   // byte-identical — attaching an `init`, an options slot, or a queue to somebody
