@@ -198,3 +198,8 @@ None - no external service configuration required by this plan. The phase's outs
 ---
 *Phase: 04-report-and-enrich-the-haoo-funnel-truthfully*
 *Completed: 2026-09-02*
+
+## Self-Check: PASSED
+
+- All three modified files and this summary verified present on disk: `src/measurement/plausible.ts`, `src/test/measurement.test.ts`, `04-09-SUMMARY.md`, `04-12-SUMMARY.md`.
+- All three task commits verified in git history: `02e698a` (RED), `0985036` (GREEN), `9cc7250` (Task 2). The metadata commit `0502780` carries this file.
