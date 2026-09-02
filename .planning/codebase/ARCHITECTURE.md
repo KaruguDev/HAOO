@@ -1,7 +1,10 @@
-<!-- refreshed: 2026-09-01 -->
+---
+last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+---
+<!-- refreshed: 2026-09-02 -->
 # Architecture
 
-**Analysis Date:** 2026-09-01
+**Analysis Date:** 2026-09-02
 
 ## System Overview
 
@@ -43,7 +46,31 @@
 ┌──────────────────────────────────┐  ┌────────────────────────┐
 │ External form provider (POST)    │  │ `window.localStorage`  │
 │ formsubmit.co ajax endpoint      │  │ banded engagement ctx  │
-└──────────────────────────────────┘  └────────────────────────┘
+└──────────────────────────────────┘  └───────────┬────────────┘
+                                                  │ name-only events
+                                                  ▼
+                                      ┌────────────────────────┐
+                                      │ Plausible browser sink │
+                                      │ `src/measurement/      │
+                                      │  plausible.ts`         │
+                                      └───────────┬────────────┘
+                                                  │ aggregate goals
+                                                  ▼
+── Offline owner-report pipeline (Node, never shipped to the browser) ──
+┌─────────────────────────────────────────────────────────────┐
+│ `scripts/generate-haoo-report.mjs`  (only credentialed unit) │
+│ reads process.env · names provider origin + query path       │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼  injected {query, fetch, now, fs}
+┌─────────────────────────────────────────────────────────────┐
+│ `src/reporting/generate.ts` orchestration                    │
+│   ├─ `query-provenance.ts`  echoed-query validation          │
+│   ├─ `stats-response.ts`    fail-closed goal-count parsing   │
+│   ├─ `haoo-report.ts`       closed label/stage dictionary    │
+│   └─ `render.ts`            self-contained HTML document     │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+              `.reports/haoo-funnel-report.html` (gitignored)
 ```
 
 ## Component Responsibilities
@@ -66,7 +93,16 @@
 | HAOO definition | All HAOO facts, copy, contacts, qualify schema, measurement config | `src/products/haoo.ts` |
 | Registry | Which products are live; slug→route and nav derivation | `src/products/registry.ts` |
 | Shared copy | Identity-guarded label builders (`requireIdentity`) | `src/products/copy.ts` |
-| Measurement | Privacy-bounded engagement context facade | `src/measurement/index.ts` |
+| Measurement | Privacy-bounded engagement context facade; creates the provider sink on initialize | `src/measurement/index.ts` |
+| Plausible sink | Name-only provider adapter: preload queue, `init`, script append, event calls | `src/measurement/plausible.ts` |
+| Engagement summary | Pure formatter turning bands + campaign into one email sentence block | `src/products/engagement-summary.ts` |
+| Report CLI | Only credentialed module: reads `process.env`, names provider origin and query path | `scripts/generate-haoo-report.mjs` |
+| Report orchestration | Capability-injected query→validate→render→atomic-write pipeline | `src/reporting/generate.ts` |
+| Report dictionary | Closed event labels, stages, period labels, caveats | `src/reporting/haoo-report.ts` |
+| Response parsing | Fail-closed goal-count reader for untrusted provider bodies | `src/reporting/stats-response.ts` |
+| Query provenance | Validates the provider echoed back the query that was sent | `src/reporting/query-provenance.ts` |
+| Report renderer | Script-free, request-free self-contained HTML document | `src/reporting/render.ts` |
+| Coverage guard | Parses a phase COVERAGE.md and enforces required capability decisions | `scripts/verify-phase4-coverage.mjs` |
 
 ## Pattern Overview
 
@@ -78,6 +114,8 @@
 - **Pure logic split from React.** Form rules live in `qualify-form.logic.ts`; measurement lives in `src/measurement/index.ts` — both testable without rendering.
 - **Fail-safe by default.** Storage, provider delivery, campaign parsing and URL cleanup are each wrapped so a failure degrades silently rather than blocking a visitor action.
 - **Progressive enhancement.** `products/haoo/index.html` ships a `<noscript>` block duplicating every contact path.
+- **Capability injection over imports.** Both `createMeasurement` and `generateHaooReport` take their side-effecting capabilities (`storage`, `location`, `history`, `eventSink`, `fetch`, `now`, `fs`) as parameters, so every branch is testable without touching a real browser, network or disk.
+- **Credential containment.** The browser bundle never sees a credential, and the report library never names the provider origin, query path or env-var name — those exist only in `scripts/generate-haoo-report.mjs`.
 
 ## Layers
 
@@ -107,9 +145,15 @@
 - Depends on: nothing outside itself (leaf layer, plus `import.meta.env`)
 
 **Measurement:**
-- Purpose: Local, banded engagement context; no third-party provider
-- Location: `src/measurement/index.ts`
+- Purpose: Local, banded engagement context plus name-only provider delivery
+- Location: `src/measurement/index.ts` (facade), `src/measurement/plausible.ts` (provider adapter)
 - Depends on: `src/products/types.ts` only
+
+**Reporting (Node-only, not bundled):**
+- Purpose: Turn provider aggregates into one owner-facing HTML document
+- Location: `src/reporting/` (`generate.ts`, `haoo-report.ts`, `stats-response.ts`, `query-provenance.ts`, `render.ts`)
+- Depends on: `src/products/haoo.ts` types only; loaded from `.mjs` via Node native type stripping, so it uses erasable syntax and explicit `.ts` import extensions
+- Used by: `scripts/generate-haoo-report.mjs` (`npm run report:haoo`)
 
 ## Data Flow
 
@@ -137,6 +181,23 @@
 4. `readCampaign()` accepts only `utm_source|medium|campaign` matching `/^[a-z0-9-]+$/` (≤32 chars) then strips all `utm_*` params via `history.replaceState`
 5. `clearContext()` removes the record and reports whether removal actually happened
 
+### Provider event delivery
+
+1. On first `initialize()`, campaign params are normalized and stripped **before** any provider script is appended, so automatic capture can never race address-bar cleanup (`src/measurement/index.ts:318-325`)
+2. If no `eventSink` adapter was injected, `createPlausibleEventSink(config, providerAdapters)` builds one (`src/measurement/plausible.ts`)
+3. The sink installs the documented preload contract — queue `window.plausible.q`, options slot `.o`, `init(options)` with `autoCapturePageviews: false` — then appends the site script once
+4. `track(event)` calls `plausible('<name>')` with a bare name only; there is no property bag anywhere in the seam
+5. Any throw inside the sink is swallowed by `track`'s `try/catch` — provider delivery never touches the visitor's action
+
+### Owner report generation (offline)
+
+1. `npm run report:haoo` runs `scripts/generate-haoo-report.mjs`, which reads `PLAUSIBLE_STATS_API_KEY` / `PLAUSIBLE_SITE_ID` and exits 1 with a terminal-only sentence if either is blank
+2. It injects `{query, fetch, now, fs, outputPath}` into `generateHaooReport` (`src/reporting/generate.ts`)
+3. For each of 7/30/90 days plus all-time, an explicit inclusive ISO `date_range` aggregate query is POSTed with the key in the `Authorization` header only
+4. Each response passes `validateEchoedQuery` (the provider must echo the site id, metrics, dimensions, goal filter and range) then `parseGoalCounts` (integer, non-negative, no unknown or duplicate goal rows); any refusal aborts before a single byte is written
+5. `renderReport` builds the whole document in memory; the writer reserves a fixed `<output>.tmp` sibling exclusively (`openSync(path, 'wx')`), writes, then renames onto the destination — a failed run leaves the previous report byte-identical
+6. Output lands in `.reports/haoo-funnel-report.html`, which is gitignored because it carries aggregate business counts
+
 **State Management:**
 - React local state only (`useState`/`useRef`) — no store library, no context providers.
 - Cross-session state is the single `localStorage` record keyed by `product.measurement.storageKey`; `reconcileContext()` re-reads storage on every access so another tab's clear is never resurrected from cache.
@@ -156,6 +217,21 @@
 **Identity guard:**
 - Purpose: Fail closed on nameless/slugless products rather than shipping orphan copy or unnamespaced DOM ids
 - File: `src/products/copy.ts` (`requireIdentity`)
+
+**Report model:**
+- Purpose: The fully computed, fully validated shape the renderer is allowed to render
+- File: `src/reporting/render.ts` (`ReportModel`, `ReportPeriodModel`)
+- Pattern: All arithmetic and date resolution happen in `generate.ts`; the renderer only escapes and lays out
+
+**Closed reporting dictionary:**
+- Purpose: Exactly one owner-facing label per closed event name, one stage per event
+- File: `src/reporting/haoo-report.ts`
+- Pattern: `Readonly<Record<HaooMeasurementEvent, ...>>` maps, so adding an event or dropping a label fails `npm run typecheck` before any test
+
+**Provider seam:**
+- Purpose: A name-only interface to Plausible with every browser capability injectable
+- File: `src/measurement/plausible.ts` (`PlausibleGlobal`, `PlausibleScope`, `PlausibleAdapters`)
+- Pattern: The *type* encodes the contract — no property-bag parameter exists, so a property bag cannot be sent
 
 **Registry:**
 - Purpose: Sole decision point for which products are live; nav presence derived from collection length so nav and section can never disagree
@@ -177,8 +253,16 @@
 - Location: `.github/workflows/deploy.yml`
 - Pipeline: checkout → Node 22 → `npm ci` → `typecheck` → `lint` → `build` (with `VITE_HAOO_FORM_ENDPOINT`) → `test:unit` → upload `dist/` → GitHub Pages
 
+**Owner report CLI:**
+- Location: `scripts/generate-haoo-report.mjs` (`npm run report:haoo`)
+- Triggers: Manual, local, credentialed run by the owner
+- Responsibilities: Read env credentials, name the provider origin/query path, write `.reports/haoo-funnel-report.html`
+
 **Red-state guard:**
 - Location: `scripts/assert-phase1-red.mjs` (`npm run test:phase1:red`)
+
+**Coverage guard:**
+- Location: `scripts/verify-phase4-coverage.mjs` — run manually against a phase `COVERAGE.md`; not wired into `package.json` scripts or CI
 
 ## Architectural Constraints
 
@@ -188,6 +272,9 @@
 - **Global state:** module-level constants only (`PRODUCTS`, `HAOO_PRODUCT`, `QUALIFY_ENDPOINT`). No mutable module singletons; the measurement closure is per-instance.
 - **Circular imports:** none. Dependency direction is strictly components/pages → products/measurement.
 - **Build-time configuration:** `import.meta.env.VITE_HAOO_FORM_ENDPOINT` and `VITE_HAOO_MEASUREMENT_PROVIDER` are resolved at build time with validated fallbacks (`src/products/haoo.ts:129-175`); a missing/invalid var silently falls back to `QUALIFY_ENDPOINT_FALLBACK`.
+- **Node-only code must be erasable-syntax TypeScript.** Everything under `src/reporting/` is loaded by a `.mjs` entry through Node's native type stripping (Node >= 22.18.0, enforced by `engines.node`). No enums, no parameter properties, no decorators, and imports must carry explicit `.ts` extensions.
+- **Credential boundary.** No module under `src/` may read `process.env`, name the provider origin, or name a credential variable; only `scripts/generate-haoo-report.mjs` may. A source test in `src/test/haoo-report.test.ts` asserts this.
+- **Env declaration drift.** `src/vite-env.d.ts` declares only `VITE_HAOO_FORM_ENDPOINT`, while `src/products/haoo.ts` also reads `VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_PLAUSIBLE_SRC` and `VITE_HAOO_PLAUSIBLE_DOMAIN`. Add new vars to both places.
 - **Tests assert the shipped artifact.** `src/test/build-output.test.ts` reads `dist/`, so `npm test` runs `build` first; in CI `test:unit` must run *after* Build so the endpoint-bearing artifact is not overwritten.
 
 ## Anti-Patterns
@@ -216,6 +303,24 @@
 **Why it's wrong:** Measurement is strictly secondary to the journey.
 **Do this instead:** Wrap every side effect in `try/catch` and degrade to no-op, as every function in `src/measurement/index.ts` does.
 
+### Rendering provider-controlled text
+
+**What happens:** A goal name, heading or message from the Stats API response is interpolated into the report.
+**Why it's wrong:** The provider is an untrusted source across a trust boundary; its strings could carry markup and its labels could rename a stage (threats T-04-03/T-04-04).
+**Do this instead:** Render only authored labels from `src/reporting/haoo-report.ts` and integers that survived `parseGoalCounts`, each passed through `escapeHtml` (`src/reporting/render.ts`).
+
+### Writing a partial report
+
+**What happens:** Rendering or writing periods incrementally as each query returns.
+**Why it's wrong:** One failed range would produce a document that claims four periods but reports three.
+**Do this instead:** Query and validate every range first, render in memory, reserve the temp sibling exclusively, write, then rename (`src/reporting/generate.ts`).
+
+### Sending event properties to the provider
+
+**What happens:** Passing a props object alongside a `plausible()` call, or enabling an automatic-capture option.
+**Why it's wrong:** The measurement contract is name-only; automatic pageview capture would also duplicate the explicit page-view event and can race `utm_*` cleanup.
+**Do this instead:** Call with a bare closed event name and keep `autoCapturePageviews: false` (`src/measurement/plausible.ts`).
+
 ### Storing identifying or unbounded values
 
 **What happens:** Raw timestamps, visit counts, free-text, or arbitrary query params persisted to `localStorage`.
@@ -232,10 +337,12 @@
 - Validation: errors surface in a summary heading plus per-field `aria-describedby` messages, never as thrown exceptions
 - Identity: `requireIdentity` throws on empty product name/slug (`src/products/copy.ts:7`)
 - Corrupt persisted data: rejected and removed rather than migrated
+- Report pipeline: every failure path returns `{ ok: false, reason }` rather than throwing; the CLI prints one fixed terminal sentence and exits 1, never writing failure text into the HTML
+- Provider responses: validation helpers return `null` inside `try/catch` and never throw (`src/reporting/stats-response.ts`, `src/reporting/query-provenance.ts`)
 
 ## Cross-Cutting Concerns
 
-**Logging:** None. No console logging in production paths; failures are swallowed by design with explanatory comments.
+**Logging:** None in browser code. The report CLI writes to `stderr`/`stdout` only, and never logs the credential, the endpoint or the response body. No console logging in production paths; failures are swallowed by design with explanatory comments.
 
 **Validation:** Two independent layers — visitor input via `src/components/qualify-form.logic.ts` (requiredness, email pattern, length, `RESERVED_EMAIL_LABELS` guard against provider-option injection, `_honey` honeypot), and stored/URL data via `parseContext` / `CAMPAIGN_VALUE` in `src/measurement/index.ts`.
 
@@ -245,4 +352,4 @@
 
 ---
 
-*Architecture analysis: 2026-09-01*
+*Architecture analysis: 2026-09-02*

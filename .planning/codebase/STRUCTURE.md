@@ -1,6 +1,10 @@
+---
+last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+---
+<!-- refreshed: 2026-09-02 -->
 # Codebase Structure
 
-**Analysis Date:** 2026-09-01
+**Analysis Date:** 2026-09-02
 
 ## Directory Layout
 
@@ -17,10 +21,15 @@ ZERO-PAPERHUB/
 │   ├── components/             # Presentational, props-driven units
 │   ├── pages/                  # Whole-document compositions
 │   ├── products/               # Product data layer (types, definitions, registry, copy)
-│   ├── measurement/            # Privacy-bounded engagement context facade
-│   └── test/                   # All vitest suites
+│   ├── measurement/            # Engagement context facade + Plausible sink
+│   ├── reporting/              # Node-only owner-report pipeline (never bundled)
+│   └── test/                   # All vitest suites (+ test/fixtures/)
 ├── public/                     # Copied verbatim to dist/ (images, PDFs, CNAME, .htaccess)
-├── scripts/assert-phase1-red.mjs  # Red-state guard script
+├── scripts/
+│   ├── assert-phase1-red.mjs      # Red-state guard script
+│   ├── generate-haoo-report.mjs   # Credentialed owner-report CLI (npm run report:haoo)
+│   └── verify-phase4-coverage.mjs # Capability-coverage guard for a phase COVERAGE.md
+├── .reports/                   # Generated owner reports (gitignored, business counts)
 ├── dist/                       # Build output (generated, gitignored)
 ├── .github/workflows/deploy.yml   # Typecheck→lint→build→test→Pages deploy
 ├── .planning/                  # GSD planning artifacts
@@ -43,15 +52,24 @@ ZERO-PAPERHUB/
 
 **`src/products/`:**
 - Purpose: Single source of truth for product facts and their contract
-- Key files: `types.ts` (contract), `haoo.ts` (the one live definition), `registry.ts` (which products ship, route derivation), `copy.ts` (identity-guarded shared labels)
+- Key files: `types.ts` (contract), `haoo.ts` (the one live definition, ~700 lines), `registry.ts` (which products ship, route derivation), `copy.ts` (identity-guarded shared labels), `engagement-summary.ts` (pure band→sentence formatter for the enquiry email)
 
 **`src/measurement/`:**
-- Purpose: Local engagement-context facade with injectable adapters
-- Key files: `index.ts`
+- Purpose: Local engagement-context facade with injectable adapters, plus provider delivery
+- Key files: `index.ts` (facade, banding, storage, campaign parsing), `plausible.ts` (name-only provider sink: preload queue, `init`, script append)
+
+**`src/reporting/`:**
+- Purpose: Node-only pipeline that turns Plausible aggregates into one owner-facing HTML document. Never imported by browser code.
+- Key files: `generate.ts` (capability-injected orchestration + atomic write), `haoo-report.ts` (closed label/stage/period dictionary), `stats-response.ts` (fail-closed goal-count parsing), `query-provenance.ts` (echoed-query validation), `render.ts` (script-free self-contained HTML + CSS)
+- Rules: erasable TypeScript syntax only, explicit `.ts` import extensions, and never read `process.env` or name the provider origin/query path/credential variable
+
+**`src/test/fixtures/`:**
+- Purpose: Test-only doubles and independent contract transcriptions
+- Key files: `plausible-preload-contract.ts` (independent transcription of the vendor preload contract), `haoo-report-cli-fetch-preload.mjs` (fetch preload for exercising the report CLI end to end)
 
 **`src/test/`:**
 - Purpose: All tests, centralized (not co-located)
-- Key files: `setup.ts` (vitest setup), `build-output.test.ts` (asserts the real `dist/`), `qualify-form.test.tsx`, `qualify-data.test.ts`, `measurement.test.ts`, `measurement-page.test.tsx`, `haoo-page.test.tsx`, `haoo-content.test.ts`, `product-shell-reuse.test.tsx`, `products-section.test.tsx`, `focus-contrast.test.ts`
+- Key files: `setup.ts` (vitest setup), `build-output.test.ts` (asserts the real `dist/`), `qualify-form.test.tsx`, `qualify-data.test.ts`, `measurement.test.ts`, `measurement-page.test.tsx`, `haoo-report.test.ts`, `haoo-page.test.tsx`, `haoo-content.test.ts`, `product-shell-reuse.test.tsx`, `products-section.test.tsx`, `focus-contrast.test.ts`
 
 **`public/`:**
 - Purpose: Assets served at the URL root, untouched by the bundler
@@ -82,15 +100,21 @@ ZERO-PAPERHUB/
 - `src/components/qualify-form.logic.ts`: validation, submission body, status copy
 - `src/measurement/index.ts`: context banding, campaign parsing, storage lifecycle
 
+**Reporting:**
+- `scripts/generate-haoo-report.mjs`: the only module that reads `process.env`, names `https://plausible.io/api/v2/query`, and knows the output path `.reports/haoo-funnel-report.html`
+- `src/reporting/generate.ts`: query → validate → render → temp-write → rename
+- `src/reporting/haoo-report.ts`: every owner-facing word in the report
+
 **Testing:**
-- `src/test/*.test.ts` / `*.test.tsx`
-- `scripts/assert-phase1-red.mjs`
+- `src/test/*.test.ts` / `*.test.tsx`, fixtures in `src/test/fixtures/`
+- `scripts/assert-phase1-red.mjs`, `scripts/verify-phase4-coverage.mjs`
 
 ## Naming Conventions
 
 **Files:**
 - React components: `PascalCase.tsx` — `QualifyForm.tsx`, `ProductPage.tsx`
-- Pure logic / data modules: `kebab-case.ts` or single-word lowercase — `qualify-form.logic.ts`, `registry.ts`, `copy.ts`, `haoo.ts`
+- Pure logic / data modules: `kebab-case.ts` or single-word lowercase — `qualify-form.logic.ts`, `registry.ts`, `copy.ts`, `haoo.ts`, `engagement-summary.ts`, `stats-response.ts`, `query-provenance.ts`
+- Node entry points and test preloads: `kebab-case.mjs` under `scripts/` or `src/test/fixtures/`
 - Co-located logic for a component: `<component-kebab>.logic.ts`
 - Tests: `<subject>.test.ts` for logic, `<subject>.test.tsx` for rendering
 - Barrel-style module entry: `index.ts` (used only by `src/measurement/`)
@@ -134,6 +158,16 @@ ZERO-PAPERHUB/
 **New form field:**
 - Add a `QualifyField` to the product's `qualify.fields` and place its name in a `groups` entry; validation is derived, not hand-written. Never use a name in `RESERVED_EMAIL_LABELS`.
 
+**New reporting logic:**
+- Add to `src/reporting/`, importing siblings with an explicit `.ts` extension and erasable syntax only
+- Take every side effect (`fetch`, `now`, `fs`) as an injected capability on the options object — never import `node:fs` or read `process.env` under `src/`
+- Owner-facing wording belongs in `src/reporting/haoo-report.ts`, never inline in `render.ts`
+- Extend the `.mjs` entry only when a new credential or origin is needed
+
+**New measurement event:**
+- Add the name to `HAOO_MEASUREMENT_EVENTS` and `interactionEventFlags` in `src/products/haoo.ts`, the disclosure line under `measurement.disclosure.signalLines`, and a label + stage in `src/reporting/haoo-report.ts` — the `Readonly<Record<HaooMeasurementEvent, …>>` maps make omissions typecheck failures
+- Configure the matching goal on the Plausible site; the browser sink sends the bare name only
+
 **Static asset:**
 - `public/` (root-served, hashed nothing) — reference by absolute path such as `/products/haoo/haoo-hero.png`
 
@@ -143,6 +177,8 @@ ZERO-PAPERHUB/
 ## Special Directories
 
 **`dist/`:** build output. Generated: yes. Committed: no (gitignored). Asserted by `src/test/build-output.test.ts`, so it must exist before `npm run test:unit`.
+
+**`.reports/`:** generated owner reports. Generated: yes (`npm run report:haoo`). Committed: no — gitignored because the documents carry aggregate HAOO business counts. `.tmp` siblings here are reserved exclusively during a run; a leftover one fails the next run closed and must be removed by hand.
 
 **`node_modules/`:** generated, not committed.
 
@@ -156,4 +192,4 @@ ZERO-PAPERHUB/
 
 ---
 
-*Structure analysis: 2026-09-01*
+*Structure analysis: 2026-09-02*
