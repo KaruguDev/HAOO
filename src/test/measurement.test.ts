@@ -552,6 +552,21 @@ function silentInitScope() {
   return { scope, provider, forwarded };
 }
 
+/**
+ * A pre-existing provider global that is truthy but not callable — the exact value the
+ * phase verifier probed. The declared `PlausibleGlobal` type forbids this shape, which is
+ * precisely why it needs coverage: an ambient page snippet, a tag manager, or a browser
+ * extension can leave any value at all on the shared global, and the type system does not
+ * reach across that boundary. The original object is returned alongside the scope so a
+ * caller can assert reference identity rather than only structural equality.
+ */
+function nonFunctionGlobalScope() {
+  const original = { o: 'foreign' };
+  const scope: PlausibleScope = { plausible: original as unknown as PlausibleGlobal };
+
+  return { scope, original };
+}
+
 function silentConsole() {
   return {
     log: vi.spyOn(console, 'log').mockImplementation(() => undefined),
@@ -821,6 +836,25 @@ describe('fail-closed provider initialization', () => {
     sink?.('haoo_page_view');
     expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
   });
+
+  it('returns no sink and appends no script when the pre-existing global is not callable', () => {
+    const documentRef = document.implementation.createHTMLDocument('non-callable');
+    const { scope, original } = nonFunctionGlobalScope();
+
+    expect(
+      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
+    ).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    // A truthy non-function value is somebody else's state too. The classification
+    // refuses it before anything is installed, so it is never overwritten by the stub
+    // and there is nothing to restore.
+    expect(scope.plausible).toBe(original as unknown as PlausibleGlobal);
+    expect(typeof scope.plausible).not.toBe('function');
+    expect(Object.keys(original)).toEqual(['o']);
+    expect(original.o).toBe('foreign');
+    expect(Object.prototype.hasOwnProperty.call(original, 'q')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(original, 'init')).toBe(false);
+  });
 });
 
 /**
@@ -893,6 +927,30 @@ describe('fail-closed provider initialization in the full journey', () => {
     expect(Object.prototype.hasOwnProperty.call(provider, 'o')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(provider, 'q')).toBe(false);
     expect(forwarded).toEqual([]);
+  });
+
+  // Written as its own case rather than a `refusedRows` row: that table is typed against
+  // the callable fixtures' return shape, which carries a `forwarded` array a non-callable
+  // global cannot have. There is no provider call to record here because there is no
+  // provider — the assertion that nothing was collected is the zero script count.
+  it('keeps the whole journey working when the pre-existing global is not callable', () => {
+    const spies = silentConsole();
+    const documentRef = document.implementation.createHTMLDocument('non-callable-journey');
+    const { scope, original } = nonFunctionGlobalScope();
+    const measurement = configuredMeasurement(documentRef, scope, new MemoryStorage());
+
+    measurement.initialize();
+
+    expect(measurement.track('haoo_brochure_download')).toBe(true);
+    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    expect(measurement.track('haoo_qualify_start')).toBe(true);
+    expect(measurement.readContext().flags.qualifyStarted).toBe(true);
+    expect(measurement.track('haoo_self_onboarding')).toBe(true);
+    expect(measurement.readContext().flags.selfOnboarding).toBe(true);
+
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    expect(scope.plausible).toBe(original as unknown as PlausibleGlobal);
+    expectSilent(spies);
   });
 });
 
