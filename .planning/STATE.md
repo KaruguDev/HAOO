@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Report and Enrich the HAOO Funnel Truthfully
 status: executing
-stopped_at: Completed 04-12-PLAN.md
-last_updated: "2026-09-02T10:50:52.317Z"
+stopped_at: Completed 04-13-PLAN.md
+last_updated: "2026-09-02T11:11:54.138Z"
 last_activity: 2026-09-02
 last_activity_desc: Phase 04 execution started
-state_head: 0502780abd183f2e0c1a6b1ce1dfad317173d0a9
+state_head: 971ef3abd3134b3bd17d4dea24d3ec00275fa914
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
   percent: 40
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 3 of 14
+Plan: 14 of 14
 Total Plans in Phase: 14
 Status: Ready to execute
 Last activity: 2026-09-02 — Phase 04 execution started
@@ -80,6 +80,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P10 | 7 min | 2 tasks | 3 files |
 | Phase 04 P11 | 10 min | 2 tasks | 2 files |
 | Phase 04 P12 | 5 min | 2 tasks | 3 files |
+| Phase 04 P13 | 8 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-11 promotes no requirement status: requirements-completed is left empty despite the template asking for the plan requirement IDs — The plan prohibitions forbid promoting a requirement checkbox, and MEAS-01 and MEAS-08 both retain open human gates in 04-VERIFICATION.md
 - [Phase 04]: A defined non-callable pre-existing provider global is refused before anything is written to the scope, rather than replaced and then restored — Restoring would mean the value had already been destroyed; the declared truth forbids replacement rather than merely requiring repair, so the classification decides before it assigns
 - [Phase 04]: The unreachable stub-removal branch was deleted along with the two 04-09 claims it backed, rather than made reachable — Making it reachable would require installProviderStub to return a stub that can fail its own initialization, weakening the one component in the module the project fully controls; the honest outcome is fewer claims, not more machinery
+- [Phase 04]: Gap 3 closed as a documentation-accuracy gap: the recorded-opt-out control is unchanged and only the claims about it were corrected — 04-VERIFICATION.md classified it that way and routed the adopted-path echo to a live human gate; closing it in code would have silently retired a gate kept open on purpose (T-04-55, transfer)
+- [Phase 04]: 04-09's D1 coverage row is now human_judgment: true with a manual_procedural entry at status unknown, keeping its two original passing checks — The assertion depends on the vendor script honouring the recorded value; no test in this tree can observe it, so verify-work must route D1 to a human rather than auto-pass on structural evidence
 
 ### Pending Todos
 
@@ -204,6 +207,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T10:50:32.565Z
-Stopped at: Completed 04-12-PLAN.md
+Last session: 2026-09-02T11:11:54.029Z
+Stopped at: Completed 04-13-PLAN.md
 Resume file: None
