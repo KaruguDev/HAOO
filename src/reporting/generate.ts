@@ -9,6 +9,7 @@ import {
 } from './haoo-report.ts';
 import { parseGoalCounts } from './stats-response.ts';
 import { validateEchoedQuery } from './query-provenance.ts';
+import type { EchoedQueryRejection } from './query-provenance.ts';
 import { renderReport } from './render.ts';
 import type { PeriodWindow, ReportPeriodId } from './haoo-report.ts';
 import type { ReportModel, ReportPeriodModel } from './render.ts';
@@ -31,8 +32,23 @@ import type { ReportModel, ReportPeriodModel } from './render.ts';
  * erasable syntax only and imports by explicit `.ts` extension.
  */
 
-/** The Plausible site reporting timezone; the report states it and derives its days in it. */
+/**
+ * The Plausible site reporting timezone; the report states it and derives its days in it.
+ *
+ * It is a repository-owned assertion, so it is checked against the provider rather than
+ * trusted: every echoed range carries the site's own UTC offset, and a disagreement aborts
+ * the run with `TIMEZONE_MISMATCH_REASON` instead of the generic query failure. Without
+ * that check a site configured in another timezone made the all-time range fail only
+ * between midnight and the offset, so the command looked intermittently broken and its
+ * terminal advice pointed at the API key.
+ */
 const REPORT_TIMEZONE = 'Africa/Nairobi';
+
+/**
+ * The failure reason carrying the asserted timezone, so the owner command can name the
+ * setting to change. Consumed by `scripts/generate-haoo-report.mjs`.
+ */
+export const TIMEZONE_MISMATCH_REASON_PREFIX = 'timezone-mismatch:';
 const REPORT_TITLE = 'HAOO funnel report';
 
 export interface ReportQuery {
@@ -95,6 +111,25 @@ function reportDay(date: Date, timeZone: string): string {
 }
 
 /**
+ * Minutes east of UTC for the reporting timezone at a given instant, or null when the
+ * host's Intl data cannot express it. Null disables the offset comparison rather than
+ * failing the report: a missing local capability must never be reported as a provider
+ * misconfiguration.
+ */
+function zoneOffsetMinutes(date: Date, timeZone: string): number | null {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName')?.value ?? '';
+
+  if (name === 'GMT' || name === 'UTC') return 0;
+  const match = /^(?:GMT|UTC)([+-])(\d{2}):(\d{2})$/.exec(name);
+  if (match === null) return null;
+
+  const magnitude = Number(match[2]) * 60 + Number(match[3]);
+  return match[1] === '-' ? -magnitude : magnitude;
+}
+
+/**
  * The parent directory of a destination, extracted without importing a Node module so
  * every filesystem effect keeps arriving through the injected `ReportFs` capability and
  * this module keeps no host-specific seam.
@@ -138,6 +173,10 @@ interface RangeResult {
   readonly resolvedStart: string | null;
 }
 
+type RangeOutcome =
+  | { readonly ok: true; readonly result: RangeResult }
+  | { readonly ok: false; readonly reason: EchoedQueryRejection };
+
 /**
  * One aggregate query for one range. The key is passed only in the `Authorization`
  * header — never in the query object, never logged, and never returned.
@@ -150,7 +189,8 @@ async function queryRange(
   options: GenerateHaooReportOptions,
   range: PeriodWindow | 'all',
   today: string,
-): Promise<RangeResult | null> {
+  offsetMinutes: number | null,
+): Promise<RangeOutcome> {
   const requestBody = {
     site_id: options.query.siteId,
     metrics: ['events'],
@@ -167,21 +207,28 @@ async function queryRange(
     body: JSON.stringify(requestBody),
   });
 
-  if (!response.ok) return null;
+  if (!response.ok) return { ok: false, reason: 'invalid' };
 
   const body: unknown = await response.json();
-  const provenance = validateEchoedQuery(body, {
+  const echoed = validateEchoedQuery(body, {
     siteId: options.query.siteId,
     events: HAOO_REPORT_EVENTS,
     range,
     today,
+    offsetMinutes,
   });
-  if (provenance === null) return null;
+  if (!echoed.ok) return { ok: false, reason: echoed.reason };
 
   const counts = parseGoalCounts(body, HAOO_REPORT_EVENTS);
-  if (counts === null) return null;
+  if (counts === null) return { ok: false, reason: 'invalid' };
 
-  return { counts, resolvedStart: range === 'all' ? provenance.start : null };
+  return {
+    ok: true,
+    result: {
+      counts,
+      resolvedStart: range === 'all' ? echoed.provenance.start : null,
+    },
+  };
 }
 
 /** D-03 locks exactly these three bounded views. */
@@ -217,18 +264,31 @@ export async function generateHaooReport(
   try {
     const generatedAt = options.now();
     const today = reportDay(generatedAt, REPORT_TIMEZONE);
+    const offsetMinutes = zoneOffsetMinutes(generatedAt, REPORT_TIMEZONE);
     const periods: ReportPeriodModel[] = [];
+
+    // A refused echo that names the site's timezone is a configuration answer, not a
+    // query answer: it must reach the owner as itself rather than as "check the API key".
+    const failure = (
+      outcome: { readonly reason: EchoedQueryRejection },
+      fallback: string,
+    ): GenerateHaooReportResult => ({
+      ok: false,
+      reason: outcome.reason === 'timezone-mismatch'
+        ? `${TIMEZONE_MISMATCH_REASON_PREFIX}${REPORT_TIMEZONE}`
+        : fallback,
+    });
 
     // Query and validate every range before rendering anything: a report that claims
     // four periods must never be written when one of them failed.
     for (const days of BOUNDED_PERIOD_DAYS) {
       const windows = periodWindows(days, today);
 
-      const current = await queryRange(options, windows.current, today);
-      if (current === null) return { ok: false, reason: `invalid-current-${days}` };
+      const current = await queryRange(options, windows.current, today, offsetMinutes);
+      if (!current.ok) return failure(current, `invalid-current-${days}`);
 
-      const previous = await queryRange(options, windows.previous, today);
-      if (previous === null) return { ok: false, reason: `invalid-previous-${days}` };
+      const previous = await queryRange(options, windows.previous, today, offsetMinutes);
+      if (!previous.ok) return failure(previous, `invalid-previous-${days}`);
 
       const id = `last-${days}-days` as ReportPeriodId;
       const label = REPORT_PERIOD_LABELS[id];
@@ -240,28 +300,28 @@ export async function generateHaooReport(
         heading: `${label} · ${windows.current.start} to ${windows.current.end}`,
         comparisonLine: comparisonLine(days, windows.previous),
         window: windows.current,
-        empty: totalOf(current.counts) === 0,
-        counts: current.counts,
-        previousCounts: previous.counts,
+        empty: totalOf(current.result.counts) === 0,
+        counts: current.result.counts,
+        previousCounts: previous.result.counts,
       });
     }
 
-    const allTime = await queryRange(options, 'all', today);
-    if (allTime === null) return { ok: false, reason: 'invalid-all-time' };
+    const allTime = await queryRange(options, 'all', today, offsetMinutes);
+    if (!allTime.ok) return failure(allTime, 'invalid-all-time');
 
     periods.push({
       id: 'all-time',
       days: null,
       label: REPORT_PERIOD_LABELS['all-time'],
-      heading: allTimeHeading(allTime),
+      heading: allTimeHeading(allTime.result),
       comparisonLine: REPORT_ALL_TIME_COMPARISON,
       // The all-time window is named only when the provider resolved a first recorded
       // day; otherwise the document carries no dates for it rather than inventing them.
-      window: allTime.resolvedStart === null
+      window: allTime.result.resolvedStart === null
         ? null
-        : { start: allTime.resolvedStart, end: today },
-      empty: totalOf(allTime.counts) === 0,
-      counts: allTime.counts,
+        : { start: allTime.result.resolvedStart, end: today },
+      empty: totalOf(allTime.result.counts) === 0,
+      counts: allTime.result.counts,
       previousCounts: null,
     });
 

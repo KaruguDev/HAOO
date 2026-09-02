@@ -8,7 +8,10 @@ import {
   writeSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
-import { generateHaooReport } from '../src/reporting/generate.ts';
+import {
+  generateHaooReport,
+  TIMEZONE_MISMATCH_REASON_PREFIX,
+} from '../src/reporting/generate.ts';
 
 /**
  * The only credentialed module in the HAOO reporting path.
@@ -27,6 +30,19 @@ const ERROR_STATE_SENTENCE =
   'Report not updated. A query or validation check failed, so the previous report file '
   + 'was left unchanged. Check the API key and network connection, then run the command '
   + 'again.';
+
+/**
+ * The site's reporting timezone disagreed with the one this report states and derives its
+ * days in. That is a settings answer, not a credential or network answer, so it gets its
+ * own sentence naming the timezone rather than the generic error state.
+ */
+function timezoneMismatchSentence(timezone) {
+  return 'Report not updated. The analytics site reports in a different timezone than '
+    + `this report assumes (${timezone}), so the day boundaries disagree and the previous `
+    + 'report file was left unchanged. Set the site\'s reporting timezone to '
+    + `${timezone}, or change REPORT_TIMEZONE in src/reporting/generate.ts to match the `
+    + 'site, then run the command again.';
+}
 
 const ROOT = resolve(import.meta.dirname, '..');
 const OUTPUT_PATH = resolve(ROOT, '.reports/haoo-funnel-report.html');
@@ -67,7 +83,11 @@ if (missingVariables.length > 0) {
   });
 
   if (!result.ok) {
-    writeTerminalError(ERROR_STATE_SENTENCE);
+    writeTerminalError(
+      result.reason.startsWith(TIMEZONE_MISMATCH_REASON_PREFIX)
+        ? timezoneMismatchSentence(result.reason.slice(TIMEZONE_MISMATCH_REASON_PREFIX.length))
+        : ERROR_STATE_SENTENCE,
+    );
     process.exitCode = 1;
   } else {
     process.stdout.write(`HAOO funnel report written to ${result.outputPath}\n`);

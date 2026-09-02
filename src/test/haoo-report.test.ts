@@ -279,8 +279,39 @@ describe('validateEchoedQuery', () => {
 
   it('accepts exact bounded provenance without shifting offset timestamps through UTC', () => {
     expect(validateEchoedQuery(valid, expected)).toEqual({
-      start: '2026-02-23',
-      end: '2026-03-01',
+      ok: true,
+      provenance: { start: '2026-02-23', end: '2026-03-01', offset: '+03:00' },
+    });
+  });
+
+  it('refuses an echo whose offset disagrees with the timezone the caller derived today in', () => {
+    const utcEcho = {
+      query: {
+        ...valid.query,
+        date_range: ['2026-02-23T00:00:00Z', '2026-03-01T23:59:59Z'],
+      },
+    };
+
+    // Same days, different site timezone: the disagreement is provable on every range at
+    // every hour, so it must not be reported as a query or credential failure.
+    expect(validateEchoedQuery(utcEcho, { ...expected, offsetMinutes: 180 })).toEqual({
+      ok: false,
+      reason: 'timezone-mismatch',
+    });
+    expect(validateEchoedQuery(utcEcho, { ...expected, offsetMinutes: 0 })).toEqual({
+      ok: true,
+      provenance: { start: '2026-02-23', end: '2026-03-01', offset: 'Z' },
+    });
+  });
+
+  it('reads a bare-day all-time echo one day off today as a timezone disagreement', () => {
+    const dayBehind = {
+      query: { ...valid.query, date_range: ['2025-01-01', '2026-02-28'] },
+    };
+
+    expect(validateEchoedQuery(dayBehind, { ...expected, range: 'all' })).toEqual({
+      ok: false,
+      reason: 'timezone-mismatch',
     });
   });
 
@@ -296,26 +327,35 @@ describe('validateEchoedQuery', () => {
     ['impossible date', { date_range: ['2026-02-30', '2026-03-01'] }],
   ])('rejects %s', (_label, override) => {
     const query = override === null ? 'not-an-object' : { ...valid.query, ...override };
-    expect(validateEchoedQuery({ query }, expected)).toBeNull();
+    expect(validateEchoedQuery({ query }, expected)).toEqual({
+      ok: false,
+      reason: 'invalid',
+    });
   });
 
   it('tolerates provider-owned extra top-level query members', () => {
     expect(validateEchoedQuery(
       { query: { ...valid.query, order_by: [['events', 'desc']], include: {} } },
       expected,
-    )).toEqual({ start: '2026-02-23', end: '2026-03-01' });
+    )).toEqual({
+      ok: true,
+      provenance: { start: '2026-02-23', end: '2026-03-01', offset: '+03:00' },
+    });
   });
 
   it.each([
-    ['future start', ['2026-03-02', '2026-03-01']],
-    ['start after end', ['2026-02-02', '2026-02-01']],
-    ['stale end', ['2025-01-01', '2026-02-28']],
-    ['future end', ['2025-01-01', '2026-03-02']],
-  ])('rejects all-time %s', (_label, dateRange) => {
+    ['future start', ['2026-03-02', '2026-03-01'], 'invalid'],
+    ['start after end', ['2026-02-02', '2026-02-01'], 'invalid'],
+    ['distant stale end', ['2025-01-01', '2026-01-28'], 'invalid'],
+    // A single day either side of today is exactly what a reporting-timezone
+    // disagreement looks like, so it is refused with the reason that names it.
+    ['stale end', ['2025-01-01', '2026-02-28'], 'timezone-mismatch'],
+    ['future end', ['2025-01-01', '2026-03-02'], 'timezone-mismatch'],
+  ])('rejects all-time %s', (_label, dateRange, reason) => {
     expect(validateEchoedQuery(
       { query: { ...valid.query, date_range: dateRange } },
       { ...expected, range: 'all' },
-    )).toBeNull();
+    )).toEqual({ ok: false, reason });
   });
 });
 
