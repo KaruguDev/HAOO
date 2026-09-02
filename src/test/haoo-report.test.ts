@@ -878,7 +878,12 @@ describe('generateHaooReport', () => {
     try {
       const result = await generateHaooReport(generateOptions(fetchSpy, realFs, outputPath));
 
-      expect(result).toEqual({ ok: false, reason: 'generation-failed' });
+      // Named, not folded into the generic reason: a leftover sibling can never be
+      // fixed by checking the API key, and the owner cannot guess the path otherwise.
+      expect(result).toEqual({
+        ok: false,
+        reason: `temp-path-in-use:${temporaryPath}`,
+      });
       expect(readFileSync(temporaryPath, 'utf8')).toBe(activeBytes);
       expect(existsSync(outputPath)).toBe(false);
     } finally {

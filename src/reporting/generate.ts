@@ -49,6 +49,18 @@ const REPORT_TIMEZONE = 'Africa/Nairobi';
  * setting to change. Consumed by `scripts/generate-haoo-report.mjs`.
  */
 export const TIMEZONE_MISMATCH_REASON_PREFIX = 'timezone-mismatch:';
+
+/**
+ * The failure reason carrying the temporary sibling that could not be reserved.
+ *
+ * The sibling is a fixed name reserved exclusively, so it is also a cross-invocation
+ * mutex -- and an uncatchable termination between reservation and rename leaves it
+ * behind. Every later run then fails at reservation forever. Folding that into the
+ * generic reason told the owner to check the API key, which can never fix it, about a
+ * file inside a directory they are told never to inspect. The path travels with the
+ * reason so the terminal can name the one file to delete.
+ */
+export const TEMP_PATH_IN_USE_REASON_PREFIX = 'temp-path-in-use:';
 const REPORT_TITLE = 'HAOO funnel report';
 
 /** Per-request budget; see `ReportRequestInit.signal`. */
@@ -374,7 +386,16 @@ export async function generateHaooReport(
     // The fixed sibling is reserved exclusively only after every response validates
     // and the full document exists in memory. A competing invocation therefore fails
     // before writing and, because it never owns the sibling, must not remove it.
-    options.fs.reserveTempSync(temporaryPath);
+    try {
+      options.fs.reserveTempSync(temporaryPath);
+    } catch {
+      // Reported as itself rather than as a query failure: this invocation never owned
+      // the sibling, so it must not remove it, and only the owner can decide to.
+      return {
+        ok: false,
+        reason: `${TEMP_PATH_IN_USE_REASON_PREFIX}${temporaryPath}`,
+      };
+    }
     ownsTemporaryPath = true;
     options.fs.writeFileSync(temporaryPath, document);
     options.fs.renameSync(temporaryPath, options.outputPath);

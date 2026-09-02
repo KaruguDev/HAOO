@@ -10,6 +10,7 @@ import {
 import { resolve } from 'node:path';
 import {
   generateHaooReport,
+  TEMP_PATH_IN_USE_REASON_PREFIX,
   TIMEZONE_MISMATCH_REASON_PREFIX,
 } from '../src/reporting/generate.ts';
 
@@ -36,6 +37,17 @@ const ERROR_STATE_SENTENCE =
  * days in. That is a settings answer, not a credential or network answer, so it gets its
  * own sentence naming the timezone rather than the generic error state.
  */
+/**
+ * A previous run was killed between reserving its temporary sibling and renaming it onto
+ * the destination. Nothing is wrong with the credentials or the network, and no later run
+ * can succeed until that one file is removed -- so it is named verbatim.
+ */
+function temporaryPathSentence(temporaryPath) {
+  return 'Report not updated. A leftover temporary file from an interrupted run is '
+    + `holding the write path, so the previous report file was left unchanged. Delete `
+    + `${temporaryPath}, then run the command again.`;
+}
+
 function timezoneMismatchSentence(timezone) {
   return 'Report not updated. The analytics site reports in a different timezone than '
     + `this report assumes (${timezone}), so the day boundaries disagree and the previous `
@@ -47,6 +59,19 @@ function timezoneMismatchSentence(timezone) {
 const ROOT = resolve(import.meta.dirname, '..');
 const OUTPUT_PATH = resolve(ROOT, '.reports/haoo-funnel-report.html');
 const STATS_ENDPOINT = 'https://plausible.io/api/v2/query';
+
+/** The one terminal sentence a failure reason earns. */
+function reasonSentence(reason) {
+  if (reason.startsWith(TIMEZONE_MISMATCH_REASON_PREFIX)) {
+    return timezoneMismatchSentence(reason.slice(TIMEZONE_MISMATCH_REASON_PREFIX.length));
+  }
+
+  if (reason.startsWith(TEMP_PATH_IN_USE_REASON_PREFIX)) {
+    return temporaryPathSentence(reason.slice(TEMP_PATH_IN_USE_REASON_PREFIX.length));
+  }
+
+  return ERROR_STATE_SENTENCE;
+}
 
 function writeTerminalError(...lines) {
   writeSync(process.stderr.fd, `${lines.join('\n')}\n`);
@@ -83,11 +108,7 @@ if (missingVariables.length > 0) {
   });
 
   if (!result.ok) {
-    writeTerminalError(
-      result.reason.startsWith(TIMEZONE_MISMATCH_REASON_PREFIX)
-        ? timezoneMismatchSentence(result.reason.slice(TIMEZONE_MISMATCH_REASON_PREFIX.length))
-        : ERROR_STATE_SENTENCE,
-    );
+    writeTerminalError(reasonSentence(result.reason));
     process.exitCode = 1;
   } else {
     process.stdout.write(`HAOO funnel report written to ${result.outputPath}\n`);
