@@ -33,9 +33,9 @@ All three are public build-time configuration. Never put a secret in a `VITE_*` 
 - [ ] **Confirm the Site Installation snippet offers the base script, not an extension variant**
   - Location: Plausible Dashboard → Site Settings → Site Installation
   - Notes: Only `https://plausible.io/js/script.js` is approved. A variant URL such as `script.outbound-links.js`, `script.file-downloads.js`, `script.form-submissions.js`, `script.hash.js`, or `script.revenue.js` fails closed to no analytics at all — it does not partially enable capture. Widening the approved set is a reviewed change to `config/approved-analytics-script-sources.ts` plus a redeploy, never a variable edit.
-- [ ] **Confirm the integration does not rely on automatic capture**
+- [ ] **Confirm the integration records the automatic-pageview opt-out**
   - Location: Plausible Dashboard → Site Settings → Site Installation
-  - Notes: Application code disables automatic pageviews and emits only the ten explicit name-only events.
+  - Notes: Application code records the automatic-pageview opt-out in the provider options and re-reads it for the configured domain before any script is appended, and it emits only the ten explicit name-only events. That is a fail-closed gate on the application's own behaviour: no script and no event sink exist until the re-read succeeds. Whether the loaded vendor script honours the recorded value is not something this repository can prove — it is confirmed live, by the event-uniqueness item in the Verification section below.
 - [ ] **After approval, expose the three public values to the build**
   - Location: `.github/workflows/deploy.yml`, `Build` step `env` block
   - Notes: Add them beside `VITE_HAOO_FORM_ENDPOINT`; do not add `PLAUSIBLE_STATS_API_KEY`.
@@ -71,6 +71,26 @@ Expected results:
 - The HAOO journey continues to work if the analytics script is blocked or fails.
 - Each accepted action creates one name-only custom event and no automatic duplicate.
 - The owner report contains aggregate counts for the configured site without exposing the API key.
+
+These three human gates cannot be cleared by any command above. Perform each one and record
+the result; none of them is closed by a passing test or a green build. Until every item in
+this file has been performed and recorded, this file's header stays `Status: Incomplete`.
+
+- [ ] **Confirm live event uniqueness after production enablement**
+  - Owner: privacy/product owner
+  - Location: Plausible Dashboard → live view, with the HAOO page loaded once using the approved script and site values
+  - Expected: exactly one page-view occurrence for the visit, no additional automatic pageview, and no pageview carrying campaign parameter values.
+  - Notes: This is the gate the `D1` coverage row in `04-09-SUMMARY.md` now points at, recorded as `behavior_unverified_items` in `04-VERIFICATION.md`.
+- [ ] **Confirm no foreign provider global exists on the deployed page**
+  - Owner: privacy/product owner
+  - Location: the deployed HAOO page, browser console before the bundle runs
+  - Expected: no other snippet, tag manager, or extension defines the provider global before the bundle runs — it is undefined until the bundle installs its own stub, so the adoption path is never taken in production.
+  - Notes: Why this matters — a foreign callable global that merely assigns the options it receives passes the application's recorded-opt-out check, so only inspection of the deployed page can establish that no such global exists.
+- [ ] **Judge MVP outcome and privacy readability**
+  - Owner: privacy/product owner
+  - Location: one maximum-context enquiry summary read together with the generated report and the page disclosure, at a 320px viewport and 200% zoom, with keyboard and screen-reader navigation
+  - Expected: readable non-scoring prose, no identity or stage-progression claim, four period labels and every stage clarifier wrapping without clipping or overlap, 44px targets intact, and no body-level horizontal scroll.
+  - Notes: This gate also covers the five held-out visual considerations carried in 04-10's must_haves, so they are not orphaned.
 
 ---
 
