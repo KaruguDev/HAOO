@@ -85,12 +85,11 @@ function appendProviderScript(documentRef: Document, src: string): void {
 /**
  * The official pre-load stub: calls made before the site script arrives are pushed onto
  * `q` and drained by the script on load, so an accepted event emitted during the first
- * moments of a visit is not silently lost.
+ * moments of a visit is not silently lost. `init` assigns the options it receives to
+ * `o`, exactly as the documented vendor preload does, which is what makes the recorded
+ * opt-out readable and therefore confirmable below.
  */
-function ensureProvider(scope: PlausibleScope): PlausibleGlobal {
-  const existing = scope.plausible;
-  if (typeof existing === 'function') return existing;
-
+function installProviderStub(scope: PlausibleScope): PlausibleGlobal {
   const stub = function queuedProvider(...args: unknown[]) {
     (stub.q = stub.q ?? []).push(args);
   } as PlausibleGlobal;
@@ -103,12 +102,76 @@ function ensureProvider(scope: PlausibleScope): PlausibleGlobal {
 }
 
 /**
+ * Confirm the provider actually recorded the opt-out this project sent.
+ *
+ * The recorded slot is untrusted input: it may come from a foreign global, so it is
+ * inspected structurally rather than trusted to match its declared type. Requiring the
+ * recorded value — rather than merely a non-throwing `init` call — is what makes
+ * "automatic pageview capture is disabled" provable instead of assumed, and it is what
+ * closes a silent no-op initializer that a throw-only check would accept.
+ */
+function recordsOptOut(recorded: unknown, domain: string): boolean {
+  if (typeof recorded !== 'object' || recorded === null) return false;
+
+  const candidate = recorded as Partial<PlausibleInitOptions>;
+  return candidate.autoCapturePageviews === false && candidate.domain === domain;
+}
+
+/**
+ * Resolve a provider that is *known* to have disabled automatic capture, or `null`.
+ *
+ * Order of operations is the privacy contract: decide the provider, initialize it,
+ * confirm the recorded opt-out, and only then let the caller append the managed script.
+ * Every unconfirmed outcome returns `null`, so no script insertion and no event sink can
+ * exist while automatic capture is unproven.
+ *
+ * An ambient `window.plausible` defined by another snippet is untrusted input. It is
+ * adopted, never replaced or wrapped, and only when it exposes a usable initializer that
+ * records the opt-out. A pre-existing full provider implementation that does not expose
+ * the documented options slot is treated as unconfirmable and yields no sink — a
+ * deliberate fail-closed outcome for this privacy posture. When this call installed the
+ * stub itself, a refusal removes it again, so a refused initialization never leaves a
+ * partially initialized provider behind on a shared scope.
+ */
+function resolveInitializedProvider(
+  scope: PlausibleScope,
+  options: PlausibleInitOptions,
+): PlausibleGlobal | null {
+  const existing = scope.plausible;
+  const adopted = typeof existing === 'function';
+  const provider = adopted ? existing : installProviderStub(scope);
+
+  // No initializer means no way to establish the opt-out. Leave the foreign global
+  // byte-identical — attaching an `init`, an options slot, or a queue to somebody
+  // else's global is not this adapter's to do.
+  if (typeof provider.init !== 'function') return null;
+
+  function refuse(): null {
+    if (!adopted) delete scope.plausible;
+    return null;
+  }
+
+  try {
+    provider.init(options);
+    if (!recordsOptOut(provider.o, options.domain)) return refuse();
+  } catch {
+    // A throwing initializer leaves the opt-out unproven, which is indistinguishable
+    // from automatic capture being enabled. Refuse rather than guess.
+    return refuse();
+  }
+
+  return provider;
+}
+
+/**
  * Resolve the configured provider sink, or `undefined` when this build has none.
  *
  * Returns `undefined` — meaning the existing inert no-op path stays exactly as it is —
  * whenever the resolved provider is `'none'`, the validated script source is empty, or
  * the site domain is empty. That is the fail-closed default for an unset or
- * unrecognised build configuration.
+ * unrecognised build configuration. It also returns `undefined`, before any script is
+ * appended, whenever the provider has not been confirmed to have recorded
+ * `autoCapturePageviews: false` for the configured domain.
  *
  * When it does return a sink, that sink forwards exactly one argument: the bare event
  * name. It attaches no property bag, no form value, and no visitor identifier, because
@@ -131,16 +194,16 @@ export function createPlausibleEventSink<EventName extends string>(
   const documentRef = resolveDocument(adapters);
   if (scope === null || documentRef === null) return undefined;
 
-  appendProviderScript(documentRef, providerScript.src);
+  // Collection is refused until the recorded automatic-capture opt-out is confirmed:
+  // the script is appended only on a confirmed provider, so a managed script can never
+  // load while automatic capture is unproven.
+  const provider = resolveInitializedProvider(scope, {
+    domain: providerScript.domain,
+    autoCapturePageviews: false,
+  });
+  if (provider === null) return undefined;
 
-  try {
-    ensureProvider(scope).init?.({
-      domain: providerScript.domain,
-      autoCapturePageviews: false,
-    });
-  } catch {
-    // Initialization is isolated from every visitor action.
-  }
+  appendProviderScript(documentRef, providerScript.src);
 
   return (event: EventName) => {
     try {

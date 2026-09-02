@@ -488,7 +488,7 @@ interface RecordedProviderCall {
 function recordingScope() {
   const recorded: RecordedProviderCall[] = [];
 
-  function provider(this: unknown) {
+  const provider = function recordingProvider(this: unknown) {
     // The contract needs the real invocation arity: a rest parameter cannot
     // distinguish one argument from an explicit trailing `undefined`.
     // eslint-disable-next-line prefer-rest-params
@@ -498,9 +498,12 @@ function recordingScope() {
       args,
       arity: args.length,
     });
-  }
+  } as PlausibleGlobal;
   provider.init = (options: PlausibleInitOptions) => {
     recorded.push({ kind: 'init', args: [options], arity: 1 });
+    // Mirror the documented vendor preload: initialization records the options it was
+    // given, which is the observable fact the adapter confirms before collecting.
+    provider.o = options;
   };
 
   const scope: PlausibleScope = { plausible: provider };
@@ -785,6 +788,38 @@ describe('fail-closed provider initialization', () => {
     expect(documentRef.querySelectorAll('script')).toHaveLength(0);
     expect(scope.plausible).toBe(provider);
     expect('o' in provider).toBe(false);
+  });
+
+  it('returns no sink when the existing initializer records no options', () => {
+    const documentRef = document.implementation.createHTMLDocument('silent-init');
+    const { scope, provider } = silentInitScope();
+
+    expect(
+      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
+    ).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
+    // A cosmetic initializer proves nothing about automatic capture, so a non-throwing
+    // call is not enough to unlock collection.
+    expect(scope.plausible).toBe(provider);
+    expect(provider.o).toBeUndefined();
+  });
+
+  it('installs, initializes, and confirms the stub before appending the script', () => {
+    const documentRef = document.implementation.createHTMLDocument('confirmed');
+    const scope: PlausibleScope = {};
+
+    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+
+    expect(sink).toBeTypeOf('function');
+    expect(scope.plausible?.o).toEqual({
+      domain: SITE_DOMAIN,
+      autoCapturePageviews: false,
+    });
+    expect(scope.plausible?.q).toBeUndefined();
+    expect(documentRef.querySelectorAll('script')).toHaveLength(1);
+
+    sink?.('haoo_page_view');
+    expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
   });
 });
 
