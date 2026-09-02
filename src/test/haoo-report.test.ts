@@ -1087,10 +1087,33 @@ describe('credential and provider-origin boundary', () => {
     expect(generate).not.toContain(credentialName ?? 'PLAUSIBLE_STATS_API_KEY');
   });
 
-  it('lints the credentialed script through a dedicated ESLint block', () => {
-    const config = readFileSync(resolve(ROOT, 'eslint.config.js'), 'utf8');
+  it('rule-checks the credentialed script and every other non-browser module', async () => {
+    // Asserted through ESLint's own config resolution rather than by pinning a glob
+    // literal: what matters is that these files actually receive rules, not how the
+    // block that supplies them happens to be spelled. Before this was enforced, the
+    // root build-config modules and the .mjs test preload were parsed by `eslint .`
+    // and checked against nothing at all.
+    const { ESLint } = await import('eslint');
+    const eslint = new ESLint({ cwd: ROOT });
 
-    expect(config).toContain("files: ['scripts/**/*.mjs']");
+    for (const file of [
+      'scripts/generate-haoo-report.mjs',
+      'scripts/verify-phase4-coverage.mjs',
+      'src/test/fixtures/haoo-report-cli-fetch-preload.mjs',
+      'eslint.config.js',
+      'postcss.config.js',
+      'tailwind.config.js',
+    ]) {
+      const resolved = await eslint.calculateConfigForFile(resolve(ROOT, file));
+
+      expect(Object.keys(resolved.rules ?? {}).length, `${file} receives no rules`)
+        .toBeGreaterThan(0);
+      // `no-undef` is the rule that catches a typo'd global, and it only helps if the
+      // Node globals are declared — the browser set above would flag `process` itself.
+      expect(resolved.rules?.['no-undef'], `${file} does not enable no-undef`).toBeTruthy();
+      expect(resolved.languageOptions?.globals, `${file} lacks Node globals`)
+        .toHaveProperty('process');
+    }
   });
 
   it('lets terminal diagnostics flush before exiting with a failure status', () => {
