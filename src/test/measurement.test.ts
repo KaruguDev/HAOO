@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMeasurement } from '../measurement';
-import { createPostHogEventSink, type PostHogScope } from '../measurement/posthog';
 import {
+  POSTHOG_REFUSAL,
+  createPostHogEventSink,
+  type PostHogScope,
+} from '../measurement/posthog';
+import {
+  POSTHOG_LOCKDOWN,
   TRANSPORT_REQUIRED_PROPERTIES,
   lockdownHolds,
   stripToBareName,
@@ -19,6 +24,8 @@ import type { MeasurementProvider, ProductMeasurement } from '../products/types'
 import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
 import {
   installPostHogVendorClient,
+  type VendorBeforeSend,
+  type VendorCaptureResult,
   type VendorPostHogScope,
 } from './fixtures/posthog-capture-contract';
 
@@ -495,6 +502,70 @@ function expectSilent(spies: ReturnType<typeof silentConsole>) {
   }
 }
 
+/**
+ * A refusal is visible, and it is the ONLY thing that is.
+ *
+ * D-05 makes a post-provider-check refusal observable to the owner, because a silently
+ * refusing bundled SDK and a genuinely dead funnel produce identical reports. The
+ * assertion is exact rather than "warned at least once" so the default channel cannot
+ * grow into provider chatter, which is what would train the owner to ignore it.
+ */
+function expectOnlyRefusalWarning(
+  spies: ReturnType<typeof silentConsole>,
+  reason: string,
+) {
+  expect(spies.warn.mock.calls).toEqual([[reason]]);
+  for (const [name, spy] of Object.entries(spies)) {
+    if (name === 'warn') continue;
+    expect(spy, `console.${name}`).not.toHaveBeenCalled();
+  }
+}
+
+/**
+ * The locked configuration as this project sends it, read once.
+ *
+ * The hostile table below is derived from these keys rather than restating them, so a key
+ * added to the lockdown without a hostile case is a test failure rather than a silent
+ * coverage hole (T-04.1-01).
+ */
+const LOCKED_CONFIGURATION = POSTHOG_LOCKDOWN(
+  APPROVED_HOST,
+  PROJECT_TOKEN,
+  HAOO_MEASUREMENT_EVENTS,
+) as Record<string, unknown>;
+const LOCKED_KEYS = Object.keys(LOCKED_CONFIGURATION);
+
+/**
+ * One wrong value per locked key, derived from the locked value's own shape.
+ *
+ * Derived rather than tabulated for the same reason the key list is: a hand-written table
+ * of wrong values would have to be extended by hand every time the lockdown grows, and the
+ * row that was never added is exactly the key that would drift unnoticed.
+ */
+function hostileValue(locked: unknown): unknown {
+  if (typeof locked === 'boolean') return !locked;
+  if (locked === null) return 'a value the lockdown requires to be null';
+  if (Array.isArray(locked)) return ['utm_term'];
+  if (typeof locked === 'function') return 'not a function';
+  if (typeof locked === 'string') return `${locked}-drifted`;
+  return 'drifted';
+}
+
+/** The transport shape a real capture arrives in, before the chokepoint reduces it. */
+function vendorPayload(
+  event: string,
+  properties: Record<string, unknown> = {
+    token: PROJECT_TOKEN,
+    distinct_id: 'contract-distinct-1',
+    $process_person_profile: false,
+    $current_url: PRODUCT_HREF,
+    $referrer: 'https://search.example/',
+    $lib: 'web',
+  },
+): VendorCaptureResult {
+  return { uuid: 'contract-envelope-1', event, properties };
+}
+
 describe('fail-closed provider resolution', () => {
   const providerRows: readonly [string, string | undefined, MeasurementProvider][] = [
     ['undefined', undefined, 'none'],
@@ -506,7 +577,9 @@ describe('fail-closed provider resolution', () => {
     ['an unknown word', 'matomo', 'none'],
     ['the superseded provider name', 'plausible', 'none'],
     ['an absolute URL', APPROVED_HOST, 'none'],
+    ['an absolute URL carrying the provider name', 'https://example.invalid/posthog', 'none'],
     ['a near miss with a suffix', 'posthog-eu', 'none'],
+    ['a near miss with a prefix', 'notposthog', 'none'],
     ['a near miss with an inner space', 'post hog', 'none'],
   ];
 
@@ -518,22 +591,43 @@ describe('fail-closed provider resolution', () => {
   );
 
   /**
-   * Tracer depth: one accepted host and the rejections that prove the comparison is an
-   * exact parsed-origin equality rather than a substring test. `04.1-05` Task 1 restores
-   * the full hostile table the superseded script-source resolver carried.
+   * Every row names its exact expected output rather than asserting a boolean.
+   *
+   * A was-rejected assertion passes for any falsy result, so a future resolver that
+   * returned some third value — a normalized-but-unapproved origin, say — would satisfy
+   * the rejection half of the table while silently changing what the provider is
+   * initialized against. Naming the output is what makes that impossible.
    */
   const apiHostRows: readonly [string, string | undefined, string][] = [
     ['the approved origin exactly', APPROVED_HOST, APPROVED_HOST],
     ['the approved origin surrounded by whitespace', `  ${APPROVED_HOST}  `, APPROVED_HOST],
+    ['the approved origin in upper case', APPROVED_HOST.toUpperCase(), APPROVED_HOST],
+    ['the approved host on a non-default port', `${APPROVED_HOST}:8443`, ''],
+    ['the approved host with a non-root path', `${APPROVED_HOST}/capture/`, ''],
+    ['the approved host over http', APPROVED_HOST.replace('https:', 'http:'), ''],
+    [
+      'the approved host carrying credentials',
+      APPROVED_HOST.replace('https://', 'https://someone:secret@'),
+      '',
+    ],
+    ['the approved host carrying a query', `${APPROVED_HOST}?probe=1`, ''],
+    ['the approved host carrying a fragment', `${APPROVED_HOST}#capture`, ''],
     ['a structurally valid foreign origin', 'https://ingest.attacker.example', ''],
     [
       'a lookalike host carrying the approved host as a leading label',
       `${APPROVED_HOST}.attacker.example`,
       '',
     ],
-    ['the approved host on a path', `${APPROVED_HOST}/capture/`, ''],
+    [
+      'a lookalike host that merely ends with the approved host',
+      APPROVED_HOST.replace('https://', 'https://attacker-'),
+      '',
+    ],
+    ['a protocol-relative reference', APPROVED_HOST.replace('https:', ''), ''],
+    ['an unparsable string', 'not a url at all', ''],
     ['undefined', undefined, ''],
     ['the empty string', '', ''],
+    ['whitespace only', '   \t ', ''],
   ];
 
   it.each(apiHostRows)(
@@ -546,11 +640,16 @@ describe('fail-closed provider resolution', () => {
   const tokenRows: readonly [string, string | undefined, string][] = [
     ['a well-formed project key', PROJECT_TOKEN, PROJECT_TOKEN],
     ['the same key surrounded by whitespace', `  ${PROJECT_TOKEN}  `, PROJECT_TOKEN],
-    ['a key with the wrong prefix', 'phx_tracerFixtureToken', ''],
+    ['a key with a near-miss prefix', 'phx_tracerFixtureToken', ''],
+    ['a key whose prefix differs only by case', 'PHC_tracerFixtureToken', ''],
     ['the bare prefix with nothing after it', 'phc_', ''],
-    ['a key carrying a forbidden character', 'phc_tracer.Fixture', ''],
+    ['a key carrying a dot', 'phc_tracer.Fixture', ''],
+    ['a key carrying a slash', 'phc_tracer/Fixture', ''],
+    ['a key carrying an inner space', 'phc_tracer Fixture', ''],
+    ['a key longer than the ceiling', `phc_${'a'.repeat(200)}`, ''],
     ['undefined', undefined, ''],
     ['the empty string', '', ''],
+    ['whitespace only', '  \t ', ''],
   ];
 
   it.each(tokenRows)('resolves %s to the named token', (_label, configured, expected) => {
@@ -569,42 +668,284 @@ describe('fail-closed provider resolution', () => {
 });
 
 describe('name-only provider sink', () => {
-  const unconfigured: readonly [string, ProductMeasurement<HaooMeasurementEvent>][] = [
-    ['the resolved provider is the no-op', { ...CONFIGURED_MEASUREMENT, provider: 'none' }],
-    ['the resolved token is empty', {
-      ...CONFIGURED_MEASUREMENT,
-      providerConfig: { token: '', apiHost: APPROVED_HOST },
-    }],
-    ['the resolved ingestion host is empty', {
-      ...CONFIGURED_MEASUREMENT,
-      providerConfig: { token: PROJECT_TOKEN, apiHost: '' },
-    }],
+  const unconfiguredRows: readonly [string, string, string][] = [
+    ['the resolved token is empty', '', APPROVED_HOST],
+    ['the resolved token is whitespace only', '   ', APPROVED_HOST],
+    ['the resolved ingestion host is empty', PROJECT_TOKEN, ''],
+    ['the resolved ingestion host is whitespace only', PROJECT_TOKEN, '  \t '],
   ];
 
-  it.each(unconfigured)('returns no sink when %s', (_label, config) => {
+  it.each(unconfiguredRows)(
+    'returns no sink, and attempts no initialization, when %s',
+    (_label, token, apiHost) => {
+      const scope: VendorPostHogScope = {};
+      const client = installPostHogVendorClient(scope);
+      const reasons: string[] = [];
+
+      expect(
+        createPostHogEventSink(
+          { ...CONFIGURED_MEASUREMENT, providerConfig: { token, apiHost } },
+          { scope: scope as PostHogScope, signalRefusal: (reason) => reasons.push(reason) },
+        ),
+      ).toBeUndefined();
+      // The configuration gate runs before any capability is resolved, so a build with a
+      // half-empty configuration never reaches the vendor at all.
+      expect(client.initializedToken()).toBeNull();
+      expect(client.capturedEvents()).toEqual([]);
+      expect(reasons).toEqual([POSTHOG_REFUSAL.unconfigured]);
+    },
+  );
+
+  it('returns no sink for the no-op provider without touching the client', () => {
     const scope: VendorPostHogScope = {};
     const client = installPostHogVendorClient(scope);
 
-    expect(createPostHogEventSink(config, { scope: scope as PostHogScope }))
-      .toBeUndefined();
+    expect(
+      createPostHogEventSink(
+        { ...CONFIGURED_MEASUREMENT, provider: 'none' },
+        { scope: scope as PostHogScope },
+      ),
+    ).toBeUndefined();
     expect(client.initializedToken()).toBeNull();
     expect(client.capturedEvents()).toEqual([]);
+  });
+
+  it('takes exactly one argument, so a property bag has no parameter to travel through', () => {
+    const scope: VendorPostHogScope = {};
+    installPostHogVendorClient(scope);
+
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+      scope: scope as PostHogScope,
+    });
+
+    expect(sink).toBeTypeOf('function');
+    expect(sink).toHaveLength(1);
+  });
+
+  it('delivers exactly one payload for an allowlisted name and none for any other', () => {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+      scope: scope as PostHogScope,
+    });
+
+    sink?.('haoo_page_view');
+    expect(client.deliveredPayloads()).toHaveLength(1);
+
+    // The sink forwards whatever it is handed; the allowlist runs on the way OUT, which
+    // is what drops a name the SDK itself would emit even when the call site is correct.
+    sink?.('haoo_page_view_extra' as HaooMeasurementEvent);
+    expect(client.capturedEvents()).toEqual(['haoo_page_view', 'haoo_page_view_extra']);
+    expect(client.deliveredPayloads()).toHaveLength(1);
+  });
+
+  /**
+   * The chokepoint as the vendor resolved it, not as this repository declares it.
+   *
+   * Reading `before_send` back off the merged configuration is what proves the function
+   * the provider will actually call is the one asserted here.
+   */
+  function resolvedBeforeSend(): VendorBeforeSend {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
+
+    createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope: scope as PostHogScope });
+
+    const beforeSend = client.initializedConfig()?.before_send;
+    expect(beforeSend).toBeTypeOf('function');
+
+    return beforeSend as VendorBeforeSend;
+  }
+
+  const droppedRows: readonly [string, VendorCaptureResult | null][] = [
+    ['a null payload', null],
+    ['an event the SDK emits for itself', vendorPayload('$pageview')],
+    ['a name that differs only by case', vendorPayload('HAOO_PAGE_VIEW')],
+    ['a name padded with whitespace', vendorPayload(' haoo_page_view ')],
+    [
+      'a name that normalizes to an allowlisted name under NFKC',
+      vendorPayload('hａoo_page_view'),
+    ],
+    ['an allowlisted name with an empty properties object', vendorPayload('haoo_page_view', {})],
+    [
+      'an allowlisted name missing one transport key',
+      vendorPayload('haoo_page_view', {
+        token: PROJECT_TOKEN,
+        distinct_id: 'contract-distinct-1',
+      }),
+    ],
+  ];
+
+  it.each(droppedRows)('emits nothing for %s', (_label, received) => {
+    expect(resolvedBeforeSend()(received)).toBeNull();
+  });
+
+  it('drops a payload whose properties object is absent rather than emitting it partially', () => {
+    const absent = { uuid: 'contract-envelope-1', event: 'haoo_page_view' };
+
+    expect(resolvedBeforeSend()(absent as unknown as VendorCaptureResult)).toBeNull();
+  });
+
+  it('matches event names by exact string equality, with no normalization at all', () => {
+    // The denormalized name renders as the allowlisted one and normalizes to it, which is
+    // exactly why an allowlist that called `.normalize()` would admit it.
+    expect('hａoo_page_view'.normalize('NFKC')).toBe('haoo_page_view');
+    expect(' haoo_page_view '.trim()).toBe('haoo_page_view');
+    expect('HAOO_PAGE_VIEW'.toLowerCase()).toBe('haoo_page_view');
+  });
+
+  it('emits exactly the three transport keys, in order, from a freshly built literal', () => {
+    const received = vendorPayload('haoo_qualify_submit');
+    const emitted = resolvedBeforeSend()(received);
+
+    expect(emitted).not.toBeNull();
+    expect(Object.keys(emitted?.properties ?? {})).toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+    expect(emitted?.properties).not.toBe(received.properties);
+  });
+
+  it('reduces a payload carrying thirty extra provider properties to exactly three', () => {
+    const properties: Record<string, unknown> = {
+      token: PROJECT_TOKEN,
+      distinct_id: 'contract-distinct-1',
+      $process_person_profile: false,
+    };
+    for (let index = 0; index < 30; index += 1) {
+      properties[`$provider_added_${index}`] = `value-${index}`;
+    }
+
+    const emitted = resolvedBeforeSend()(vendorPayload('haoo_page_view', properties));
+
+    expect(Object.keys(emitted?.properties ?? {})).toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
   });
 });
 
 describe('fail-closed provider initialization', () => {
-  it('returns no sink when the ambient slot is not callable and leaves it untouched', () => {
-    const original = { init: 'foreign' };
-    const scope: PostHogScope = { posthog: original };
+  it('names a distinct, non-empty gate in every refusal reason', () => {
+    const reasons = Object.values(POSTHOG_REFUSAL);
 
-    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope })).toBeUndefined();
-    // Somebody else's global is left byte-identical: not replaced, not wrapped, and not
-    // decorated with anything this adapter would have needed.
-    expect(scope.posthog).toBe(original);
-    expect(Object.keys(original)).toEqual(['init']);
+    expect(reasons.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(reasons).size).toBe(reasons.length);
+    for (const reason of reasons) {
+      expect(reason).toMatch(/^posthog:[a-z-]+$/);
+    }
   });
 
-  it('returns no sink when the ambient initializer throws', () => {
+  /**
+   * One hostile case per locked key, derived from the exported lockdown.
+   *
+   * This is D-04 gate 1 at full depth: a merged configuration that resolves ONE key wrong
+   * — and every other key right — must still yield no sink, attempt no capture, and say
+   * which gate refused. A representative sample would leave the untested keys free to
+   * drift on a version bump, which is the failure this table exists to make impossible.
+   */
+  it.each(LOCKED_KEYS.map((key) => [key] as const))(
+    'withholds the sink when the merged configuration resolves %s wrong',
+    (key) => {
+      const scope: VendorPostHogScope = {};
+      const client = installPostHogVendorClient(scope, {
+        [key]: hostileValue(LOCKED_CONFIGURATION[key]),
+      });
+      const reasons: string[] = [];
+
+      expect(
+        createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+          scope: scope as PostHogScope,
+          signalRefusal: (reason) => reasons.push(reason),
+        }),
+      ).toBeUndefined();
+      expect(client.capturedEvents()).toEqual([]);
+      expect(client.deliveredPayloads()).toEqual([]);
+      expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown]);
+    },
+  );
+
+  it('covers every locked key, so a key added without a hostile case fails here', () => {
+    expect(LOCKED_KEYS.length).toBeGreaterThanOrEqual(30);
+    expect(LOCKED_KEYS).toContain('before_send');
+    expect(LOCKED_KEYS).toContain('advanced_disable_flags');
+    expect(LOCKED_KEYS).toContain('token');
+  });
+
+  const hostileSlotRows: readonly [string, unknown][] = [
+    ['a non-callable value', { init: 'foreign' }],
+    ['a frozen object with no initializer', Object.freeze({ marker: 'frozen' })],
+    ['a string', 'posthog'],
+    ['a number', 7],
+  ];
+
+  it.each(hostileSlotRows)(
+    'refuses, signals, and leaves the ambient slot untouched when it holds %s',
+    (_label, ambient) => {
+      const scope: PostHogScope = { posthog: ambient };
+      const reasons: string[] = [];
+
+      expect(
+        createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+          scope,
+          signalRefusal: (reason) => reasons.push(reason),
+        }),
+      ).toBeUndefined();
+      // Somebody else's global is left byte-identical: not replaced, not wrapped, and not
+      // decorated with anything this adapter would have needed.
+      expect(scope.posthog).toBe(ambient);
+      expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
+    },
+  );
+
+  it('refuses when the ambient value exposes a throwing property getter', () => {
+    const ambient = {};
+    Object.defineProperty(ambient, 'init', {
+      get() {
+        throw new Error('hostile getter');
+      },
+    });
+    const scope: PostHogScope = { posthog: ambient };
+    const reasons: string[] = [];
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeUndefined();
+    expect(scope.posthog).toBe(ambient);
+    expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
+  });
+
+  it('refuses when reading the ambient slot itself throws', () => {
+    const scope: PostHogScope = {};
+    Object.defineProperty(scope, 'posthog', {
+      get() {
+        throw new Error('hostile slot');
+      },
+      configurable: true,
+    });
+    const reasons: string[] = [];
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeUndefined();
+    expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
+  });
+
+  it('refuses an empty ambient slot rather than installing a stub of its own', () => {
+    const scope: PostHogScope = {};
+    const reasons: string[] = [];
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeUndefined();
+    expect(scope.posthog).toBeUndefined();
+    expect(reasons).toEqual([POSTHOG_REFUSAL.absentClient]);
+  });
+
+  it('refuses, without throwing, when the initializer throws', () => {
     const scope: PostHogScope = {
       posthog: {
         init() {
@@ -612,29 +953,86 @@ describe('fail-closed provider initialization', () => {
         },
       },
     };
+    const reasons: string[] = [];
     let sink: ((event: HaooMeasurementEvent) => void) | undefined;
 
     expect(() => {
-      sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope });
+      sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      });
     }).not.toThrow();
     expect(sink).toBeUndefined();
+    expect(reasons).toEqual([POSTHOG_REFUSAL.initialization]);
   });
 
-  it('names the gate that refused through the injected refusal channel', () => {
+  const unreadableInstanceRows: readonly [string, unknown][] = [
+    ['a non-object', 'initialized'],
+    ['null', null],
+    ['undefined', undefined],
+    ['an object with no config to read back', { capture: () => undefined }],
+    ['an object whose config is not an object', { config: 'merged', capture: () => undefined }],
+  ];
+
+  it.each(unreadableInstanceRows)(
+    'refuses when the initializer returns %s',
+    (_label, instance) => {
+      const scope: PostHogScope = { posthog: { init: () => instance } };
+      const reasons: string[] = [];
+
+      expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      })).toBeUndefined();
+      expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown]);
+    },
+  );
+
+  it('refuses an initialized instance whose capture entry point is not callable', () => {
+    const scope: PostHogScope = {
+      posthog: {
+        init: (_token: string, config: Record<string, unknown>) => ({
+          config,
+          capture: 'not callable',
+        }),
+      },
+    };
     const reasons: string[] = [];
-    const original = { init: 'foreign' };
 
-    createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-      scope: { posthog: original },
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+      scope,
       signalRefusal: (reason) => reasons.push(reason),
-    });
+    })).toBeUndefined();
+    expect(reasons).toEqual([POSTHOG_REFUSAL.absentCapture]);
+  });
 
-    expect(reasons).toHaveLength(1);
-    expect(reasons[0]).toMatch(/\S/);
+  it('writes the refusal reason to the console when no channel is injected', () => {
+    const spies = silentConsole();
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope: { posthog: { init: 'foreign' } } }),
+    ).toBeUndefined();
+
+    // D-05: a silently refusing bundled SDK produces a report that reads as zero traffic
+    // and is indistinguishable from a genuinely dead funnel, so the default channel is
+    // observable rather than silent.
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
+  });
+
+  it('survives a refusal channel that throws', () => {
+    expect(() =>
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope: { posthog: { init: 'foreign' } },
+        signalRefusal: () => {
+          throw new Error('hostile channel');
+        },
+      }),
+    ).not.toThrow();
   });
 
   it('stays silent for the no-op provider, before any gate has an opinion', () => {
     const reasons: string[] = [];
+    const spies = silentConsole();
 
     createPostHogEventSink(
       { ...CONFIGURED_MEASUREMENT, provider: 'none' },
@@ -644,6 +1042,7 @@ describe('fail-closed provider initialization', () => {
     // An unconfigured build is not a refusal. Signalling here would make the channel
     // meaningless on the builds that matter.
     expect(reasons).toEqual([]);
+    expectSilent(spies);
   });
 });
 
@@ -679,7 +1078,7 @@ describe('fail-closed provider initialization in the full journey', () => {
     expect(measurement.readContext().flags.selfOnboarding).toBe(true);
 
     expect(scope.posthog).toBe(original);
-    expectSilent(spies);
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
   });
 });
 
