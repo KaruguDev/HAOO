@@ -338,3 +338,136 @@ the existing `refusedRows` table for a non-writable slot, a throwing getter, and
 
 _Verified: 2026-09-02T11:33:30Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+## Amendment — 2026-09-03, by Phase 04.1 (Migrate Measurement from Plausible to PostHog)
+
+**Amending phase:** `04.1-migrate-measurement-from-plausible-to-posthog`.
+**Nature of this amendment:** restatement only. **No row above is edited, and no verdict above
+is changed.** Everything above stands exactly as the verifier recorded it on
+2026-09-02T11:33:30Z. This block exists because Phase 04.1 replaced the measurement provider
+end to end, which would otherwise leave a number of verified claims above pointing at an
+adapter file, an approved script origin, and a set of environment variables that no longer
+exist. A claim left pointing at a deleted artifact is not a preserved claim — it is an
+unreadable one.
+
+Read the rows above as the record of what was true of Phase 4. Read this block for what each
+of those rows now names.
+
+### Restated: the artifacts the rows above cite
+
+| Row / evidence above cites | Now named by |
+|---|---|
+| The provider adapter `src/measurement/plausible.ts` | `src/measurement/posthog.ts` and `src/measurement/posthog-lockdown.ts`. The previous adapter file is deleted, not deprecated, and a build-output case asserts its absence so the deletion cannot be silently undone. |
+| The approved **script** origin `https://plausible.io` and approved path `/js/script.js`, held in `config/approved-analytics-script-sources.ts` | The approved **ingestion** origin `https://us.i.posthog.com`, held in `config/approved-analytics-hosts.ts`. This is a different kind of anchor: the old one approved where a script could be *fetched from*, the new one approves where events may be *sent to*. The script-source module and its build-time constant are deleted. |
+| `VITE_HAOO_PLAUSIBLE_SRC`, `VITE_HAOO_PLAUSIBLE_DOMAIN` | `VITE_HAOO_POSTHOG_TOKEN`, `VITE_HAOO_POSTHOG_API_HOST` |
+| `PLAUSIBLE_STATS_API_KEY`, `PLAUSIBLE_SITE_ID` | `POSTHOG_QUERY_API_KEY`, `POSTHOG_PROJECT_ID` |
+| `README.md:57-117` (the measurement-provider, dashboard-prerequisite, and report-credential sections) | The rewritten `README.md` measurement sections, plus `04.1-USER-SETUP.md` in this migration's phase directory. The line numbers above no longer resolve. |
+| `04-USER-SETUP.md` as the owner's activation document | `04.1-USER-SETUP.md` supersedes it for measurement activation. `04-USER-SETUP.md` is left unedited as the Phase 4 record. |
+| The preload-contract fixture `src/test/fixtures/plausible-preload-contract.ts` | `src/test/fixtures/posthog-capture-contract.ts`, which transcribes the vendor's `{uuid, event, properties}` capture result and starts a stub from the vendor's *documented defaults* so a readback assertion written against it cannot be vacuous. |
+
+### Restated: individual claims
+
+**User Flow Coverage — "Configure reporting" (✓ VERIFIED).** The verdict stands. The owner can
+still tell the two local report credentials from the public build variables, and still cannot
+widen the approved set from a deployment variable. What changed is which set is approved: the
+approved-origin contract is now the ingestion host, `VITE_HAOO_POSTHOG_API_HOST` can only select
+from it, and the repository-owned module still lives outside `src/`.
+
+**User Flow Coverage — "Run the local report" (✓ VERIFIED on fixtures).** The verdict stands. The
+mechanism is restated: what was seven site/range-correlated Stats API queries is now **eight**
+project/range-correlated requests to the provider's Query API — six bounded HogQL aggregates, the
+unbounded all-time aggregate, and a separate single-value first-recorded-day query. The provenance
+check is restated too: the previous provider echoed enough of the request to validate metrics,
+dimensions, filters and the resolved date range; this one echoes the submitted query text, so
+provenance is now a single byte-for-byte SQL equality. The report says so **in its own rendered
+caveat block**, not only here.
+
+**Goal Achievement / Roadmap criterion 1 (✗ BLOCKED) and Requirements Coverage MEAS-01 / MEAS-08
+(✗ BLOCKED).** Both verdicts stand and both requirement boxes remain unchecked. The blockers are
+restated, not cleared:
+- *Production collection deliberately unset* — still true. The provider variables remain unset.
+- *Three live human gates open* — re-scoped by this phase, and the re-scoping is itself recorded
+  rather than performed silently. Processor privacy approval is **re-opened** (a different
+  processor, a different region, a different retention posture — not inherited). The
+  ten-dashboard-goals gate is **retired by design**, because the migrated report counts raw event
+  names through a single aggregate and no goal has to exist. The one-action-one-event gate is
+  **kept and strengthened**. All five current gates live in `04.1-USER-SETUP.md`.
+- *The enablement path carries a page-unmounting defect on a blocked provider slot (gap 1)* —
+  see immediately below.
+
+**Gap 1 / finding CR-01 (🛑 BLOCKER) — re-armed, not inherited.** The specific defect is gone with
+the file that carried it: `src/measurement/plausible.ts` no longer exists. That alone would be a
+weak answer, because a defect that disappears with a rewrite has been *avoided*, not *guarded
+against*. Phase 04.1 therefore re-armed it as a live regression guard: plan `04.1-05` added a
+component-level `provider failure isolation` describe that renders the full journey against four
+hostile provider-slot shapes — a non-callable value, a frozen object, a read-only slot, and a
+throwing getter — and asserts in each case that the page stays mounted and that every brochure,
+assisted-contact, self-onboarding and form action remains operable through to the submitted state.
+That test was **red before the fix**: a throwing getter on the vendor's merged configuration
+escaped the adapter into `initialize()`, which runs inside the product page's mount effect. Both
+that readback and the facade's single provider call are now guarded. The Test Quality Audit row
+above recording `measurement.test.ts` as PARTIAL — "every fixture uses a writable, non-throwing
+slot, so the blocked-slot class is untested" — is answered by that work.
+
+**Human Verification item 2 — "confirm no foreign provider global exists on the deployed page."**
+Restated: the global to inspect is `window.posthog`, not `window.plausible`. The adopted-versus-
+installed rule survives the migration and is stricter: the adapter refuses a foreign or
+non-callable global outright under the named reason `posthog:foreign-provider-global`, and it
+installs no stub of its own.
+
+**`behavior_unverified_items` — "automatic pageview capture is disabled before the managed script
+loads."** Restated: there is no managed script any more; the SDK is a bundled dependency. The
+equivalent claim is that every automatic capture surface is set to an explicit off and **re-read
+off the merged configuration the vendor produced** before any event sink exists — a per-key
+readback covering DOM autocapture, automatic page views and page leaves, session replay, surveys,
+heatmaps, exception capture and web vitals, with `advanced_disable_flags` and
+`disable_external_dependency_loading` closing the remote-configuration route a project-UI toggle
+would ride in on. The `why_human` reasoning is unchanged and still binds: the repository can prove
+it wrote and re-read those values; only a live view can observe what the vendor's running code
+does. That is the strengthened one-action-one-event gate in `04.1-USER-SETUP.md`.
+
+**Prohibition rows naming `plausible.ts`** — "No control-flow change to `plausible.ts` by 04-13"
+(✓ HELD), "No pre-existing provider value read, replaced, wrapped, or deleted on a refusal path"
+(⚠️ FLAGGED), and findings WR-03 and IN-06. All four concerned a file that no longer exists. Their
+verdicts stand as the Phase 4 record. The prohibition they were protecting — touch nothing that
+is not ours, and never state vendor runtime behaviour as fact — is carried forward into
+`src/measurement/posthog.ts`, which classifies the slot before writing anything to it, refuses
+under seven distinct named reasons, and routes every post-provider-check refusal to an
+owner-visible channel so a refusing provider cannot be mistaken for a dead funnel.
+
+**Prohibition row — "No open human gate converted into an automated acceptance criterion"
+(✓ HELD).** Still held, and deliberately re-held by this phase. No MEAS-01 or MEAS-08 checkbox was
+promoted by Phase 04.1, and the two settings that a code-level privacy claim depends on but no
+code can assert — "Discard client IP data", and leaving the automatic-capture toggles alone — are
+recorded as owner gates with their declining branch costed, not absorbed as accepted caveats.
+
+### Restated: the capability-audit command
+
+The Probe Execution table above records the Phase 4 capability audit as
+`node scripts/verify-phase4-coverage.mjs .planning/phases/04-.../COVERAGE.md` — exit 0, 41
+capabilities. **That command now validates this migration's coverage matrix, not the Phase 4
+one.** Plan `04.1-02` migrated the verifier and its boundary checks; the argument it is run with
+is now the `COVERAGE.md` in the `04.1-*` phase directory. The Phase 4 run recorded above is a
+historical result and is not reproducible against the current tree.
+
+### Not restated, deliberately
+
+**`04-08`'s delivery-mechanism guarantee is withdrawn, not migrated.** The analytics code is no
+longer a script fetched from a repository-approved origin, so the bundle-level origin guarantee
+that plan established cannot be restated in the new architecture — the built bundle necessarily
+carries the vendor's own code and its own default host. Plan `04.1-01` recorded the withdrawal
+in source rather than performing it by deletion, and named the successor:
+`PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`, asserted only over production source, proving that
+the ingestion host literal never enters a module under `src/` and reaches a bundle by exactly one
+route — the provider-gated build-time constant. The provider-unset build's inertness is now proven
+at runtime and by scanning an actually-built bundle, rather than by a source string scan.
+
+**No data migration accompanies this restatement.** The previous provider was never activated in
+production — this document's own record of "production collection deliberately unset" is the
+evidence — so there is no live dashboard to tear down, no history to lose, and no all-time
+discontinuity. All-time counts begin at first PostHog ingestion, and the generated report states
+that in its own caveat block.
+
+_Amended: 2026-09-03 by plan 04.1-08. Appended only; nothing above this block was edited._

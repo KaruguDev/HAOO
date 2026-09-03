@@ -55,36 +55,39 @@ Activating the endpoint and confirming live mail for `info@haoo.online` — subm
 ## HAOO measurement provider
 
 `VITE_HAOO_MEASUREMENT_PROVIDER` is a public build-time selector for the HAOO
-measurement sink. Its finite accepted set is `none` and `plausible`. An unset,
+measurement sink. Its finite accepted set is `none` and `posthog`. An unset,
 blank, `none`, or unrecognised value selects the inert no-op sink. Production
 enablement is currently deferred: do not set the provider variables until the
 analytics processor and collection have received separate privacy-owner approval.
 
 Three public build-time variables configure collection:
 
-- `VITE_HAOO_MEASUREMENT_PROVIDER` — set to the literal `plausible` to select the
+- `VITE_HAOO_MEASUREMENT_PROVIDER` — set to the literal `posthog` to select the
   provider; every other value fails closed to `none`.
-- `VITE_HAOO_PLAUSIBLE_SRC` — the site-specific script URL from Plausible's Site
-  Installation settings. It must be an absolute `https:` URL with no credentials,
-  query, or fragment and a path ending in `.js`; otherwise no sink is created.
-  It must **also** be on the approved analytics origin `https://plausible.io` and
-  use the approved path `/js/script.js`. Any other origin or path — including an
-  extension-variant script such as an outbound-links, file-downloads, form-capture,
-  hash-routing, or revenue build — resolves to no sink at all.
-- `VITE_HAOO_PLAUSIBLE_DOMAIN` — the site domain configured in Plausible. An empty
-  value leaves collection disabled.
+- `VITE_HAOO_POSTHOG_TOKEN` — the public project API key, from the project's
+  settings in the provider dashboard. It is accepted only when the trimmed value
+  matches the exact `phc_` prefix shape and stays inside the length ceiling;
+  every other value resolves to the empty string and no sink is created.
+- `VITE_HAOO_POSTHOG_API_HOST` — the ingestion destination. It must be an
+  absolute `https:` URL with no credentials, query, or fragment, whose path is
+  exactly the root, and whose origin equals an approved ingestion origin exactly.
+  Any other value — a foreign origin, a lookalike host that merely contains the
+  approved host, the approved host on another port, or the approved host carrying
+  a path — resolves to no sink at all.
 
-### The approved script source is repository configuration, not a deployment value
+### The approved ingestion host is repository configuration, not a deployment value
 
-The approved origin/path set lives in `config/approved-analytics-script-sources.ts`,
-which is version-controlled and outside `src/`. `VITE_HAOO_PLAUSIBLE_SRC` can only
-ever *select from* that set — it can never widen it. Approving another origin or
-another path is a reviewed repository change plus a redeploy; it is never a
-deployment-variable edit. This is what stops a changed or tampered build variable
-from loading arbitrary first-party JavaScript on the product page.
+The approved origin set lives in `config/approved-analytics-hosts.ts`, which is
+version-controlled and outside `src/`. `VITE_HAOO_POSTHOG_API_HOST` can only ever
+*select from* that set — it can never widen it. Exactly one origin is approved,
+and the EU ingestion origin is deliberately absent rather than listed-and-unused,
+so a build cannot be pointed at a region the visitor-facing disclosure does not
+name. Approving another origin is a reviewed repository change plus a redeploy;
+it is never a deployment-variable edit. This is what stops a changed or tampered
+build variable from redirecting the product page's analytics traffic.
 
-A rejected value fails closed, not open: no script element is appended, no provider
-global is created, and the product journey and the bounded local engagement context
+A rejected value fails closed, not open: no provider is initialized, no event
+sink is created, and the product journey and the bounded local engagement context
 keep working exactly as they do with no analytics configured at all.
 
 Vite inlines every `VITE_*` value into the world-readable JavaScript bundle.
@@ -93,45 +96,75 @@ pass all three through the deploy workflow's `Build` step `env` block alongside
 `VITE_HAOO_FORM_ENDPOINT`. With any missing or rejected value, the product journey
 continues normally and the bounded local engagement context still works.
 
-The sink sends exactly one bare allowlisted event name per explicit action. It
-disables automatic pageview capture and does not enable automatic outbound-link,
-download, form, revenue, or hash-routing capture. It sends no event properties,
-form values, stable identifiers, retry buffer, or ordered clickstream.
+The sink sends exactly one bare allowlisted event name per explicit action. Every
+automatic capture surface — DOM autocapture, automatic page views and page leaves,
+session replay, surveys, heatmaps, exception capture, and web vitals — is set to
+an explicit off and then re-read off the merged configuration the vendor produced
+before any sink exists; if a single one of them reads back wrong, no sink is
+returned. It sends no event properties, form values, stable identifiers, retry
+buffer, or ordered clickstream, and it creates no person profile.
 
-### Plausible dashboard prerequisite
+### The analytics code is bundled, not fetched — and what that changed
 
-Before enabling collection, create custom-event goals for all ten names in
-`HAOO_MEASUREMENT_EVENTS`: `haoo_page_view`, `haoo_brochure_preview`,
-`haoo_brochure_open`, `haoo_brochure_download`, `haoo_qualify_start`,
-`haoo_qualify_submit`, `haoo_assisted_whatsapp`, `haoo_assisted_phone`,
-`haoo_assisted_email`, and `haoo_self_onboarding`. Create them in Plausible under
-Site Settings → Goals → Add goal → Custom event. Plausible does not backfill events
-into a goal created later, so enabling first would permanently omit earlier activity
-from the owner report.
+The analytics code used to be a script fetched at runtime from a
+repository-approved origin, and the build could prove that the only script URL it
+would ever accept came from that approved set. The SDK is now a pinned bundled
+dependency, so that bundle-level origin guarantee is **withdrawn** — the built
+bundle necessarily carries the vendor's own code and its own default host.
+
+Its named successor is narrower, and is asserted in its place: **the provider's
+ingestion host literal may not appear in any application source module under
+`src/`.** The origin reaches a bundle by exactly one route — the provider-gated
+build-time constant sourced from `config/approved-analytics-hosts.ts` — so a
+build that has not deliberately selected the provider inlines an empty approved
+list and cannot address the ingestion endpoint at all. That inertness is proven
+by building a provider-unset bundle and scanning it, rather than by a source
+string scan.
+
+### No dashboard goals are required
+
+The owner report queries raw event names through a single aggregate, so no
+dashboard goal has to exist for any of the ten names and none has to be created
+before enabling collection. Nothing can be permanently omitted by a goal created
+late.
+
+What the owner must do instead is set two things in the provider's project UI
+that no code here can assert — enable "Discard client IP data", and leave the
+automatic-capture toggles alone. Both, together with the full activation
+checklist and the five open human gates, are in `04.1-USER-SETUP.md`, under this
+migration's phase directory `.planning/phases/04.1-*/`. The directory is named by
+prefix here deliberately: its full name carries the removed provider's name, and
+this tree is being cleared of that literal.
 
 ### Report credential boundary
 
 The local report process requires two inputs that are separate from the three public
 browser build variables above:
 
-- `PLAUSIBLE_STATS_API_KEY` is a local-process secret. Never prefix it with `VITE_`,
-  add it to the browser build, commit it, or write it into a generated report. The
-  report command sends it only in the Stats API authorization header.
-- `PLAUSIBLE_SITE_ID` is the domain or hostname exactly as configured for the
-  Plausible site, including the same spelling. It is not a report label and must not
-  be entered as a URL with a scheme or path.
+- `POSTHOG_QUERY_API_KEY` is a local-process secret — a personal API key scoped to
+  this project, carrying the single permission the provider's UI labels *Query
+  Read*. Never prefix it with `VITE_`, add it to the browser build, commit it, or
+  write it into a generated report. The report command sends it only in an
+  `Authorization` header.
+- `POSTHOG_PROJECT_ID` is the numeric project id the report queries, from the
+  project's settings in the provider dashboard. It is not a report label and must
+  not be entered as a URL with a scheme or path.
 
 After both values are already set in the local shell, run the report without placing
-an example credential or domain in documentation:
+an example credential or project id in documentation:
 
 ```bash
-PLAUSIBLE_STATS_API_KEY="$PLAUSIBLE_STATS_API_KEY" PLAUSIBLE_SITE_ID="$PLAUSIBLE_SITE_ID" npm run report:haoo
+POSTHOG_QUERY_API_KEY="$POSTHOG_QUERY_API_KEY" POSTHOG_PROJECT_ID="$POSTHOG_PROJECT_ID" npm run report:haoo
 ```
+
+An environment still carrying one of the removed variable names fails loudly and
+names the rename, rather than reporting the new name as merely missing and sending
+you to create a credential you may already hold.
 
 Application code receives query results through an injected capability and never sees
 the key or provider endpoint. Production collection remains deferred until the privacy
-owner approves it, all ten dashboard goals exist, and the deploy workflow is configured
-with the three public `VITE_HAOO_*` values.
+owner approves the processor, the two project settings above are recorded, and the
+deploy workflow is configured with the three public `VITE_HAOO_*` values.
 
 ### Spam handling
 

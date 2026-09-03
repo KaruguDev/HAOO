@@ -67,6 +67,33 @@ one. The remaining categories (views, attempts, outbound clicks) are unchanged, 
 intent — never claiming confirmed delivery, customers, or completed onboarding — is preserved in
 full.*
 
+*Status note 2026-09-03 (Phase 04.1 measurement migration): the measurement provider was replaced
+end to end. This changes which MEAS-01 gates apply, and the change is recorded here rather than
+performed silently. **Processor privacy approval is re-opened** — the new processor is a different
+company, in a different region (the United States), with a different retention posture, and the
+previous approval is not inherited. **The ten-dashboard-goals gate is retired by design, not
+waived** — the migrated report submits a single aggregate that counts raw event names grouped by
+name, so no dashboard goal has to exist for any of the ten names and no activity can be
+permanently omitted by a goal created late; the gate is retired because the mechanism it protected
+no longer exists. **The one-action-one-event gate is kept and strengthened** — it now additionally
+confirms that no automatic page-view or interaction event accompanies each action and that no
+person profile was created, because the new provider's own defaults are precisely what would
+produce the duplicate that check exists to catch, and it is also the only check that confirms
+ingestion accepts a payload reduced to three transport properties. **The MEAS-08 live
+reconciliation gate is re-pointed** at the new provider and its documented command, and it is now
+also where the inclusive-boundary behaviour of the submitted query is confirmed, since this
+repository can assert the exact query text it sends but not the provider's evaluation of it. One
+gate is new: **suppressing server-side geo-IP enrichment is an owner-performed project setting the
+code cannot assert** — the client-side option for it is documented by the vendor as having no
+effect, and the only in-code alternative would add a property to the payload and break the
+bare-name contract; declining it is a decision that forces both a payload change and an amendment
+to the visitor disclosure, and is costed as such rather than absorbed as a caveat. All five gates
+are written up in `04.1-USER-SETUP.md` under this migration's phase directory. **No box is checked
+and no status cell is changed by this note.** The code-level closure this migration delivers is
+necessary but not sufficient: MEAS-01 and MEAS-08 stay unchecked and `Gaps Found` until the gates
+above are cleared and recorded. No data migration is required or should be planned — the previous
+provider was never activated in production, so all-time counts simply begin at first ingestion.*
+
 ### Experience and Release Quality
 
 - [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
