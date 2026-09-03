@@ -1,16 +1,26 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { StrictMode, act } from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
+import type { PostHogScope } from '../measurement/posthog';
+import { TRANSPORT_REQUIRED_PROPERTIES } from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
   HAOO_MEASUREMENT_EVENTS,
   HAOO_PRODUCT,
 } from '../products/haoo';
 import { qualifyCollectionNotePageContext } from '../products/copy';
+import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
+import {
+  installPostHogVendorClient,
+  type InstalledVendorPostHogClient,
+  type VendorBeforeSend,
+  type VendorCaptureResult,
+  type VendorPostHogScope,
+} from './fixtures/posthog-capture-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
 /**
@@ -1043,5 +1053,264 @@ describe('Phase 4 disclosure of the attached engagement summary', () => {
     expect(source).toContain('disclosure.summaryIntro');
     expect(source).toContain('disclosure.summaryContents');
     expect(source).toContain('disclosure.summaryBoundary');
+  });
+});
+
+/**
+ * D-04 gate 2 — the network-payload regression.
+ *
+ * Gate 1 (`fail-closed provider initialization` in `measurement.test.ts`) asserts the
+ * merged CONFIGURATION at the initialization boundary. This describe asserts the PAYLOAD
+ * that would leave the page — the object `before_send` returns — across every event path
+ * of the whole journey.
+ *
+ * The two gates are deliberately independent rather than the same assertion written
+ * twice. A call-argument assertion, or a configuration-only assertion, passes a version
+ * bump that adds a property DOWNSTREAM of the call site; Phase 4 needed three
+ * gap-closure rounds on exactly that drift class, which is why one gate is demonstrably
+ * not enough (T-04.1-02).
+ */
+describe('network payload regression', () => {
+  const PROJECT_TOKEN = 'phc_regressionFixtureToken0123456789';
+  const APPROVED_HOST = APPROVED_ANALYTICS_HOSTS[0].origin;
+
+  /**
+   * The product exactly as shipped, with the provider selected.
+   *
+   * Only `provider` and `providerConfig` differ from `HAOO_PRODUCT`: every event name,
+   * interaction map and disclosure line is the shipped one, so the journey driven below
+   * is the journey a visitor drives.
+   */
+  const CONFIGURED_PRODUCT = {
+    ...HAOO_PRODUCT,
+    measurement: {
+      ...HAOO_PRODUCT.measurement,
+      provider: 'posthog' as const,
+      providerConfig: { token: PROJECT_TOKEN, apiHost: APPROVED_HOST },
+    },
+  };
+
+  /**
+   * Property names that must never appear on the wire.
+   *
+   * Redundant with the exact three-key assertion by construction — and deliberately so:
+   * if a future reducer ever grew the allowed set, this list names the specific channels
+   * (geo-IP, session, device, current URL, referrer, campaign, feature flags) that the
+   * privacy requirements forbid by name rather than by count.
+   */
+  const FORBIDDEN_PROPERTY_PATTERNS = [
+    /geoip/i,
+    /session/i,
+    /device/i,
+    /current_url/i,
+    /referrer/i,
+    /utm_|campaign/i,
+    /feature_flag|\$feature\//i,
+  ] as const;
+
+  interface JourneyRun {
+    readonly client: InstalledVendorPostHogClient;
+    readonly searchAtProviderResolution: string | null;
+    readonly storageKeysBefore: readonly string[];
+  }
+
+  function storageKeys(): readonly string[] {
+    return Array.from(
+      { length: window.localStorage.length },
+      (_unused, index) => window.localStorage.key(index) ?? '',
+    ).sort();
+  }
+
+  /**
+   * Render the product page with the provider configured and drive every one of the ten
+   * event paths a visitor can reach.
+   *
+   * The scope is a getter rather than a plain slot so the address bar can be sampled at
+   * the exact moment the provider is resolved. That is what proves campaign cleanup
+   * completes BEFORE a sink exists, rather than merely before the assertions run.
+   *
+   * The ten paths this drives, and the interaction that drives each — written as a map
+   * for a reader auditing exhaustiveness, never as the expected set, which is derived
+   * from the exported tuple so an eleventh allowlisted name fails rather than passes:
+   *
+   * - `haoo_page_view` — the render itself
+   * - `haoo_brochure_preview` — the preview intersecting and then loading
+   * - `haoo_brochure_open` — the open-in-new-tab link
+   * - `haoo_brochure_download` — the download link
+   * - `haoo_assisted_whatsapp` — the WhatsApp contact link
+   * - `haoo_assisted_phone` — the phone contact link
+   * - `haoo_assisted_email` — the email contact link
+   * - `haoo_self_onboarding` — the self-onboarding link
+   * - `haoo_qualify_start` — first focus of the qualification form
+   * - `haoo_qualify_submit` — a validation-admitted send
+   */
+  async function runConfiguredJourney(initialUrl: string): Promise<JourneyRun> {
+    window.history.replaceState({}, '', initialUrl);
+    const storageKeysBefore = storageKeys();
+
+    const holder: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(holder);
+    let searchAtProviderResolution: string | null = null;
+    const scope: PostHogScope = {
+      get posthog() {
+        searchAtProviderResolution = window.location.search;
+        return holder.posthog;
+      },
+    };
+
+    let intersectionCallback: IntersectionObserverCallback | undefined;
+    class TestIntersectionObserver {
+      readonly root = null;
+      readonly rootMargin = '0px';
+      readonly thresholds = [0];
+
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback;
+      }
+
+      disconnect = vi.fn();
+      observe = vi.fn();
+      takeRecords = () => [];
+      unobserve = vi.fn();
+    }
+    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
+    const fetchSpy = vi.fn(() => Promise.resolve({ ok: true }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(
+      <ProductPage
+        product={CONFIGURED_PRODUCT}
+        measurementAdapters={{ providerAdapters: { scope } }}
+      />,
+    );
+
+    const brochure = screen.getByRole('region', { name: 'Brochure' });
+    const preview = within(brochure).getByRole('img', {
+      name: HAOO_PRODUCT.brochure.previewImageAlt,
+    });
+
+    act(() => {
+      intersectionCallback?.([
+        {
+          target: preview,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as unknown as IntersectionObserverEntry,
+      ], {} as IntersectionObserver);
+    });
+    fireEvent.load(preview);
+    clickWithoutNavigation(within(brochure).getByRole('link', {
+      name: /Open brochure.*new tab/i,
+    }));
+    clickWithoutNavigation(within(brochure).getByRole('link', {
+      name: 'Download brochure',
+    }));
+
+    for (const name of [
+      'Chat with HAOO on WhatsApp',
+      `Call ${HAOO_PRODUCT.contacts.phoneDisplay}`,
+      `Email ${HAOO_PRODUCT.contacts.email}`,
+      'Start with HAOO',
+    ]) {
+      clickWithoutNavigation(screen.getAllByRole('link', { name })[0]);
+    }
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+    fillValidQualification();
+    fireEvent.focus(screen.getByLabelText('Email address'));
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+
+    return { client, searchAtProviderResolution, storageKeysBefore };
+  }
+
+  /** Order-insensitive shape of what left the page: the name and its property key set. */
+  function payloadShape(payloads: readonly VendorCaptureResult[]): readonly string[] {
+    return payloads
+      .map((payload) => `${payload.event}:${Object.keys(payload.properties).join(',')}`)
+      .sort();
+  }
+
+  it('puts exactly the ten allowlisted bare names on the wire and nothing else', async () => {
+    const { client } = await runConfiguredJourney('/products/haoo/');
+    const payloads = client.deliveredPayloads();
+
+    // Derived from the exported tuple, never restated: an eleventh allowlisted name with
+    // no journey path is a failure here rather than an untested event.
+    expect(new Set(payloads.map((payload) => payload.event)))
+      .toEqual(new Set(HAOO_MEASUREMENT_EVENTS));
+    for (const payload of payloads) {
+      expect(HAOO_MEASUREMENT_EVENTS).toContain(payload.event);
+    }
+  });
+
+  it('drops any name the SDK itself would emit, at the wire rather than at the call site', async () => {
+    const { client } = await runConfiguredJourney('/products/haoo/');
+    const beforeSend = client.initializedConfig()?.before_send as VendorBeforeSend;
+
+    for (const emitted of ['$pageview', '$pageleave', '$autocapture', '$rageclick', '$web_vitals']) {
+      expect(beforeSend({
+        uuid: 'sdk-emitted-1',
+        event: emitted,
+        properties: { token: PROJECT_TOKEN, distinct_id: 'd', $process_person_profile: false },
+      })).toBeNull();
+    }
+  });
+
+  it('carries exactly the three transport properties on every payload', async () => {
+    const { client } = await runConfiguredJourney('/products/haoo/');
+    const payloads = client.deliveredPayloads();
+
+    expect(payloads.length).toBeGreaterThanOrEqual(HAOO_MEASUREMENT_EVENTS.length);
+    for (const payload of payloads) {
+      expect(Object.keys(payload.properties), payload.event)
+        .toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+    }
+  });
+
+  it('carries no geo-IP, session, device, URL, referrer, campaign or feature-flag property', async () => {
+    const { client } = await runConfiguredJourney('/products/haoo/');
+    const keys = client.deliveredPayloads().flatMap((payload) => Object.keys(payload.properties));
+
+    expect(keys.length).toBeGreaterThan(0);
+    for (const key of keys) {
+      for (const forbidden of FORBIDDEN_PROPERTY_PATTERNS) {
+        expect(key, `${key} matched ${forbidden}`).not.toMatch(forbidden);
+      }
+    }
+  });
+
+  it('emits an identical payload shape when campaign parameters are on the address bar', async () => {
+    const plain = await runConfiguredJourney('/products/haoo/');
+    const plainShape = payloadShape(plain.client.deliveredPayloads());
+
+    cleanup();
+    window.localStorage.clear();
+    vi.unstubAllGlobals();
+
+    const campaign = await runConfiguredJourney(
+      '/products/haoo/?utm_source=partner&utm_medium=email&utm_campaign=launch&ref=news',
+    );
+
+    // MEAS-06: the provider's own campaign capture is off, so the repository-side
+    // normalization in the facade stays the only path by which a campaign value is ever
+    // observed — and none of it reaches the wire.
+    expect(payloadShape(campaign.client.deliveredPayloads())).toEqual(plainShape);
+    expect(window.location.search).toBe('?ref=news');
+    // Sampled inside the provider slot getter: the address bar was already clean at the
+    // instant the provider was resolved, so no payload can precede the cleanup.
+    expect(campaign.searchAtProviderResolution).toBe('?ref=news');
+  });
+
+  it('writes no browser storage key beyond the Phase 3 engagement-context record', async () => {
+    const { client, storageKeysBefore } = await runConfiguredJourney('/products/haoo/');
+
+    expect(storageKeysBefore).toEqual([]);
+    // MEAS-03: `persistence: 'memory'` and `disable_persistence: true` mean the provider
+    // writes nothing to the browser at all, so the only new key is this project's own.
+    expect(storageKeys()).toEqual([CONTEXT_KEY]);
+    expect(window.sessionStorage.length).toBe(0);
+    expect(document.cookie).toBe('');
+    expect(client.deliveredPayloads().length).toBeGreaterThan(0);
   });
 });
