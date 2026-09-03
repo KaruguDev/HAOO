@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
+import { approvedAnalyticsHostsForProvider } from './config/approved-analytics-hosts';
 import { approvedScriptSourcesForProvider } from './config/approved-analytics-script-sources';
 
 // https://vitejs.dev/config/
@@ -27,6 +28,21 @@ export default defineConfig(({ mode }) => {
     define: {
       __HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__: JSON.stringify(
         approvedScriptSourcesForProvider(env.VITE_HAOO_MEASUREMENT_PROVIDER),
+      ),
+      /**
+       * The single route by which the approved analytics *ingestion host* may reach a
+       * bundle — the destination events are sent to, not a source a script is fetched
+       * from. The SDK is bundled rather than loaded from an approved script origin
+       * (D-02), so this is the origin that matters for what leaves the browser.
+       *
+       * Gated on the configured provider by the same normalization the runtime resolver
+       * uses, so a build that has not deliberately selected `posthog` inlines an empty
+       * array and carries no ingestion origin at all. No deployment variable can widen
+       * the contract: the list comes from version-controlled repository configuration,
+       * not from `env`. `VITE_HAOO_POSTHOG_API_HOST` may only ever select from it.
+       */
+      __HAOO_APPROVED_ANALYTICS_HOSTS__: JSON.stringify(
+        approvedAnalyticsHostsForProvider(env.VITE_HAOO_MEASUREMENT_PROVIDER),
       ),
     },
     build: {

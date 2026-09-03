@@ -52,3 +52,26 @@ interface ImportMeta {
 declare const __HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__:
   | readonly { readonly origin: string; readonly paths: readonly string[] }[]
   | undefined;
+
+/**
+ * Build-time approved analytics ingestion hosts (T-04.1-09).
+ *
+ * The destination events may be sent to, as distinct from the script source above: the
+ * PostHog SDK is bundled rather than fetched from an approved origin (D-02), so the
+ * ingestion host is the origin that governs what leaves the browser. Statically replaced
+ * by Vite from version-controlled repository configuration, gated on the resolved
+ * measurement provider, so a build that has not deliberately selected the provider
+ * inlines an empty array and carries no ingestion origin at all.
+ *
+ * Declared optional because it is genuinely absent under the test runner, which uses a
+ * separate config with no `define`. The resolver that reads it must therefore fail closed
+ * to an empty approved set rather than to a permissive one — an ingestion host the
+ * project never approved is precisely the failure this constant exists to prevent.
+ *
+ * No `import` or `export` may be added to this file: that would turn it into a module and
+ * silently drop the global `ImportMetaEnv` augmentation above, so the shape is written
+ * inline rather than imported from the configuration module.
+ */
+declare const __HAOO_APPROVED_ANALYTICS_HOSTS__:
+  | readonly { readonly origin: string }[]
+  | undefined;

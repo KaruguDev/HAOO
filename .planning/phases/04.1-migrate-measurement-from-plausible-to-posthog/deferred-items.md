@@ -51,3 +51,73 @@ prohibition — this entry is the pre-recorded answer for when that report arriv
   04.1-02 close-out commit; the counter itself is a gsd-core issue, not a project one, and every
   later plan in this phase will re-introduce the wrong denominator until it is fixed upstream or
   the contributions file is renamed.
+
+---
+
+## D2 — The selector-SET ingestion-host bundle assertion cannot fail until a reader exists
+
+**Found during:** `04.1-03` Task 3
+**File:** `src/test/build-output.test.ts` — `describe('approved analytics ingestion host boundary')`
+
+`04.1-03` Task 3 asked for a describe asserting both directions of the provider gate: *"with the
+selector set to the exact provider value the built bundle carries the approved origin exactly once,
+and with the selector unset the built bundle carries no ingestion origin at all."* Only the second
+half was implemented.
+
+**Why the first half was not implemented:** Vite substitutes a `define` only where a module
+*references* the constant; an unreferenced define emits nothing at all. Measured directly during
+execution:
+
+| Build | Constant has a reader? | Origin occurrences in `dist/assets/*.js` |
+|---|---|---|
+| `VITE_HAOO_MEASUREMENT_PROVIDER=plausible` | yes — `buildTimeApprovedScriptSources` in `src/products/haoo.ts` | `plausible.io` × 1 |
+| `VITE_HAOO_MEASUREMENT_PROVIDER=posthog` | **no** — nothing reads `__HAOO_APPROVED_ANALYTICS_HOSTS__` yet | `us.i.posthog.com` × 0 |
+| unset | n/a | both × 0 |
+
+`04.1-03` explicitly forbids touching `src/measurement/`, `src/products/`, or `src/components/`, so
+this plan cannot create the reader. An assertion written here would therefore have had to expect
+zero occurrences for a selector-SET build — passing for the wrong reason, and continuing to pass if
+the define were deleted outright. That is the precise failure mode `04.1-01` established a pattern
+against.
+
+**When it becomes assertable:** `04.1-04`, in the same commit that adds the PostHog resolver reading
+`__HAOO_APPROVED_ANALYTICS_HOSTS__`.
+
+**Suggested handling in `04.1-04`:** add the selector-SET case to the existing
+`approved analytics ingestion host boundary` describe, mirroring the measured table above — a build
+with `VITE_HAOO_MEASUREMENT_PROVIDER=posthog` carries the approved origin exactly once. The
+selector-UNSET case, the source-derivation wiring case, the frozen-list case, the exact-equality
+normalization case, and the import-graph case are all already in place and green, and the
+absence case was proven falsifiable by mutation probe.
+
+## D3 — `VITE_HAOO_POSTHOG_TOKEN` / `VITE_HAOO_POSTHOG_API_HOST` declarations deferred to `04.1-04`
+
+**Found during:** `04.1-03` Task 3
+**File:** `src/vite-env.d.ts`
+
+`04.1-03` Task 3 asked for both keys to be added to the exhaustive `ImportMetaEnv` interface. Adding
+them turns `it('declares no public build variable no production source reads')` red — measured, not
+predicted:
+
+```
+- []
++ [ "VITE_HAOO_POSTHOG_TOKEN", "VITE_HAOO_POSTHOG_API_HOST" ]
+  src/test/build-output.test.ts:339
+```
+
+That invariant is bidirectional by design: every declared key must be read by a production source,
+and every key a production source reads must be declared. No production source reads either PostHog
+key until `04.1-04` adds the resolvers, so the declarations are dead in this plan.
+
+**Not fixed by widening the invariant**, because the invariant is exactly what catches a renamed or
+misspelled variable — which types as `any` under Vite's index signature, compiles clean, resolves to
+`undefined`, and fails closed to analytics silently off. Loosening it to tolerate declared-but-unread
+keys would remove the only build-time signal that hole has.
+
+**When it becomes assertable:** `04.1-04`, which should add the two declarations in the same commit
+as their readers. This is the exact additive mirror of the discipline `04.1-03` already states for
+the subtractive side — *"`04.1-04` removes the readers and what they read in one commit."*
+
+**Note:** the build-time constant `__HAOO_APPROVED_ANALYTICS_HOSTS__` was NOT deferred and is
+declared in `src/vite-env.d.ts` now. It is a `declare const`, not a `VITE_`-prefixed env key, so
+neither direction of the exhaustiveness scan applies to it.

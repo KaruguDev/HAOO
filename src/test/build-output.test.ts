@@ -10,6 +10,10 @@ import {
 import { HAOO_PRODUCT } from '../products/haoo';
 import { qualifyCollectionNotePageContext } from '../products/copy';
 import { buildSubmissionBody } from '../components/qualify-form.logic';
+import {
+  APPROVED_ANALYTICS_HOSTS,
+  approvedAnalyticsHostsForProvider,
+} from '../../config/approved-analytics-hosts';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
@@ -180,12 +184,25 @@ const APPROVED_SOURCE_CONFIG_INPUT = {
 } as const;
 /** No production module may reach the approved-source contract by any specifier. */
 const APPROVED_SOURCE_MODULE_FORBIDDEN = /approved-analytics-script-sources/;
+/**
+ * The repository-owned approved analytics *ingestion hosts* and the build wiring that
+ * carries them. Same reasoning as the script-source contract above — outside `src/`, so
+ * not a production source input, but a build input all the same: editing the trusted host
+ * list changes what a configured build publishes, so a stale `dist` must fail freshness.
+ */
+const APPROVED_HOST_CONFIG_INPUT = {
+  contract: resolve(ROOT, 'config/approved-analytics-hosts.ts'),
+  viteConfig: resolve(ROOT, 'vite.config.ts'),
+} as const;
+/** No production module may reach the approved-host contract by any specifier. */
+const APPROVED_HOST_MODULE_FORBIDDEN = /approved-analytics-hosts/;
 const BUILD_INPUTS = [
   ...PRODUCTION_SOURCE_INPUTS,
   ...listFiles(resolve(ROOT, 'public')),
   resolve(ROOT, 'index.html'),
   SOURCE_HTML,
   APPROVED_SOURCE_CONFIG_INPUT.contract,
+  APPROVED_HOST_CONFIG_INPUT.contract,
   resolve(ROOT, 'vite.config.ts'),
   resolve(ROOT, 'package.json'),
 ];
@@ -802,6 +819,115 @@ describe('Phase 1 static build contracts', () => {
     expect(APPROVED_NOTICE_BUNDLE_SEGMENTS.length).toBeGreaterThan(1);
     for (const segment of APPROVED_NOTICE_BUNDLE_SEGMENTS) {
       expect(bundle, segment).toContain(segment);
+    }
+  });
+});
+
+/**
+ * The ingestion-host trust anchor (T-04.1-09), mirroring the approved-source assertions.
+ *
+ * Note what the mirror does and does not cover. The existing
+ * `injects the approved-source constant only through the provider-gated selector` case is
+ * a *source-derivation* test — it reads `vite.config.ts` and asserts the wiring — and this
+ * describe mirrors that shape faithfully, adding direct assertions on the selector itself
+ * because that is where the "provider-gated" claim is falsifiable today.
+ *
+ * The bundle half is asymmetric on purpose. Vite substitutes a `define` only where a
+ * module *references* it, so an unreferenced constant emits nothing at all. The
+ * script-source constant has a reader (`buildTimeApprovedScriptSources` in
+ * `src/products/haoo.ts`), so a `plausible`-selected build publishes that origin exactly
+ * once; the host constant has no reader until `04.1-04` adds the PostHog resolver, so a
+ * `posthog`-selected build publishes the ingestion origin zero times today. The
+ * selector-set bundle case is therefore deferred to `04.1-04`, where it first becomes
+ * capable of failing — asserting it here would pass for the wrong reason and would go on
+ * passing if the define were deleted. Recorded in the phase `deferred-items.md` (D2).
+ * The absence case below is asserted now, because it is true now and falsifiable now.
+ */
+describe('approved analytics ingestion host boundary', () => {
+  it('injects the approved-host constant only through the provider-gated selector', () => {
+    // Derived, not restated: a future edit that hardcodes an unconditional host list — or
+    // drops the constant altogether — fails here rather than silently publishing the
+    // ingestion origin in a provider-unset bundle.
+    const viteConfig = readText(APPROVED_HOST_CONFIG_INPUT.viteConfig);
+
+    expect(viteConfig).toMatch(/__HAOO_APPROVED_ANALYTICS_HOSTS__/);
+    expect(viteConfig).toMatch(
+      /approvedAnalyticsHostsForProvider\(\s*env\.VITE_HAOO_MEASUREMENT_PROVIDER,?\s*\)/,
+    );
+    expect(existsSync(APPROVED_HOST_CONFIG_INPUT.contract)).toBe(true);
+    expect(BUILD_INPUTS).toContain(APPROVED_HOST_CONFIG_INPUT.contract);
+  });
+
+  it('carries exactly one frozen approved ingestion origin', () => {
+    expect(APPROVED_ANALYTICS_HOSTS).toHaveLength(1);
+    expect(Object.isFrozen(APPROVED_ANALYTICS_HOSTS)).toBe(true);
+    expect(APPROVED_ANALYTICS_HOSTS.every((host) => Object.isFrozen(host))).toBe(true);
+
+    // A deployment variable may select from this list and can never add to it, so the
+    // list must be a fixed set of absolute https origins carrying nothing else — no
+    // path, no query, no credentials — that a resolver could later be tricked into
+    // treating as a prefix match.
+    for (const host of APPROVED_ANALYTICS_HOSTS) {
+      const url = new URL(host.origin);
+      expect(url.protocol).toBe('https:');
+      expect(url.origin).toBe(host.origin);
+      expect(url.pathname).toBe('/');
+      expect(`${url.username}${url.password}${url.search}${url.hash}`).toBe('');
+    }
+  });
+
+  it('selects the approved origin for the exact provider value and nothing else', () => {
+    // Same trim-and-lowercase normalization as `resolveMeasurementProvider`, so the build
+    // and the runtime cannot disagree about which provider is selected.
+    for (const accepted of ['posthog', 'PostHog', 'POSTHOG', '  posthog  ', '\tposthog\n']) {
+      expect(approvedAnalyticsHostsForProvider(accepted), accepted)
+        .toEqual(APPROVED_ANALYTICS_HOSTS);
+    }
+
+    // Unset, blank, whitespace, a near miss, and an absolute URL all select nothing. The
+    // near misses matter: an implementation using `includes`, `startsWith` or `endsWith`
+    // instead of exact equality would pass the accepted cases above and fail here.
+    const rejected = [
+      undefined,
+      '',
+      '   ',
+      'none',
+      'plausible',
+      'posthog-eu',
+      'posthogg',
+      'notposthog',
+      'post hog',
+      'https://us.i.posthog.com',
+    ];
+
+    for (const value of rejected) {
+      expect(approvedAnalyticsHostsForProvider(value), String(value)).toEqual([]);
+    }
+  });
+
+  it('keeps the approved-host contract out of every production module import graph', () => {
+    // The ingestion origin has exactly one route into a bundle: the deliberate build-time
+    // constant. An ordinary import from a production module would be a second route, and
+    // that route would publish the origin in the provider-unset bundle. Match the module
+    // by bare name so a relative specifier, a repository-relative path, and an aliased
+    // path are all caught.
+    for (const path of PRODUCTION_SOURCE_INPUTS) {
+      const source = readText(path);
+      const relativePath = relative(ROOT, path).replace(/\\/g, '/');
+      expect(source, `${relativePath} imports the approved-host contract`)
+        .not.toMatch(APPROVED_HOST_MODULE_FORBIDDEN);
+    }
+  });
+
+  it('ships the provider-unset bundle with no approved ingestion origin at all', () => {
+    // Derived from the contract rather than restated, so widening the approved list
+    // without widening the gate fails here. Absent entirely, not merely unused: a build
+    // that has not deliberately selected the provider cannot address the endpoint.
+    const bundle = builtBundleText();
+
+    for (const host of APPROVED_ANALYTICS_HOSTS) {
+      expect(bundle, host.origin).not.toContain(host.origin);
+      expect(bundle, host.origin).not.toContain(new URL(host.origin).hostname);
     }
   });
 });
