@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { StrictMode, act } from 'react';
+import { StrictMode, act, type ReactElement } from 'react';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
@@ -850,6 +850,236 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(footer.querySelector('.flex.flex-wrap')).not.toBeNull();
     expect(measurementLink.className).toContain('min-h-11');
     expect(measurementLink.className).not.toMatch(/truncate|line-clamp|whitespace-nowrap/);
+  });
+
+  /**
+   * Phase 04.1 re-verification of MEAS-04.
+   *
+   * D-08 changed the analytics processor and the country its data is processed in, and
+   * D-10 makes that a copy change to a surface Phase 4 already verified. A verified
+   * surface whose subject matter changed is not still verified, so it is re-asserted
+   * here rather than assumed.
+   *
+   * Every expected string is read from the shipped product record. The approved sentence
+   * is hand-typed NOWHERE in this file — one case below reads this file's own source and
+   * proves it — so an approved wording change cannot land on product data while a stale
+   * literal here keeps passing.
+   */
+  describe('Phase 04.1 processor and region disclosure', () => {
+    const { disclosure } = HAOO_MEASUREMENT;
+
+    /** A maximally populated record: every flag set, the highest bands, both raw values. */
+    const FULL_CONTEXT = {
+      version: 1,
+      visitBand: 'frequent',
+      lastSeenBand: 'today',
+      flags: {
+        brochureViewed: true,
+        brochureDownloaded: true,
+        qualifyStarted: true,
+        assistedContact: true,
+        selfOnboarding: true,
+      },
+      visitOrdinal: 9,
+      lastSeenDay: '2026-08-31',
+    };
+
+    function populatedStorage() {
+      return {
+        getItem: vi.fn(() => JSON.stringify(FULL_CONTEXT)),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
+        length: 1,
+      } satisfies Storage;
+    }
+
+    function disclosureElement() {
+      return screen
+        .getByText(disclosure.summary, { selector: 'summary' })
+        .closest('details') as HTMLElement;
+    }
+
+    function processorGroup(scope: HTMLElement) {
+      return within(scope).getByRole('region', { name: disclosure.processorHeading });
+    }
+
+    it('renders a labelled group carrying the approved processor statement', () => {
+      render(<ProductPage product={HAOO_PRODUCT} />);
+
+      const group = processorGroup(disclosureElement());
+      const groupText = group.textContent ?? '';
+
+      expect(within(group).getByText(disclosure.processorHeading)).toBeTruthy();
+      expect(within(group).getByText(disclosure.processorNote)).toBeTruthy();
+      expect(groupText.indexOf(disclosure.processorHeading))
+        .toBeLessThan(groupText.indexOf(disclosure.processorNote));
+    });
+
+    /**
+     * Ordering is asserted structurally — by the index of each labelled region in
+     * document order — rather than by matching markup, so a Tailwind class change
+     * cannot break it and a reordering cannot survive it.
+     */
+    it('positions the group after the campaign group and before the never-collected group', () => {
+      render(<ProductPage product={HAOO_PRODUCT} />);
+
+      const labels = within(disclosureElement())
+        .getAllByRole('region')
+        .map((section) => section.getAttribute('aria-label'));
+      const campaign = labels.indexOf(disclosure.campaignHeading);
+      const processor = labels.indexOf(disclosure.processorHeading);
+      const neverCollected = labels.indexOf(disclosure.neverCollectedHeading);
+
+      expect(campaign).toBeGreaterThanOrEqual(0);
+      expect(campaign).toBeLessThan(processor);
+      expect(processor).toBeLessThan(neverCollected);
+    });
+
+    /**
+     * The page-view context record is written at mount by Phase 3 and is not this
+     * group's doing, so the assertion is that OPENING the disclosure and reading the
+     * group changes nothing: the record is captured before the click and compared after.
+     * Asserting a null key here would only re-prove that the clear control works.
+     */
+    it('emits no measurement event and writes no storage key when the group is read', () => {
+      const eventSink = vi.fn();
+
+      render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+      eventSink.mockClear();
+
+      const before = window.localStorage.getItem(CONTEXT_KEY);
+      const keysBefore = Object.keys(window.localStorage);
+
+      fireEvent.click(screen.getByText(disclosure.summary, { selector: 'summary' }));
+
+      const group = processorGroup(disclosureElement());
+
+      expect(group.textContent).toContain(disclosure.processorNote);
+      expect(eventSink).not.toHaveBeenCalled();
+      expect(window.localStorage.getItem(CONTEXT_KEY)).toBe(before);
+      expect(Object.keys(window.localStorage)).toEqual(keysBefore);
+    });
+
+    /**
+     * The group reads nothing at runtime, so it has no empty, loading, or error state.
+     * Four conditions that change every runtime input the disclosure has access to must
+     * produce byte-identical markup.
+     */
+    it('renders identical markup with no context, full context, no provider, and a refusing provider', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      function groupMarkup(element: ReactElement) {
+        window.localStorage.clear();
+
+        const view = render(element);
+        const markup = view.container
+          .querySelector('#haoo-measurement-disclosure')
+          ?.querySelector(`[aria-label="${disclosure.processorHeading}"]`)?.outerHTML;
+
+        view.unmount();
+
+        return markup;
+      }
+
+      // The shipped product leaves the provider unset in this environment, so the
+      // baseline render IS the provider-unset condition.
+      expect(HAOO_PRODUCT.measurement.provider).toBe('none');
+
+      const baseline = groupMarkup(<ProductPage product={HAOO_PRODUCT} />);
+
+      expect(baseline).toBeTruthy();
+      expect(baseline).toContain(disclosure.processorNote);
+      expect(groupMarkup(
+        <ProductPage
+          product={HAOO_PRODUCT}
+          measurementAdapters={{ storage: populatedStorage() }}
+        />,
+      )).toBe(baseline);
+      expect(groupMarkup(
+        <ProductPage
+          product={CONFIGURED_PRODUCT}
+          measurementAdapters={{ providerAdapters: { scope: { posthog: { init: 'blocked' } } } }}
+        />,
+      )).toBe(baseline);
+      expect(groupMarkup(
+        <ProductPage
+          product={CONFIGURED_PRODUCT}
+          measurementAdapters={{
+            storage: populatedStorage(),
+            providerAdapters: { scope: { posthog: { init: 'blocked' } } },
+          }}
+        />,
+      )).toBe(baseline);
+    });
+
+    /**
+     * The approved words have one source. This reads the test file's own bytes to prove
+     * the assertions above derive from product data instead of restating the sentence,
+     * which is what makes the copy mutation probe in `build-output.test.ts` meaningful.
+     */
+    it('asserts the approved copy from product data rather than a restated literal', () => {
+      const source = readFileSync(
+        resolve(import.meta.dirname, 'measurement-page.test.tsx'),
+        'utf8',
+      );
+
+      expect(disclosure.processorHeading.length).toBeGreaterThan(0);
+      expect(disclosure.processorNote.length).toBeGreaterThan(0);
+      expect(source).toContain('disclosure.processorNote');
+      expect(source).toContain('disclosure.processorHeading');
+      expect(source).not.toContain(disclosure.processorNote);
+      expect(source).not.toContain(disclosure.processorHeading);
+    });
+
+    /**
+     * The locked Phase 3 prohibition, restated in the Phase 4 UI-SPEC: the disclosure
+     * describes the mechanism in fixed words and never reflects a measured value back at
+     * the visitor. Seeded with a campaign that could not occur by accident and with every
+     * flag set, the group's text must be exactly the two approved strings and nothing else.
+     */
+    it('reflects no runtime measurement value into the processor copy', () => {
+      window.history.replaceState(
+        {},
+        '',
+        '/products/haoo/?utm_source=zebrasource&utm_medium=zebramedium&utm_campaign=zebracampaign',
+      );
+
+      const { container } = render(
+        <ProductPage
+          product={HAOO_PRODUCT}
+          measurementAdapters={{ storage: populatedStorage() }}
+        />,
+      );
+      const group = container
+        .querySelector('#haoo-measurement-disclosure')
+        ?.querySelector(`[aria-label="${disclosure.processorHeading}"]`) as HTMLElement;
+      const markup = group.innerHTML;
+
+      expect(group.textContent)
+        .toBe(`${disclosure.processorHeading}${disclosure.processorNote}`);
+
+      for (const value of [
+        'zebrasource',
+        'zebramedium',
+        'zebracampaign',
+        'utm_source=',
+        FULL_CONTEXT.visitBand,
+        FULL_CONTEXT.lastSeenBand,
+        FULL_CONTEXT.lastSeenDay,
+        'visitOrdinal',
+        'lastSeenDay',
+      ]) {
+        expect(markup, value).not.toContain(value);
+      }
+      for (const flag of HAOO_MEASUREMENT.interactionFlags) {
+        expect(markup, flag).not.toContain(flag);
+      }
+      for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
+        expect(markup, key).not.toContain(key);
+      }
+    });
   });
 });
 
