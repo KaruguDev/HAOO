@@ -16,7 +16,7 @@ import { isPlainObject } from './untrusted.ts';
  *
  * A HogQL response returns `results` as positional arrays, so nothing in a row states
  * which member is the name and which is the count. A reordered projection would swap
- * them and parse cleanly into wrong numbers -- ten plausible integers attached to the
+ * them and parse cleanly into wrong numbers -- ten believable integers attached to the
  * wrong actions, with no refusal anywhere. Asserting the pair for exact equality is what
  * makes the positional read safe.
  */
