@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04.1
 current_phase_name: Migrate Measurement from Plausible to PostHog (INSERTED)
 status: executing
-stopped_at: Completed 04.1-04-PLAN.md
-last_updated: "2026-09-03T11:13:40.110Z"
+stopped_at: Completed 04.1-07-PLAN.md
+last_updated: "2026-09-03T18:41:29.115Z"
 last_activity: 2026-09-03
-last_activity_desc: Phase 04.1 execution resumed (wave continue)
-state_head: 970c73c017807d4690510bd2ec0e1fe2f44813fb
+last_activity_desc: Completed 04.1-07 — owner report migrated to the PostHog Query API
+state_head: bc38821dabffd8f41efa291680b63179dfba78b5
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 43
-  completed_plans: 37
+  completed_plans: 38
   percent: 33
 ---
 
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04.1 (Migrate Measurement from Plausible to PostHog (INSERTED)) — EXECUTING
-Plan: 4 of 8
-Total Plans in Phase: 8
-Status: Ready to execute
-Last activity: 2026-09-03 — Phase 04.1 execution resumed (wave continue)
+Plan: 5 of 9 complete (04.1-01..04.1-04 and 04.1-07; 04.1-05, 04.1-06, 04.1-08 outstanding)
+Total Plans in Phase: 9
+Status: Executing Phase 04.1
+Last activity: 2026-09-03 — Completed 04.1-07 (owner report migrated to the PostHog Query API)
 
-Progress: 27/28 milestone plans ([███░░░░░░░] 33%)
+Progress: 38/43 plans ([███░░░░░░░] 33%)
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ Progress: 27/28 milestone plans ([███░░░░░░░] 33%)
 | Phase 04.1 P02 | 4 min | 2 tasks | 2 files |
 | Phase 04.1 P03 | 14 min | 3 tasks | 6 files |
 | Phase 04.1 P04 | 25 min | 1 tasks | 15 files |
+| Phase 04.1 P07 | 7h 12m | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,9 @@ Recent decisions affecting current work:
 - [Phase 04.1]: The PostHog lockdown is confirmed by reading back every locked key off the merged configuration, not by a non-throwing init: the SDK reports a blank or duplicate project key through a log line, so the readback (which also re-asserts the resolved key) is the only gate that closes a silent no-op initializer
 - [Phase 04.1]: stripToBareName receives the allowed-event tuple as a parameter instead of importing the product module, keeping src/measurement generic over EventName as the Phase 3 contract requires
 - [Phase 04.1]: The deferred selector-set ingestion-host bundle case is proved by a real second vite build into a throwaway outDir (approved origin x1 selected, x0 unset), never by reading vite.config.ts - a source read would pass for the wrong reason and keep passing if the define were deleted
+- [Phase 04.1]: Owner report timezone is pinned inside the submitted HogQL rather than checked against a remote provider setting, retiring the timezone-mismatch failure mode entirely — PostHog echoes the query but not the project a query ran against, so a disagreement about day boundaries can no longer exist and the abort, its reason prefix, its rejection member and its terminal sentence were removed rather than ported
+- [Phase 04.1]: The all-time first recorded day is resolved by its own single-value HogQL query, making one report run eight provider requests instead of seven — The previous provider echoed the range it resolved for an open-ended query; PostHog echoes only the query text, so the day must be asked for rather than inferred, and a malformed answer aborts before any write
+- [Phase 04.1]: The report states the lost project-id echo and the all-time-since-first-ingest framing in two new REPORT_CAVEATS entries, in the document's own rendered words — MEAS-08 forbids silently dropping a provenance guarantee the new provider cannot supply; the caveat block is pinned by exact text against an independently authored copy, so the sentences cannot be quietly removed
 
 ### Pending Todos
 
@@ -220,6 +224,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-03T11:12:57.657Z
-Stopped at: Completed 04.1-04-PLAN.md
+Last session: 2026-09-03T18:41:03.381Z
+Stopped at: Completed 04.1-07-PLAN.md
 Resume file: None
