@@ -121,3 +121,76 @@ the subtractive side — *"`04.1-04` removes the readers and what they read in o
 **Note:** the build-time constant `__HAOO_APPROVED_ANALYTICS_HOSTS__` was NOT deferred and is
 declared in `src/vite-env.d.ts` now. It is a `declare const`, not a `VITE_`-prefixed env key, so
 neither direction of the exhaustiveness scan applies to it.
+
+---
+
+## D4 — No production module loads the pinned SDK, so the adapter finds an empty provider slot
+
+**Found during:** `04.1-04` Task 1
+**Files:** `src/measurement/posthog.ts`, and the phase plan set as a whole
+
+`04.1-04` builds the adapter exactly as its `<action>` specifies: the vendor client arrives
+either through `adapters.client` (tests) or from the ambient `scope.posthog` slot, and the
+lockdown object imports **only a type** from `posthog-js`. A type import is erased at build
+time, so nothing in the repository imports the SDK as a *value*.
+
+Measured, not assumed:
+
+```
+$ git grep -n "from 'posthog-js'" -- src
+src/measurement/posthog-lockdown.ts:1:import type { CaptureResult, PostHogConfig } from 'posthog-js';
+
+$ grep -o 'us\.i\.posthog\.com' dist/assets/*.js | wc -l
+0
+```
+
+**Consequence:** on a deployed, provider-selected build `window.posthog` is `undefined`,
+`resolveClient` returns `posthog:absent-provider-client`, and `createPostHogEventSink`
+returns `undefined`. The journey is unaffected — that is the fail-closed design working —
+but no event is ever ingested.
+
+**Not fixed here, deliberately, and it is not a free change.** Importing `posthog-js` as a
+value from a production module emits the vendor chunk into `dist/assets`, which turns two
+currently-green invariants red at once:
+
+| Invariant | Site | Why it fires |
+|---|---|---|
+| `ships the provider-unset bundle with no approved ingestion origin at all` | `src/test/build-output.test.ts` | the SDK's own default host literal ships inside the vendor chunk, in EVERY build including provider-unset |
+| `keeps the production bundle free of identity and ordered-emission channels` | `src/test/build-output.test.ts` | D1 above — a minified SDK carries browser-storage and identifier tokens of its own |
+
+Both are claims `04.1-01` and `04.1-03` established deliberately and proved falsifiable by
+mutation probe. Widening either one to accommodate an import is exactly the move `04.1-03`
+Task 2 instructs an executor to stop and report rather than make, and `04.1-04` does not
+name the change, so it is reported here rather than taken.
+
+**Suggested handling:** whichever plan turns ingestion on for real (`04.1-08` gates the
+live one-action-one-event confirmation) must decide the loading strategy AND restate the
+two invariants above in the same commit — most likely by scoping the provider-unset origin
+scan to the entry chunk, or by loading the SDK through a provider-gated dynamic import
+whose chunk is only emitted for a selected build. Neither is a test edit on its own; both
+are a recorded narrowing with a named successor, in the shape `04.1-01` established.
+
+## D5 — `git grep -il 'plausible' -- src config` is non-empty by design after `04.1-04`
+
+**Found during:** `04.1-04` Task 1
+**Files:** `src/reporting/generate.ts`, `src/test/haoo-report.test.ts`,
+`src/test/fixtures/haoo-report-cli-fetch-preload.mjs`
+
+The `04.1-04` plan's `<verification>` block asks for that grep to return nothing. It cannot
+at this plan, and the residue is not measurement code:
+
+- The **reporting** surface (`src/reporting/`, its CLI fixture and its suite) still names
+  the previous provider's Stats API, credentials and site id. Re-pointing it is `04.1-07`,
+  which owns those files; `04.1-04`'s `files_modified` does not list one of them.
+- Two **deliberate negative assertions** keep the name on purpose: a provider-resolution
+  row proving the superseded selector value now resolves to `'none'`, and an
+  approved-host-gate row proving it selects no ingestion origin. Deleting them would
+  remove the regression that catches a resurrection.
+- The phase directory is itself named `04.1-migrate-measurement-from-plausible-to-posthog`,
+  so any file citing a phase artifact path contains the word.
+
+Every Plausible **artifact** under `src/` and `config/` is gone — adapter, preload fixture,
+approved-source module, script-source define, build-time constant declaration, both
+environment-variable declarations, and the provider-union member. `04.1-08` Task 2's
+repository-wide negative grep should be scoped to those artifacts rather than to the bare
+word, or it will fail on its own phase directory name.
