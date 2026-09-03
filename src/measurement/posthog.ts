@@ -241,10 +241,23 @@ export function createPostHogEventSink<EventName extends string>(
     return undefined;
   }
 
-  if (!lockdownHolds(readProperty(instance, 'config'), {
-    apiHost: providerConfig.apiHost,
-    token: providerConfig.token,
-  })) {
+  let confirmed = false;
+  try {
+    confirmed = lockdownHolds(readProperty(instance, 'config'), {
+      apiHost: providerConfig.apiHost,
+      token: providerConfig.token,
+    });
+  } catch {
+    // The merged configuration is the LAST untrusted value on this path, and the readback
+    // is the only thing that reads it key by key. A throwing getter anywhere in it must be
+    // a refusal, not an exception: this call is reached from the facade's `initialize`,
+    // which runs inside the product page's mount effect, so a throw here would unmount the
+    // page over a third party's failure (the Phase 4 gap-1 shape, on the enablement path
+    // this phase turns on for the first time).
+    confirmed = false;
+  }
+
+  if (!confirmed) {
     signalRefusal(POSTHOG_REFUSAL.lockdown);
     return undefined;
   }

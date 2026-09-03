@@ -323,7 +323,17 @@ export function createMeasurement<const EventName extends string>(
     // initialized, so automatic capture cannot race ahead of address-bar cleanup. An
     // injected sink remains authoritative for tests and alternate adapters.
     if (eventSink === undefined) {
-      eventSink = createPostHogEventSink(config, adapters.providerAdapters);
+      try {
+        eventSink = createPostHogEventSink(config, adapters.providerAdapters);
+      } catch {
+        // Defence in depth, and the specific defect Phase 4 verification recorded as
+        // gap 1: this is the one provider call in this file, it runs inside the product
+        // page's mount effect, and an exception escaping it unmounts the page. The
+        // adapter is written to return a sentinel on every failure rather than throw, so
+        // reaching this branch means the adapter itself regressed — which is exactly when
+        // the visitor must not lose the journey.
+        eventSink = undefined;
+      }
     }
   }
 
