@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04.1
 current_phase_name: Migrate Measurement from Plausible to PostHog (INSERTED)
 status: executing
-stopped_at: Completed 04.1-03-PLAN.md
-last_updated: "2026-09-03T10:43:52.562Z"
+stopped_at: Completed 04.1-04-PLAN.md
+last_updated: "2026-09-03T11:13:40.110Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 04.1 execution resumed (wave continue)
-state_head: ac5c29071fd368036599b6e84e72f49b2e6b45e2
+state_head: 970c73c017807d4690510bd2ec0e1fe2f44813fb
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 43
-  completed_plans: 36
+  completed_plans: 37
   percent: 33
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04.1 (Migrate Measurement from Plausible to PostHog (INSERTED)) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-03 — Phase 04.1 execution resumed (wave continue)
@@ -83,6 +83,7 @@ Progress: 27/28 milestone plans ([███░░░░░░░] 33%)
 | Phase 04 P13 | 8 min | 3 tasks | 4 files |
 | Phase 04.1 P02 | 4 min | 2 tasks | 2 files |
 | Phase 04.1 P03 | 14 min | 3 tasks | 6 files |
+| Phase 04.1 P04 | 25 min | 1 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-09's D1 coverage row is now human_judgment: true with a manual_procedural entry at status unknown, keeping its two original passing checks — The assertion depends on the vendor script honouring the recorded value; no test in this tree can observe it, so verify-work must route D1 to a human rather than auto-pass on structural evidence
 - [Phase 04.1]: PostHog coverage matrix: every automatic-capture subtraction is a reasoned OPT-OUT row, so the D-03 lockdown is verifier-enforced rather than a configuration detail — A reasonless OPT-OUT is an undecided hole; the coverage verifier fails on one, proven by mutation probe
 - [Phase 04.1]: The PostHog Query API echoes query and hogql but not the project id — a weakening against the Plausible site_id provenance, recorded in COVERAGE.md rather than dropped silently — CONTEXT delegates report provenance with the binding constraint that any weakening must be stated explicitly
+- [Phase 04.1]: The PostHog lockdown is confirmed by reading back every locked key off the merged configuration, not by a non-throwing init: the SDK reports a blank or duplicate project key through a log line, so the readback (which also re-asserts the resolved key) is the only gate that closes a silent no-op initializer
+- [Phase 04.1]: stripToBareName receives the allowed-event tuple as a parameter instead of importing the product module, keeping src/measurement generic over EventName as the Phase 3 contract requires
+- [Phase 04.1]: The deferred selector-set ingestion-host bundle case is proved by a real second vite build into a throwaway outDir (approved origin x1 selected, x0 unset), never by reading vite.config.ts - a source read would pass for the wrong reason and keep passing if the define were deleted
 
 ### Pending Todos
 
@@ -194,6 +198,7 @@ None yet.
 - [Phase 4] 04-UI-SPEC.md still carries the superseded proposed C-1 clause; the owner approved the A-plus-campaign variant instead, so the UI-SPEC C-1 row and Surface B boundary description need reconciling to the shipped bytes.
 - [Phase 4] 04-UI-SPEC.md's Locked banned vocabulary list and its Caveat block copy contradict each other: the locked caveat contains people, sessions and customer. Plan 04-03 resolved this in code by scoping the ban to everything except the authored denial block; the UI-SPEC itself still needs amending to say so.
 - [Phase 4 verification] Plausible preload options use the wrong vendor contract; report responses do not validate echoed query provenance; rename failure can leave a temporary report; owner setup omits `PLAUSIBLE_SITE_ID`. See 04-VERIFICATION.md and plan gap closure before enabling production analytics.
+- No production module loads posthog-js as a value, so a deployed provider-selected build finds an empty provider slot and fails closed to no analytics. Importing it breaks two deliberately-established bundle invariants; see phase deferred-items D4 for the measured detail.
 
 ### Quick Tasks Completed
 
@@ -215,6 +220,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-03T10:43:52.454Z
-Stopped at: Completed 04.1-03-PLAN.md
+Last session: 2026-09-03T11:12:57.657Z
+Stopped at: Completed 04.1-04-PLAN.md
 Resume file: None
