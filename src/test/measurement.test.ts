@@ -1,24 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMeasurement } from '../measurement';
+import { createPostHogEventSink, type PostHogScope } from '../measurement/posthog';
 import {
-  createPlausibleEventSink,
-  type PlausibleGlobal,
-  type PlausibleInitOptions,
-  type PlausibleScope,
-} from '../measurement/plausible';
+  TRANSPORT_REQUIRED_PROPERTIES,
+  lockdownHolds,
+  stripToBareName,
+} from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
   HAOO_MEASUREMENT_EVENTS,
+  buildTimeApprovedAnalyticsHosts,
   resolveMeasurementProvider,
-  resolvePlausibleScriptSrc,
+  resolvePostHogApiHost,
+  resolvePostHogToken,
   type HaooMeasurementEvent,
 } from '../products/haoo';
 import type { MeasurementProvider, ProductMeasurement } from '../products/types';
+import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
 import {
-  APPROVED_ANALYTICS_SCRIPT_SOURCES,
-  approvedScriptSourcesForProvider,
-} from '../../config/approved-analytics-script-sources';
-import { installPlausibleVendorPreload } from './fixtures/plausible-preload-contract';
+  installPostHogVendorClient,
+  type VendorPostHogScope,
+} from './fixtures/posthog-capture-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
 const TODAY = new Date('2026-08-31T12:00:00.000Z');
@@ -452,120 +454,31 @@ describe('browser failure containment and clear result', () => {
 });
 
 /**
- * Phase 4 provider seam.
+ * Phase 4.1 provider seam — PostHog.
  *
- * The origin literals below are deliberate and confined to `src/test/`: the boundary
- * suite's source scan asserts that no file under `src/` outside `src/test/` contains an
- * analytics origin, so the origin can only ever enter a bundle through the public
- * build-time variable these rows exercise.
+ * The ingestion origin below is deliberate and confined to `src/test/`: the boundary
+ * suite's source scan asserts that no file under `src/` outside `src/test/` contains the
+ * provider's ingestion host, so the origin can only ever enter a bundle through the
+ * provider-gated build-time constant these rows exercise.
  *
- * The *accepted* source is not re-typed here — it is derived from the canonical
+ * The *accepted* host is not re-typed here — it is derived from the canonical
  * repository-owned contract, so deleting or changing the approved entry makes the
  * acceptance rows fail instead of letting the table drift away from the trusted list.
+ *
+ * These six describes run at TRACER DEPTH for exactly one wave. Every case removed with
+ * the Plausible adapter is enumerated, with its restoring `04.1-05` task, in
+ * `.planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-04-DELETED-PROVIDER-CASES.md`.
+ * That file is the authority on the reduction, not this comment.
  */
-const APPROVED_SOURCE = APPROVED_ANALYTICS_SCRIPT_SOURCES[0];
-const SCRIPT_SRC = `${APPROVED_SOURCE.origin}${APPROVED_SOURCE.paths[0]}`;
-const SITE_DOMAIN = 'www.zero-paperhub.com';
+const APPROVED_HOST = APPROVED_ANALYTICS_HOSTS[0].origin;
+const PROJECT_TOKEN = 'phc_tracerFixtureToken0123456789';
 const PRODUCT_HREF = 'https://www.zero-paperhub.com/products/haoo/';
 
 const CONFIGURED_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
   ...HAOO_MEASUREMENT,
-  provider: 'plausible',
-  providerScript: { src: SCRIPT_SRC, domain: SITE_DOMAIN },
+  provider: 'posthog',
+  providerConfig: { token: PROJECT_TOKEN, apiHost: APPROVED_HOST },
 };
-
-interface RecordedProviderCall {
-  readonly kind: 'init' | 'event';
-  readonly args: readonly unknown[];
-  readonly arity: number;
-}
-
-/**
- * A provider global that records call arity as the provider itself would see it.
- * `arguments.length` is the only way to prove the sink forwarded exactly one argument;
- * a rest-parameter spy cannot distinguish `f('x')` from `f('x', undefined)`.
- */
-function recordingScope() {
-  const recorded: RecordedProviderCall[] = [];
-
-  const provider = function recordingProvider(this: unknown) {
-    // The contract needs the real invocation arity: a rest parameter cannot
-    // distinguish one argument from an explicit trailing `undefined`.
-    // eslint-disable-next-line prefer-rest-params
-    const args = Array.from(arguments) as unknown[];
-    recorded.push({
-      kind: 'event',
-      args,
-      arity: args.length,
-    });
-  } as PlausibleGlobal;
-  provider.init = (options: PlausibleInitOptions) => {
-    recorded.push({ kind: 'init', args: [options], arity: 1 });
-    // Mirror the documented vendor preload: initialization records the options it was
-    // given, which is the observable fact the adapter confirms before collecting.
-    provider.o = options;
-  };
-
-  const scope: PlausibleScope = { plausible: provider };
-  return { scope, recorded };
-}
-
-/**
- * Three minimal provider globals, each isolating exactly one initialization defect an
- * ambient page snippet could present. Every one records forwarded calls, so asserting
- * that a refused initialization forwarded nothing is a real assertion and not a vacuous
- * one against a provider that could not have recorded a call in the first place.
- */
-function bareCallableScope() {
-  const forwarded: unknown[][] = [];
-  const provider = function bareCallable(...args: unknown[]) {
-    forwarded.push(args);
-  } as PlausibleGlobal;
-
-  const scope: PlausibleScope = { plausible: provider };
-  return { scope, provider, forwarded };
-}
-
-function throwingInitScope() {
-  const forwarded: unknown[][] = [];
-  const provider = function throwingInitCallable(...args: unknown[]) {
-    forwarded.push(args);
-  } as PlausibleGlobal;
-  provider.init = () => {
-    throw new Error('initializer unavailable');
-  };
-
-  const scope: PlausibleScope = { plausible: provider };
-  return { scope, provider, forwarded };
-}
-
-function silentInitScope() {
-  const forwarded: unknown[][] = [];
-  const provider = function silentInitCallable(...args: unknown[]) {
-    forwarded.push(args);
-  } as PlausibleGlobal;
-  // A cosmetic initializer: it neither throws nor records the opt-out, so nothing about
-  // automatic capture is established by calling it.
-  provider.init = () => undefined;
-
-  const scope: PlausibleScope = { plausible: provider };
-  return { scope, provider, forwarded };
-}
-
-/**
- * A pre-existing provider global that is truthy but not callable — the exact value the
- * phase verifier probed. The declared `PlausibleGlobal` type forbids this shape, which is
- * precisely why it needs coverage: an ambient page snippet, a tag manager, or a browser
- * extension can leave any value at all on the shared global, and the type system does not
- * reach across that boundary. The original object is returned alongside the scope so a
- * caller can assert reference identity rather than only structural equality.
- */
-function nonFunctionGlobalScope() {
-  const original = { o: 'foreign' };
-  const scope: PlausibleScope = { plausible: original as unknown as PlausibleGlobal };
-
-  return { scope, original };
-}
 
 function silentConsole() {
   return {
@@ -588,12 +501,13 @@ describe('fail-closed provider resolution', () => {
     ['the empty string', '', 'none'],
     ['whitespace only', '   \t ', 'none'],
     ['the no-op literal', 'none', 'none'],
-    ['the provider name exactly', 'plausible', 'plausible'],
-    ['the provider name padded and mixed case', '  PlAuSiBlE\n', 'plausible'],
+    ['the provider name exactly', 'posthog', 'posthog'],
+    ['the provider name padded and mixed case', '  PoStHoG\n', 'posthog'],
     ['an unknown word', 'matomo', 'none'],
-    ['an absolute URL', SCRIPT_SRC, 'none'],
-    ['a near miss with a suffix', 'plausible-io', 'none'],
-    ['a near miss with an inner space', 'plaus ible', 'none'],
+    ['the superseded provider name', 'plausible', 'none'],
+    ['an absolute URL', APPROVED_HOST, 'none'],
+    ['a near miss with a suffix', 'posthog-eu', 'none'],
+    ['a near miss with an inner space', 'post hog', 'none'],
   ];
 
   it.each(providerRows)(
@@ -603,432 +517,205 @@ describe('fail-closed provider resolution', () => {
     },
   );
 
-  const scriptSrcRows: readonly [string, string | undefined, string][] = [
-    ['a valid absolute https script URL', SCRIPT_SRC, SCRIPT_SRC],
-    ['the same URL surrounded by whitespace', `  ${SCRIPT_SRC}  `, SCRIPT_SRC],
-    ['a bare origin with no script path', 'https://plausible.io/', ''],
-    ['an http URL', 'http://plausible.io/js/script.js', ''],
-    ['a URL carrying a username and password', 'https://user:secret@plausible.io/js/script.js', ''],
-    ['a URL carrying a query string', 'https://plausible.io/js/script.js?domain=example.com', ''],
-    ['a URL carrying a fragment', 'https://plausible.io/js/script.js#fragment', ''],
-    ['a path that is not a script', 'https://plausible.io/js/script.json', ''],
-    ['a protocol-relative reference', '//plausible.io/js/script.js', ''],
-    ['a non-URL string', 'script.js', ''],
+  /**
+   * Tracer depth: one accepted host and the rejections that prove the comparison is an
+   * exact parsed-origin equality rather than a substring test. `04.1-05` Task 1 restores
+   * the full hostile table the Plausible script-source resolver carried.
+   */
+  const apiHostRows: readonly [string, string | undefined, string][] = [
+    ['the approved origin exactly', APPROVED_HOST, APPROVED_HOST],
+    ['the approved origin surrounded by whitespace', `  ${APPROVED_HOST}  `, APPROVED_HOST],
+    ['a structurally valid foreign origin', 'https://ingest.attacker.example', ''],
+    [
+      'a lookalike host carrying the approved host as a leading label',
+      `${APPROVED_HOST}.attacker.example`,
+      '',
+    ],
+    ['the approved host on a path', `${APPROVED_HOST}/capture/`, ''],
     ['undefined', undefined, ''],
     ['the empty string', '', ''],
-    // Origin/path approval (T-04-27, T-04-28, T-04-29). Each of these is a
-    // *structurally valid* absolute https `.js` URL — the structural checks above pass
-    // them — so only an exact match against the repository-owned approved contract can
-    // reject them.
-    ['a structurally valid foreign origin', 'https://cdn.attacker.example/js/script.js', ''],
-    [
-      'a lookalike host carrying the approved host as a suffix-style label',
-      'https://plausible.io.attacker.example/js/script.js',
-      '',
-    ],
-    [
-      'the approved origin on an unapproved extension-variant path',
-      'https://plausible.io/js/script.outbound-links.js',
-      '',
-    ],
-    ['the approved origin on an unapproved nested path', 'https://plausible.io/js/../js/other.js', ''],
-    // Hostnames are case-insensitive, so `URL.origin` lowercases this to the approved
-    // origin and it is legitimately accepted — pinned here to prove the comparison is a
-    // parsed-origin equality and not a raw-string compare that a case flip could defeat.
-    //
-    // The resolver returns the *normalized* URL, so the accepted value is byte-identical
-    // to the one the approval decision ran against: the emitted `src` attribute can
-    // never be a second spelling the checks above never saw, and the exact-string
-    // duplicate guard in `appendProviderScript` sees one spelling per approved URL.
-    [
-      'the approved host with an uppercase spelling',
-      'https://PLAUSIBLE.IO/js/script.js',
-      SCRIPT_SRC,
-    ],
-    // Ports are part of the origin, so a different port is a different origin.
-    ['the approved host on a non-default port', 'https://plausible.io:8443/js/script.js', ''],
   ];
 
-  it.each(scriptSrcRows)(
-    'resolves %s to the named script source',
+  it.each(apiHostRows)(
+    'resolves %s to the named ingestion host',
     (_label, configured, expected) => {
-      expect(resolvePlausibleScriptSrc(configured, APPROVED_ANALYTICS_SCRIPT_SOURCES)).toBe(
-        expected,
-      );
+      expect(resolvePostHogApiHost(configured, APPROVED_ANALYTICS_HOSTS)).toBe(expected);
     },
   );
 
-  it('fails closed when no approved-source contract is supplied', () => {
+  const tokenRows: readonly [string, string | undefined, string][] = [
+    ['a well-formed project key', PROJECT_TOKEN, PROJECT_TOKEN],
+    ['the same key surrounded by whitespace', `  ${PROJECT_TOKEN}  `, PROJECT_TOKEN],
+    ['a key with the wrong prefix', 'phx_tracerFixtureToken', ''],
+    ['the bare prefix with nothing after it', 'phc_', ''],
+    ['a key carrying a forbidden character', 'phc_tracer.Fixture', ''],
+    ['undefined', undefined, ''],
+    ['the empty string', '', ''],
+  ];
+
+  it.each(tokenRows)('resolves %s to the named token', (_label, configured, expected) => {
+    expect(resolvePostHogToken(configured)).toBe(expected);
+  });
+
+  it('fails closed when no approved-host contract is supplied', () => {
     // The test runner uses `vitest.config.ts`, which has no `define`, so the build-time
     // constant is absent here. The one-argument call is therefore the exact shape a
     // bundle would take if the constant were ever missing — and it must resolve to no
-    // sink rather than to the approved URL.
-    expect(resolvePlausibleScriptSrc(SCRIPT_SRC)).toBe('');
-    expect(resolvePlausibleScriptSrc(SCRIPT_SRC, [])).toBe('');
+    // sink rather than to the approved origin.
+    expect(resolvePostHogApiHost(APPROVED_HOST)).toBe('');
+    expect(resolvePostHogApiHost(APPROVED_HOST, [])).toBe('');
+    expect(buildTimeApprovedAnalyticsHosts()).toEqual([]);
   });
-
-  const providerGatingRows: readonly [string, string | undefined, boolean][] = [
-    ['the provider name exactly', 'plausible', true],
-    ['the provider name padded and mixed case', '  PlAuSiBlE\n', true],
-    ['undefined', undefined, false],
-    ['the empty string', '', false],
-    ['the no-op literal', 'none', false],
-    ['an unknown word', 'matomo', false],
-  ];
-
-  it.each(providerGatingRows)(
-    'carries the approved contract into the build for %s only when entitled',
-    (_label, configured, entitled) => {
-      const selected = approvedScriptSourcesForProvider(configured);
-
-      expect(selected).toEqual(entitled ? APPROVED_ANALYTICS_SCRIPT_SOURCES : []);
-      expect(selected.length > 0).toBe(entitled);
-    },
-  );
 });
 
 describe('name-only provider sink', () => {
   const unconfigured: readonly [string, ProductMeasurement<HaooMeasurementEvent>][] = [
     ['the resolved provider is the no-op', { ...CONFIGURED_MEASUREMENT, provider: 'none' }],
-    ['the resolved script source is empty', {
+    ['the resolved token is empty', {
       ...CONFIGURED_MEASUREMENT,
-      providerScript: { src: '', domain: SITE_DOMAIN },
+      providerConfig: { token: '', apiHost: APPROVED_HOST },
     }],
-    ['the site domain is empty', {
+    ['the resolved ingestion host is empty', {
       ...CONFIGURED_MEASUREMENT,
-      providerScript: { src: SCRIPT_SRC, domain: '' },
+      providerConfig: { token: PROJECT_TOKEN, apiHost: '' },
     }],
   ];
 
   it.each(unconfigured)('returns no sink when %s', (_label, config) => {
-    const documentRef = document.implementation.createHTMLDocument('unconfigured');
-    const scope: PlausibleScope = {};
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
 
-    expect(createPlausibleEventSink(config, { documentRef, scope })).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(scope.plausible).toBeUndefined();
-  });
-
-  it('appends the configured site script exactly once with deferred loading', () => {
-    const documentRef = document.implementation.createHTMLDocument('configured');
-    const { scope } = recordingScope();
-
-    createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-    createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-
-    const scripts = [...documentRef.querySelectorAll('script')];
-    expect(scripts).toHaveLength(1);
-    expect(scripts[0].getAttribute('src')).toBe(SCRIPT_SRC);
-    expect(scripts[0].defer).toBe(true);
-  });
-
-  it('initializes with automatic pageview capture disabled before any forwarded event', () => {
-    const documentRef = document.implementation.createHTMLDocument('init-order');
-    const { scope, recorded } = recordingScope();
-
-    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-
-    expect(recorded).toHaveLength(1);
-    expect(recorded[0].kind).toBe('init');
-    expect(recorded[0].args[0]).toEqual({
-      domain: SITE_DOMAIN,
-      autoCapturePageviews: false,
-    });
-
-    sink?.('haoo_page_view');
-    expect(recorded.map((call) => call.kind)).toEqual(['init', 'event']);
-  });
-
-  it('forwards exactly one bare argument for every one of the ten event names', () => {
-    const documentRef = document.implementation.createHTMLDocument('arity');
-    const { scope, recorded } = recordingScope();
-    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-
-    expect(sink).toBeTypeOf('function');
-    for (const event of HAOO_MEASUREMENT_EVENTS) {
-      sink?.(event);
-    }
-
-    const events = recorded.filter((call) => call.kind === 'event');
-    expect(events.map((call) => call.args[0])).toEqual([...HAOO_MEASUREMENT_EVENTS]);
-    for (const [index, call] of events.entries()) {
-      expect(call.arity, HAOO_MEASUREMENT_EVENTS[index]).toBe(1);
-      expect(call.args).toHaveLength(1);
-    }
-  });
-
-  it('matches the documented preload options and event-queue contract', () => {
-    const documentRef = document.implementation.createHTMLDocument('queue');
-    const scope: PlausibleScope = {};
-    const vendorScope: Parameters<typeof installPlausibleVendorPreload>[0] = {};
-    const vendorPlausible = installPlausibleVendorPreload(vendorScope);
-    const options = { domain: SITE_DOMAIN, autoCapturePageviews: false } as const;
-
-    vendorPlausible.init?.(options);
-    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-
-    expect(scope.plausible?.o).toEqual(vendorScope.plausible?.o);
-    expect(scope.plausible?.q).toEqual(vendorScope.plausible?.q);
-
-    vendorPlausible('haoo_page_view');
-    sink?.('haoo_page_view');
-
-    expect(scope.plausible?.o).toEqual(options);
-    expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
-    expect(scope.plausible?.q).toEqual(vendorScope.plausible?.q);
+    expect(createPostHogEventSink(config, { scope: scope as PostHogScope }))
+      .toBeUndefined();
+    expect(client.initializedToken()).toBeNull();
+    expect(client.capturedEvents()).toEqual([]);
   });
 });
 
 describe('fail-closed provider initialization', () => {
-  it('returns no sink and appends no script when the existing provider has no initializer', () => {
-    const documentRef = document.implementation.createHTMLDocument('absent-init');
-    const { scope, provider } = bareCallableScope();
+  it('returns no sink when the ambient slot is not callable and leaves it untouched', () => {
+    const original = { init: 'foreign' };
+    const scope: PostHogScope = { posthog: original };
 
-    expect(
-      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
-    ).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    // Somebody else's global is left byte-identical: not replaced, not wrapped, and
-    // not decorated with an options slot or a pre-load queue.
-    expect(scope.plausible).toBe(provider);
-    expect('o' in provider).toBe(false);
-    expect('q' in provider).toBe(false);
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope })).toBeUndefined();
+    // Somebody else's global is left byte-identical: not replaced, not wrapped, and not
+    // decorated with anything this adapter would have needed.
+    expect(scope.posthog).toBe(original);
+    expect(Object.keys(original)).toEqual(['init']);
   });
 
-  it('returns no sink and appends no script when the existing initializer throws', () => {
-    const documentRef = document.implementation.createHTMLDocument('throwing-init');
-    const { scope, provider } = throwingInitScope();
+  it('returns no sink when the ambient initializer throws', () => {
+    const scope: PostHogScope = {
+      posthog: {
+        init() {
+          throw new Error('initializer unavailable');
+        },
+      },
+    };
     let sink: ((event: HaooMeasurementEvent) => void) | undefined;
 
     expect(() => {
-      sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
+      sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope });
     }).not.toThrow();
-
     expect(sink).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(scope.plausible).toBe(provider);
-    expect('o' in provider).toBe(false);
   });
 
-  it('returns no sink when the existing initializer records no options', () => {
-    const documentRef = document.implementation.createHTMLDocument('silent-init');
-    const { scope, provider } = silentInitScope();
+  it('names the gate that refused through the injected refusal channel', () => {
+    const reasons: string[] = [];
+    const original = { init: 'foreign' };
 
-    expect(
-      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
-    ).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    // A cosmetic initializer proves nothing about automatic capture, so a non-throwing
-    // call is not enough to unlock collection.
-    expect(scope.plausible).toBe(provider);
-    expect(provider.o).toBeUndefined();
-  });
-
-  it('installs, initializes, and confirms the stub before appending the script', () => {
-    const documentRef = document.implementation.createHTMLDocument('confirmed');
-    const scope: PlausibleScope = {};
-
-    const sink = createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope });
-
-    expect(sink).toBeTypeOf('function');
-    expect(scope.plausible?.o).toEqual({
-      domain: SITE_DOMAIN,
-      autoCapturePageviews: false,
+    createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+      scope: { posthog: original },
+      signalRefusal: (reason) => reasons.push(reason),
     });
-    expect(scope.plausible?.q).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(1);
 
-    sink?.('haoo_page_view');
-    expect(scope.plausible?.q).toEqual([['haoo_page_view']]);
+    expect(reasons).toHaveLength(1);
+    expect(reasons[0]).toMatch(/\S/);
   });
 
-  it('returns no sink and appends no script when the pre-existing global is not callable', () => {
-    const documentRef = document.implementation.createHTMLDocument('non-callable');
-    const { scope, original } = nonFunctionGlobalScope();
+  it('stays silent for the no-op provider, before any gate has an opinion', () => {
+    const reasons: string[] = [];
 
-    expect(
-      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
-    ).toBeUndefined();
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    // A truthy non-function value is somebody else's state too. The classification
-    // refuses it before anything is installed, so it is never overwritten by the stub
-    // and there is nothing to restore.
-    expect(scope.plausible).toBe(original as unknown as PlausibleGlobal);
-    expect(typeof scope.plausible).not.toBe('function');
-    expect(Object.keys(original)).toEqual(['o']);
-    expect(original.o).toBe('foreign');
-    expect(Object.prototype.hasOwnProperty.call(original, 'q')).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(original, 'init')).toBe(false);
+    createPostHogEventSink(
+      { ...CONFIGURED_MEASUREMENT, provider: 'none' },
+      { scope: {}, signalRefusal: (reason) => reasons.push(reason) },
+    );
+
+    // An unconfigured build is not a refusal. Signalling here would make the channel
+    // meaningless on the builds that matter.
+    expect(reasons).toEqual([]);
   });
 });
 
 /**
- * MEAS-07 on every refused-initialization path.
+ * MEAS-07 on the refused-initialization path.
  *
  * Refusing to collect is a privacy decision, never a degradation of the journey: with no
- * script, no sink, and no provider call, the qualification journey and the bounded local
- * context must be indistinguishable from an unconfigured build.
+ * sink and no provider call, the qualification journey and the bounded local context must
+ * be indistinguishable from an unconfigured build.
  */
 describe('fail-closed provider initialization in the full journey', () => {
-  function configuredMeasurement(
-    documentRef: Document,
-    scope: PlausibleScope,
-    storage: Storage,
-  ) {
-    return createMeasurement(CONFIGURED_MEASUREMENT, {
-      storage,
+  it('keeps the whole journey working when the ambient slot is unusable', () => {
+    const spies = silentConsole();
+    const original = { init: 'foreign' };
+    const scope: PostHogScope = { posthog: original };
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { documentRef, scope },
+      providerAdapters: { scope },
     });
-  }
-
-  const refusedRows: readonly [string, () => ReturnType<typeof bareCallableScope>][] = [
-    ['the existing provider has no initializer', bareCallableScope],
-    ['the existing initializer throws', throwingInitScope],
-    ['the existing initializer records no options', silentInitScope],
-  ];
-
-  it.each(refusedRows)(
-    'keeps the whole journey working when %s',
-    (label, buildScope) => {
-      const spies = silentConsole();
-      const documentRef = document.implementation.createHTMLDocument('refused-journey');
-      const { scope, provider, forwarded } = buildScope();
-      const measurement = configuredMeasurement(documentRef, scope, new MemoryStorage());
-
-      measurement.initialize();
-
-      expect(measurement.track('haoo_brochure_download'), label).toBe(true);
-      expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-
-      // Refusal is not a one-shot degradation: the second and third actions of the
-      // journey still record their bounded local flags.
-      expect(measurement.track('haoo_qualify_start')).toBe(true);
-      expect(measurement.readContext().flags.qualifyStarted).toBe(true);
-      expect(measurement.track('haoo_self_onboarding')).toBe(true);
-      expect(measurement.readContext().flags.selfOnboarding).toBe(true);
-
-      expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-      // No sink was silently wired: the pre-existing provider saw nothing at all.
-      expect(forwarded).toEqual([]);
-      expect(scope.plausible).toBe(provider);
-      expectSilent(spies);
-    },
-  );
-
-  it('leaves a refused provider global at its original identity', () => {
-    const documentRef = document.implementation.createHTMLDocument('refused-identity');
-    const { scope, provider, forwarded } = bareCallableScope();
-    const before = scope.plausible;
-
-    expect(
-      createPlausibleEventSink(CONFIGURED_MEASUREMENT, { documentRef, scope }),
-    ).toBeUndefined();
-
-    expect(scope.plausible).toBe(before);
-    expect(scope.plausible).toBe(provider);
-    expect(Object.prototype.hasOwnProperty.call(provider, 'o')).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(provider, 'q')).toBe(false);
-    expect(forwarded).toEqual([]);
-  });
-
-  // Written as its own case rather than a `refusedRows` row: that table is typed against
-  // the callable fixtures' return shape, which carries a `forwarded` array a non-callable
-  // global cannot have. There is no provider call to record here because there is no
-  // provider — the assertion that nothing was collected is the zero script count.
-  it('keeps the whole journey working when the pre-existing global is not callable', () => {
-    const spies = silentConsole();
-    const documentRef = document.implementation.createHTMLDocument('non-callable-journey');
-    const { scope, original } = nonFunctionGlobalScope();
-    const measurement = configuredMeasurement(documentRef, scope, new MemoryStorage());
 
     measurement.initialize();
 
     expect(measurement.track('haoo_brochure_download')).toBe(true);
     expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
+    // Refusal is not a one-shot degradation: the second and third actions of the journey
+    // still record their bounded local flags.
     expect(measurement.track('haoo_qualify_start')).toBe(true);
     expect(measurement.readContext().flags.qualifyStarted).toBe(true);
     expect(measurement.track('haoo_self_onboarding')).toBe(true);
     expect(measurement.readContext().flags.selfOnboarding).toBe(true);
 
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(scope.plausible).toBe(original as unknown as PlausibleGlobal);
+    expect(scope.posthog).toBe(original);
     expectSilent(spies);
   });
 });
 
 describe('provider failure isolation', () => {
-  function configuredMeasurement(
-    documentRef: Document,
-    scope: PlausibleScope,
-    storage: Storage,
-  ) {
-    return createMeasurement(CONFIGURED_MEASUREMENT, {
-      storage,
+  it('leaves the journey unchanged when the provider call throws', () => {
+    const spies = silentConsole();
+    const scope: VendorPostHogScope = {};
+    installPostHogVendorClient(scope);
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { documentRef, scope },
+      providerAdapters: { scope: scope as PostHogScope },
     });
-  }
-
-  it('leaves the journey unchanged when the provider global is absent', () => {
-    const spies = silentConsole();
-    const documentRef = document.implementation.createHTMLDocument('absent');
-    const { scope } = recordingScope();
-    const storage = new MemoryStorage();
-    const measurement = configuredMeasurement(documentRef, scope, storage);
 
     measurement.initialize();
-    delete scope.plausible;
+    measurement.track('haoo_page_view');
 
-    expect(measurement.track('haoo_brochure_download')).toBe(true);
-    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-    expect(scope.plausible).toBeUndefined();
-    expectSilent(spies);
-  });
-
-  it('leaves the journey unchanged when the provider call throws', () => {
-    const spies = silentConsole();
-    const documentRef = document.implementation.createHTMLDocument('throwing');
-    const { scope } = recordingScope();
-    const storage = new MemoryStorage();
-    const measurement = configuredMeasurement(documentRef, scope, storage);
-
-    measurement.initialize();
-    scope.plausible = () => {
+    // Replacing the resolved instance's capture with a thrower is the runtime analogue of
+    // a provider that stops working mid-visit.
+    const eventSink = () => {
       throw new Error('provider unavailable');
     };
-
-    expect(measurement.track('haoo_brochure_download')).toBe(true);
-    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-    expectSilent(spies);
-  });
-
-  it('leaves the journey unchanged when the provider script load fails', () => {
-    const spies = silentConsole();
-    const documentRef = document.implementation.createHTMLDocument('failed-load');
-    const scope: PlausibleScope = {};
-    const storage = new MemoryStorage();
-    const measurement = configuredMeasurement(documentRef, scope, storage);
-
-    measurement.initialize();
-
-    const script = documentRef.querySelector('script');
-    expect(script).not.toBeNull();
-    script?.dispatchEvent(new Event('error'));
-
-    expect(measurement.track('haoo_brochure_download')).toBe(true);
-    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-    // The site script never arrived, so the pre-load queue holds the calls and nothing
-    // is retried, logged, or dropped on the floor.
-    expect(scope.plausible?.o).toEqual({
-      domain: SITE_DOMAIN,
-      autoCapturePageviews: false,
+    const failing = createMeasurement(CONFIGURED_MEASUREMENT, {
+      eventSink,
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { scope: scope as PostHogScope },
     });
-    expect(scope.plausible?.q).toEqual([['haoo_brochure_download']]);
+
+    failing.initialize();
+    expect(failing.track('haoo_brochure_download')).toBe(true);
+    expect(failing.readContext().flags.brochureDownloaded).toBe(true);
     expectSilent(spies);
   });
 });
@@ -1039,10 +726,7 @@ describe('facade contract under the widened provider seam', () => {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
-      providerAdapters: {
-        documentRef: document.implementation.createHTMLDocument('facade'),
-        scope: {},
-      },
+      providerAdapters: { scope: {} },
     });
 
     expect(Object.keys(measurement)).toEqual([
@@ -1054,9 +738,9 @@ describe('facade contract under the widened provider seam', () => {
     ]);
   });
 
-  it('appends no script and touches no provider global for the no-op provider', () => {
-    const documentRef = document.implementation.createHTMLDocument('no-op');
-    const scope: PlausibleScope = {};
+  it('touches no provider global for the no-op provider', () => {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
 
     expect(HAOO_MEASUREMENT.provider).toBe('none');
 
@@ -1064,7 +748,7 @@ describe('facade contract under the widened provider seam', () => {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
-      providerAdapters: { documentRef, scope },
+      providerAdapters: { scope: scope as PostHogScope },
     });
 
     measurement.initialize();
@@ -1072,93 +756,240 @@ describe('facade contract under the widened provider seam', () => {
       expect(measurement.track(event), event).toBe(true);
     }
 
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(scope.plausible).toBeUndefined();
+    expect(client.initializedToken()).toBeNull();
+    expect(client.capturedEvents()).toEqual([]);
   });
 
   it('keeps an injected sink authoritative over the configured provider', () => {
-    const documentRef = document.implementation.createHTMLDocument('injected');
-    const { scope, recorded } = recordingScope();
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
     const eventSink = vi.fn();
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       eventSink,
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
-      providerAdapters: { documentRef, scope },
+      providerAdapters: { scope: scope as PostHogScope },
     });
 
     measurement.initialize();
     expect(measurement.track('haoo_page_view')).toBe(true);
 
     expect(eventSink.mock.calls).toEqual([['haoo_page_view']]);
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(recorded).toEqual([]);
+    expect(client.initializedToken()).toBeNull();
+    expect(client.capturedEvents()).toEqual([]);
   });
 
-  it('wires the configured provider sink when no sink adapter is injected', () => {
-    const documentRef = document.implementation.createHTMLDocument('wired');
-    const { scope, recorded } = recordingScope();
+  it('normalizes and clears campaign parameters before the provider is initialized', () => {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: `${PRODUCT_HREF}?utm_source=partner` },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { documentRef, scope },
+      providerAdapters: { scope: scope as PostHogScope },
     });
 
     measurement.initialize();
     expect(measurement.track('haoo_qualify_submit')).toBe(true);
 
-    // Campaign normalization and address-bar cleanup complete before the provider
-    // script is ever appended, so no capture can precede it (RESEARCH Pitfall 1).
+    // Campaign normalization and address-bar cleanup complete before the provider is
+    // initialized, so no capture can precede it, and `save_campaign_params: false` keeps
+    // `readCampaign` the only path by which a campaign value is ever observed.
     expect(measurement.readCampaign()).toEqual({ utm_source: 'partner' });
-    expect(documentRef.querySelectorAll('script')).toHaveLength(1);
-    expect(recorded.filter((call) => call.kind === 'event').map((call) => call.args[0]))
-      .toEqual(['haoo_qualify_submit']);
+    expect(client.capturedEvents()).toEqual(['haoo_qualify_submit']);
+  });
+});
+
+/**
+ * The `04.1-04` tracer: one HAOO event from a visitor action to the wire.
+ *
+ * Every layer this phase touches is on this path — the product resolvers, the provider
+ * union, the facade seam, the adapter's refusal ordering, the lockdown object, and the
+ * property chokepoint — so a single green describe here is the phase's architectural
+ * risk retired in one place.
+ *
+ * The vendor client is the independently-transcribed fixture from `04.1-01`, which
+ * starts from PostHog's *documented defaults* rather than from this project's desired
+ * values. That is what makes the merged-configuration readback a real assertion: every
+ * locked value has to be overcome by a genuine `init` argument before `lockdownHolds`
+ * can return true.
+ */
+describe('PostHog tracer: one event end-to-end', () => {
+  function tracerScope(overrides: Record<string, unknown> = {}) {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope, overrides);
+
+    return { scope, client };
+  }
+
+  function tracerMeasurement(scope: VendorPostHogScope, storage: Storage) {
+    return createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage,
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { scope: scope as PostHogScope },
+    });
+  }
+
+  it('initializes exactly once with the locked configuration and returns a sink', () => {
+    const { scope, client } = tracerScope();
+
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+      scope: scope as PostHogScope,
+    });
+
+    expect(sink).toBeTypeOf('function');
+    expect(sink).toHaveLength(1);
+    expect(client.initializedToken()).toBe(PROJECT_TOKEN);
+
+    const resolved = client.initializedConfig();
+    expect(resolved).not.toBeNull();
+    expect(lockdownHolds(resolved, { apiHost: APPROVED_HOST, token: PROJECT_TOKEN }))
+      .toBe(true);
+
+    // Spot-check the four options whose defaults are `undefined` — meaning "ask the
+    // remote configuration" — plus the switch that makes them unbypassable.
+    expect(resolved?.autocapture).toBe(false);
+    expect(resolved?.capture_pageview).toBe(false);
+    expect(resolved?.capture_pageleave).toBe(false);
+    expect(resolved?.capture_heatmaps).toBe(false);
+    expect(resolved?.capture_exceptions).toBe(false);
+    expect(resolved?.capture_performance).toBe(false);
+    expect(resolved?.capture_dead_clicks).toBe(false);
+    expect(resolved?.advanced_disable_flags).toBe(true);
+    expect(resolved?.person_profiles).toBe('never');
+    expect(resolved?.persistence).toBe('memory');
+    expect(resolved?.disable_persistence).toBe(true);
+    expect(resolved?.save_campaign_params).toBe(false);
+    expect(resolved?.save_referrer).toBe(false);
+    expect(typeof resolved?.before_send).toBe('function');
   });
 
-  /**
-   * MEAS-07 on the *source-rejection* path (T-04-32).
-   *
-   * The rejected value is not hand-written: `providerScript.src` is the actual return
-   * value of the resolver applied to a tampered foreign-origin URL, so this is exactly
-   * the configuration a tampered deployment variable would produce. The journey must be
-   * indistinguishable from an unconfigured build — analytics off, everything else on.
-   */
-  it('leaves the whole journey working when the configured script source is rejected', () => {
-    const spies = silentConsole();
-    const documentRef = document.implementation.createHTMLDocument('rejected-source');
-    const scope: PlausibleScope = {};
+  it('carries one HAOO event through the facade as a bare name with three transport keys', () => {
+    const { scope, client } = tracerScope();
     const storage = new MemoryStorage();
-    const rejectedSrc = resolvePlausibleScriptSrc(
-      'https://cdn.attacker.example/js/script.js',
-      APPROVED_ANALYTICS_SCRIPT_SOURCES,
-    );
-
-    expect(rejectedSrc).toBe('');
-
-    const measurement = createMeasurement(
-      {
-        ...HAOO_MEASUREMENT,
-        provider: 'plausible',
-        providerScript: { src: rejectedSrc, domain: SITE_DOMAIN },
-      },
-      {
-        storage,
-        now: () => TODAY,
-        location: { href: PRODUCT_HREF },
-        history: { state: null, replaceState: vi.fn() },
-        providerAdapters: { documentRef, scope },
-      },
-    );
+    const measurement = tracerMeasurement(scope, storage);
 
     measurement.initialize();
+    expect(measurement.track('haoo_page_view')).toBe(true);
 
-    expect(documentRef.querySelectorAll('script')).toHaveLength(0);
-    expect(scope.plausible).toBeUndefined();
-    expect(measurement.track('haoo_brochure_download')).toBe(true);
-    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-    expectSilent(spies);
+    expect(client.capturedEvents()).toEqual(['haoo_page_view']);
+
+    const delivered = client.deliveredPayloads();
+    expect(delivered).toHaveLength(1);
+    expect(delivered[0].event).toBe('haoo_page_view');
+    expect(Object.keys(delivered[0].properties)).toEqual([
+      ...TRANSPORT_REQUIRED_PROPERTIES,
+    ]);
+    expect(delivered[0].properties.token).toBe(PROJECT_TOKEN);
+  });
+
+  it('returns the same transport envelope it received, with a freshly built property set', () => {
+    const received = {
+      uuid: 'tracer-envelope-1',
+      event: 'haoo_qualify_submit',
+      properties: {
+        token: PROJECT_TOKEN,
+        distinct_id: 'tracer-distinct-1',
+        $process_person_profile: false,
+        $current_url: 'https://www.zero-paperhub.com/products/haoo/',
+        $referrer: 'https://search.example/',
+        $lib: 'web',
+      },
+    };
+
+    const emitted = stripToBareName(received, HAOO_MEASUREMENT_EVENTS);
+
+    expect(emitted).not.toBeNull();
+    expect(emitted?.uuid).toBe(received.uuid);
+    expect(emitted?.event).toBe(received.event);
+    expect(Object.keys(emitted?.properties ?? {})).toEqual([
+      ...TRANSPORT_REQUIRED_PROPERTIES,
+    ]);
+    // A fresh literal, not the object it was handed: mutating the emitted set must not
+    // reach back into the payload the SDK still holds.
+    expect(emitted?.properties).not.toBe(received.properties);
+  });
+
+  const droppedRows: readonly [string, unknown][] = [
+    ['a null input', null],
+    [
+      'an event name outside the ten',
+      { uuid: 'x', event: '$pageview', properties: { token: PROJECT_TOKEN } },
+    ],
+    [
+      'a name that differs only by case',
+      { uuid: 'x', event: 'HAOO_PAGE_VIEW', properties: { token: PROJECT_TOKEN } },
+    ],
+    [
+      'an allowlisted name with no properties at all',
+      { uuid: 'x', event: 'haoo_page_view', properties: {} },
+    ],
+  ];
+
+  it.each(droppedRows)('emits nothing for %s', (_label, received) => {
+    expect(
+      stripToBareName(
+        received as Parameters<typeof stripToBareName>[0],
+        HAOO_MEASUREMENT_EVENTS,
+      ),
+    ).toBeNull();
+  });
+
+  it('withholds the sink when any one locked key resolves wrong', () => {
+    const { scope, client } = tracerScope({ advanced_disable_flags: false });
+    const storage = new MemoryStorage();
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope: scope as PostHogScope }),
+    ).toBeUndefined();
+
+    const measurement = tracerMeasurement(scope, storage);
+    measurement.initialize();
+
+    // Refusing to collect is never a degradation of the journey.
+    expect(measurement.track('haoo_page_view')).toBe(true);
+    expect(client.capturedEvents()).toEqual([]);
+    expect(client.deliveredPayloads()).toEqual([]);
+  });
+
+  const inertSelectorRows: readonly [string, string | undefined][] = [
+    ['unset', undefined],
+    ['blank', ''],
+    ['whitespace only', '   \t '],
+    ['the no-op literal', 'none'],
+    ['a near miss', 'posthog-eu'],
+    ['an absolute URL', 'https://example.invalid/posthog'],
+  ];
+
+  it.each(inertSelectorRows)(
+    'creates no sink and never initializes for a selector that is %s',
+    (_label, configured) => {
+      const { scope, client } = tracerScope();
+
+      expect(
+        createPostHogEventSink(
+          {
+            ...CONFIGURED_MEASUREMENT,
+            provider: resolveMeasurementProvider(configured),
+          },
+          { scope: scope as PostHogScope },
+        ),
+      ).toBeUndefined();
+      expect(client.initializedToken()).toBeNull();
+      expect(client.initializedConfig()).toBeNull();
+    },
+  );
+
+  it('refuses a hostile ambient slot without reading further, overwriting, or initializing', () => {
+    const foreign = { init: 'not callable' };
+    const scope: PostHogScope = { posthog: foreign };
+
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope })).toBeUndefined();
+    expect(scope.posthog).toBe(foreign);
+    expect(Object.keys(foreign)).toEqual(['init']);
   });
 });
