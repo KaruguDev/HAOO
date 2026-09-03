@@ -220,7 +220,7 @@ Plans:
 - [ ] 04.1-05-PLAN.md — Two independent automatic-capture gates, a visible refusal, and the journey-survives-failure guard *(wave 4)*
 - [ ] 04.1-06-PLAN.md — Visitor disclosure states that analytics data is processed in the United States *(wave 5)*
 - [ ] 04.1-07-PLAN.md — Owner report reads PostHog through one HogQL aggregate per range, with the provenance loss stated *(wave 3)*
-- [ ] 04.1-08-PLAN.md — Owner activation instructions, the re-scoped human gates, and the restated Phase 4 claims *(wave 4)*
+- [ ] 04.1-08-PLAN.md — Owner activation instructions, the re-scoped human gates, and the restated Phase 4 claims *(wave 6)*
 
 ### Phase 5: Prove the Deployed Journey
 
