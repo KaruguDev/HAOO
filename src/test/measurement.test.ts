@@ -466,7 +466,7 @@ describe('browser failure containment and clear result', () => {
  * acceptance rows fail instead of letting the table drift away from the trusted list.
  *
  * These six describes run at TRACER DEPTH for exactly one wave. Every case removed with
- * the Plausible adapter is enumerated, with its restoring `04.1-05` task, in
+ * the superseded adapter is enumerated, with its restoring `04.1-05` task, in
  * `.planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-04-DELETED-PROVIDER-CASES.md`.
  * That file is the authority on the reduction, not this comment.
  */
@@ -520,7 +520,7 @@ describe('fail-closed provider resolution', () => {
   /**
    * Tracer depth: one accepted host and the rejections that prove the comparison is an
    * exact parsed-origin equality rather than a substring test. `04.1-05` Task 1 restores
-   * the full hostile table the Plausible script-source resolver carried.
+   * the full hostile table the superseded script-source resolver carried.
    */
   const apiHostRows: readonly [string, string | undefined, string][] = [
     ['the approved origin exactly', APPROVED_HOST, APPROVED_HOST],

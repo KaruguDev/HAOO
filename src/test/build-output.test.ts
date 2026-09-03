@@ -1,5 +1,6 @@
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -75,9 +76,12 @@ const APPROVED_NOTICE_BUNDLE_SEGMENTS = APPROVED_COLLECTION_NOTICE.split(
  *   `FORM_MARKUP_FORBIDDEN` only. It is the single module allowed to `fetch` and to
  *   render a `<form>`; it still may not hardcode the provider, because the endpoint
  *   must arrive through product data.
- * - `src/measurement/plausible.ts` keeps the full static boundary plus the explicit
- *   measurement privacy group. It may create an injected script element, but it needs
- *   no storage, network-call API, form markup, provider endpoint, or second event arg.
+ * - `src/measurement/posthog.ts` and `src/measurement/posthog-lockdown.ts` keep the
+ *   full static boundary plus the explicit measurement privacy group. The SDK is a
+ *   pinned dependency rather than a script this project injects, so the adapter that
+ *   replaced the previous one needs no script-element capability and is granted nothing
+ *   extra: no storage, no network-call API, no form markup, no provider endpoint, and no
+ *   second event argument.
  *
  * Every other product source keeps all four groups, and `ALWAYS_FORBIDDEN` — storage,
  * analytics, injection, router, ambient browser context and backend seams — applies to
@@ -139,7 +143,11 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...FORM_MARKUP_FORBIDDEN,
   ],
   'src/measurement/index.ts': MEASUREMENT_FACADE_BOUNDARY,
-  'src/measurement/plausible.ts': [
+  'src/measurement/posthog.ts': [
+    ...FULL_BOUNDARY,
+    ...MEASUREMENT_PRIVACY_FORBIDDEN,
+  ],
+  'src/measurement/posthog-lockdown.ts': [
     ...FULL_BOUNDARY,
     ...MEASUREMENT_PRIVACY_FORBIDDEN,
   ],
@@ -173,22 +181,10 @@ const PRODUCTION_SOURCE_INPUTS = listFiles(resolve(ROOT, 'src')).filter(
   (path) => !path.startsWith(`${resolve(ROOT, 'src/test')}/`),
 );
 /**
- * The repository-owned approved analytics script sources and the build wiring that
- * carries them. The contract lives outside `src/` on purpose, so it is not a production
- * source input — but it *is* a build input: editing the trusted list changes what a
- * configured build publishes, so a stale `dist` must fail the freshness case.
- */
-const APPROVED_SOURCE_CONFIG_INPUT = {
-  contract: resolve(ROOT, 'config/approved-analytics-script-sources.ts'),
-  viteConfig: resolve(ROOT, 'vite.config.ts'),
-} as const;
-/** No production module may reach the approved-source contract by any specifier. */
-const APPROVED_SOURCE_MODULE_FORBIDDEN = /approved-analytics-script-sources/;
-/**
  * The repository-owned approved analytics *ingestion hosts* and the build wiring that
- * carries them. Same reasoning as the script-source contract above — outside `src/`, so
- * not a production source input, but a build input all the same: editing the trusted host
- * list changes what a configured build publishes, so a stale `dist` must fail freshness.
+ * carries them. The contract lives outside `src/` on purpose, so it is not a production
+ * source input — but it *is* a build input all the same: editing the trusted host list
+ * changes what a configured build publishes, so a stale `dist` must fail freshness.
  */
 const APPROVED_HOST_CONFIG_INPUT = {
   contract: resolve(ROOT, 'config/approved-analytics-hosts.ts'),
@@ -201,7 +197,6 @@ const BUILD_INPUTS = [
   ...listFiles(resolve(ROOT, 'public')),
   resolve(ROOT, 'index.html'),
   SOURCE_HTML,
-  APPROVED_SOURCE_CONFIG_INPUT.contract,
   APPROVED_HOST_CONFIG_INPUT.contract,
   resolve(ROOT, 'vite.config.ts'),
   resolve(ROOT, 'package.json'),
@@ -690,32 +685,30 @@ describe('Phase 1 static build contracts', () => {
     }
   });
 
-  it('keeps the approved-source contract out of every production module import graph', () => {
-    // The approved origin has exactly one route into a bundle: the deliberate build-time
-    // constant. An ordinary import from a production module would be a second route, and
-    // that route would publish the origin in the provider-unset bundle. Match the module
-    // by bare name so a relative specifier, a repository-relative path, and an aliased
-    // path are all caught.
-    for (const path of PRODUCTION_SOURCE_INPUTS) {
-      const source = readText(path);
-      const relativePath = relative(ROOT, path).replace(/\\/g, '/');
-      expect(source, `${relativePath} imports the approved-source contract`)
-        .not.toMatch(APPROVED_SOURCE_MODULE_FORBIDDEN);
+  it('leaves no superseded approved-script-source module or constant behind', () => {
+    // The retirement is asserted, not assumed. `04.1-03` deliberately left the script
+    // -source module, its define, and its build-time constant declaration in place so
+    // its own commit typechecked; `04.1-04` removed their last reader, so this case is
+    // what stops any of them being resurrected or silently surviving as dead wiring.
+    expect(existsSync(resolve(ROOT, 'config/approved-analytics-script-sources.ts')))
+      .toBe(false);
+
+    const superseded = [
+      /__HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__/,
+      /approvedScriptSourcesForProvider/,
+      /approved-analytics-script-sources/,
+    ];
+    const retired = [
+      readText(resolve(ROOT, 'vite.config.ts')),
+      readText(resolve(ROOT, 'src/vite-env.d.ts')),
+      ...PRODUCTION_SOURCE_INPUTS.map((path) => readText(path)),
+    ];
+
+    for (const text of retired) {
+      for (const forbidden of superseded) {
+        expect(text, String(forbidden)).not.toMatch(forbidden);
+      }
     }
-  });
-
-  it('injects the approved-source constant only through the provider-gated selector', () => {
-    // Derived, not restated: a future edit that hardcodes an unconditional approved list
-    // — or drops the constant altogether — fails here rather than silently publishing the
-    // analytics origin in a provider-unset bundle.
-    const viteConfig = readText(APPROVED_SOURCE_CONFIG_INPUT.viteConfig);
-
-    expect(viteConfig).toMatch(/__HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__/);
-    expect(viteConfig).toMatch(
-      /approvedScriptSourcesForProvider\(\s*env\.VITE_HAOO_MEASUREMENT_PROVIDER,?\s*\)/,
-    );
-    expect(existsSync(APPROVED_SOURCE_CONFIG_INPUT.contract)).toBe(true);
-    expect(BUILD_INPUTS).toContain(APPROVED_SOURCE_CONFIG_INPUT.contract);
   });
 
   it('ships the unset provider bundle without competitor analytics, property, or credential seams', () => {
@@ -832,16 +825,15 @@ describe('Phase 1 static build contracts', () => {
  * describe mirrors that shape faithfully, adding direct assertions on the selector itself
  * because that is where the "provider-gated" claim is falsifiable today.
  *
- * The bundle half is asymmetric on purpose. Vite substitutes a `define` only where a
- * module *references* it, so an unreferenced constant emits nothing at all. The
- * script-source constant has a reader (`buildTimeApprovedScriptSources` in
- * `src/products/haoo.ts`), so a `plausible`-selected build publishes that origin exactly
- * once; the host constant has no reader until `04.1-04` adds the PostHog resolver, so a
- * `posthog`-selected build publishes the ingestion origin zero times today. The
- * selector-set bundle case is therefore deferred to `04.1-04`, where it first becomes
- * capable of failing — asserting it here would pass for the wrong reason and would go on
- * passing if the define were deleted. Recorded in the phase `deferred-items.md` (D2).
- * The absence case below is asserted now, because it is true now and falsifiable now.
+ * Both bundle halves are now asserted, and the order in which they arrived is the point.
+ * Vite substitutes a `define` only where a module *references* it, so an unreferenced
+ * constant emits nothing at all: when `04.1-03` planted this constant nothing read it,
+ * and a selector-set build published the ingestion origin ZERO times. The presence case
+ * was therefore deferred to `04.1-04` (phase `deferred-items.md`, D2) rather than written
+ * against a build that could not fail it. `04.1-04` added the reader —
+ * `buildTimeApprovedAnalyticsHosts` in `src/products/haoo.ts` — so the presence case
+ * below builds into a throwaway directory with the selector set and asserts exactly one
+ * occurrence, while the absence case asserts the repository's own provider-unset `dist`.
  */
 describe('approved analytics ingestion host boundary', () => {
   it('injects the approved-host constant only through the provider-gated selector', () => {
@@ -918,6 +910,51 @@ describe('approved analytics ingestion host boundary', () => {
         .not.toMatch(APPROVED_HOST_MODULE_FORBIDDEN);
     }
   });
+
+  /**
+   * The half of the ingestion-host bundle contract `04.1-03` deferred, on a measurement
+   * rather than a guess (phase `deferred-items.md`, D2).
+   *
+   * Vite substitutes a `define` only where a module *references* the constant, so an
+   * unreferenced define emits nothing at all. When `04.1-03` planted
+   * `__HAOO_APPROVED_ANALYTICS_HOSTS__` nothing read it yet, and a `posthog`-selected
+   * build carried the ingestion origin ZERO times — an assertion written there would
+   * have passed for the wrong reason and would have gone on passing if the define were
+   * deleted outright. `04.1-04` added the reader
+   * (`buildTimeApprovedAnalyticsHosts` in `src/products/haoo.ts`), so the presence case
+   * is capable of failing here and belongs here.
+   *
+   * The probe builds into its own throwaway directory so the repository's `dist` — which
+   * every other case in this file asserts against, and which must stay a provider-unset
+   * build — is never disturbed.
+   */
+  it('publishes the approved ingestion origin exactly once in a provider-selected build', () => {
+    const probeDir = resolve(ROOT, 'dist-approved-host-probe');
+
+    try {
+      const build = spawnSync('npx', ['vite', 'build', '--outDir', probeDir, '--emptyOutDir'], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, VITE_HAOO_MEASUREMENT_PROVIDER: 'posthog' },
+      });
+
+      expect(build.status, build.stderr ?? '').toBe(0);
+
+      const probeBundle = listFiles(resolve(probeDir, 'assets'))
+        .filter((file) => file.endsWith('.js'))
+        .map((file) => readFileSync(file, 'utf8'))
+        .join('\n');
+
+      expect(probeBundle.length).toBeGreaterThan(0);
+      for (const host of APPROVED_ANALYTICS_HOSTS) {
+        // Exactly once: present because the build deliberately selected the provider,
+        // and once because the constant has exactly one route into the bundle.
+        expect(probeBundle.split(host.origin).length - 1, host.origin).toBe(1);
+      }
+    } finally {
+      rmSync(probeDir, { recursive: true, force: true });
+    }
+  }, 180_000);
 
   it('ships the provider-unset bundle with no approved ingestion origin at all', () => {
     // Derived from the contract rather than restated, so widening the approved list

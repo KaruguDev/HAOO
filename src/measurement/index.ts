@@ -1,8 +1,8 @@
 import type { ProductMeasurement } from '../products/types';
 import {
-  createPlausibleEventSink,
-  type PlausibleAdapters,
-} from './plausible';
+  createPostHogEventSink,
+  type PostHogAdapters,
+} from './posthog';
 
 export type VisitBand = 'first' | 'returning' | 'frequent';
 export type LastSeenBand = 'today' | 'this-week' | 'this-month' | 'earlier';
@@ -18,7 +18,7 @@ export interface EngagementContext {
 
 export interface MeasurementAdapters<EventName extends string> {
   readonly eventSink?: (event: EventName) => void;
-  readonly providerAdapters?: PlausibleAdapters;
+  readonly providerAdapters?: PostHogAdapters;
   readonly now?: () => Date;
   readonly storage?: Storage;
   readonly location?: Pick<Location, 'href'>;
@@ -319,11 +319,11 @@ export function createMeasurement<const EventName extends string>(
     writeContext(previous === null ? freshContext(config, today) : nextContext(previous, today));
     campaign = readCampaign(adapters);
 
-    // Campaign parameters are normalized and removed before a provider script is
-    // appended, so automatic capture cannot race ahead of address-bar cleanup. An
+    // Campaign parameters are normalized and removed before the provider is
+    // initialized, so automatic capture cannot race ahead of address-bar cleanup. An
     // injected sink remains authoritative for tests and alternate adapters.
     if (eventSink === undefined) {
-      eventSink = createPlausibleEventSink(config, adapters.providerAdapters);
+      eventSink = createPostHogEventSink(config, adapters.providerAdapters);
     }
   }
 

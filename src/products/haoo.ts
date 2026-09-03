@@ -40,7 +40,7 @@ export type HaooMeasurementEvent = (typeof HAOO_MEASUREMENT_EVENTS)[number];
  * Every accepted provider value, written once. A value that is not exactly one of these
  * — after trimming and lowercasing — resolves to the inert no-op sink.
  */
-const MEASUREMENT_PROVIDERS: readonly MeasurementProvider[] = ['none', 'plausible'];
+const MEASUREMENT_PROVIDERS: readonly MeasurementProvider[] = ['none', 'posthog'];
 
 /**
  * Fail-closed provider selection. `VITE_HAOO_MEASUREMENT_PROVIDER` is a public
@@ -55,15 +55,14 @@ export function resolveMeasurementProvider(configuredValue?: string): Measuremen
 }
 
 /**
- * One approved analytics script origin and the exact paths approved on it.
+ * One approved analytics ingestion origin — the destination events may be sent to.
  *
  * Declared locally rather than imported so no production module gains an import edge
  * into the repository-owned approval configuration — the approved origin must reach a
  * bundle only through the build-time constant, never through ordinary module bundling.
  */
-export interface ApprovedScriptSource {
+export interface ApprovedAnalyticsHost {
   readonly origin: string;
-  readonly paths: readonly string[];
 }
 
 /**
@@ -73,12 +72,14 @@ export interface ApprovedScriptSource {
  * and under any hypothetical build that failed to inject it — the identifier does not
  * exist and evaluating it throws a `ReferenceError`, which is swallowed here into the
  * empty list. Failing closed is the point: an absent contract must approve nothing, not
- * everything.
+ * everything. An ingestion origin this project never approved is precisely the outcome
+ * the constant exists to prevent, so the absent case must not fall back to a permissive
+ * default.
  */
-function buildTimeApprovedScriptSources(): readonly ApprovedScriptSource[] {
+export function buildTimeApprovedAnalyticsHosts(): readonly ApprovedAnalyticsHost[] {
   try {
-    return Array.isArray(__HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__)
-      ? __HAOO_APPROVED_ANALYTICS_SCRIPT_SOURCES__
+    return Array.isArray(__HAOO_APPROVED_ANALYTICS_HOSTS__)
+      ? __HAOO_APPROVED_ANALYTICS_HOSTS__
       : [];
   } catch {
     return [];
@@ -86,30 +87,61 @@ function buildTimeApprovedScriptSources(): readonly ApprovedScriptSource[] {
 }
 
 /**
- * Fail-closed provider script source, modelled on `resolveQualifyEndpoint` below.
+ * The accepted shape of a public project key, and the ceiling on its length.
  *
- * The analytics origin is deliberately NOT written as a literal in `src/`: that would
+ * The vendor's key is a public identifier by construction — it is inlined into the
+ * world-readable bundle and it is what makes an ingested event attributable to a
+ * project. Pinning its exact shape is therefore not secrecy; it is the same
+ * reject-on-every-deviation discipline the destination resolver below applies, so a
+ * tampered or mistyped deployment variable fails closed to no analytics instead of
+ * initializing the provider against something arbitrary.
+ */
+const PROJECT_KEY_SHAPE = /^phc_[A-Za-z0-9_-]+$/;
+const PROJECT_KEY_MAX_LENGTH = 128;
+
+/**
+ * Fail-closed public project key, modelled on the destination resolver below.
+ *
+ * Accepted only when the trimmed value matches the exact `phc_` prefix followed by one
+ * or more characters drawn from an unreserved set, and is no longer than the ceiling.
+ * Every other input — a wrong prefix, the bare prefix with nothing after it, a value
+ * carrying a dot, a slash, whitespace or any other punctuation, undefined, the empty
+ * string — returns the empty string, which stops the sink being created at all.
+ */
+export function resolvePostHogToken(configuredValue?: string): string {
+  const candidate = (configuredValue ?? '').trim();
+
+  if (candidate.length === 0 || candidate.length > PROJECT_KEY_MAX_LENGTH) {
+    return '';
+  }
+
+  return PROJECT_KEY_SHAPE.test(candidate) ? candidate : '';
+}
+
+/**
+ * Fail-closed provider ingestion origin, modelled on `resolveQualifyEndpoint` below.
+ *
+ * The ingestion origin is deliberately NOT written as a literal in `src/`: that would
  * inline it into every build, including builds with no provider configured, which is
  * exactly what the bundle prohibition exists to prevent. It arrives instead as the
  * provider-gated build-time constant read above, sourced from version-controlled
- * repository configuration — so `VITE_HAOO_PLAUSIBLE_SRC` can only ever *select from*
- * the approved set and can never widen it (T-04-27).
+ * repository configuration — so `VITE_HAOO_POSTHOG_API_HOST` can only ever *select from*
+ * the approved set and can never widen it (T-04.1-09).
  *
  * Accepted only when the value is an absolute `https:` URL carrying no username, no
- * password, no query string and no fragment, whose path ends in `.js`, AND whose parsed
- * origin equals an approved origin exactly while its pathname is one of that entry's
- * approved paths. Every other input — a foreign origin, a lookalike host that merely
- * ends with the approved host, an approved host on another port, an unapproved
- * extension-variant path, a bare origin, an `http:` URL, any unparsable string — returns
- * the empty string, which stops the sink being created at all.
+ * password, no query string and no fragment, whose pathname is exactly the root, AND
+ * whose parsed origin equals an approved origin exactly. Every other input — a foreign
+ * origin, a lookalike host that merely contains the approved host, an approved host on
+ * another port, an approved host carrying a path, an `http:` URL, any unparsable string
+ * — returns the empty string, which stops the sink being created at all.
  *
- * `approvedSources` is injectable so tests can assert against the canonical contract;
- * its default is the build-time constant, which is empty unless the build deliberately
+ * `approvedHosts` is injectable so tests can assert against the canonical contract; its
+ * default is the build-time constant, which is empty unless the build deliberately
  * selected the provider.
  */
-export function resolvePlausibleScriptSrc(
+export function resolvePostHogApiHost(
   configuredValue?: string,
-  approvedSources: readonly ApprovedScriptSource[] = buildTimeApprovedScriptSources(),
+  approvedHosts: readonly ApprovedAnalyticsHost[] = buildTimeApprovedAnalyticsHosts(),
 ): string {
   const candidate = (configuredValue ?? '').trim();
 
@@ -128,28 +160,24 @@ export function resolvePlausibleScriptSrc(
       return '';
     }
 
-    if (!url.pathname.endsWith('.js')) {
+    // A destination, not a document: anything below the root is a path this project
+    // never approved, and the SDK appends its own routes to the origin it is given.
+    if (url.pathname !== '/') {
       return '';
     }
 
     // Exact origin equality against the parsed origin — never a substring, prefix or
     // suffix test, which a lookalike host carrying the approved host as a leading label
     // of an attacker-controlled domain would defeat.
-    const approved = approvedSources.some(
-      (source) => source.origin === url.origin && source.paths.includes(url.pathname),
-    );
-
-    if (!approved) {
+    if (!approvedHosts.some((host) => host.origin === url.origin)) {
       return '';
     }
 
-    // The normalized form, never the raw candidate. Every check above ran against the
+    // The normalized origin, never the raw candidate. Every check above ran against the
     // parsed URL, so returning the untouched input would make the value that was
-    // approved and the value that reaches `setAttribute('src', ...)` two different
-    // strings -- exactly the parser-differential shape this resolver exists to prevent.
-    // It also gives `alreadyAppended`, which compares the attribute by exact string, a
-    // single spelling per approved URL instead of one per accepted input.
-    return url.href;
+    // approved and the value the provider is initialized with two different strings --
+    // exactly the parser-differential shape this resolver exists to prevent.
+    return url.origin;
   } catch {
     return '';
   }
@@ -190,9 +218,9 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     haoo_self_onboarding: 'selfOnboarding',
   },
   provider: resolveMeasurementProvider(import.meta.env.VITE_HAOO_MEASUREMENT_PROVIDER),
-  providerScript: {
-    src: resolvePlausibleScriptSrc(import.meta.env.VITE_HAOO_PLAUSIBLE_SRC),
-    domain: (import.meta.env.VITE_HAOO_PLAUSIBLE_DOMAIN ?? '').trim(),
+  providerConfig: {
+    token: resolvePostHogToken(import.meta.env.VITE_HAOO_POSTHOG_TOKEN),
+    apiHost: resolvePostHogApiHost(import.meta.env.VITE_HAOO_POSTHOG_API_HOST),
   },
   disclosure: {
     summary: 'How we measure this page',

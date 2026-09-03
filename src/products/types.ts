@@ -153,17 +153,18 @@ export interface ProductQualifyForm {
  * no-op sink and is the fail-closed default: an unset, blank, or unrecognised
  * build-time value resolves here, never to a provider.
  */
-export type MeasurementProvider = 'none' | 'plausible';
+export type MeasurementProvider = 'none' | 'posthog';
 
 /**
- * Public build-time provider script configuration. Both members arrive through `VITE_`
+ * Public build-time provider configuration. Both members arrive through `VITE_`
  * variables and are therefore inlined into the world-readable bundle by construction —
- * they are public site identifiers, never credentials. An empty member is the
- * fail-closed state: the provider sink is not created at all.
+ * the project key is a public identifier by the vendor's own design, and the ingestion
+ * origin is a destination, not a credential. An empty member is the fail-closed state:
+ * the provider sink is not created at all.
  */
-export interface MeasurementProviderScript {
-  readonly src: string;
-  readonly domain: string;
+export interface MeasurementProviderConfig {
+  readonly token: string;
+  readonly apiHost: string;
 }
 
 export interface ProductMeasurementDisclosure<EventName extends string> {
@@ -216,10 +217,10 @@ export interface ProductMeasurement<EventName extends string = string> {
   readonly provider: MeasurementProvider;
   /**
    * Required, not optional: a product that selects a provider but forgets to configure
-   * its script must fail typecheck rather than silently resolve to a half-configured
-   * sink. `{ src: '', domain: '' }` is the explicit unconfigured value.
+   * it must fail typecheck rather than silently resolve to a half-configured sink.
+   * `{ token: '', apiHost: '' }` is the explicit unconfigured value.
    */
-  readonly providerScript: MeasurementProviderScript;
+  readonly providerConfig: MeasurementProviderConfig;
   readonly disclosure: ProductMeasurementDisclosure<EventName>;
 }
 
