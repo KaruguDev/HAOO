@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   openSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -1235,18 +1236,23 @@ describe('credential and provider-origin boundary', () => {
     expect(originSource, 'provider ingestion-host pattern in build-output.test.ts')
       .toBeTruthy();
 
+    // The endpoint is assembled from a named origin and a named path around the project
+    // id, so both halves are read from the constants that own them rather than from a
+    // single literal the CLI no longer has.
     const cli = readFileSync(resolve(ROOT, 'scripts/generate-haoo-report.mjs'), 'utf8');
-    const endpoint = cli.match(/'(https:\/\/[^']+)'/)?.[1];
-    expect(endpoint, 'endpoint literal in the credentialed CLI').toBeTruthy();
-    const queryPath = new URL(endpoint ?? 'https://example.invalid').pathname;
+    const origin = cli.match(/QUERY_API_ORIGIN = '(https:\/\/[^']+)'/)?.[1];
+    expect(origin, 'origin literal in the credentialed CLI').toBeTruthy();
+    const queryPath = cli.match(/QUERY_API_PATH_PREFIX = '([^']+)'/)?.[1];
+    expect(queryPath, 'query path literal in the credentialed CLI').toBeTruthy();
     const credentialName = cli.match(/process\.env\.([A-Z0-9_]*API_KEY)/)?.[1];
     expect(credentialName, 'credential variable name in the credentialed CLI').toBeTruthy();
 
     const generate = readFileSync(resolve(ROOT, 'src/reporting/generate.ts'), 'utf8');
 
-    expect(generate).not.toMatch(new RegExp(originSource ?? 'plausible', 'i'));
-    expect(generate).not.toContain(queryPath);
-    expect(generate).not.toContain(credentialName ?? 'PLAUSIBLE_STATS_API_KEY');
+    expect(generate).not.toMatch(new RegExp(originSource ?? 'never-matched-origin', 'i'));
+    expect(generate).not.toContain(new URL(origin ?? 'https://example.invalid').hostname);
+    expect(generate).not.toContain(queryPath ?? '/api/projects/');
+    expect(generate).not.toContain(credentialName ?? 'NEVER_MATCHED_API_KEY');
   });
 
   it('rule-checks the credentialed script and every other non-browser module', async () => {
@@ -1289,7 +1295,29 @@ describe('credential and provider-origin boundary', () => {
 
 describe('credentialed CLI', () => {
   const secret = 'secret-header-sentinel-never-render';
-  const site = 'fixture-report.example';
+
+  /**
+   * Numeric like a real project id and unlike anything else the document can produce, so
+   * the single-occurrence assertion below means what it says.
+   */
+  const project = '70707';
+
+  /** The CLI source, read once — it is the only module that names the removed variables. */
+  const cliSource = readFileSync(resolve(ROOT, 'scripts/generate-haoo-report.mjs'), 'utf8');
+
+  /**
+   * The removed-name table read out of the module that owns it.
+   *
+   * The pairs are deliberately NOT restated here: this suite asserts the CLI's behaviour
+   * on a stale environment, and every other file in the repository is being cleared of
+   * the previous provider's names. Naming them a second time here would put the literal
+   * back into a tree the migration is emptying, for no assertion this reading does not
+   * already make.
+   */
+  const removedVariablePairs = [
+    ...(cliSource.match(/REMOVED_VARIABLES = \[[\s\S]*?\n\];/)?.[0] ?? '')
+      .matchAll(/\['([A-Z0-9_]+)', '([A-Z0-9_]+)'\]/g),
+  ].map(([, removed, replacement]) => ({ removed, replacement }));
 
   function runCli(environment: Readonly<Record<string, string | undefined>>) {
     const directory = mkdtempSync(join(tmpdir(), 'haoo-report-cli-'));
@@ -1328,20 +1356,20 @@ describe('credentialed CLI', () => {
     {
       label: 'both variables',
       environment: {},
-      missing: ['PLAUSIBLE_STATS_API_KEY', 'PLAUSIBLE_SITE_ID'],
+      missing: ['POSTHOG_QUERY_API_KEY', 'POSTHOG_PROJECT_ID'],
       supplied: '',
     },
     {
       label: 'only the API key',
-      environment: { PLAUSIBLE_STATS_API_KEY: secret },
-      missing: ['PLAUSIBLE_SITE_ID'],
+      environment: { POSTHOG_QUERY_API_KEY: secret },
+      missing: ['POSTHOG_PROJECT_ID'],
       supplied: secret,
     },
     {
-      label: 'only the site id',
-      environment: { PLAUSIBLE_SITE_ID: site },
-      missing: ['PLAUSIBLE_STATS_API_KEY'],
-      supplied: site,
+      label: 'only the project id',
+      environment: { POSTHOG_PROJECT_ID: project },
+      missing: ['POSTHOG_QUERY_API_KEY'],
+      supplied: project,
     },
   ])('names exactly the missing variable names with $label absent', ({ environment, missing, supplied }) => {
     const execution = runCli(environment);
@@ -1363,10 +1391,44 @@ describe('credentialed CLI', () => {
     }
   });
 
-  it('preloads a fixture-only fetch and completes exactly seven requests without leaking secrets', () => {
+  /**
+   * A stale environment is the one realistic failure this migration creates: the owner
+   * already holds a credential under a name that no longer exists. Reporting the new name
+   * as merely missing would point them at creating a credential they may already have,
+   * so the message names the rename instead.
+   */
+  it('finds a removed-variable table naming every renamed input', () => {
+    expect(removedVariablePairs.length).toBe(4);
+    for (const pair of removedVariablePairs) {
+      expect(pair.removed).not.toBe(pair.replacement);
+      expect(pair.replacement).toMatch(/POSTHOG/);
+    }
+  });
+
+  it.each(
+    [...Array(4).keys()].map((position) => ({ position })),
+  )('names the rename rather than a missing variable for removed variable $position', ({ position }) => {
+    const pair = removedVariablePairs[position];
+    expect(pair, `removed variable ${position}`).toBeTruthy();
+
+    const execution = runCli({ [pair.removed]: 'stale-value-from-a-previous-provider' });
+
+    try {
+      expect(execution.result.status).toBe(1);
+      expect(execution.result.stderr).toContain(pair.removed);
+      expect(execution.result.stderr).toContain(pair.replacement);
+      expect(execution.audit).toEqual({ count: 0, urls: [] });
+      expect(existsSync(execution.outputPath)).toBe(false);
+      expect(execution.result.stdout).toBe('');
+    } finally {
+      rmSync(execution.directory, { recursive: true, force: true });
+    }
+  });
+
+  it('preloads a fixture-only fetch and completes exactly eight requests without leaking secrets', () => {
     const execution = runCli({
-      PLAUSIBLE_STATS_API_KEY: secret,
-      PLAUSIBLE_SITE_ID: site,
+      POSTHOG_QUERY_API_KEY: secret,
+      POSTHOG_PROJECT_ID: project,
     });
 
     try {
@@ -1374,20 +1436,36 @@ describe('credentialed CLI', () => {
       const report = readFileSync(execution.outputPath, 'utf8');
 
       expect(execution.result.status).toBe(0);
-      expect(execution.audit.count).toBe(7);
+      expect(execution.audit.count).toBe(8);
       expect(new Set(execution.audit.urls)).toEqual(
-        new Set(['https://plausible.io/api/v2/query']),
+        new Set([`https://us.posthog.com/api/projects/${project}/query/`]),
       );
       expect(terminal).not.toContain(secret);
       expect(report).not.toContain(secret);
-      expect(report.match(new RegExp(site, 'g'))).toHaveLength(1);
+      expect(report.match(new RegExp(project, 'g'))).toHaveLength(1);
       expect(terminal).not.toContain('Authorization');
       expect(report).not.toContain('Authorization');
+      // The endpoint and the project id are the CLI's alone: neither may reach the
+      // document, and the project id reaches it only as the metadata line's named scope.
+      expect(report).not.toContain('us.posthog.com');
+      expect(terminal).not.toContain('us.posthog.com');
     } finally {
       rmSync(execution.directory, { recursive: true, force: true });
     }
   });
 
+  /**
+   * The owner-facing separation: the two report inputs are local process secrets for a
+   * manual command, and the browser inputs are deployment variables whose production
+   * collection is still deferred. Conflating them is how a query credential ends up in a
+   * public bundle.
+   *
+   * The two owner documents are asserted for the separation itself rather than for the
+   * variable names, because the names are migrated by the plan that owns those documents
+   * (`04.1-08`) and its own gates pin them there. What this suite owns is the phase's
+   * coverage record, which names both report inputs and states the boundary they may
+   * never cross.
+   */
   it('documents both local report inputs separately from deferred public build inputs', () => {
     const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
     const setup = readFileSync(
@@ -1397,20 +1475,27 @@ describe('credentialed CLI', () => {
       ),
       'utf8',
     );
+    // Resolved by prefix rather than spelled out: the phase directory name carries the
+    // previous provider's name, and this tree is being cleared of that literal.
+    const phaseDirectory = readdirSync(resolve(ROOT, '.planning/phases'))
+      .find((entry) => entry.startsWith('04.1-')) ?? '';
+    expect(phaseDirectory, 'this phase directory').toBeTruthy();
+    const coverage = readFileSync(
+      resolve(ROOT, '.planning/phases', phaseDirectory, 'COVERAGE.md'),
+      'utf8',
+    );
 
     for (const document of [readme, setup]) {
-      expect(document).toContain('PLAUSIBLE_STATS_API_KEY');
-      expect(document).toContain('PLAUSIBLE_SITE_ID');
-      expect(document).toMatch(/PLAUSIBLE_SITE_ID[^\n]*(domain|hostname)/i);
-      expect(document).toContain(
-        'PLAUSIBLE_STATS_API_KEY="$PLAUSIBLE_STATS_API_KEY" PLAUSIBLE_SITE_ID="$PLAUSIBLE_SITE_ID" npm run report:haoo',
-      );
+      expect(document).toContain('npm run report:haoo');
       expect(document).toContain('VITE_HAOO_MEASUREMENT_PROVIDER');
-      expect(document).toContain('VITE_HAOO_PLAUSIBLE_SRC');
-      expect(document).toContain('VITE_HAOO_PLAUSIBLE_DOMAIN');
       expect(document.toLowerCase()).toContain('production collection');
       expect(document.toLowerCase()).toContain('deferred');
     }
+
+    expect(coverage).toContain('POSTHOG_QUERY_API_KEY');
+    expect(coverage).toContain('POSTHOG_PROJECT_ID');
+    expect(coverage).toMatch(/local report-process inputs/i);
+    expect(coverage).toMatch(/may enter a `VITE_\*` variable or the published bundle/i);
   });
 });
 
