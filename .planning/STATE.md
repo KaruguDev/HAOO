@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-current_phase: 04
-current_phase_name: Report and Enrich the HAOO Funnel Truthfully
+current_phase: 04.1
+current_phase_name: Migrate Measurement from Plausible to PostHog (INSERTED)
 status: executing
-stopped_at: Phase 04.1 context gathered
-last_updated: "2026-09-02T19:45:41.591Z"
-last_activity: 2026-09-02
-last_activity_desc: Phase 04 execution started
-state_head: 8f49607dfffa8b221eee4b6abb083c1f943de165
+stopped_at: Completed 04.1-02-PLAN.md
+last_updated: "2026-09-03T10:19:59.460Z"
+last_activity: 2026-09-03
+last_activity_desc: Phase 04.1 execution resumed (wave continue)
+state_head: dba2cc73dc29e2f97cfdfa571caacb8b5f97f2ec
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 34
-  completed_plans: 33
+  total_plans: 43
+  completed_plans: 35
   percent: 33
 ---
 
@@ -23,17 +23,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 04 — Report and Enrich the HAOO Funnel Truthfully
+**Current focus:** Phase 04.1 — Migrate Measurement from Plausible to PostHog (INSERTED)
 
 ## Current Position
 
-Phase: 04 (Report and Enrich the HAOO Funnel Truthfully) — EXECUTING
-Plan: 14 of 14
-Total Plans in Phase: 14
+Phase: 04.1 (Migrate Measurement from Plausible to PostHog (INSERTED)) — EXECUTING
+Plan: 2 of 8
+Total Plans in Phase: 8
 Status: Ready to execute
-Last activity: 2026-09-02 — Phase 04 execution started
+Last activity: 2026-09-03 — Phase 04.1 execution resumed (wave continue)
 
-Progress: 27/28 milestone plans ([████░░░░░░] 40%)
+Progress: 27/28 milestone plans ([███░░░░░░░] 33%)
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: 27/28 milestone plans ([████░░░░░░] 40%)
 | Phase 04 P11 | 10 min | 2 tasks | 2 files |
 | Phase 04 P12 | 5 min | 2 tasks | 3 files |
 | Phase 04 P13 | 8 min | 3 tasks | 4 files |
+| Phase 04.1 P02 | 4 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,8 @@ Recent decisions affecting current work:
 - [Phase 04]: The unreachable stub-removal branch was deleted along with the two 04-09 claims it backed, rather than made reachable — Making it reachable would require installProviderStub to return a stub that can fail its own initialization, weakening the one component in the module the project fully controls; the honest outcome is fewer claims, not more machinery
 - [Phase 04]: Gap 3 closed as a documentation-accuracy gap: the recorded-opt-out control is unchanged and only the claims about it were corrected — 04-VERIFICATION.md classified it that way and routed the adopted-path echo to a live human gate; closing it in code would have silently retired a gate kept open on purpose (T-04-55, transfer)
 - [Phase 04]: 04-09's D1 coverage row is now human_judgment: true with a manual_procedural entry at status unknown, keeping its two original passing checks — The assertion depends on the vendor script honouring the recorded value; no test in this tree can observe it, so verify-work must route D1 to a human rather than auto-pass on structural evidence
+- [Phase 04.1]: PostHog coverage matrix: every automatic-capture subtraction is a reasoned OPT-OUT row, so the D-03 lockdown is verifier-enforced rather than a configuration detail — A reasonless OPT-OUT is an undecided hole; the coverage verifier fails on one, proven by mutation probe
+- [Phase 04.1]: The PostHog Query API echoes query and hogql but not the project id — a weakening against the Plausible site_id provenance, recorded in COVERAGE.md rather than dropped silently — CONTEXT delegates report provenance with the binding constraint that any weakening must be stated explicitly
 
 ### Pending Todos
 
@@ -211,6 +214,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T19:45:41.413Z
-Stopped at: Phase 04.1 context gathered
-Resume file: .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-CONTEXT.md
+Last session: 2026-09-03T10:19:38.255Z
+Stopped at: Completed 04.1-02-PLAN.md
+Resume file: None
