@@ -2,37 +2,65 @@ import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const REQUIRED_TABLES = {
-  'Plausible — browser event-collection API (site-specific script)': new Map([
-    ["custom event by name (`plausible('<name>')`)", 'INTEGRATE'],
-    ['pre-load event queue (`window.plausible.q` stub)', 'INTEGRATE'],
-    ['pre-load options slot (`window.plausible.o`)', 'INTEGRATE'],
-    ['pre-load initializer (`plausible.init(options)`)', 'INTEGRATE'],
-    ['ten exact custom-event goals configured on the site', 'INTEGRATE'],
-    ['automatic pageview capture', 'OPT-OUT'],
-    ['custom event properties / property bag', 'OPT-OUT'],
-    ['outbound-link automatic capture', 'OPT-OUT'],
-    ['file-download automatic capture', 'OPT-OUT'],
-    ['form-submission automatic capture', 'OPT-OUT'],
+  'PostHog — browser SDK (posthog-js, bundled)': new Map([
+    ['bundled `posthog.init(token, config)` with an explicit lockdown object', 'INTEGRATE'],
+    ['merged-config readback via `instance.config`', 'INTEGRATE'],
+    ['`capture(name)` with a bare name and no property argument', 'INTEGRATE'],
+    ['`before_send` payload reduction', 'INTEGRATE'],
+    ["`person_profiles: 'never'`", 'INTEGRATE'],
+    ["`persistence: 'memory'` with `disable_persistence: true`", 'INTEGRATE'],
+    ['`advanced_disable_flags` to suppress the remote-configuration fetch', 'INTEGRATE'],
+    ['`disable_external_dependency_loading`', 'INTEGRATE'],
+    ["`defaults: 'unset'` pinning of the date-gated default set", 'INTEGRATE'],
+    ['PostHog Cloud US ingestion host', 'INTEGRATE'],
+    ['DOM autocapture (`autocapture`)', 'OPT-OUT'],
+    ['rageclick (`rageclick`)', 'OPT-OUT'],
+    ['dead clicks (`capture_dead_clicks`)', 'OPT-OUT'],
+    ['automatic `$pageview` (`capture_pageview`)', 'OPT-OUT'],
+    ['automatic `$pageleave` (`capture_pageleave`)', 'OPT-OUT'],
+    ['session recording / replay (`disable_session_recording`)', 'OPT-OUT'],
+    ['surveys (`disable_surveys`)', 'OPT-OUT'],
+    ['automatic survey display (`disable_surveys_automatic_display`)', 'OPT-OUT'],
+    ['product tours (`disable_product_tours`)', 'OPT-OUT'],
+    ['conversations (`disable_conversations`)', 'OPT-OUT'],
+    ['web experiments (`disable_web_experiments`)', 'OPT-OUT'],
+    ['heatmaps (`capture_heatmaps`)', 'OPT-OUT'],
+    ['exception autocapture (`capture_exceptions`)', 'OPT-OUT'],
+    ['performance and web vitals (`capture_performance`)', 'OPT-OUT'],
+    ['scroll properties (`disable_scroll_properties`)', 'OPT-OUT'],
+    ['site apps (`opt_in_site_apps`)', 'OPT-OUT'],
+    ['feature flags (`advanced_disable_feature_flags`)', 'OPT-OUT'],
+    ['toolbar metrics (`advanced_disable_toolbar_metrics`)', 'OPT-OUT'],
+    ['`save_referrer`', 'OPT-OUT'],
+    ['`save_campaign_params`', 'OPT-OUT'],
+    ['`identify()` / `alias()` / `group()` / `setPersonProperties()`', 'OPT-OUT'],
+    ['`property_denylist` as a privacy boundary', 'OPT-OUT'],
+    ['`sanitize_properties`', 'OPT-OUT'],
+    ['the deprecated `ip` option', 'OPT-OUT'],
+    ['`cookieless_mode`', 'OPT-OUT'],
+    ['`$geoip_disable` as an event property', 'OPT-OUT'],
   ]),
-  'Plausible — Stats API v2': new Map([
-    ['`POST /api/v2/query`', 'INTEGRATE'],
-    ['metric `events`', 'INTEGRATE'],
-    ['dimension `event:goal`', 'INTEGRATE'],
-    ['filter `["is","event:goal",[…ten goals]]`', 'INTEGRATE'],
-    ['`date_range` explicit inclusive ISO pair', 'INTEGRATE'],
-    ['`date_range: "all"`', 'INTEGRATE'],
-    ['bearer authentication from the local process environment', 'INTEGRATE'],
-    ['echoed `query.site_id` provenance', 'INTEGRATE'],
-    ['echoed `query.metrics`, `query.dimensions`, and goal-filter provenance', 'INTEGRATE'],
-    ['echoed bounded-range provenance', 'INTEGRATE'],
-    ['echoed all-time range provenance', 'INTEGRATE'],
+  'PostHog — Query API': new Map([
+    ['`POST /api/projects/:project_id/query/`', 'INTEGRATE'],
+    ['`HogQLQuery` body kind', 'INTEGRATE'],
+    ['the descriptive `name` parameter', 'INTEGRATE'],
+    ['bearer authentication from the local process environment with the single scope PostHog labels *Query Read*', 'INTEGRATE'],
+    ['`count()` aggregate grouped by `event`', 'INTEGRATE'],
+    ["`toTimeZone(timestamp, 'Africa/Nairobi')` pinned inside the SQL", 'INTEGRATE'],
+    ['explicit inclusive date bounds', 'INTEGRATE'],
+    ['an explicit `LIMIT` above the allowlist size', 'INTEGRATE'],
+    ['echoed `query` / `hogql` provenance', 'INTEGRATE'],
     ['response `results` rows', 'INTEGRATE'],
-    ['person/session/engagement metrics', 'OPT-OUT'],
-    ['metrics `conversion_rate`, `group_conversion_rate`, `percentage`', 'OPT-OUT'],
-    ['`include.comparisons`', 'OPT-OUT'],
-    ['Shared links', 'OPT-OUT'],
-    ['Embed dashboard (iframe)', 'OPT-OUT'],
-    ['Funnels / user journeys', 'OPT-OUT'],
+    ['response `columns` equality assertion', 'INTEGRATE'],
+    ['bulk or recurring event export', 'OPT-OUT'],
+    ['OFFSET pagination', 'OPT-OUT'],
+    ['the Insights API and dashboard actions', 'OPT-OUT'],
+    ['person, session, and cohort queries', 'OPT-OUT'],
+    ['`query_log`', 'OPT-OUT'],
+    ['async / polling query execution', 'OPT-OUT'],
+    ['shared links and embedded dashboards', 'OPT-OUT'],
+    ['funnels and user journeys', 'OPT-OUT'],
+    ['`refresh` cache controls', 'OPT-OUT'],
   ]),
   'FormSubmit — AJAX email delivery (re-decided from a full baseline)': new Map([
     ['cross-origin AJAX JSON POST', 'INTEGRATE'],
@@ -137,13 +165,29 @@ export function auditPhase4Coverage(markdown) {
     [
       // Pinned to the sentence it means to assert. A bare /deferred/ passed on any
       // occurrence of the word anywhere in the section, including one saying the opposite.
-      'processor approval, dashboard setup, and deployment variables remain deferred',
-      /deferred\s+processor\s+approval,\s+dashboard\s+setup,\s+and\s+deployment\s+variables/iu,
+      // Migrated with the phase: PostHog needs its project created, not ten dashboard goals.
+      'processor approval, project creation, and deployment variables remain deferred',
+      /deferred\s+processor\s+approval,\s+project\s+creation,\s+and\s+deployment\s+variables/iu,
     ],
     ['provider selector remains unset', /provider selector\s+remains unset/iu],
-    ['PLAUSIBLE_STATS_API_KEY stays local', /`PLAUSIBLE_STATS_API_KEY`/u],
-    ['PLAUSIBLE_SITE_ID stays local', /`PLAUSIBLE_SITE_ID`/u],
+    ['POSTHOG_QUERY_API_KEY stays local', /`POSTHOG_QUERY_API_KEY`/u],
+    ['POSTHOG_PROJECT_ID stays local', /`POSTHOG_PROJECT_ID`/u],
     ['local report variables stay outside Vite/browser configuration', /neither may enter a `VITE_\*` variable or the published bundle/iu],
+    [
+      // Tightened past a bare /United States/ for the same reason as the deferral entry
+      // above: the region is a one-way D-08 decision, and a sentence merely mentioning the
+      // country — including one denying that processing happens there — would have passed.
+      'analytics data is processed in the United States',
+      /Analytics\s+data\s+is\s+processed\s+in\s+the\s+United\s+States/iu,
+    ],
+    [
+      // Tightened past a bare /Discard client IP data/: what this row exists to record is
+      // that the setting is the OWNER's to perform and the code cannot assert it. A pattern
+      // matching only the setting's name would pass on a sentence claiming the adapter
+      // closes the gap, which is the one claim this project may not make (Pitfall 5).
+      'client IP discard is an owner-performed project setting',
+      /"Discard client IP data"\s+is\s+an\s+owner-performed\s+project\s+setting/iu,
+    ],
   ];
   for (const [description, pattern] of boundaryChecks) {
     if (!pattern.test(operationalBoundary)) {
@@ -164,7 +208,7 @@ export function auditPhase4Coverage(markdown) {
 async function main() {
   const coveragePath = process.argv[2];
   if (!coveragePath) {
-    throw new Error('Usage: node scripts/verify-phase4-coverage.mjs <COVERAGE.md>');
+    throw new Error('Usage: node scripts/verify-phase4-coverage.mjs .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/COVERAGE.md');
   }
 
   const result = auditPhase4Coverage(await readFile(coveragePath, 'utf8'));
