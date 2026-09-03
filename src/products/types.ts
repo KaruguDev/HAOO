@@ -178,6 +178,19 @@ export interface ProductMeasurementDisclosure<EventName extends string> {
   readonly browserBoundary: string;
   readonly campaignHeading: string;
   readonly campaignDescription: string;
+  /**
+   * The two parts of the group that names the analytics processor and the jurisdiction
+   * its data is processed in. They are required members, so a product configuration that
+   * forgets the processor statement is a typecheck failure rather than a disclosure that
+   * silently renders a blank where a promise about the visitor's data should be.
+   *
+   * They are product data rather than component literals because the processor and its
+   * jurisdiction are facts about where the data goes, and a literal in the component
+   * would put a claim about a third party outside the product data that every other
+   * disclosure line comes from.
+   */
+  readonly processorHeading: string;
+  readonly processorNote: string;
   readonly neverCollectedHeading: string;
   readonly neverCollected: readonly string[];
   /**

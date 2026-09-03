@@ -809,6 +809,10 @@ describe('Phase 1 static build contracts', () => {
       .toBeLessThan(disclosureSource.indexOf('<div className="mt-6 space-y-6">'));
     expect(disclosureSource).not.toMatch(/skeleton|spinner|loading|line-clamp|truncate|text-ellipsis|overflow-x/i);
     expect(bundle).toContain('How we measure this page');
+    // Derived, never restated: the approved processor copy has exactly one source, so a
+    // wording change that lands in product data but not in the shipped bundle fails here.
+    expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.processorHeading);
+    expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.processorNote);
     expect(APPROVED_NOTICE_BUNDLE_SEGMENTS.length).toBeGreaterThan(1);
     for (const segment of APPROVED_NOTICE_BUNDLE_SEGMENTS) {
       expect(bundle, segment).toContain(segment);

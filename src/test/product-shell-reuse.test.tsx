@@ -162,6 +162,8 @@ function syntheticProduct(
         browserBoundary: 'Derivation values never enter submissions.',
         campaignHeading: 'Campaign information',
         campaignDescription: 'Allowlisted campaign values last for one page lifetime.',
+        processorHeading: 'Where this measurement is processed',
+        processorNote: 'This synthetic page sends no signals to an external processor.',
         neverCollectedHeading: 'What we never collect for measurement',
         neverCollected: ['Form answers or cross-site identifiers.'],
         summaryHeading: 'What we attach to your form submission',

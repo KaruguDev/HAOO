@@ -255,12 +255,26 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     campaignHeading: 'Campaign information',
     campaignDescription:
       'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, and removed from the address bar after being read.',
+    /**
+     * Owner-approved copy, byte-exact, resolved by this plan's blocking checkpoint
+     * (04.1-06 Task 1) as the resolution of the D-10 deferral. D-08 moved measurement to
+     * a different processor in a different country, so the visitor is told which
+     * processor holds the data and which jurisdiction processes it.
+     *
+     * The second sentence names the per-page-load transport reference the wire actually
+     * carries. It is here because the payload is a bare event name plus the vendor's own
+     * transport keys, not a literally empty object, and a disclosure that implied
+     * otherwise would describe a request this page does not send.
+     */
+    processorHeading: 'Where this measurement is processed',
+    processorNote:
+      'Aggregate page signals are processed by PostHog in the United States. Each signal is sent with a temporary reference that lasts only for the current page load, is never saved in this browser, and is never linked to your form answers.',
     neverCollectedHeading: 'What we never collect for measurement',
     neverCollected: [
       'Name, email address, phone number, or organization.',
       'Message text.',
       'Role, county, timeframe, or exact portfolio values.',
-      'UUIDs, cookies, fingerprints, or cross-site identifiers.',
+      'Cookies, fingerprints, or cross-site identifiers.',
       'Raw click history.',
       'Any form answer attached to an analytics event.',
     ],
