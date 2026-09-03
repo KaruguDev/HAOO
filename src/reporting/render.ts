@@ -57,7 +57,7 @@ export interface ReportModel {
   readonly title: string;
   readonly generatedAt: string;
   readonly timezone: string;
-  readonly siteScope: string;
+  readonly projectScope: string;
   readonly periods: readonly ReportPeriodModel[];
 }
 
@@ -488,7 +488,7 @@ function metadataLine(model: ReportModel): string {
   return [
     `${REPORT_METADATA_LABELS.generated} ${model.generatedAt}`,
     `${REPORT_METADATA_LABELS.timezone} ${model.timezone}`,
-    `${REPORT_METADATA_LABELS.site} ${model.siteScope}`,
+    `${REPORT_METADATA_LABELS.project} ${model.projectScope}`,
   ].join(REPORT_METADATA_SEPARATOR);
 }
 

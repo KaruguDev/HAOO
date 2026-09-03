@@ -227,22 +227,28 @@ export const REPORT_COLUMN_HEADERS: Readonly<Record<ReportColumnId, string>> = {
   allTime: 'All time',
 };
 
-export type ReportMetadataId = 'generated' | 'timezone' | 'site';
+export type ReportMetadataId = 'generated' | 'timezone' | 'project';
 
 /**
  * UI-SPEC "Metadata" — the header line names only facts the report witnessed.
  *
  * Provider configuration is not among them. It was printed from an inference over the
- * counts, but the Stats API breakdown returns a row only for a goal with events in the
- * period, so a registered-but-unfired goal is indistinguishable from an unregistered one
- * (see `parseGoalCounts`). A live site with no traffic yet would have been labelled "not
- * configured", which is a claim about the site the report cannot support. Reading real
+ * counts, but the aggregate returns a row only for a name with occurrences in the
+ * period, so a recorded-but-unfired name is indistinguishable from one that was never
+ * recorded (see `parseGoalCounts`). A live project with no traffic yet would have been
+ * labelled "not configured", which is a claim the report cannot support. Reading real
  * registration needs a different endpoint and credential than this report holds.
+ *
+ * The project label is the weakest of the three and says so in the caveat block: the
+ * provider echoes the query it answered but not the project that answered it, so this
+ * line names the project the command was CONFIGURED with rather than one the response
+ * proved. Labelling it as a witnessed fact would have been the silent weakening the
+ * migration is forbidden to make.
  */
 export const REPORT_METADATA_LABELS: Readonly<Record<ReportMetadataId, string>> = {
   generated: 'Generated',
   timezone: 'Reporting timezone',
-  site: 'Site',
+  project: 'Project',
 };
 
 export const REPORT_METADATA_SEPARATOR = ' · ';
@@ -282,6 +288,17 @@ export function emptyStateBody(start: string, end: string): string {
  * scan excludes this block and pins it by exact text instead: a negated word here is the
  * truthful reading, while the same word in a label would be the overstatement MEAS-08
  * forbids.
+ *
+ * The last two entries were added by the provider migration and are this report's honest
+ * statement of what it can and cannot prove. One records that an all-time count begins at
+ * the first action recorded for this project because there is no earlier provider history
+ * to include — without it, an owner reading "All time" would reasonably expect a count
+ * since the site launched. The other records that the provider echoes the query this
+ * report submitted but not the project that answered it, so a response can no longer be
+ * bound to the project it came from; the metadata line names the project the command was
+ * configured with, not one the response proved. Both are losses relative to the previous
+ * provider, and dropping either from this block — rather than stating it — would be
+ * exactly the silent weakening the migration is forbidden to make.
  */
 export const REPORT_CAVEATS: readonly string[] = [
   'These counts are occurrences of browser actions, not people, sessions, or enquiries.',
@@ -294,6 +311,11 @@ export const REPORT_CAVEATS: readonly string[] = [
   + 'registration, a customer, or completed onboarding.',
   'Browser privacy settings and content blockers can prevent an action from being '
   + 'recorded, so real activity can be higher than the counts shown.',
+  'All-time counts begin at the first action recorded for this project; there is no '
+  + 'earlier provider history to include.',
+  'The provider echoes the query this report submitted but not the project that answered '
+  + 'it, so the report proves which query produced its numbers and not which project '
+  + 'produced them; the project named above is the one the command was configured with.',
 ];
 
 /**
