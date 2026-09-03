@@ -1,156 +1,96 @@
-import type { PeriodWindow } from './haoo-report.ts';
 import { isPlainObject } from './untrusted.ts';
 
+/**
+ * Proof that the response answered the query this report submitted.
+ *
+ * The previous provider echoed the site the query ran against; the Query API echoes the
+ * query and the compiled HogQL but **not** the project. That is a real weakening: a
+ * response can no longer be bound to the project it came from. It is stated in the
+ * report's own caveat block (`REPORT_CAVEATS` in `haoo-report.ts`) rather than dropped
+ * silently, and it is the reason the one remaining check is made as strict as it can be.
+ */
 export interface EchoedQueryProvenance {
-  readonly start: string;
-  readonly end: string;
-  /**
-   * The UTC offset the provider echoed on its range bounds — `'Z'` or `'+03:00'` — or
-   * null when the bounds were bare calendar days carrying no offset evidence. This is
-   * the only observable statement the provider makes about the timezone it aggregates
-   * in, so it is kept rather than discarded.
-   */
-  readonly offset: string | null;
+  /** The echoed query text, proven equal to the submitted SQL. */
+  readonly query: string;
 }
 
 /**
- * Why an echo was refused. `timezone-mismatch` is reserved for the one refusal that is
- * evidence about the *site's* configuration rather than about the response: the provider
- * answered coherently, but in a different reporting timezone than the report asserts.
- * Collapsing it into `invalid` is what made a site-timezone misconfiguration present as
- * an intermittent credential failure.
+ * Why an echo was refused.
+ *
+ * The union collapsed to a single member with this migration. The member removed here
+ * was reserved for the one refusal that was evidence about the *site's* configuration
+ * rather than about the response -- the provider answered coherently, but in a different
+ * reporting timezone than the report asserts. The reporting timezone is now pinned inside
+ * the submitted SQL, so the provider cannot disagree with the report about day
+ * boundaries. The failure mode is retired rather than ported, and there is nothing left
+ * for a second member to name.
  */
-export type EchoedQueryRejection = 'invalid' | 'timezone-mismatch';
+export type EchoedQueryRejection = 'invalid';
 
 export type EchoedQueryResult =
   | { readonly ok: true; readonly provenance: EchoedQueryProvenance }
   | { readonly ok: false; readonly reason: EchoedQueryRejection };
 
+/** The one query kind this report submits, and therefore the only one it accepts back. */
+export const HOGQL_QUERY_KIND = 'HogQLQuery';
+
 export interface ExpectedEchoedQuery {
-  readonly siteId: string;
-  readonly events: readonly string[];
-  readonly range: PeriodWindow | 'all';
-  readonly today: string;
-  /**
-   * Minutes east of UTC of the timezone the caller derived `today` in, or null/absent
-   * when the caller cannot determine it. An echoed offset that disagrees with this is
-   * proof that the provider aggregates in another timezone.
-   */
-  readonly offsetMinutes?: number | null;
-}
-
-const DAY_MILLISECONDS = 86_400_000;
-
-function sameStrings(value: unknown, expected: readonly string[]): boolean {
-  return Array.isArray(value)
-    && value.length === expected.length
-    && value.every((entry, index) => entry === expected[index]);
-}
-
-interface EchoedDay {
-  readonly day: string;
-  readonly offset: string | null;
-}
-
-function calendarDay(value: unknown): EchoedDay | null {
-  if (typeof value !== 'string') return null;
-  const match = /^(\d{4}-\d{2}-\d{2})(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}:\d{2}))?$/
-    .exec(value);
-  if (match === null) return null;
-
-  const day = match[1];
-  const [year, month, date] = day.split('-').map(Number);
-  const normalized = new Date(Date.UTC(year, month - 1, date));
-  if (
-    normalized.getUTCFullYear() !== year
-    || normalized.getUTCMonth() !== month - 1
-    || normalized.getUTCDate() !== date
-    || (value.length > 10 && !Number.isFinite(Date.parse(value)))
-  ) {
-    return null;
-  }
-
-  return { day, offset: match[2] ?? null };
-}
-
-/** `'Z'` and `'+03:00'` as minutes east of UTC; null for anything unrecognised. */
-export function offsetMinutesOf(offset: string): number | null {
-  if (offset === 'Z') return 0;
-  const match = /^([+-])(\d{2}):(\d{2})$/.exec(offset);
-  if (match === null) return null;
-
-  const magnitude = Number(match[2]) * 60 + Number(match[3]);
-  return match[1] === '-' ? -magnitude : magnitude;
-}
-
-/**
- * Whether two calendar days are exactly one apart. A reporting-timezone disagreement can
- * never move a day boundary by more than one, so a wider gap is a bad echo rather than a
- * timezone question.
- */
-function adjacentDays(left: string, right: string): boolean {
-  const first = Date.parse(`${left}T00:00:00.000Z`);
-  const second = Date.parse(`${right}T00:00:00.000Z`);
-  if (!Number.isFinite(first) || !Number.isFinite(second)) return false;
-
-  return Math.abs(first - second) === DAY_MILLISECONDS;
+  /** The exact SQL text this report submitted, byte-for-byte. */
+  readonly sql: string;
 }
 
 function refuse(reason: EchoedQueryRejection): EchoedQueryResult {
   return { ok: false, reason };
 }
 
+/**
+ * Accepts a response whose echoed query is exactly the submitted SQL.
+ *
+ * One equality subsumes every per-member check the previous provider needed. The SQL text
+ * contains the event allowlist, both range bounds, the grouping, and the row limit, so
+ * echoing it back unchanged proves all of those facts at once -- the metrics, dimensions,
+ * filter and date-range echo checks were deleted because this check already covers them,
+ * not because the coverage was given up.
+ *
+ * The comparison is byte-exact and does not normalize whitespace: the submitted text is
+ * built in this repository from repository-owned constants and is byte-stable across
+ * runs, so a difference is evidence about the response rather than formatting noise.
+ *
+ * The exact response envelope is a MEDIUM-confidence assumption from research (A4): the
+ * `HogQLQuery` echo shape was not read verbatim from the provider's documentation. Both
+ * documented shapes are handled explicitly and every other shape is refused, so the first
+ * live run settles the question loudly instead of parsing to zeros.
+ */
 export function validateEchoedQuery(
   body: unknown,
   expected: ExpectedEchoedQuery,
 ): EchoedQueryResult {
   try {
-    if (!isPlainObject(body) || !isPlainObject(body.query)) return refuse('invalid');
-    const query = body.query;
-    if (query.site_id !== expected.siteId) return refuse('invalid');
-    if (!sameStrings(query.metrics, ['events'])) return refuse('invalid');
-    if (!sameStrings(query.dimensions, ['event:goal'])) return refuse('invalid');
+    if (!isPlainObject(body)) return refuse('invalid');
 
-    if (!Array.isArray(query.filters) || query.filters.length !== 1) return refuse('invalid');
-    const filter = query.filters[0];
-    if (!Array.isArray(filter) || filter.length !== 3) return refuse('invalid');
-    if (filter[0] !== 'is' || filter[1] !== 'event:goal') return refuse('invalid');
-    if (!sameStrings(filter[2], expected.events)) return refuse('invalid');
+    const echoed = body.query;
 
-    if (!Array.isArray(query.date_range) || query.date_range.length !== 2) {
-      return refuse('invalid');
-    }
-    const startDay = calendarDay(query.date_range[0]);
-    const endDay = calendarDay(query.date_range[1]);
-    if (startDay === null || endDay === null || startDay.day > endDay.day) {
-      return refuse('invalid');
+    // Shape one: the submitted query object, echoed with its kind and its text. The kind
+    // is compared too -- a response that answered another kind of query answered a
+    // different question, whatever text it carries.
+    if (isPlainObject(echoed)) {
+      if (echoed.kind !== HOGQL_QUERY_KIND) return refuse('invalid');
+      if (typeof echoed.query !== 'string') return refuse('invalid');
+      if (echoed.query !== expected.sql) return refuse('invalid');
+
+      return { ok: true, provenance: { query: echoed.query } };
     }
 
-    const start = startDay.day;
-    const end = endDay.day;
-    const offset = endDay.offset ?? startDay.offset;
+    // Shape two: the query text alone.
+    if (typeof echoed === 'string') {
+      if (echoed !== expected.sql) return refuse('invalid');
 
-    // Direct evidence beats inference: an echoed offset that disagrees with the caller's
-    // own is a definite timezone mismatch on every range, at every hour of the day.
-    const expectedOffsetMinutes = expected.offsetMinutes ?? null;
-    if (expectedOffsetMinutes !== null && offset !== null) {
-      const echoed = offsetMinutesOf(offset);
-      if (echoed !== null && echoed !== expectedOffsetMinutes) {
-        return refuse('timezone-mismatch');
-      }
+      return { ok: true, provenance: { query: echoed } };
     }
 
-    if (expected.range === 'all') {
-      if (end !== expected.today || start > expected.today) {
-        // The provider resolves the all-time end in site-local time. A one-day gap is
-        // what a timezone disagreement looks like when no offset was echoed to prove it.
-        return refuse(adjacentDays(end, expected.today) ? 'timezone-mismatch' : 'invalid');
-      }
-    } else if (start !== expected.range.start || end !== expected.range.end) {
-      return refuse('invalid');
-    }
-
-    return { ok: true, provenance: { start, end, offset } };
+    // Neither echo shape is present. `hogql` is the provider's compiled rewriting of the
+    // submitted text rather than the submitted text, so it can never stand in for this.
+    return refuse('invalid');
   } catch {
     return refuse('invalid');
   }
