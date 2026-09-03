@@ -57,9 +57,15 @@ import {
 const ROOT = resolve(import.meta.dirname, '../..');
 
 /** A fixture key that must never appear in a rendered document (threat T-04-02). */
-const FIXTURE_API_KEY = 'fixture-stats-api-key-do-not-render';
-const FIXTURE_SITE_ID = 'example.test';
-const FIXTURE_ENDPOINT = 'https://provider.invalid/api/v2/query';
+const FIXTURE_API_KEY = 'fixture-query-api-key-do-not-render';
+
+/**
+ * The project the fixture command was configured with. It is rendered in the metadata
+ * line exactly once, and it is deliberately a string the document cannot produce by any
+ * other route, so a single-occurrence assertion is meaningful.
+ */
+const FIXTURE_PROJECT_ID = '70707';
+const FIXTURE_ENDPOINT = `https://provider.invalid/api/projects/${FIXTURE_PROJECT_ID}/query/`;
 
 /** The terminal-only failure sentence from the UI-SPEC Copywriting Contract. */
 const ERROR_STATE_SENTENCE =
@@ -200,25 +206,81 @@ const INDEPENDENT_GOAL_FILTER = [
   'haoo_self_onboarding',
 ] as const;
 
-const DEFAULT_ECHOED_RANGES = [
-  ['2026-02-23T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
-  ['2026-02-16T00:00:00+03:00', '2026-02-22T23:59:59+03:00'],
-  ['2026-01-31T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
-  ['2026-01-01T00:00:00+03:00', '2026-01-30T23:59:59+03:00'],
-  ['2025-12-02T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
-  ['2025-09-03T00:00:00+03:00', '2025-12-01T23:59:59+03:00'],
-  ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'],
-] as const;
+/** One submitted query: a bounded range, the unbounded all-time aggregate, or the first day. */
+type SubmittedQuery =
+  | { readonly start: string; readonly end: string }
+  | 'all'
+  | 'first-day';
 
-function independentlyEchoedQuery(dateRange: readonly [string, string]) {
-  return {
-    site_id: 'example.test',
-    metrics: ['events'],
-    dimensions: ['event:goal'],
-    filters: [['is', 'event:goal', [...INDEPENDENT_GOAL_FILTER]]],
-    date_range: [...dateRange],
-  };
+/**
+ * The reporting timezone and the row limit as the SQL carries them, authored here rather
+ * than imported. The timezone now lives inside the submitted query text instead of in a
+ * remote site setting, so the provider cannot disagree with the report about a day
+ * boundary — the mismatch failure mode is retired rather than ported.
+ */
+const INDEPENDENT_TIMEZONE = 'Africa/Nairobi';
+
+/**
+ * Comfortably above the ten allowlisted names, so an eleventh name could never be
+ * truncated by the provider's default page into a silently wrong zero.
+ */
+const INDEPENDENT_ROW_LIMIT = 100;
+
+function independentEventLiterals(): string {
+  return INDEPENDENT_GOAL_FILTER.map((event) => `'${event}'`).join(', ');
 }
+
+/**
+ * A byte-for-byte second copy of the SQL `src/reporting/generate.ts` submits.
+ *
+ * The echo validator compares the response's echoed query against the submitted text
+ * without normalising whitespace, so this copy is what proves the submitted text is what
+ * the report thinks it is. A change to the source builder — including a reformatting —
+ * fails here rather than passing by construction.
+ */
+function independentSql(submitted: SubmittedQuery): string {
+  if (submitted === 'first-day') {
+    return `SELECT toString(toDate(toTimeZone(min(timestamp), '${INDEPENDENT_TIMEZONE}'))) AS first_day\n`
+      + 'FROM events\n'
+      + `WHERE event IN (${independentEventLiterals()})\n`
+      + 'LIMIT 1';
+  }
+
+  const bounds = submitted === 'all'
+    ? ''
+    : `\n  AND toDate(toTimeZone(timestamp, '${INDEPENDENT_TIMEZONE}')) >= toDate('${submitted.start}')`
+      + `\n  AND toDate(toTimeZone(timestamp, '${INDEPENDENT_TIMEZONE}')) <= toDate('${submitted.end}')`;
+
+  return 'SELECT event, count() AS occurrences\n'
+    + 'FROM events\n'
+    + `WHERE event IN (${independentEventLiterals()})${bounds}\n`
+    + 'GROUP BY event\n'
+    + 'ORDER BY event\n'
+    + `LIMIT ${INDEPENDENT_ROW_LIMIT}`;
+}
+
+/**
+ * The eight queries one run submits, in order: current and previous for 7, 30 and 90
+ * days, the unbounded all-time aggregate, and the single-value first-recorded-day query
+ * that replaces the range echo the previous provider supplied.
+ */
+const DEFAULT_SUBMITTED_QUERIES: readonly SubmittedQuery[] = [
+  { start: '2026-02-23', end: '2026-03-01' },
+  { start: '2026-02-16', end: '2026-02-22' },
+  { start: '2026-01-31', end: '2026-03-01' },
+  { start: '2026-01-01', end: '2026-01-30' },
+  { start: '2025-12-02', end: '2026-03-01' },
+  { start: '2025-09-03', end: '2025-12-01' },
+  'all',
+  'first-day',
+];
+
+/** A first-recorded-day response: one column and at most one single-element row. */
+function firstDayRows(day: string | null) {
+  return { columns: ['first_day'], results: day === null ? [] : [[day]] };
+}
+
+const FIXTURE_FIRST_DAY = firstDayRows('2025-11-04');
 
 const FIXTURE_CURRENT = goalRows({
   haoo_page_view: 124,
@@ -254,30 +316,52 @@ interface StubCall {
 
 function stubFetch(
   bodies: readonly unknown[],
-  echoedRanges: readonly (readonly [string, string])[] = DEFAULT_ECHOED_RANGES,
+  submittedQueries: readonly SubmittedQuery[] = DEFAULT_SUBMITTED_QUERIES,
+  firstDayBody: unknown = FIXTURE_FIRST_DAY,
 ) {
   const calls: StubCall[] = [];
   let index = 0;
   const fetchSpy = vi.fn<ReportFetch>(async (url, init) => {
     calls.push({ url, body: init.body, headers: init.headers, signal: init.signal });
-    const body = bodies[Math.min(index, bodies.length - 1)];
-    const range = echoedRanges[Math.min(index, echoedRanges.length - 1)];
+    const submitted = submittedQueries[Math.min(index, submittedQueries.length - 1)];
+    // The first-day query answers a different projection, so it is fixtured separately
+    // rather than being handed an aggregate row it could never parse.
+    const supplied = submitted === 'first-day'
+      ? firstDayBody
+      : bodies[Math.min(index, bodies.length - 1)];
     index += 1;
-    const responseBody = typeof body === 'object' && body !== null && !Array.isArray(body)
-      ? {
-          ...body,
-          query: {
-            ...independentlyEchoedQuery(range),
-            ...('query' in body && typeof body.query === 'object' && body.query !== null
-              ? body.query
-              : {}),
-          },
-        }
-      : body;
+    const responseBody =
+      typeof supplied === 'object' && supplied !== null && !Array.isArray(supplied)
+        ? {
+            ...supplied,
+            query: {
+              kind: INDEPENDENT_QUERY_KIND,
+              query: independentSql(submitted),
+              ...('query' in supplied
+                && typeof supplied.query === 'object'
+                && supplied.query !== null
+                ? supplied.query
+                : {}),
+            },
+          }
+        : supplied;
     return { ok: true, json: async () => responseBody };
   });
 
   return { fetchSpy, calls };
+}
+
+/** The SQL a recorded call actually submitted, read back out of its request body. */
+function submittedSqlOf(call: StubCall | undefined): string {
+  const body: unknown = JSON.parse(call?.body ?? '{}');
+  const query = typeof body === 'object' && body !== null && 'query' in body
+    ? (body as { query?: unknown }).query
+    : undefined;
+  const text = typeof query === 'object' && query !== null && 'query' in query
+    ? (query as { query?: unknown }).query
+    : undefined;
+
+  return typeof text === 'string' ? text : '';
 }
 
 /**
@@ -391,7 +475,11 @@ function generateOptions(
   outputPath: string = OUTPUT_PATH,
 ) {
   return {
-    query: { endpoint: FIXTURE_ENDPOINT, apiKey: FIXTURE_API_KEY, siteId: FIXTURE_SITE_ID },
+    query: {
+      endpoint: FIXTURE_ENDPOINT,
+      apiKey: FIXTURE_API_KEY,
+      projectId: FIXTURE_PROJECT_ID,
+    },
     fetch: fetchImpl,
     now: () => new Date('2026-03-01T09:30:00.000Z'),
     fs,
@@ -599,7 +687,7 @@ describe('renderReport', () => {
     title: 'HAOO funnel report',
     generatedAt: '2026-03-01T09:30:00.000Z',
     timezone: 'Africa/Nairobi',
-    siteScope: FIXTURE_SITE_ID,
+    projectScope: FIXTURE_PROJECT_ID,
     periods: [
       {
         id: 'last-30-days',
@@ -688,7 +776,7 @@ describe('generateHaooReport', () => {
     expect(text).not.toContain('%');
   });
 
-  it('passes the credential only in the Authorization header and queries by explicit dates', async () => {
+  it('passes the credential only in the Authorization header and submits one named HogQL query', async () => {
     const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
     const { fs } = memoryFs();
 
@@ -700,8 +788,37 @@ describe('generateHaooReport', () => {
       expect(call.headers.Authorization).toBe(`Bearer ${FIXTURE_API_KEY}`);
       expect(call.body).not.toContain(FIXTURE_API_KEY);
       expect(call.body).not.toContain('91d');
-      expect(call.body).toContain('"metrics":["events"]');
-      expect(call.body).toContain('"dimensions":["event:goal"]');
+
+      const body = JSON.parse(call.body) as {
+        query?: { kind?: unknown; query?: unknown };
+        name?: unknown;
+      };
+      expect(body.query?.kind).toBe(INDEPENDENT_QUERY_KIND);
+      expect(typeof body.query?.query).toBe('string');
+      // A descriptive name so a query the owner finds in the provider's own activity log
+      // is identifiable as this report's rather than anonymous.
+      expect(typeof body.name).toBe('string');
+      expect((body.name as string).length).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * The counts must be the provider's answer over the events it holds, never this
+   * project's arithmetic over rows it fetched. One aggregate per range is what makes the
+   * report's numbers the provider's claim rather than this repository's.
+   */
+  it('aggregates in the query rather than fetching rows to count locally', async () => {
+    const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const { fs } = memoryFs();
+
+    await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    for (const call of calls) {
+      const sql = submittedSqlOf(call);
+      expect(sql).toMatch(/count\(\)|min\(timestamp\)/);
+      expect(sql).toContain('LIMIT ');
+      expect(sql).not.toContain('OFFSET');
+      expect(sql).not.toContain('SELECT *');
     }
   });
 
@@ -711,42 +828,68 @@ describe('generateHaooReport', () => {
    * provider did not aggregate. 22:00Z on 1 March is already 2 March in Africa/Nairobi.
    */
   it('derives the inclusive window from the reporting timezone, not from UTC', async () => {
-    const marchSecondRanges = [
-      ['2026-02-24T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
-      ['2026-02-17T00:00:00+03:00', '2026-02-23T23:59:59+03:00'],
-      ['2026-02-01T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
-      ['2026-01-02T00:00:00+03:00', '2026-01-31T23:59:59+03:00'],
-      ['2025-12-03T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
-      ['2025-09-04T00:00:00+03:00', '2025-12-02T23:59:59+03:00'],
-      ['2025-11-04T00:00:00+03:00', '2026-03-02T23:59:59+03:00'],
-    ] as const;
+    const marchSecondQueries: readonly SubmittedQuery[] = [
+      { start: '2026-02-24', end: '2026-03-02' },
+      { start: '2026-02-17', end: '2026-02-23' },
+      { start: '2026-02-01', end: '2026-03-02' },
+      { start: '2026-01-02', end: '2026-01-31' },
+      { start: '2025-12-03', end: '2026-03-02' },
+      { start: '2025-09-04', end: '2025-12-02' },
+      'all',
+      'first-day',
+    ];
     const { fetchSpy, calls } = stubFetch(
       [FIXTURE_CURRENT, FIXTURE_PREVIOUS],
-      marchSecondRanges,
+      marchSecondQueries,
     );
     const { fs } = memoryFs();
 
-    await generateHaooReport({
+    // Every echo below is validated against this independent list, so a single wrong
+    // boundary aborts the run and leaves the later calls unmade.
+    const result = await generateHaooReport({
       ...generateOptions(fetchSpy, fs),
       now: () => new Date('2026-03-01T22:00:00.000Z'),
     });
 
-    expect(calls[0]?.body).toContain('"date_range":["2026-02-24","2026-03-02"]');
-    expect(calls[2]?.body).toContain('"date_range":["2026-02-01","2026-03-02"]');
-    expect(calls[3]?.body).toContain('"date_range":["2026-01-02","2026-01-31"]');
+    expect(result.ok).toBe(true);
+    expect(submittedSqlOf(calls[0])).toContain("toDate('2026-02-24')");
+    expect(submittedSqlOf(calls[0])).toContain("toDate('2026-03-02')");
+    expect(submittedSqlOf(calls[2])).toContain("toDate('2026-02-01')");
+    expect(submittedSqlOf(calls[3])).toContain("toDate('2026-01-02')");
+    expect(submittedSqlOf(calls[3])).toContain("toDate('2026-01-31')");
+  });
+
+  /**
+   * The day boundary is pinned inside the submitted SQL rather than checked against a
+   * remote setting, so the provider cannot disagree with the report about which day an
+   * action falls in. Both bounds are inclusive: an action on the first day and one on the
+   * last day are both counted, and one step outside either bound is not.
+   */
+  it('pins the reporting timezone inside the query and compares both bounds inclusively', async () => {
+    const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT, FIXTURE_PREVIOUS]);
+    const { fs } = memoryFs();
+
+    await generateHaooReport(generateOptions(fetchSpy, fs));
+    const sql = submittedSqlOf(calls[0]);
+
+    expect(sql).toContain(`toTimeZone(timestamp, '${INDEPENDENT_TIMEZONE}')`);
+    expect(sql).toContain(">= toDate('2026-02-23')");
+    expect(sql).toContain("<= toDate('2026-03-01')");
+    expect(sql).not.toContain("> toDate('2026-02-23')\n");
+    expect(sql).toBe(independentSql({ start: '2026-02-23', end: '2026-03-01' }));
   });
 
   it.each([
-    { label: 'empty api key', apiKey: '', siteId: FIXTURE_SITE_ID },
-    { label: 'blank api key', apiKey: '   ', siteId: FIXTURE_SITE_ID },
-    { label: 'empty site id', apiKey: FIXTURE_API_KEY, siteId: '' },
-  ])('refuses to run and issues no request for an $label', async ({ apiKey, siteId }) => {
+    { label: 'empty api key', apiKey: '', projectId: FIXTURE_PROJECT_ID },
+    { label: 'blank api key', apiKey: '   ', projectId: FIXTURE_PROJECT_ID },
+    { label: 'empty project id', apiKey: FIXTURE_API_KEY, projectId: '' },
+  ])('refuses to run and issues no request for an $label', async ({ apiKey, projectId }) => {
     const { fetchSpy } = stubFetch([FIXTURE_CURRENT]);
     const { fs, files } = memoryFs();
 
     const result = await generateHaooReport({
       ...generateOptions(fetchSpy, fs),
-      query: { endpoint: FIXTURE_ENDPOINT, apiKey, siteId },
+      query: { endpoint: FIXTURE_ENDPOINT, apiKey, projectId },
     });
 
     expect(result.ok).toBe(false);
@@ -755,7 +898,9 @@ describe('generateHaooReport', () => {
   });
 
   it('writes nothing when the provider response fails validation', async () => {
-    const { fetchSpy } = stubFetch([{ results: [{ metrics: [1], dimensions: ['nope'] }] }]);
+    const { fetchSpy } = stubFetch([
+      { columns: [...INDEPENDENT_HOGQL_COLUMNS], results: [['nope', 1]] },
+    ]);
     const { fs, files } = memoryFs();
 
     const result = await generateHaooReport(generateOptions(fetchSpy, fs));
@@ -764,10 +909,10 @@ describe('generateHaooReport', () => {
     expect(files.size).toBe(0);
   });
 
-  it('leaves the filesystem untouched when echoed provenance belongs to another site', async () => {
+  it('leaves the filesystem untouched when the echo is not the query this report submitted', async () => {
     const mismatched = {
       ...FIXTURE_CURRENT,
-      query: { ...independentlyEchoedQuery(DEFAULT_ECHOED_RANGES[0]), site_id: 'stale.test' },
+      query: { query: independentSql({ start: '2026-02-23', end: '2026-02-28' }) },
     };
     const { fetchSpy } = stubFetch([mismatched]);
     const { fs, files } = memoryFs();
@@ -778,7 +923,7 @@ describe('generateHaooReport', () => {
     expect(files.size).toBe(0);
   });
 
-  it('gives every Stats request an abort budget rather than letting the run hang forever', async () => {
+  it('gives every provider request an abort budget rather than letting the run hang forever', async () => {
     // Node's fetch has no default timeout, so an unbudgeted request wedges the whole
     // owner command with no output at all.
     const { fetchSpy, calls } = stubFetch([FIXTURE_CURRENT]);
@@ -787,7 +932,7 @@ describe('generateHaooReport', () => {
     const result = await generateHaooReport(generateOptions(fetchSpy, fs));
 
     expect(result.ok).toBe(true);
-    expect(calls).toHaveLength(7);
+    expect(calls).toHaveLength(8);
     for (const call of calls) {
       expect(call.signal).toBeInstanceOf(AbortSignal);
       // The budget outlives the request it guards and is cleared once it settles.
@@ -1324,10 +1469,10 @@ describe('all four reporting periods', () => {
   const SEVEN_PREVIOUS = goalRows({ haoo_page_view: 4 });
   const NINETY_CURRENT = goalRows({ haoo_page_view: 500 });
   const NINETY_PREVIOUS = goalRows({ haoo_page_view: 400 });
-  const ALL_TIME = {
-    ...goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 }),
-    query: { date_range: ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'] },
-  };
+  // The all-time first recorded day no longer arrives on an echoed range: the provider
+  // echoes the query but not the project or the window it resolved, so the day is asked
+  // for in its own single-value query (see FIXTURE_FIRST_DAY).
+  const ALL_TIME = goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 });
 
   const EVERY_PERIOD = [
     SEVEN_CURRENT,
@@ -1354,11 +1499,12 @@ describe('all four reporting periods', () => {
     return { calls, fetchSpy, html: files.get(OUTPUT_PATH) ?? '', result };
   }
 
-  it('issues exactly seven queries and never uses the 91-day preset', async () => {
+  it('issues exactly eight queries and never uses a relative preset', async () => {
     const { calls, fetchSpy } = await generateEveryPeriod();
 
-    expect(fetchSpy).toHaveBeenCalledTimes(7);
-    expect(calls).toHaveLength(7);
+    // Six bounded aggregates, the unbounded all-time aggregate, and the first-day query.
+    expect(fetchSpy).toHaveBeenCalledTimes(8);
+    expect(calls).toHaveLength(8);
     for (const call of calls) {
       expect(call.body).not.toContain('91d');
       expect(call.body).not.toContain('7d');
@@ -1366,19 +1512,23 @@ describe('all four reporting periods', () => {
     }
   });
 
-  it('sends explicit inclusive calendar ranges for the bounded periods and "all" once', async () => {
+  it('bounds the six calendar aggregates in SQL, leaves all time unbounded, and asks the first day once', async () => {
     const { calls } = await generateEveryPeriod();
-    const ranges = calls.map((call) => JSON.parse(call.body).date_range);
+    const submitted = calls.map((call) => submittedSqlOf(call));
 
-    expect(ranges).toEqual([
-      ['2026-02-23', '2026-03-01'],
-      ['2026-02-16', '2026-02-22'],
-      ['2026-01-31', '2026-03-01'],
-      ['2026-01-01', '2026-01-30'],
-      ['2025-12-02', '2026-03-01'],
-      ['2025-09-03', '2025-12-01'],
-      'all',
+    expect(submitted).toEqual([
+      independentSql({ start: '2026-02-23', end: '2026-03-01' }),
+      independentSql({ start: '2026-02-16', end: '2026-02-22' }),
+      independentSql({ start: '2026-01-31', end: '2026-03-01' }),
+      independentSql({ start: '2026-01-01', end: '2026-01-30' }),
+      independentSql({ start: '2025-12-02', end: '2026-03-01' }),
+      independentSql({ start: '2025-09-03', end: '2025-12-01' }),
+      independentSql('all'),
+      independentSql('first-day'),
     ]);
+    // All time carries no bound at all rather than a very old one it cannot justify.
+    expect(submitted[6]).not.toContain('toDate(');
+    expect(submitted[7]).toContain('min(timestamp)');
   });
 
   it('renders all four period sections with their exact inclusive boundaries', async () => {
@@ -1439,10 +1589,11 @@ describe('all four reporting periods', () => {
   });
 
   it('names no recorded day rather than inventing one when the provider reports nothing', async () => {
-    const { fetchSpy } = stubFetch([
-      ...EVERY_PERIOD.slice(0, 6),
-      { results: [] },
-    ]);
+    const { fetchSpy } = stubFetch(
+      [...EVERY_PERIOD.slice(0, 6), goalRows({})],
+      DEFAULT_SUBMITTED_QUERIES,
+      firstDayRows(null),
+    );
     const { fs, files } = memoryFs();
 
     await generateHaooReport(generateOptions(fetchSpy, fs));
@@ -1452,11 +1603,26 @@ describe('all four reporting periods', () => {
     expect(html).not.toContain('All time · since');
   });
 
-  it('aborts the whole report when any one of the seven periods fails validation', async () => {
+  it('aborts the whole report when any one of the eight queries fails validation', async () => {
     const { fetchSpy } = stubFetch([
       ...EVERY_PERIOD.slice(0, 4),
-      { results: [{ metrics: [1], dimensions: ['haoo_not_a_goal'] }] },
+      { columns: [...INDEPENDENT_HOGQL_COLUMNS], results: [['haoo_not_a_goal', 1]] },
     ]);
+    const { fs, files } = memoryFs();
+
+    const result = await generateHaooReport(generateOptions(fetchSpy, fs));
+
+    expect(result.ok).toBe(false);
+    expect(files.size).toBe(0);
+  });
+
+  it.each([
+    { label: 'a row carrying more than the single day value', body: { columns: ['first_day'], results: [['2025-11-04', 'extra']] } },
+    { label: 'more than one row', body: { columns: ['first_day'], results: [['2025-11-04'], ['2025-11-05']] } },
+    { label: 'a day that is not an ISO calendar day', body: { columns: ['first_day'], results: [['4 November 2025']] } },
+    { label: 'a results value that is not an array', body: { columns: ['first_day'], results: 'none' } },
+  ])('aborts before writing when the first-recorded-day query answers with $label', async ({ body }) => {
+    const { fetchSpy } = stubFetch(EVERY_PERIOD, DEFAULT_SUBMITTED_QUERIES, body);
     const { fs, files } = memoryFs();
 
     const result = await generateHaooReport(generateOptions(fetchSpy, fs));
@@ -1522,6 +1688,11 @@ const CAVEAT_BLOCK = [
   + 'registration, a customer, or completed onboarding.',
   'Browser privacy settings and content blockers can prevent an action from being '
   + 'recorded, so real activity can be higher than the counts shown.',
+  'All-time counts begin at the first action recorded for this project; there is no '
+  + 'earlier provider history to include.',
+  'The provider echoes the query this report submitted but not the project that answered '
+  + 'it, so the report proves which query produced its numbers and not which project '
+  + 'produced them; the project named above is the one the command was configured with.',
 ] as const;
 
 /** UI-SPEC "Empty state heading" and "Empty state body". */
@@ -1549,10 +1720,7 @@ const SURFACE_A_BODIES = [
   FIXTURE_PREVIOUS,
   goalRows({}),
   goalRows({}),
-  {
-    ...goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 }),
-    query: { date_range: ['2025-11-04T00:00:00+03:00', '2026-03-01T23:59:59+03:00'] },
-  },
+  goalRows({ haoo_page_view: 900, haoo_self_onboarding: 12 }),
 ];
 
 async function generateSurfaceA(bodies: readonly unknown[] = SURFACE_A_BODIES) {
@@ -1759,14 +1927,16 @@ describe('Surface A document structure', () => {
     expect(style).toContain('44px');
   });
 
-  it('states the generation timestamp, timezone and site scope', async () => {
+  it('states the generation timestamp, timezone and project scope', async () => {
     const { html } = await generateSurfaceA();
     const doc = parseReport(html);
     const meta = normalise(doc.querySelector('.report-meta')?.textContent ?? '');
 
     expect(meta).toContain('Generated 2026-03-01T09:30:00.000Z');
     expect(meta).toContain('Reporting timezone Africa/Nairobi');
-    expect(meta).toContain(FIXTURE_SITE_ID);
+    // Named, not proven: the provider echoes the query but not the project that answered
+    // it, which is exactly what the last caveat sentence tells the owner.
+    expect(meta).toContain(`Project ${FIXTURE_PROJECT_ID}`);
   });
 
   it('never claims a provider configuration state it cannot observe', async () => {
@@ -1775,7 +1945,7 @@ describe('Surface A document structure', () => {
     // registered-but-unfired goal is indistinguishable from an unregistered one. A live
     // site with no traffic yet read as "not configured". The line now carries only
     // witnessed facts, in both the populated and the entirely-empty case.
-    for (const bodies of [undefined, SURFACE_A_BODIES.map(() => ({ results: [] }))]) {
+    for (const bodies of [undefined, SURFACE_A_BODIES.map(() => goalRows({}))]) {
       const { html } = await generateSurfaceA(bodies);
       const meta = normalise(parseReport(html).querySelector('.report-meta')?.textContent ?? '');
 
@@ -1916,7 +2086,7 @@ describe('Surface A semantic integrity', () => {
       query: {
         endpoint: FIXTURE_ENDPOINT,
         apiKey: SENTINEL_CREDENTIAL,
-        siteId: FIXTURE_SITE_ID,
+        projectId: FIXTURE_PROJECT_ID,
       },
     });
     const html = files.get(OUTPUT_PATH) ?? '';
