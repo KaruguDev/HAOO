@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 15
+open_count: 16
 waived_count: 0
 fixed_count: 3
-total_count: 18
-last_updated: 2026-09-02T11:11:42.813Z
+total_count: 19
+last_updated: 2026-09-03T18:38:40.212Z
 ---
 
 # Broken Windows Ledger
@@ -33,6 +33,7 @@ last_updated: 2026-09-02T11:11:42.813Z
 | 16 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MEAS-08 human gate open: live report reconciliation against the raw provider dashboard is unrun | open |  | 2026-09-02T05:45:11.752Z |  |
 | 17 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MVP outcome and privacy readability judgment at 320px and 200% zoom with keyboard and screen-reader use is unrun; carries the five backstop UI considerations E1, E2, E3, E4, E7 | open |  | 2026-09-02T05:45:11.913Z |  |
 | 18 | 04 | deviation | .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-USER-SETUP.md |  | 04-13 Task 3: plan's automated literal 'Status: Incomplete' never matched the shipped '**Status:** Incomplete' header; intent satisfied by a truthful restatement instead of editing the prohibited header line | open |  | 2026-09-02T11:11:42.813Z |  |
+| 19 | 04.1 | deviation | scripts/generate-haoo-report.mjs | 97 | CLI removed-variable table must keep the four previous-provider names; collides with 04.1-08 whole-tree name gate | open |  | 2026-09-03T18:38:40.212Z |  |
 
 ````json
 [
@@ -250,6 +251,18 @@ last_updated: 2026-09-02T11:11:42.813Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-02T11:11:42.813Z",
+    "resolved_at": null
+  },
+  {
+    "id": 19,
+    "kind": "deviation",
+    "phase": "04.1",
+    "file": "scripts/generate-haoo-report.mjs",
+    "line": 97,
+    "description": "CLI removed-variable table must keep the four previous-provider names; collides with 04.1-08 whole-tree name gate",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-03T18:38:40.212Z",
     "resolved_at": null
   }
 ]

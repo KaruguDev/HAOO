@@ -194,3 +194,20 @@ approved-source module, script-source define, build-time constant declaration, b
 environment-variable declarations, and the provider-union member. `04.1-08` Task 2's
 repository-wide negative grep should be scoped to those artifacts rather than to the bare
 word, or it will fail on its own phase directory name.
+
+## From 04.1-07 (owner report migration)
+
+- **`scripts/generate-haoo-report.mjs` deliberately retains the four removed variable
+  names.** The stale-environment detector cannot name a rename without naming what was
+  renamed, so this file is now the single, documented site where the previous provider's
+  variable names survive. `04.1-08` Task 2's acceptance criterion
+  `git grep -ril 'plausible' -- src config scripts README.md` will report it. Per that
+  task's own note this is reported rather than silently deleted: `04.1-08` must decide
+  whether to narrow the gate to exclude the removed-variable table or to drop the
+  detector. Dropping the detector reopens the failure the CONTEXT delegation named — a
+  stale environment producing "variable missing" instead of "variable renamed".
+- **`README.md` and `04-USER-SETUP.md` still carry the removed report-variable names.**
+  Both documents are owned by `04.1-08`. The `credentialed CLI` suite no longer pins
+  those names in those two documents (it pins the separation, and pins the names against
+  this phase's `COVERAGE.md` instead), so nothing in the suite blocks or duplicates
+  `04.1-08`'s migration of them.
