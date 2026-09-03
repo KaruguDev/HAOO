@@ -167,12 +167,23 @@ function documentText(html: string): string {
   return doc.documentElement.textContent ?? '';
 }
 
+/**
+ * The HogQL projection this report submits, authored here rather than imported from
+ * `src/reporting/stats-response.ts`, so the column-pair assertion is checked against an
+ * independent second copy. A rename in the source pair fails here instead of passing by
+ * construction.
+ */
+const INDEPENDENT_HOGQL_COLUMNS = ['event', 'occurrences'] as const;
+
+/**
+ * A HogQL aggregate response: a `columns` pair naming the projection and `results` as
+ * positional two-element rows. The provider returns a row only for a name with
+ * occurrences in the range, so an absent name is a real zero rather than an omission.
+ */
 function goalRows(counts: Partial<Record<HaooMeasurementEvent, number>>) {
   return {
-    results: Object.entries(counts).map(([goal, value]) => ({
-      metrics: [value],
-      dimensions: [goal],
-    })),
+    columns: [...INDEPENDENT_HOGQL_COLUMNS],
+    results: Object.entries(counts).map(([goal, value]) => [goal, value]),
   };
 }
 
@@ -269,94 +280,80 @@ function stubFetch(
   return { fetchSpy, calls };
 }
 
+/**
+ * The provider echoes the query it answered, so the whole provenance question becomes one
+ * exact-equality check against the SQL this repository submitted. The submitted text is
+ * repository-owned and byte-stable, so a whitespace difference is evidence rather than
+ * formatting — and because the SQL carries the event allowlist and both range bounds, one
+ * equality subsumes every per-member echo check the previous provider needed.
+ *
+ * The query kind is authored here rather than imported, so a rename in the source fails
+ * this suite instead of passing by construction.
+ */
+const INDEPENDENT_QUERY_KIND = 'HogQLQuery';
+
 describe('validateEchoedQuery', () => {
-  const expected = {
-    siteId: FIXTURE_SITE_ID,
-    events: [...INDEPENDENT_GOAL_FILTER],
-    range: { start: '2026-02-23', end: '2026-03-01' },
-    today: '2026-03-01',
-  } as const;
-  const valid = { query: independentlyEchoedQuery(DEFAULT_ECHOED_RANGES[0]) };
+  const submitted = "SELECT event, count() AS occurrences\nFROM events\n"
+    + "WHERE event IN ('haoo_page_view')\nGROUP BY event\nORDER BY event\nLIMIT 100";
+  const expected = { sql: submitted } as const;
 
-  it('accepts exact bounded provenance without shifting offset timestamps through UTC', () => {
-    expect(validateEchoedQuery(valid, expected)).toEqual({
-      ok: true,
-      provenance: { start: '2026-02-23', end: '2026-03-01', offset: '+03:00' },
-    });
-  });
-
-  it('refuses an echo whose offset disagrees with the timezone the caller derived today in', () => {
-    const utcEcho = {
-      query: {
-        ...valid.query,
-        date_range: ['2026-02-23T00:00:00Z', '2026-03-01T23:59:59Z'],
-      },
-    };
-
-    // Same days, different site timezone: the disagreement is provable on every range at
-    // every hour, so it must not be reported as a query or credential failure.
-    expect(validateEchoedQuery(utcEcho, { ...expected, offsetMinutes: 180 })).toEqual({
-      ok: false,
-      reason: 'timezone-mismatch',
-    });
-    expect(validateEchoedQuery(utcEcho, { ...expected, offsetMinutes: 0 })).toEqual({
-      ok: true,
-      provenance: { start: '2026-02-23', end: '2026-03-01', offset: 'Z' },
-    });
-  });
-
-  it('reads a bare-day all-time echo one day off today as a timezone disagreement', () => {
-    const dayBehind = {
-      query: { ...valid.query, date_range: ['2025-01-01', '2026-02-28'] },
-    };
-
-    expect(validateEchoedQuery(dayBehind, { ...expected, range: 'all' })).toEqual({
-      ok: false,
-      reason: 'timezone-mismatch',
-    });
-  });
-
-  it.each([
-    ['malformed query', null],
-    ['wrong site', { site_id: 'wrong.example' }],
-    ['extra metric', { metrics: ['events', 'visitors'] }],
-    ['wrong dimension', { dimensions: ['event:page'] }],
-    ['missing filter', { filters: [] }],
-    ['extra filter', { filters: [valid.query.filters[0], ['is', 'visit:country', ['KE']]] }],
-    ['wrong goal order', { filters: [['is', 'event:goal', [...INDEPENDENT_GOAL_FILTER].reverse()]] }],
-    ['wrong range', { date_range: ['2026-02-22', '2026-03-01'] }],
-    ['impossible date', { date_range: ['2026-02-30', '2026-03-01'] }],
-  ])('rejects %s', (_label, override) => {
-    const query = override === null ? 'not-an-object' : { ...valid.query, ...override };
-    expect(validateEchoedQuery({ query }, expected)).toEqual({
-      ok: false,
-      reason: 'invalid',
-    });
-  });
-
-  it('tolerates provider-owned extra top-level query members', () => {
+  it('accepts an echoed object carrying the query kind and the exact submitted text', () => {
     expect(validateEchoedQuery(
-      { query: { ...valid.query, order_by: [['events', 'desc']], include: {} } },
+      { query: { kind: INDEPENDENT_QUERY_KIND, query: submitted } },
       expected,
-    )).toEqual({
+    )).toEqual({ ok: true, provenance: { query: submitted } });
+  });
+
+  it('accepts a bare echoed query string equal to the exact submitted text', () => {
+    expect(validateEchoedQuery({ query: submitted }, expected)).toEqual({
       ok: true,
-      provenance: { start: '2026-02-23', end: '2026-03-01', offset: '+03:00' },
+      provenance: { query: submitted },
     });
   });
 
-  it.each([
-    ['future start', ['2026-03-02', '2026-03-01'], 'invalid'],
-    ['start after end', ['2026-02-02', '2026-02-01'], 'invalid'],
-    ['distant stale end', ['2025-01-01', '2026-01-28'], 'invalid'],
-    // A single day either side of today is exactly what a reporting-timezone
-    // disagreement looks like, so it is refused with the reason that names it.
-    ['stale end', ['2025-01-01', '2026-02-28'], 'timezone-mismatch'],
-    ['future end', ['2025-01-01', '2026-03-02'], 'timezone-mismatch'],
-  ])('rejects all-time %s', (_label, dateRange, reason) => {
+  it('tolerates provider-owned extra members beside the echoed query', () => {
     expect(validateEchoedQuery(
-      { query: { ...valid.query, date_range: dateRange } },
-      { ...expected, range: 'all' },
-    )).toEqual({ ok: false, reason });
+      {
+        hogql: 'SELECT event, count() FROM events',
+        query: { kind: INDEPENDENT_QUERY_KIND, query: submitted, name: 'haoo-funnel' },
+        results: [],
+      },
+      expected,
+    )).toEqual({ ok: true, provenance: { query: submitted } });
+  });
+
+  it.each([
+    ['a non-object body', 'not-an-object' as unknown],
+    ['a null body', null as unknown],
+    ['an array body', [] as unknown],
+    ['a body carrying neither echo shape', {} as unknown],
+    // `hogql` is the provider's compiled rewriting of the submitted text, not the
+    // submitted text, so it can never stand in for the echo this report checks.
+    ['a body echoing only the compiled hogql', { hogql: submitted } as unknown],
+    ['a null echo', { query: null } as unknown],
+    ['a numeric echo', { query: 7 } as unknown],
+    ['an echoed object with no query text', { query: { kind: INDEPENDENT_QUERY_KIND } } as unknown],
+    [
+      'an echoed object with a non-string query text',
+      { query: { kind: INDEPENDENT_QUERY_KIND, query: ['x'] } } as unknown,
+    ],
+    [
+      'an echoed object declaring another query kind',
+      { query: { kind: 'EventsQuery', query: submitted } } as unknown,
+    ],
+    // The equivalent of the previous provider's wrong-dimension refusal: the response
+    // answered a question this report did not ask.
+    [
+      'an echoed query that is not the one submitted',
+      { query: { kind: INDEPENDENT_QUERY_KIND, query: submitted.replace('event', 'uuid') } } as unknown,
+    ],
+    ['an echoed query differing only by whitespace', { query: `${submitted} ` } as unknown],
+    [
+      'an echoed query differing only by an internal newline',
+      { query: submitted.replace('\n', ' ') } as unknown,
+    ],
+  ])('rejects %s', (_label, body) => {
+    expect(validateEchoedQuery(body, expected)).toEqual({ ok: false, reason: 'invalid' });
   });
 });
 
@@ -493,6 +490,7 @@ describe('period windows and change values', () => {
 
 describe('parseGoalCounts', () => {
   const allowed = HAOO_REPORT_EVENTS;
+  const columns = [...INDEPENDENT_HOGQL_COLUMNS];
 
   it('zero-fills every allowlisted goal absent from the response', () => {
     const parsed = parseGoalCounts(goalRows({ haoo_page_view: 5 }), allowed);
@@ -504,59 +502,79 @@ describe('parseGoalCounts', () => {
   });
 
   it('accepts an empty result set as an all-zero period', () => {
-    const parsed = parseGoalCounts({ results: [] }, allowed);
+    const parsed = parseGoalCounts({ columns, results: [] }, allowed);
 
     expect(parsed).not.toBeNull();
+    expect(Object.keys(parsed ?? {})).toHaveLength(allowed.length);
     expect(Object.values(parsed ?? {}).every((count) => count === 0)).toBe(true);
+  });
+
+  it('reads rows positionally and in the fixed allowlist order, not the row order', () => {
+    // The provider orders its own rows; the report's order is the allowlist's.
+    const parsed = parseGoalCounts(
+      { columns, results: [['haoo_self_onboarding', 6], ['haoo_page_view', 5]] },
+      allowed,
+    );
+
+    expect(Object.keys(parsed ?? {})).toEqual([...allowed]);
+    expect(parsed?.haoo_page_view).toBe(5);
+    expect(parsed?.haoo_self_onboarding).toBe(6);
   });
 
   it.each([
     { label: 'non-object body', body: 'not-json' as unknown },
     { label: 'null body', body: null as unknown },
     { label: 'array body', body: [] as unknown },
-    { label: 'missing results', body: { meta: {} } as unknown },
-    { label: 'non-array results', body: { results: {} } as unknown },
-    { label: 'non-object row', body: { results: ['x'] } as unknown },
+    { label: 'missing columns', body: { results: [] } as unknown },
+    { label: 'non-array columns', body: { columns: 'event', results: [] } as unknown },
+    { label: 'short columns', body: { columns: ['event'], results: [] } as unknown },
+    {
+      label: 'long columns',
+      body: { columns: [...columns, 'extra'], results: [] } as unknown,
+    },
+    {
+      label: 'renamed column',
+      body: { columns: ['event', 'count'], results: [] } as unknown,
+    },
+    // A reordered projection would otherwise swap the name and the count and parse
+    // cleanly into wrong numbers, so the pair is asserted for exact equality.
+    {
+      label: 'reordered column pair',
+      body: { columns: [...columns].reverse(), results: [] } as unknown,
+    },
+    { label: 'missing results', body: { columns, meta: {} } as unknown },
+    { label: 'non-array results', body: { columns, results: {} } as unknown },
+    { label: 'non-array row', body: { columns, results: ['x'] } as unknown },
+    { label: 'object row', body: { columns, results: [{ event: 'x' }] } as unknown },
+    {
+      label: 'short row',
+      body: { columns, results: [['haoo_page_view']] } as unknown,
+    },
+    {
+      label: 'long row',
+      body: { columns, results: [['haoo_page_view', 1, 'extra']] } as unknown,
+    },
     {
       label: 'unknown goal',
-      body: { results: [{ metrics: [1], dimensions: ['haoo_unknown_event'] }] } as unknown,
+      body: { columns, results: [['haoo_unknown_event', 1]] } as unknown,
     },
     {
       label: 'duplicate goal',
       body: {
-        results: [
-          { metrics: [1], dimensions: ['haoo_page_view'] },
-          { metrics: [2], dimensions: ['haoo_page_view'] },
-        ],
+        columns,
+        results: [['haoo_page_view', 1], ['haoo_page_view', 2]],
       } as unknown,
     },
-    {
-      label: 'non-integer count',
-      body: { results: [{ metrics: [1.5], dimensions: ['haoo_page_view'] }] } as unknown,
-    },
-    {
-      label: 'negative count',
-      body: { results: [{ metrics: [-1], dimensions: ['haoo_page_view'] }] } as unknown,
-    },
+    { label: 'non-integer count', body: { columns, results: [['haoo_page_view', 1.5]] } as unknown },
+    { label: 'negative count', body: { columns, results: [['haoo_page_view', -1]] } as unknown },
     {
       label: 'non-finite count',
-      body: {
-        results: [{ metrics: [Number.POSITIVE_INFINITY], dimensions: ['haoo_page_view'] }],
-      } as unknown,
+      body: { columns, results: [['haoo_page_view', Number.POSITIVE_INFINITY]] } as unknown,
     },
+    { label: 'string count', body: { columns, results: [['haoo_page_view', '4']] } as unknown },
     {
-      label: 'string count',
-      body: { results: [{ metrics: ['4'], dimensions: ['haoo_page_view'] }] } as unknown,
-    },
-    {
-      label: 'missing dimension',
-      body: { results: [{ metrics: [1], dimensions: [] }] } as unknown,
-    },
-    {
-      label: 'extra dimension',
-      body: {
-        results: [{ metrics: [1], dimensions: ['haoo_page_view', 'extra'] }],
-      } as unknown,
+      label: 'non-string goal',
+      body: { columns, results: [[7, 1]] } as unknown,
     },
   ])('returns null for a $label', ({ body }) => {
     expect(parseGoalCounts(body, allowed)).toBeNull();
