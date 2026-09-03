@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
-import type { PostHogScope } from '../measurement/posthog';
+import { POSTHOG_REFUSAL, type PostHogScope } from '../measurement/posthog';
 import { TRANSPORT_REQUIRED_PROPERTIES } from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
@@ -1070,26 +1070,26 @@ describe('Phase 4 disclosure of the attached engagement summary', () => {
  * gap-closure rounds on exactly that drift class, which is why one gate is demonstrably
  * not enough (T-04.1-02).
  */
+const PROJECT_TOKEN = 'phc_regressionFixtureToken0123456789';
+const APPROVED_HOST = APPROVED_ANALYTICS_HOSTS[0].origin;
+
+/**
+ * The product exactly as shipped, with the provider selected.
+ *
+ * Only `provider` and `providerConfig` differ from `HAOO_PRODUCT`: every event name,
+ * interaction map and disclosure line is the shipped one, so the journeys driven below
+ * are the journey a visitor drives.
+ */
+const CONFIGURED_PRODUCT = {
+  ...HAOO_PRODUCT,
+  measurement: {
+    ...HAOO_PRODUCT.measurement,
+    provider: 'posthog' as const,
+    providerConfig: { token: PROJECT_TOKEN, apiHost: APPROVED_HOST },
+  },
+};
+
 describe('network payload regression', () => {
-  const PROJECT_TOKEN = 'phc_regressionFixtureToken0123456789';
-  const APPROVED_HOST = APPROVED_ANALYTICS_HOSTS[0].origin;
-
-  /**
-   * The product exactly as shipped, with the provider selected.
-   *
-   * Only `provider` and `providerConfig` differ from `HAOO_PRODUCT`: every event name,
-   * interaction map and disclosure line is the shipped one, so the journey driven below
-   * is the journey a visitor drives.
-   */
-  const CONFIGURED_PRODUCT = {
-    ...HAOO_PRODUCT,
-    measurement: {
-      ...HAOO_PRODUCT.measurement,
-      provider: 'posthog' as const,
-      providerConfig: { token: PROJECT_TOKEN, apiHost: APPROVED_HOST },
-    },
-  };
-
   /**
    * Property names that must never appear on the wire.
    *
@@ -1313,4 +1313,105 @@ describe('network payload regression', () => {
     expect(document.cookie).toBe('');
     expect(client.deliveredPayloads().length).toBeGreaterThan(0);
   });
+});
+
+/**
+ * The Phase 4 gap-1 regression, re-armed as a component-level guard.
+ *
+ * `04-VERIFICATION.md` recorded it as a live blocker on outcome 1: *with a provider
+ * configured*, a blocked provider slot unmounted the product page. It was found on the
+ * enablement path — the path this phase turns on for the first time — so it is a live
+ * regression for this phase rather than history, and the assertion is the visitor's, not
+ * the adapter's: the page stays mounted and every action stays operable.
+ */
+describe('provider failure isolation', () => {
+  const hostileSlots: readonly [string, () => PostHogScope][] = [
+    ['holds a non-callable value', () => ({ posthog: { init: 'blocked' } })],
+    ['holds a frozen object', () => ({ posthog: Object.freeze({ marker: 'frozen' }) })],
+    [
+      'is read-only',
+      () => {
+        const scope: PostHogScope = {};
+        Object.defineProperty(scope, 'posthog', {
+          value: { init: 'blocked' },
+          writable: false,
+          configurable: false,
+          enumerable: true,
+        });
+
+        return scope;
+      },
+    ],
+    [
+      'is backed by a throwing getter',
+      () => {
+        const scope: PostHogScope = {};
+        Object.defineProperty(scope, 'posthog', {
+          get() {
+            throw new Error('blocked slot');
+          },
+          configurable: true,
+        });
+
+        return scope;
+      },
+    ],
+  ];
+
+  it.each(hostileSlots)(
+    'renders, stays mounted, and keeps every visitor action operable when the provider slot %s',
+    async (_label, buildScope) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const fetchSpy = vi.fn(() => Promise.resolve({ ok: true }));
+      vi.stubGlobal('fetch', fetchSpy);
+
+      expect(() => render(
+        <ProductPage
+          product={CONFIGURED_PRODUCT}
+          measurementAdapters={{ providerAdapters: { scope: buildScope() } }}
+        />,
+      )).not.toThrow();
+
+      const brochure = screen.getByRole('region', { name: 'Brochure' });
+      const open = within(brochure).getByRole('link', { name: /Open brochure.*new tab/i });
+      const download = within(brochure).getByRole('link', { name: 'Download brochure' });
+
+      expect(open.getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+      expect(download.getAttribute('download')).toBe(HAOO_PRODUCT.brochure.downloadName);
+      expect(() => clickWithoutNavigation(open)).not.toThrow();
+      expect(() => clickWithoutNavigation(download)).not.toThrow();
+
+      for (const [name, href] of [
+        ['Chat with HAOO on WhatsApp', HAOO_PRODUCT.contacts.whatsappHref],
+        [`Call ${HAOO_PRODUCT.contacts.phoneDisplay}`, HAOO_PRODUCT.contacts.phoneHref],
+        [`Email ${HAOO_PRODUCT.contacts.email}`, HAOO_PRODUCT.contacts.emailHref],
+        ['Start with HAOO', HAOO_PRODUCT.contacts.selfOnboardingHref],
+      ] as const) {
+        const links = screen.getAllByRole('link', { name });
+        expect(links).toHaveLength(3);
+        for (const link of links) {
+          const nativeMarkup = link.outerHTML;
+          expect(link.getAttribute('href')).toBe(href);
+          expect(() => clickWithoutNavigation(link)).not.toThrow();
+          expect(link.outerHTML).toBe(nativeMarkup);
+        }
+      }
+
+      expect(() => fireEvent.focus(screen.getByLabelText('Full name'))).not.toThrow();
+      fillValidQualification();
+      fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+      await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+
+      // Still mounted after every action, with the whole journey still addressable and
+      // the submission reaching its own outcome rather than the provider's.
+      expect(await screen.findByText('Your details were sent.')).toBeTruthy();
+      expect(screen.getByRole('region', { name: 'Brochure' })).toBeTruthy();
+      expect(screen.getAllByRole('link', { name: 'Start with HAOO' })).toHaveLength(3);
+      expect(window.localStorage.getItem(CONTEXT_KEY)).not.toBeNull();
+
+      // The refusal is visible exactly once, and it names the gate that refused: a
+      // silently refusing provider would be indistinguishable from a dead funnel.
+      expect(warn.mock.calls).toEqual([[POSTHOG_REFUSAL.foreignClient]]);
+    },
+  );
 });

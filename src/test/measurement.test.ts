@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createMeasurement } from '../measurement';
+import { MEASUREMENT_TRACK_ARGUMENT_COUNT, createMeasurement } from '../measurement';
 import {
   POSTHOG_REFUSAL,
   createPostHogEventSink,
+  type PostHogClient,
   type PostHogScope,
 } from '../measurement/posthog';
 import {
@@ -656,6 +657,30 @@ describe('fail-closed provider resolution', () => {
     expect(resolvePostHogToken(configured)).toBe(expected);
   });
 
+  it('creates no sink, and never calls init, when the provider selector is unset', () => {
+    // The RUNTIME successor to the bundle-level provider-origin prohibition withdrawn in
+    // `04.1-01`, which named `04-08` as the plan whose guarantee it retired. That
+    // prohibition scanned built bytes; its source-level successor
+    // (`PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`) scans every module under `src/`.
+    // Neither says anything about what happens when the page actually runs, which is what
+    // this asserts: with the selector unset the factory returns undefined and the vendor's
+    // `init` is never reached at all. The two records point at each other deliberately.
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
+
+    expect(resolveMeasurementProvider(undefined)).toBe('none');
+    expect(
+      createPostHogEventSink(
+        { ...CONFIGURED_MEASUREMENT, provider: resolveMeasurementProvider(undefined) },
+        { scope: scope as PostHogScope },
+      ),
+    ).toBeUndefined();
+    expect(client.initializedToken()).toBeNull();
+    expect(client.initializedConfig()).toBeNull();
+    expect(client.capturedEvents()).toEqual([]);
+    expect(client.deliveredPayloads()).toEqual([]);
+  });
+
   it('fails closed when no approved-host contract is supplied', () => {
     // The test runner uses `vitest.config.ts`, which has no `define`, so the build-time
     // constant is absent here. The one-argument call is therefore the exact shape a
@@ -1051,12 +1076,92 @@ describe('fail-closed provider initialization', () => {
  *
  * Refusing to collect is a privacy decision, never a degradation of the journey: with no
  * sink and no provider call, the qualification journey and the bounded local context must
- * be indistinguishable from an unconfigured build.
+ * be indistinguishable from an unconfigured build — on EVERY refusal cause, not on the
+ * one that happened to be written down.
  */
 describe('fail-closed provider initialization in the full journey', () => {
-  it('keeps the whole journey working when the ambient slot is unusable', () => {
+  const refusalCauses: readonly [string, () => { scope: PostHogScope; reason: string }][] = [
+    [
+      'the ambient slot holds a non-callable value',
+      () => ({ scope: { posthog: { init: 'foreign' } }, reason: POSTHOG_REFUSAL.foreignClient }),
+    ],
+    [
+      'the ambient slot is empty',
+      () => ({ scope: {}, reason: POSTHOG_REFUSAL.absentClient }),
+    ],
+    [
+      'the initializer throws',
+      () => ({
+        scope: {
+          posthog: {
+            init() {
+              throw new Error('initializer unavailable');
+            },
+          },
+        },
+        reason: POSTHOG_REFUSAL.initialization,
+      }),
+    ],
+    [
+      'the initializer silently resolves a locked key wrong',
+      () => {
+        const scope: VendorPostHogScope = {};
+        installPostHogVendorClient(scope, { autocapture: true });
+
+        return { scope: scope as PostHogScope, reason: POSTHOG_REFUSAL.lockdown };
+      },
+    ],
+    [
+      'the initialized instance exposes no capture entry point',
+      () => ({
+        scope: {
+          posthog: {
+            init: (_token: string, config: Record<string, unknown>) => ({
+              config,
+              capture: 'not callable',
+            }),
+          },
+        },
+        reason: POSTHOG_REFUSAL.absentCapture,
+      }),
+    ],
+  ];
+
+  it.each(refusalCauses)(
+    'keeps every event path of the whole journey working when %s',
+    (_label, build) => {
+      const spies = silentConsole();
+      const { scope, reason } = build();
+      const storage = new MemoryStorage();
+      const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+        storage,
+        now: () => TODAY,
+        location: { href: PRODUCT_HREF },
+        history: { state: null, replaceState: vi.fn() },
+        providerAdapters: { scope },
+      });
+
+      measurement.initialize();
+
+      // Refusal is not a one-shot degradation: every one of the ten event paths still
+      // reports success and still writes its bounded local flag.
+      for (const event of HAOO_MEASUREMENT_EVENTS) {
+        expect(measurement.track(event), event).toBe(true);
+      }
+
+      const flags = measurement.readContext().flags;
+      for (const flag of HAOO_MEASUREMENT.interactionFlags) {
+        expect(flags[flag], flag).toBe(true);
+      }
+      expect(storage.getItem(CONTEXT_KEY)).not.toBeNull();
+      expect(measurement.clearContext()).toBe(true);
+      expectOnlyRefusalWarning(spies, reason);
+    },
+  );
+
+  it('leaves a refused provider global at its original identity', () => {
     const spies = silentConsole();
-    const original = { init: 'foreign' };
+    const original = Object.freeze({ marker: 'somebody else' });
     const scope: PostHogScope = { posthog: original };
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       storage: new MemoryStorage(),
@@ -1067,55 +1172,130 @@ describe('fail-closed provider initialization in the full journey', () => {
     });
 
     measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
 
-    expect(measurement.track('haoo_brochure_download')).toBe(true);
-    expect(measurement.readContext().flags.brochureDownloaded).toBe(true);
-    // Refusal is not a one-shot degradation: the second and third actions of the journey
-    // still record their bounded local flags.
-    expect(measurement.track('haoo_qualify_start')).toBe(true);
-    expect(measurement.readContext().flags.qualifyStarted).toBe(true);
-    expect(measurement.track('haoo_self_onboarding')).toBe(true);
-    expect(measurement.readContext().flags.selfOnboarding).toBe(true);
-
+    // Not replaced, not wrapped, not decorated: refusing before anything could have been
+    // written is why no refusal path ever has anything to restore.
     expect(scope.posthog).toBe(original);
+    expect(Object.keys(original)).toEqual(['marker']);
     expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
   });
 });
 
 describe('provider failure isolation', () => {
-  it('leaves the journey unchanged when the provider call throws', () => {
+  function isolatedMeasurement(
+    adapters: Parameters<typeof createMeasurement>[1] = {},
+    storage: Storage = new MemoryStorage(),
+  ) {
+    return {
+      storage,
+      measurement: createMeasurement(CONFIGURED_MEASUREMENT, {
+        storage,
+        now: () => TODAY,
+        location: { href: PRODUCT_HREF },
+        history: { state: null, replaceState: vi.fn() },
+        ...adapters,
+      }),
+    };
+  }
+
+  it('leaves the journey unchanged when an injected sink throws on every call', () => {
     const spies = silentConsole();
-    const scope: VendorPostHogScope = {};
-    installPostHogVendorClient(scope);
-    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
-      storage: new MemoryStorage(),
-      now: () => TODAY,
-      location: { href: PRODUCT_HREF },
-      history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
+    const { measurement, storage } = isolatedMeasurement({
+      eventSink: () => {
+        throw new Error('provider unavailable');
+      },
     });
 
     measurement.initialize();
-    measurement.track('haoo_page_view');
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
 
-    // Replacing the resolved instance's capture with a thrower is the runtime analogue of
-    // a provider that stops working mid-visit.
-    const eventSink = () => {
-      throw new Error('provider unavailable');
-    };
-    const failing = createMeasurement(CONFIGURED_MEASUREMENT, {
-      eventSink,
-      storage: new MemoryStorage(),
-      now: () => TODAY,
-      location: { href: PRODUCT_HREF },
-      history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
-    });
-
-    failing.initialize();
-    expect(failing.track('haoo_brochure_download')).toBe(true);
-    expect(failing.readContext().flags.brochureDownloaded).toBe(true);
+    const flags = measurement.readContext().flags;
+    for (const flag of HAOO_MEASUREMENT.interactionFlags) {
+      expect(flags[flag], flag).toBe(true);
+    }
+    expect(storage.getItem(CONTEXT_KEY)).not.toBeNull();
     expectSilent(spies);
+  });
+
+  it('leaves the journey unchanged when the resolved capture entry point throws', () => {
+    const spies = silentConsole();
+    const client: PostHogClient = {
+      init: (_token: string, config?: Record<string, unknown>) => ({
+        config,
+        capture() {
+          throw new Error('provider unavailable');
+        },
+      }),
+    };
+    const { measurement } = isolatedMeasurement({ providerAdapters: { client } });
+
+    measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+    expect(measurement.readContext().flags.selfOnboarding).toBe(true);
+    expectSilent(spies);
+  });
+
+  it('leaves the journey unchanged when the provider global is absent', () => {
+    const spies = silentConsole();
+    const { measurement } = isolatedMeasurement({ providerAdapters: { scope: {} } });
+
+    measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.absentClient);
+  });
+
+  it('leaves the journey unchanged when reading the provider global throws', () => {
+    const spies = silentConsole();
+    const scope: PostHogScope = {};
+    Object.defineProperty(scope, 'posthog', {
+      get() {
+        throw new Error('blocked slot');
+      },
+      configurable: true,
+    });
+    const { measurement } = isolatedMeasurement({ providerAdapters: { scope } });
+
+    measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
+  });
+
+  it('leaves the journey unchanged when the merged configuration reads back hostilely', () => {
+    const spies = silentConsole();
+    const hostileConfig = {};
+    for (const key of ['token', 'api_host', 'autocapture', 'before_send']) {
+      Object.defineProperty(hostileConfig, key, {
+        get() {
+          throw new Error('hostile merged configuration');
+        },
+        enumerable: true,
+      });
+    }
+    const client: PostHogClient = {
+      init: () => ({ config: hostileConfig, capture: () => undefined }),
+    };
+    const { measurement } = isolatedMeasurement({ providerAdapters: { client } });
+
+    // The merged configuration is the LAST untrusted value on the initialization path,
+    // and the readback is the only thing that reads it. A throwing getter there escaping
+    // into `initialize()` is the Phase 4 gap-1 shape on the enablement path this phase
+    // turns on for the first time.
+    expect(() => measurement.initialize()).not.toThrow();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.lockdown);
   });
 });
 
@@ -1135,6 +1315,47 @@ describe('facade contract under the widened provider seam', () => {
       'readCampaign',
       'clearContext',
     ]);
+    for (const member of Object.values(measurement)) {
+      expect(member).toBeTypeOf('function');
+    }
+  });
+
+  it('keeps track to exactly one parameter, so no property bag can travel with a name', () => {
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      providerAdapters: { scope: {} },
+    });
+
+    expect(measurement.track).toHaveLength(MEASUREMENT_TRACK_ARGUMENT_COUNT);
+    expect(MEASUREMENT_TRACK_ARGUMENT_COUNT).toBe(1);
+    expect(measurement.initialize).toHaveLength(0);
+    expect(measurement.readContext).toHaveLength(0);
+    expect(measurement.readCampaign).toHaveLength(0);
+    expect(measurement.clearContext).toHaveLength(0);
+  });
+
+  it('wires the configured provider sink when no sink adapter is injected', () => {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { scope: scope as PostHogScope },
+    });
+
+    measurement.initialize();
+    for (const event of HAOO_MEASUREMENT_EVENTS) {
+      expect(measurement.track(event), event).toBe(true);
+    }
+
+    expect(client.initializedToken()).toBe(PROJECT_TOKEN);
+    expect(client.capturedEvents()).toEqual([...HAOO_MEASUREMENT_EVENTS]);
+    expect(client.deliveredPayloads().map((payload) => payload.event))
+      .toEqual([...HAOO_MEASUREMENT_EVENTS]);
   });
 
   it('touches no provider global for the no-op provider', () => {
@@ -1176,6 +1397,22 @@ describe('facade contract under the widened provider seam', () => {
 
     expect(eventSink.mock.calls).toEqual([['haoo_page_view']]);
     expect(client.initializedToken()).toBeNull();
+    expect(client.capturedEvents()).toEqual([]);
+  });
+
+  it('rejects a name outside the closed list without reaching the provider', () => {
+    const scope: VendorPostHogScope = {};
+    const client = installPostHogVendorClient(scope);
+    const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+      storage: new MemoryStorage(),
+      now: () => TODAY,
+      location: { href: PRODUCT_HREF },
+      history: { state: null, replaceState: vi.fn() },
+      providerAdapters: { scope: scope as PostHogScope },
+    });
+
+    measurement.initialize();
+    expect(measurement.track('haoo_page_view_extra' as HaooMeasurementEvent)).toBe(false);
     expect(client.capturedEvents()).toEqual([]);
   });
 
