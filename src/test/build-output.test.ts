@@ -190,25 +190,71 @@ const BUILD_INPUTS = [
   resolve(ROOT, 'package.json'),
 ];
 
-/** Origins no supported build configuration may ever publish. */
+/**
+ * Competitor analytics origins no supported build configuration may ever publish.
+ *
+ * Narrowed to the origins this project will never bundle. The vendor token this project
+ * now ships as a dependency was removed from this list deliberately — see
+ * `PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN` below for the successor invariant and the
+ * record of what was withdrawn. Applied at BOTH sites — production source and built
+ * bundle — because it remains true and falsifiable at both.
+ */
 const UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN = [
-  /googletagmanager|google-analytics|umami|posthog|segment\.com/i,
+  /googletagmanager|google-analytics|umami|segment\.com/i,
 ] as const;
 
 /**
- * The supported provider origin is forbidden in the provider-unset bundle built by CI
- * and this suite. A deliberately configured production build will legitimately contain
- * this origin through `VITE_HAOO_PLAUSIBLE_SRC`; the source invariant below proves it
- * cannot enter through a hardcoded production module.
+ * Successor to the delivery-mechanism half of the guarantee plan `04-08` established,
+ * withdrawn here deliberately and replaced rather than deleted.
+ *
+ * What this proves: the provider's ingestion host literal never enters a module under
+ * `src/`. The host is repository-owned data — it lives in the configuration module
+ * outside `src/` and reaches a bundle only through the provider-gated build-time
+ * constant — so no production module can hardcode a route to the ingestion endpoint,
+ * and a provider-unset build cannot address it at all.
+ *
+ * What this no longer proves: that the built bundle contains no provider origin. `04-08`
+ * asserted exactly that over `builtBundleText()`, on the premise that the analytics
+ * script arrived at runtime from an approved script origin. This project now imports the
+ * SDK instead, so the vendor's own default host string necessarily ships inside the
+ * vendor chunk and that bundle-level prohibition can no longer be stated truthfully. It
+ * is withdrawn, not weakened by silence: the claim it made is replaced by this
+ * source-level invariant plus the runtime proof that an unset provider selector never
+ * initializes the SDK. A later reader must be able to see the narrowing as a recorded
+ * decision rather than mistake it for an unnoticed regression.
+ *
+ * Applied ONLY at the production-source site. Asserting it over the bundle would be a
+ * claim about the vendor's published artifact, not about this repository.
  */
-export const UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN = [/plausible\.io/i] as const;
+export const PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN = [/us\.i\.posthog\.com/i] as const;
 
-/** Credential-only report shapes must never enter any browser bundle. */
+/**
+ * Identity, fingerprint and ordered-queue seams — asserted against production source,
+ * relocated here from the built-bundle scan.
+ *
+ * These two patterns previously ran over `builtBundleText()`. A minified vendor SDK
+ * legitimately contains identifier and queue tokens of its own, so asserting them
+ * against the bundle would be a claim about the vendor's implementation rather than
+ * about this project. Asserting them against every module under `src/` is exactly the
+ * claim MEAS-02 and MEAS-03 depend on: this project derives no stable per-visitor
+ * identifier and keeps no ordered emission queue of its own.
+ */
+const MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN = [
+  /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
+  /\b(?:uuid|fingerprint|clickstream|eventQueue)\b/i,
+] as const;
+
+/**
+ * Credential-only report shapes must never enter any browser bundle.
+ *
+ * `Authorization` and `Bearer ` stay on the bundle scan unchanged: both were verified
+ * absent from the published SDK artifact, so they remain claims about this project.
+ */
 const REPORT_CREDENTIAL_BUNDLE_FORBIDDEN = [
-  /PLAUSIBLE_STATS_API_KEY/,
+  /POSTHOG_QUERY_API_KEY/,
   /Authorization/,
   /Bearer\s/,
-  /\/api\/v2\/query/,
+  /\/api\/projects\/[^/]*\/query/,
 ] as const;
 const BUILD_OUTPUTS = [
   BUILT_HTML,
@@ -610,15 +656,18 @@ describe('Phase 1 static build contracts', () => {
   it('keeps analytics origins out of production source modules', () => {
     // Reuse BUILD_INPUTS' exact `src/` scope while excluding `src/test/`: the test
     // sources necessarily contain the forbidden literals that define this contract.
-    const forbiddenOrigins = [
+    // The identity group is scanned here, not over the built bundle, so the assertion
+    // stays a claim about this repository once a vendor SDK ships inside the bundle.
+    const forbiddenSourcePatterns = [
       ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
-      ...UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN,
+      ...PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN,
+      ...MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN,
     ];
 
     for (const path of PRODUCTION_SOURCE_INPUTS) {
       const source = readText(path);
       const relativePath = relative(ROOT, path).replace(/\\/g, '/');
-      for (const forbidden of forbiddenOrigins) {
+      for (const forbidden of forbiddenSourcePatterns) {
         expect(source, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
       }
     }
@@ -652,14 +701,18 @@ describe('Phase 1 static build contracts', () => {
     expect(BUILD_INPUTS).toContain(APPROVED_SOURCE_CONFIG_INPUT.contract);
   });
 
-  it('ships the unset provider bundle without identity, property, queue, SDK, or credential seams', () => {
+  it('ships the unset provider bundle without competitor analytics, property, or credential seams', () => {
+    // The identity and queue patterns this case used to carry moved to the production
+    // source scan (`MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN`), and the provider-origin
+    // prohibition was withdrawn with its successor named
+    // (`PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`). What remains here is what a bundle
+    // scan can still assert truthfully about this project rather than about a vendor:
+    // no competitor analytics origin, no report credential shape, and no HAOO event
+    // name carried alongside a property bag.
     const bundle = builtBundleText();
     const forbiddenBundlePatterns = [
       ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
-      ...UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN,
       ...REPORT_CREDENTIAL_BUNDLE_FORBIDDEN,
-      /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
-      /\b(?:uuid|fingerprint|clickstream|eventQueue)\b/i,
       /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i,
     ];
 

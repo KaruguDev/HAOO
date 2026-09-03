@@ -1067,9 +1067,9 @@ describe('credential and provider-origin boundary', () => {
       'utf8',
     );
     const originSource = boundarySuite.match(
-      /UNCONFIGURED_PROVIDER_ORIGIN_FORBIDDEN\s*=\s*\[\/([^/\n]+)\/i\]/,
+      /PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN\s*=\s*\[\/([^/\n]+)\/i\]/,
     )?.[1];
-    expect(originSource, 'unconfigured-provider origin pattern in build-output.test.ts')
+    expect(originSource, 'provider ingestion-host pattern in build-output.test.ts')
       .toBeTruthy();
 
     const cli = readFileSync(resolve(ROOT, 'scripts/generate-haoo-report.mjs'), 'utf8');
