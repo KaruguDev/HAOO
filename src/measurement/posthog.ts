@@ -41,14 +41,53 @@ export interface PostHogAdapters {
   readonly signalRefusal?: (reason: string) => void;
 }
 
-/** Named reasons, one per gate, so a refusal says which gate refused. */
-const REFUSED_UNCONFIGURED = 'posthog:unconfigured-provider-configuration';
-const REFUSED_NO_SCOPE = 'posthog:unreachable-global-scope';
-const REFUSED_ABSENT_CLIENT = 'posthog:absent-provider-client';
-const REFUSED_FOREIGN_CLIENT = 'posthog:foreign-provider-global';
-const REFUSED_INITIALIZATION = 'posthog:initialization-refused';
-const REFUSED_LOCKDOWN = 'posthog:unconfirmed-lockdown-readback';
-const REFUSED_NO_CAPTURE = 'posthog:absent-capture-entry-point';
+/**
+ * Named reasons, one per gate, so a refusal says which gate refused.
+ *
+ * Exported because the reason is the observable half of D-05: a report that reads as zero
+ * traffic is indistinguishable from a genuinely dead funnel unless the owner can tell a
+ * refusing provider apart from a silent one, and a test can only assert that distinction
+ * against the names themselves. Each value is a fixed, distinct, non-empty string; none of
+ * them carries a visitor value, a form answer, or anything read off the page, because a
+ * diagnostic channel that echoed page state would be a collection channel.
+ */
+export const POSTHOG_REFUSAL = Object.freeze({
+  /** The build selected the provider but left half of its configuration empty. */
+  unconfigured: 'posthog:unconfigured-provider-configuration',
+  /** No global scope could be reached at all. */
+  unreachableScope: 'posthog:unreachable-global-scope',
+  /** The provider slot is empty, and this module installs no stub of its own. */
+  absentClient: 'posthog:absent-provider-client',
+  /** The adopted-versus-installed gate: the slot holds something this module will not use. */
+  foreignClient: 'posthog:foreign-provider-global',
+  /** The initializer threw, leaving the lockdown unproven. */
+  initialization: 'posthog:initialization-refused',
+  /** The merged configuration did not agree with the lockdown that was sent. */
+  lockdown: 'posthog:unconfirmed-lockdown-readback',
+  /** The initialized instance exposes no callable capture entry point. */
+  absentCapture: 'posthog:absent-capture-entry-point',
+} as const);
+
+/**
+ * The default refusal channel: write the reason where the owner can see it.
+ *
+ * Everything else in this module deliberately swallows every failure, because provider
+ * delivery must never cost a visitor an action. A refusal is the one exception, and the
+ * reason is that a silently refusing bundled SDK produces a report that reads as zero
+ * traffic and is INDISTINGUISHABLE from a genuinely dead funnel — the owner would read a
+ * broken measurement build as a broken business (MEAS-07, D-05).
+ *
+ * The write is itself wrapped, because the console is an ambient browser capability like
+ * any other: a page that has replaced or removed it must not turn a refusal into an
+ * exception escaping into a visitor action.
+ */
+function writeRefusalToConsole(reason: string): void {
+  try {
+    console.warn(reason);
+  } catch {
+    // A hostile or absent console cannot itself become a failure.
+  }
+}
 
 /**
  * The initialized instance as this module reads it back.
@@ -116,11 +155,16 @@ function resolveClient(
   try {
     ambient = scope.posthog;
   } catch {
-    return { reason: REFUSED_NO_SCOPE };
+    // A slot whose read throws is an existing global this module cannot classify, and an
+    // unclassifiable global is foreign by definition: it is refused at the same gate as a
+    // value with no callable initializer, and left exactly where it is.
+    return { reason: POSTHOG_REFUSAL.foreignClient };
   }
 
-  if (ambient === undefined || ambient === null) return { reason: REFUSED_ABSENT_CLIENT };
-  if (!hasCallableInit(ambient)) return { reason: REFUSED_FOREIGN_CLIENT };
+  if (ambient === undefined || ambient === null) {
+    return { reason: POSTHOG_REFUSAL.absentClient };
+  }
+  if (!hasCallableInit(ambient)) return { reason: POSTHOG_REFUSAL.foreignClient };
 
   return { client: ambient };
 }
@@ -155,29 +199,32 @@ export function createPostHogEventSink<EventName extends string>(
 ): ((event: EventName) => void) | undefined {
   if (config.provider !== 'posthog') return undefined;
 
-  const signal = (reason: string) => {
+  const signalRefusal = (reason: string) => {
     try {
-      adapters.signalRefusal?.(reason);
+      (adapters.signalRefusal ?? writeRefusalToConsole)(reason);
     } catch {
       // A refusal channel that throws must not turn a refusal into an exception.
     }
   };
 
   const providerConfig: MeasurementProviderConfig = config.providerConfig;
-  if (providerConfig.token === '' || providerConfig.apiHost === '') {
-    signal(REFUSED_UNCONFIGURED);
+  // Trimmed emptiness, not literal emptiness: a deployment variable set to a space is a
+  // build that never configured the provider, and initializing against it would send the
+  // vendor a blank project key — which it reports through a log line rather than a throw.
+  if (providerConfig.token.trim() === '' || providerConfig.apiHost.trim() === '') {
+    signalRefusal(POSTHOG_REFUSAL.unconfigured);
     return undefined;
   }
 
   const scope = resolveScope(adapters);
   if (scope === null) {
-    signal(REFUSED_NO_SCOPE);
+    signalRefusal(POSTHOG_REFUSAL.unreachableScope);
     return undefined;
   }
 
   const resolvedClient = resolveClient(scope, adapters);
   if ('reason' in resolvedClient) {
-    signal(resolvedClient.reason);
+    signalRefusal(resolvedClient.reason);
     return undefined;
   }
 
@@ -190,7 +237,7 @@ export function createPostHogEventSink<EventName extends string>(
   } catch {
     // A throwing initializer leaves the lockdown unproven, which is indistinguishable
     // from automatic capture being enabled. Refuse rather than guess.
-    signal(REFUSED_INITIALIZATION);
+    signalRefusal(POSTHOG_REFUSAL.initialization);
     return undefined;
   }
 
@@ -198,12 +245,12 @@ export function createPostHogEventSink<EventName extends string>(
     apiHost: providerConfig.apiHost,
     token: providerConfig.token,
   })) {
-    signal(REFUSED_LOCKDOWN);
+    signalRefusal(POSTHOG_REFUSAL.lockdown);
     return undefined;
   }
 
   if (!isReadableInstance(instance)) {
-    signal(REFUSED_NO_CAPTURE);
+    signalRefusal(POSTHOG_REFUSAL.absentCapture);
     return undefined;
   }
 

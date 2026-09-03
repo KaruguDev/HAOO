@@ -1339,6 +1339,7 @@ describe('PostHog tracer: one event end-to-end', () => {
   });
 
   it('withholds the sink when any one locked key resolves wrong', () => {
+    const spies = silentConsole();
     const { scope, client } = tracerScope({ advanced_disable_flags: false });
     const storage = new MemoryStorage();
 
@@ -1353,6 +1354,12 @@ describe('PostHog tracer: one event end-to-end', () => {
     expect(measurement.track('haoo_page_view')).toBe(true);
     expect(client.capturedEvents()).toEqual([]);
     expect(client.deliveredPayloads()).toEqual([]);
+    // The sink is withheld twice on this path — once directly, once through the facade —
+    // and each refusal names the lockdown gate rather than passing unremarked.
+    expect(spies.warn.mock.calls).toEqual([
+      [POSTHOG_REFUSAL.lockdown],
+      [POSTHOG_REFUSAL.lockdown],
+    ]);
   });
 
   const inertSelectorRows: readonly [string, string | undefined][] = [
@@ -1384,11 +1391,13 @@ describe('PostHog tracer: one event end-to-end', () => {
   );
 
   it('refuses a hostile ambient slot without reading further, overwriting, or initializing', () => {
+    const spies = silentConsole();
     const foreign = { init: 'not callable' };
     const scope: PostHogScope = { posthog: foreign };
 
     expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope })).toBeUndefined();
     expect(scope.posthog).toBe(foreign);
     expect(Object.keys(foreign)).toEqual(['init']);
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
   });
 });
