@@ -1006,6 +1006,57 @@ describe('approved analytics ingestion host boundary', () => {
     }
   }, 180_000);
 
+  /**
+   * The README's delivery claim and the code must move together, in both directions.
+   *
+   * The README and `COVERAGE.md` asserted the bundled-SDK behaviour as settled fact while
+   * no production module imported `posthog-js` as a value, so a reader of the shipped
+   * documents could not discover that zero events are delivered — the gap was recorded
+   * only inside `.planning/`. That is the worst class of defect for a project whose
+   * stated discipline is that a withdrawn guarantee must be NAMED: here a guarantee was
+   * added that does not hold.
+   *
+   * Prose cannot enforce itself, so this is the gate. The moment a production module
+   * loads the SDK for real, the "not loaded" section becomes the false statement and this
+   * case fails until it is rewritten — which is the direction that actually matters,
+   * because that is the commit where somebody is thinking about the code and not about
+   * the README.
+   */
+  it('keeps the README delivery claim in step with whether a production module loads the SDK', () => {
+    const readme = readText(resolve(ROOT, 'README.md'));
+    expect(readme, 'README.md').not.toBe('');
+
+    // Type-only imports are erased by TypeScript and never reach a bundle, so they are
+    // removed before asking whether the specifier survives in a value position. The
+    // convention this relies on is `import type` — the inline `{ type X }` form would
+    // read as a value import here and fail, deliberately: this file is the one place
+    // that has to be able to tell erased from emitted.
+    const typeOnlyImport = /import\s+type\s+[\s\S]*?\s+from\s+['"]posthog-js['"]\s*;?/g;
+    const valueSpecifier =
+      /(?:from|require\(\s*)\s*['"]posthog-js['"]|import\s+['"]posthog-js['"]/;
+    const loaders = PRODUCTION_SOURCE_INPUTS
+      .filter((path) => valueSpecifier.test(readText(path).replace(typeOnlyImport, '')))
+      .map((path) => relative(ROOT, path).replace(/\\/g, '/'));
+
+    const readmeDisclaimsDelivery =
+      readme.includes('### No event is delivered yet — the SDK is pinned, not loaded')
+      && readme.includes('**Zero of the ten allowlisted events are currently delivered,**');
+
+    if (loaders.length === 0) {
+      expect(
+        readmeDisclaimsDelivery,
+        'No production module imports posthog-js as a value, so README.md must carry the '
+        + '"No event is delivered yet" section and its zero-delivery sentence verbatim.',
+      ).toBe(true);
+    } else {
+      expect(
+        readmeDisclaimsDelivery,
+        `${loaders.join(', ')} now loads the SDK, so README.md must no longer state that `
+        + 'no event is delivered. Rewrite that section in this commit.',
+      ).toBe(false);
+    }
+  });
+
   it('ships the provider-unset bundle with no approved ingestion origin at all', () => {
     // Derived from the contract rather than restated, so widening the approved list
     // without widening the gate fails here. Absent entirely, not merely unused: a build

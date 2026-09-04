@@ -2,8 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const REQUIRED_TABLES = {
-  'PostHog — browser SDK (posthog-js, bundled)': new Map([
-    ['bundled `posthog.init(token, config)` with an explicit lockdown object', 'INTEGRATE'],
+  'PostHog — browser SDK (posthog-js, pinned; not yet loaded)': new Map([
+    ['`posthog.init(token, config)` with an explicit lockdown object', 'INTEGRATE'],
     ['merged-config readback via `instance.config`', 'INTEGRATE'],
     ['`capture(name)` with a bare name and no property argument', 'INTEGRATE'],
     ['`before_send` payload reduction', 'INTEGRATE'],
@@ -197,6 +197,15 @@ export function auditPhase4Coverage(markdown) {
     [
       'neither report variable is a browser capability',
       /neither\s+is\s+a\s+browser\s+capability/iu,
+    ],
+    [
+      // The claim this row exists to keep honest is that the browser-SDK rows above
+      // describe an implemented capability, NOT a delivered one. A reader who takes an
+      // INTEGRATE row as evidence that events are flowing would misread a report of zeros
+      // as a dead funnel. Pinned to the sentence, for the same reason as the rows above:
+      // a bare /not loaded/ would pass on a sentence claiming the opposite.
+      'the browser SDK is pinned but not loaded, so no event is delivered',
+      /browser\s+SDK\s+is\s+pinned\s+but\s+not\s+loaded[\s\S]{0,200}?no\s+event\s+is\s+delivered/iu,
     ],
     ['local report variables stay outside Vite/browser configuration', /neither may enter a `VITE_\*` variable or the published bundle/iu],
     [

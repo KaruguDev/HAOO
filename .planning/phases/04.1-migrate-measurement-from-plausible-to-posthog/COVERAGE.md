@@ -2,7 +2,7 @@
 
 > Full coverage by default. Opt-outs are explicit, reasoned decisions.
 > Detector result at plan time: `{"detected":true,"signals":[{"verb":"(surface)","noun":"api"}]}`.
-> Two PostHog surfaces enter this phase's scope — the bundled `posthog-js` browser SDK and the
+> Two PostHog surfaces enter this phase's scope — the pinned `posthog-js` browser SDK and the
 > Query API (MEAS-01/MEAS-08). FormSubmit is carried forward from the Phase 4 matrix unchanged;
 > it is unrelated to this migration and re-deciding it here would be an undeclared scope change.
 > Each PostHog surface is enumerated from a full-coverage baseline. Because D-03's
@@ -10,11 +10,11 @@
 > recorded below as a reasoned OPT-OUT, which is what makes the lockdown a decision rather than
 > a configuration accident.
 
-## PostHog — browser SDK (posthog-js, bundled)
+## PostHog — browser SDK (posthog-js, pinned; not yet loaded)
 
 | capability | decision | reason |
 |---|---|---|
-| bundled `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the whole automatic-capture posture is passed as one literal object (D-03) so no surface is left to a default |
+| `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the whole automatic-capture posture is passed as one literal object (D-03) so no surface is left to a default. Implemented and fixture-verified; not yet reached at runtime, because no production module imports the SDK as a value (D4) |
 | merged-config readback via `instance.config` | INTEGRATE | `init` assigns the fully merged config before returning, so the readback proves resolved values rather than submitted ones — and `init` does not throw on a blank token, so the readback is the gate |
 | `capture(name)` with a bare name and no property argument | INTEGRATE | the ten allowlisted HAOO names are the entire event vocabulary (MEAS-02) |
 | `before_send` payload reduction | INTEGRATE | the sole property chokepoint: it runs last, after `property_denylist` and after `$process_person_profile` is appended, and returning `null` drops anything outside the allowlist |
@@ -101,6 +101,12 @@ path but deferred processor approval, project creation, and deployment variables
 different processor in a different region with a different retention posture, so Plausible's
 approval is not inherited (D-06). The integration capabilities above are implemented and
 fixture-verified while the provider selector remains unset.
+
+The browser SDK is pinned but not loaded: no production module imports `posthog-js` as a value, so
+the adapter refuses at its absent-client gate and no event is delivered (D4). Every browser-SDK row
+above records a capability that is implemented and fixture-verified, not one that is reached at
+runtime today. Enabling delivery requires restating the two bundle-level invariants the vendor chunk
+would contradict, in the same commit.
 
 `POSTHOG_QUERY_API_KEY` and `POSTHOG_PROJECT_ID` are local report-process inputs;
 neither is a browser capability, and neither may enter a `VITE_*` variable or the published bundle.

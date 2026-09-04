@@ -96,30 +96,54 @@ pass all three through the deploy workflow's `Build` step `env` block alongside
 `VITE_HAOO_FORM_ENDPOINT`. With any missing or rejected value, the product journey
 continues normally and the bounded local engagement context still works.
 
-The sink sends exactly one bare allowlisted event name per explicit action. Every
-automatic capture surface — DOM autocapture, automatic page views and page leaves,
-session replay, surveys, heatmaps, exception capture, and web vitals — is set to
-an explicit off and then re-read off the merged configuration the vendor produced
-before any sink exists; if a single one of them reads back wrong, no sink is
-returned. It sends no event properties, form values, stable identifiers, retry
-buffer, or ordered clickstream, and it creates no person profile.
+When the sink exists it sends exactly one bare allowlisted event name per explicit
+action. Every automatic capture surface — DOM autocapture, automatic page views
+and page leaves, session replay, surveys, heatmaps, exception capture, and web
+vitals — is set to an explicit off and then re-read off the merged configuration
+the vendor produced before any sink exists; if a single one of them reads back
+wrong, no sink is returned. It sends no event properties, form values, stable
+identifiers, retry buffer, or ordered clickstream, and it creates no person
+profile.
 
-### The analytics code is bundled, not fetched — and what that changed
+### No event is delivered yet — the SDK is pinned, not loaded
+
+**Read this before drawing any conclusion from a report that shows zeros.** The
+adapter, the lockdown, the merged-configuration readback and the payload
+chokepoint are all built and tested, but **no production module imports
+`posthog-js` as a value**. The only reference in the tree is an `import type`,
+which TypeScript erases, so the SDK is not in the built bundle and nothing ever
+occupies the global slot the adapter resolves its client from.
+
+The consequence, stated plainly: on a fully configured production build the
+adapter refuses at its absent-client gate, writes
+`posthog:absent-provider-client` to the browser console on every page load, and
+returns no sink. **Zero of the ten allowlisted events are currently delivered,**
+and `npm run report:haoo` will correctly report zeros for as long as that is
+true. A permanently refusing provider is indistinguishable from a dead funnel to
+anyone not watching the console, which is exactly why it is said here rather than
+left to be discovered.
+
+Turning delivery on is not a one-line import. It emits the vendor chunk into
+every build, which contradicts two bundle-level invariants this project
+deliberately established and proved falsifiable — that the built bundle carries
+no approved ingestion origin at all, and that it carries no browser-storage or
+identifier channels. Whichever change enables delivery has to restate both in the
+same commit, and the phase records that decision as deferred item D4.
+
+### What the delivery change already cost — and what replaced it
 
 The analytics code used to be a script fetched at runtime from a
 repository-approved origin, and the build could prove that the only script URL it
-would ever accept came from that approved set. The SDK is now a pinned bundled
-dependency, so that bundle-level origin guarantee is **withdrawn** — the built
-bundle necessarily carries the vendor's own code and its own default host.
-
-Its named successor is narrower, and is asserted in its place: **the provider's
-ingestion host literal may not appear in any application source module under
-`src/`.** The origin reaches a bundle by exactly one route — the provider-gated
-build-time constant sourced from `config/approved-analytics-hosts.ts` — so a
-build that has not deliberately selected the provider inlines an empty approved
-list and cannot address the ingestion endpoint at all. That inertness is proven
-by building a provider-unset bundle and scanning it, rather than by a source
-string scan.
+would ever accept came from that approved set. Pinning the SDK as a dependency
+**withdrew** that bundle-level origin guarantee. It is withdrawn rather than
+quietly dropped, and its named successor is narrower and asserted in its place:
+**the provider's ingestion host literal may not appear in any application source
+module under `src/`.** The origin reaches a bundle by exactly one route — the
+provider-gated build-time constant sourced from
+`config/approved-analytics-hosts.ts` — so a build that has not deliberately
+selected the provider inlines an empty approved list and cannot address the
+ingestion endpoint at all. That inertness is proven by building a provider-unset
+bundle and scanning it, rather than by a source string scan.
 
 ### No dashboard goals are required
 
