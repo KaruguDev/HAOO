@@ -960,11 +960,33 @@ describe('approved analytics ingestion host boundary', () => {
     const probeDir = resolve(ROOT, 'dist-approved-host-probe');
 
     try {
-      const build = spawnSync('npx', ['vite', 'build', '--outDir', probeDir, '--emptyOutDir'], {
-        cwd: ROOT,
-        encoding: 'utf8',
-        env: { ...process.env, VITE_HAOO_MEASUREMENT_PROVIDER: 'posthog' },
-      });
+      const build = spawnSync(
+        // `npx` is `npx.cmd` on Windows and `spawnSync` without `shell: true` does not
+        // resolve the extension, so the call failed with ENOENT and surfaced only as
+        // `build.status === null` — an opaque assertion failure that never named the
+        // cause. This repository supports Windows deliberately (`.planning/WINDOWS.md`,
+        // and the drive-designator handling in `src/reporting/generate.ts`), so the
+        // platform is in scope for a test that shells out.
+        process.platform === 'win32' ? 'npx.cmd' : 'npx',
+        ['vite', 'build', '--outDir', probeDir, '--emptyOutDir'],
+        {
+          cwd: ROOT,
+          encoding: 'utf8',
+          // The provider variables are blanked rather than inherited. A developer shell
+          // that exports a real token and api host — exactly the shell an owner
+          // performing the 04.1-08 activation has — would otherwise bake live
+          // configuration into this throwaway bundle. The `finally` below removes the
+          // directory, but an uncatchable termination between the two would leave a
+          // credential-carrying build on disk, which is the failure shape the report
+          // generator's write-on-success temp file is careful to avoid.
+          env: {
+            ...process.env,
+            VITE_HAOO_MEASUREMENT_PROVIDER: 'posthog',
+            VITE_HAOO_POSTHOG_TOKEN: '',
+            VITE_HAOO_POSTHOG_API_HOST: '',
+          },
+        },
+      );
 
       expect(build.status, build.stderr ?? '').toBe(0);
 
