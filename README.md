@@ -57,8 +57,10 @@ Activating the endpoint and confirming live mail for `info@haoo.online` — subm
 `VITE_HAOO_MEASUREMENT_PROVIDER` is a public build-time selector for the HAOO
 measurement sink. Its finite accepted set is `none` and `posthog`. An unset,
 blank, `none`, or unrecognised value selects the inert no-op sink. Production
-enablement is currently deferred: do not set the provider variables until the
-analytics processor and collection have received separate privacy-owner approval.
+collection was approved by the privacy owner on 2026-09-05, and the deploy workflow
+now supplies the three public `VITE_HAOO_*` values below. Whether the repository
+variables behind them carry values is configured outside this repository and cannot
+be observed from it.
 
 Three public build-time variables configure collection:
 
@@ -91,9 +93,12 @@ sink is created, and the product journey and the bounded local engagement contex
 keep working exactly as they do with no analytics configured at all.
 
 Vite inlines every `VITE_*` value into the world-readable JavaScript bundle.
-These values are public configuration, not secrets. After enablement is approved,
-pass all three through the deploy workflow's `Build` step `env` block alongside
-`VITE_HAOO_FORM_ENDPOINT`. With any missing or rejected value, the product journey
+These values are public configuration, not secrets. All three are passed through the
+deploy workflow's `Build` step `env` block alongside `VITE_HAOO_FORM_ENDPOINT`,
+sourced from GitHub Actions repository **variables** rather than secrets: the `phc_`
+project key is public write-only by design and is inlined into a world-readable
+bundle, so storing it as a secret would imply a confidentiality property the artifact
+cannot have. With any missing or rejected value, the product journey
 continues normally and the bounded local engagement context still works.
 
 When the sink exists it sends exactly one bare allowlisted event name per explicit
@@ -115,13 +120,15 @@ to the bound module, sends the lockdown, and re-reads the merged configuration
 before any sink exists.
 
 **Events are delivered only when `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`.**
-That selector is still unset in deployment, so no event is delivered today and
-`npm run report:haoo` will correctly report zeros until it is set. This is a
-deliberate hold, not an oversight: enabling delivery needs processor approval,
-project creation and the deployment variables, and the phase assigns that change
-to plan `04.1-11`. A build that has not selected the provider carries no approved
-ingestion origin in any of this project's own chunks and cannot address the
-endpoint at all.
+Plan `04.1-11` resolved the hold this paragraph used to describe: the processor
+approval is recorded, and the deploy workflow now sets that selector — with the
+project key and the ingestion host — from GitHub Actions repository variables. The
+condition itself is unchanged and still operative. A build that has not selected the
+provider carries no approved ingestion origin in any of this project's own chunks and
+cannot address the endpoint at all, so `npm run report:haoo` reports zeros for every
+window before the first configured deploy, and reports zeros indefinitely if those
+three repository variables were never created — an owner step this repository can
+neither perform nor observe.
 
 Loading the SDK was not a free change, and the record of what it cost is kept
 rather than tidied away. Putting a third party's minified artifact into every
@@ -192,9 +199,10 @@ names the rename, rather than reporting the new name as merely missing and sendi
 you to create a credential you may already hold.
 
 Application code receives query results through an injected capability and never sees
-the key or provider endpoint. Production collection remains deferred until the privacy
-owner approves the processor, the two project settings above are recorded, and the
-deploy workflow is configured with the three public `VITE_HAOO_*` values.
+the key or provider endpoint. Production collection is approved and the deploy workflow
+supplies the three public `VITE_HAOO_*` values; the two report credentials above stay
+local process inputs and never enter that build environment, a `VITE_*` name, or the
+published bundle.
 
 ### Spam handling
 

@@ -1516,17 +1516,30 @@ describe('credentialed CLI', () => {
 
   /**
    * The owner-facing separation: the two report inputs are local process secrets for a
-   * manual command, and the browser inputs are deployment variables whose production
-   * collection is still deferred. Conflating them is how a query credential ends up in a
-   * public bundle.
+   * manual command, and the browser inputs are public deployment variables. Conflating
+   * them is how a query credential ends up in a public bundle.
    *
    * The two owner documents are asserted for the separation itself rather than for the
    * variable names, because the names are migrated by the plan that owns those documents
    * (`04.1-08`) and its own gates pin them there. What this suite owns is the phase's
    * coverage record, which names both report inputs and states the boundary they may
    * never cross.
+   *
+   * The deferral half of this case was SPLIT by plan `04.1-11`, not dropped. It used to
+   * assert `production collection` and `deferred` over BOTH documents, which was true of
+   * both when it was written. `04.1-11` recorded the processor approval and wired the
+   * deploy workflow, so the README's deferral sentence became false and was rewritten —
+   * and leaving a bare `toContain('deferred')` in place would have been the exact failure
+   * this repository refuses elsewhere: a fragment that a sentence saying the opposite
+   * ("no longer deferred") satisfies just as well.
+   *
+   * So the deferral assertion is kept where it is still the truthful record — the Phase 4
+   * document, which describes the state of Phase 4 and is amended by appending, never by
+   * rewriting — and is replaced for the README by its enabled-state successor below,
+   * pinned across the claim rather than on a word. A withdrawal is recorded, never a
+   * silence.
    */
-  it('documents both local report inputs separately from deferred public build inputs', () => {
+  it('documents both local report inputs separately from the public build inputs', () => {
     const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
     const setup = readFileSync(
       resolve(
@@ -1548,9 +1561,32 @@ describe('credentialed CLI', () => {
     for (const document of [readme, setup]) {
       expect(document).toContain('npm run report:haoo');
       expect(document).toContain('VITE_HAOO_MEASUREMENT_PROVIDER');
-      expect(document.toLowerCase()).toContain('production collection');
-      expect(document.toLowerCase()).toContain('deferred');
     }
+
+    // The Phase 4 record still states the deferral that was true for Phase 4.
+    expect(setup.toLowerCase()).toContain('production collection');
+    expect(setup.toLowerCase()).toContain('deferred');
+
+    // The README's enabled-state successor (04.1-11). Both halves are asserted: that
+    // collection is approved and supplied by the workflow, AND that the two report
+    // credentials still may not cross into it. The second is the claim this case has
+    // always existed to protect, and enabling delivery is precisely when it starts to
+    // matter — the build environment the workflow now populates is the shortest path
+    // from a query credential to a world-readable bundle.
+    expect(
+      readme,
+      'README.md must state that production collection is approved and that the deploy workflow '
+      + 'supplies the three public VITE_HAOO_* values.',
+    ).toMatch(
+      /Production collection is approved and the deploy workflow\s+supplies the three public `VITE_HAOO_\*` values/u,
+    );
+    expect(
+      readme,
+      'README.md must state that the two report credentials never enter the build environment, a '
+      + 'VITE_* name, or the published bundle.',
+    ).toMatch(
+      /never enter that build environment, a `VITE_\*` name, or the\s+published bundle/u,
+    );
 
     expect(coverage).toContain('POSTHOG_QUERY_API_KEY');
     expect(coverage).toContain('POSTHOG_PROJECT_ID');
@@ -1561,9 +1597,12 @@ describe('credentialed CLI', () => {
   /**
    * The real auditor, called — not four `toContain` checks that resemble it.
    *
-   * `auditPhase4Coverage` holds 69 required capability rows and nine operational-boundary
-   * assertions, including the ones stating that production analytics remains OPT-OUT and
-   * that the report credentials never enter a `VITE_*` variable. It was exported and
+   * `auditPhase4Coverage` holds 69 required capability rows and eleven operational-boundary
+   * assertions, including the ones stating that production analytics enablement is opt-in
+   * and enabled, that a green workflow run is not evidence of a capturing deploy, and that
+   * the report credentials never enter a `VITE_*` variable. (Nine until `04.1-11` replaced
+   * the three deferral-state assertions and added the two that keep the enabled state from
+   * overclaiming.) It was exported and
    * imported nowhere: no npm script ran it, the deploy workflow did not run it, and the
    * only test that mentioned the file asserted that ESLint supplied it with rules. A
    * 200-line enforcement module ran solely when a human typed the command, so COVERAGE.md

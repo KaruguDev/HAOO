@@ -96,19 +96,31 @@
 
 ## Operational boundary
 
-Production analytics enablement remains OPT-OUT for this phase: the privacy owner approved the code
-path but deferred processor approval, project creation, and deployment variables. PostHog is a
-different processor in a different region with a different retention posture, so Plausible's
-approval is not inherited (D-06). The integration capabilities above are implemented and
-fixture-verified while the provider selector remains unset.
+Production analytics enablement is OPT-IN AND ENABLED for this phase. PostHog is a different
+processor in a different region with a different retention posture, so Plausible's approval was not
+inherited (D-06) — it was re-taken, and the owner's own word is the record (04.1-11 Task 1). The
+processor approval is recorded, the project exists, and the deployment workflow supplies the three
+public build variables `VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_POSTHOG_TOKEN` and
+`VITE_HAOO_POSTHOG_API_HOST` to the build. The integration capabilities above are reached at runtime
+by the loaded browser SDK rather than only fixture-verified.
+
+Two things this repository does not establish, stated here rather than left to be inferred from a
+green build. First, whether those three repository variables carry values: they are GitHub Actions
+repository variables, created outside version control, and nothing in this tree can observe them. An
+absent variable expands to the empty string, the selector fails closed to `none`, and the deployed
+build captures nothing while every gate here still passes — so a green workflow run is not evidence
+of a capturing deploy. Second, the live outcomes: ingestion acceptance of the three-property payload
+and the absence of a person profile remain owner observations at the seven checkpoints 04.1-11
+unblocked, not facts this tree has established (D-05).
 
 The browser SDK is loaded by `src/measurement/posthog.ts`, which imports `posthog-js` in a value
 position, so the vendor chunk ships in every build and the adapter resolves a real client instead of
 refusing at an empty slot (D4, closed by 04.1-09). Delivery depends on the provider selector: events
 reach the endpoint only on a build where `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`, and
-that selector is still unset, so every browser-SDK row above records a capability that is
-implemented and reachable rather than one that is delivering today. The bundle-level invariants the
-vendor chunk contradicted were resolved in the same commit as the import — narrowed with named
+the deployment workflow now sets that selector from a repository variable, so every browser-SDK row
+above records a capability that delivers on any deploy whose repository variables carry values,
+rather than one held back by configuration. The bundle-level invariants the vendor chunk
+contradicted were resolved in the same commit as the import — narrowed with named
 successors, or re-justified by measuring each pattern against the emitted vendor chunk.
 
 `POSTHOG_QUERY_API_KEY` and `POSTHOG_PROJECT_ID` are local report-process inputs;

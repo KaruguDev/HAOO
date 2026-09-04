@@ -94,6 +94,27 @@ necessary but not sufficient: MEAS-01 and MEAS-08 stay unchecked and `Gaps Found
 above are cleared and recorded. No data migration is required or should be planned — the previous
 provider was never activated in production, so all-time counts simply begin at first ingestion.*
 
+*Status note 2026-09-05 (Phase 04.1 plan 04.1-11, delivery enabled): the privacy owner recorded the
+re-opened processor approval — verbatim answer `approved`, taken before any variable that enables
+delivery was set — and the deploy workflow now supplies `VITE_HAOO_MEASUREMENT_PROVIDER`,
+`VITE_HAOO_POSTHOG_TOKEN` and `VITE_HAOO_POSTHOG_API_HOST` to the build as public repository
+variables. **No box is checked and no status cell is changed by this note.** Deployment-level
+closure is necessary and not sufficient, exactly as the 2026-09-02 and 2026-09-03 notes above
+already say of code-level closure. What deployment bought is that seven previously blocked UAT
+checkpoints became **performable**, not that any of them passed. MEAS-01 still needs the live
+one-action-one-event confirmation — exactly one event per action, the allowlisted bare name, no
+automatic `$pageview`/`$pageleave`/`$autocapture`/`$rageclick`/`$web_vitals`/`$exception` alongside
+it, and no person profile created — which is also the only check that confirms PostHog Cloud US
+**accepts** a payload reduced to three transport properties; a silent ingestion rejection would read
+as a dead funnel rather than a broken one. MEAS-08 still needs the live report reconciliation
+against the approved project, which is also where the provider's evaluation of the query's inclusive
+day bounds is settled. One further owner step is outstanding and is not a gate this repository can
+observe: the three repository variables above must actually be **created** in GitHub Actions. The
+workflow reads them; it cannot create them, and an absent variable expands to the empty string and
+fails the selector closed to `none`. A green workflow run is therefore not evidence of a capturing
+deploy. MEAS-01 and MEAS-08 stay unchecked and `Gaps Found`.*
+
+
 ### Experience and Release Quality
 
 - [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions

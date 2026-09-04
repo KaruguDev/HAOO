@@ -169,21 +169,57 @@ export function auditPhase4Coverage(markdown) {
     /## Operational boundary\s+([\s\S]*?)(?=\n## |$)/u,
   )?.[1] ?? '';
   const boundaryChecks = [
-    ['production analytics remains OPT-OUT', /Production analytics enablement remains OPT-OUT/iu],
     [
-      // Pinned to the sentence it means to assert. A bare /deferred/ passed on any
-      // occurrence of the word anywhere in the section, including one saying the opposite.
-      // Migrated with the phase: PostHog needs its project created, not ten dashboard goals.
-      'processor approval, project creation, and deployment variables remain deferred',
-      /deferred\s+processor\s+approval,\s+project\s+creation,\s+and\s+deployment\s+variables/iu,
+      // Successor to `production analytics remains OPT-OUT`, moved by plan `04.1-11` in the
+      // same commit as the prose it pins. The predecessor read
+      // /Production analytics enablement remains OPT-OUT/ and became false the moment the
+      // deploy workflow started selecting the provider. It is replaced rather than deleted:
+      // an enablement state that stopped being asserted at all would let the document fall
+      // silent on the single fact a reader most needs from this section.
+      'production analytics enablement is opt-in and enabled',
+      /Production\s+analytics\s+enablement\s+is\s+OPT-IN\s+AND\s+ENABLED\s+for\s+this\s+phase/u,
     ],
     [
-      // Tightened past the bare phrase for the same reason as the two entries above and
-      // the two below: a fragment that merely APPEARS in the section passes on a sentence
-      // saying the opposite. Pinned to the claim — that the capabilities are implemented
-      // and verified WHILE the selector is unset — rather than to the words alone.
-      'the integration capabilities are verified while the provider selector remains unset',
-      /capabilities\s+above\s+are\s+implemented\s+and\s+fixture-verified\s+while\s+the\s+provider\s+selector\s+remains\s+unset/iu,
+      // Successor to `processor approval, project creation, and deployment variables remain
+      // deferred` (04.1-11). The predecessor pinned the deferral across its whole sentence,
+      // for the reason recorded here at the time: a bare /deferred/ passed on any occurrence
+      // of the word, including one saying the opposite. The successor keeps that shape and
+      // asserts the three facts as one claim, so a document that recorded the approval but
+      // dropped the project or the build variables goes red rather than passing on a
+      // fragment.
+      'the processor approval is recorded, the project exists, and the workflow supplies the three public build variables',
+      /processor\s+approval\s+is\s+recorded,\s+the\s+project\s+exists,\s+and\s+the\s+deployment\s+workflow\s+supplies\s+the\s+three\s+public\s+build\s+variables/iu,
+    ],
+    [
+      // Successor to `the integration capabilities are verified while the provider selector
+      // remains unset` (04.1-11). Tightened past the bare phrase for the same reason as
+      // every other entry in this array: a fragment that merely APPEARS in the section
+      // passes on a sentence saying the opposite. Pinned to the new claim — that the
+      // capabilities are REACHED AT RUNTIME rather than only fixture-verified — so a
+      // document that quietly reverted to the fixture-only claim fails here.
+      'the integration capabilities are reached at runtime rather than only fixture-verified',
+      /capabilities\s+above\s+are\s+reached\s+at\s+runtime\s+by\s+the\s+loaded\s+browser\s+SDK\s+rather\s+than\s+only\s+fixture-verified/iu,
+    ],
+    [
+      // ADDED by 04.1-11, not a replacement. The three entries above now assert an ENABLED
+      // state, and an enabled state is exactly where this document could start overclaiming:
+      // nothing in this tree can observe whether the GitHub Actions repository variables were
+      // ever created, so a green workflow run is not evidence of a capturing deploy. Without
+      // a pin, that caveat is a sentence anyone can delete on a tidy-up and no gate notices
+      // (T-04.1-13). Pinned across the claim rather than on `not evidence`, which a sentence
+      // saying the opposite would also satisfy.
+      'a green workflow run is not evidence of a capturing deploy',
+      /green\s+workflow\s+run\s+is\s+not\s+evidence\s+of\s+a\s+capturing\s+deploy/iu,
+    ],
+    [
+      // ADDED by 04.1-11 for the same reason as the entry above, guarding the other half of
+      // the overclaim. Deployment makes the live checkpoints PERFORMABLE; it does not perform
+      // them. Ingestion acceptance of the reduced three-property payload is the one that
+      // fails silently — a rejected payload reads as a dead funnel rather than a broken one
+      // (D-05) — so the sentence that keeps it an owner observation is pinned rather than
+      // trusted (T-04.1-20).
+      'ingestion acceptance and the absent person profile remain owner observations',
+      /remain\s+owner\s+observations\s+at\s+the\s+seven\s+checkpoints\s+04\.1-11\s+unblocked,\s+not\s+facts\s+this\s+tree\s+has\s+established/iu,
     ],
     [
       // Both report variables were name-presence only: a sentence saying
