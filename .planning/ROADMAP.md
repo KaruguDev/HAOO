@@ -209,7 +209,7 @@ intent is unchanged.*
 5. A failure to establish the automatic-capture lockdown refuses initialization, leaves every visitor action working, and is visible to the owner rather than silent.
 6. The visitor-facing measurement disclosure states that analytics data is processed in the United States.
 
-**Plans:** 11 plans — 8 executed, 3 planned (gap closure round 1)
+**Plans:** 10/12 plans executed — 8 executed, 3 planned (gap closure round 1)
 
 Plans:
 
@@ -224,8 +224,8 @@ Plans:
 
 **Gap closure round 1** *(from 04.1-VERIFICATION.md, `gaps_found`, 3/6 must-haves — waves restart at 1)*
 
-- [ ] 04.1-09-PLAN.md — Tracer: load the SDK for real, and renarrow every invariant the vendor chunk contradicts in the same commit *(wave 1, G-04.1-1)*
-- [ ] 04.1-10-PLAN.md — Bind the client to the imported module and refuse any occupied ambient slot outright *(wave 2, G-04.1-2)*
+- [x] 04.1-09-PLAN.md — Tracer: load the SDK for real, and renarrow every invariant the vendor chunk contradicts in the same commit *(wave 1, G-04.1-1)*
+- [x] 04.1-10-PLAN.md — Bind the client to the imported module and refuse any occupied ambient slot outright *(wave 2, G-04.1-2)*
 - [ ] 04.1-11-PLAN.md — Enable delivery behind the owner's processor approval, and amend the operational boundary with its pinned assertions *(wave 3, G-04.1-1)*
 
 ### Phase 5: Prove the Deployed Journey
