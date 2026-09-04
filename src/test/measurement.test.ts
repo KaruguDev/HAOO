@@ -26,6 +26,8 @@ import {
 import type { MeasurementProvider, ProductMeasurement } from '../products/types';
 import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
 import {
+  VACUOUS_BY_VENDOR_AGREEMENT,
+  VENDOR_DOCUMENTED_DEFAULTS,
   installPostHogVendorClient,
   type VendorBeforeSend,
   type VendorCaptureResult,
@@ -906,6 +908,50 @@ describe('fail-closed provider initialization', () => {
     expect(LOCKED_KEYS).toContain('before_send');
     expect(LOCKED_KEYS).toContain('advanced_disable_flags');
     expect(LOCKED_KEYS).toContain('token');
+  });
+
+  /**
+   * The fixture's stated premise, enforced rather than trusted.
+   *
+   * `VENDOR_DOCUMENTED_DEFAULTS` exists so that every locked value has to be overcome by
+   * a genuine `init` argument. A locked key with no entry there breaks that premise
+   * silently: `{...defaults, ...config}` yields the adapter's own value and the readback
+   * proves the object equals itself. That is what had happened to nine keys, including
+   * `internal_or_test_user_hostname` — the one the lockdown sets to `null` precisely
+   * because a non-null value enables person processing.
+   *
+   * Asserted in both directions. A key added to the lockdown without a default fails
+   * here, and so does a default left behind for a key the lockdown no longer carries.
+   */
+  it('gives every locked key a documented vendor default to be overcome', () => {
+    const documented = Object.keys(VENDOR_DOCUMENTED_DEFAULTS).sort();
+
+    expect([...LOCKED_KEYS].sort()).toEqual(documented);
+    // The exceptions are a subset of the locked keys, so the acknowledgement list
+    // cannot drift into naming something that is not locked at all.
+    for (const key of VACUOUS_BY_VENDOR_AGREEMENT) {
+      expect(LOCKED_KEYS, key).toContain(key);
+    }
+  });
+
+  /**
+   * The exceptions are exactly the ones claimed, and no more.
+   *
+   * Derived by comparing the two maps rather than restated, so a fixture edit that made a
+   * fifth key match its locked value by accident is reported here instead of quietly
+   * widening the set of assertions that prove nothing.
+   */
+  it('names every key whose vendor default already equals the locked value', () => {
+    const vacuous = LOCKED_KEYS.filter((key) => {
+      const locked = LOCKED_CONFIGURATION[key];
+      const vendorDefault = VENDOR_DOCUMENTED_DEFAULTS[key];
+      if (Array.isArray(locked) && Array.isArray(vendorDefault)) {
+        return locked.length === 0 && vendorDefault.length === 0;
+      }
+      return Object.is(locked, vendorDefault);
+    }).sort();
+
+    expect(vacuous).toEqual([...VACUOUS_BY_VENDOR_AGREEMENT].sort());
   });
 
   /**

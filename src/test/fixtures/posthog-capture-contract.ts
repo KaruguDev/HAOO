@@ -63,8 +63,29 @@ export interface InstalledVendorPostHogClient extends VendorPostHogClient {
  * whether or not the adapter actually supplied a single option. Starting from the
  * defaults means every locked value has to be overcome by a real `init` argument before
  * the readback can hold.
+ *
+ * The map used to carry 20 keys while `lockdownHolds` asserted 33, so nine locked keys
+ * had no default here at all and `{...defaults, ...config}` handed the readback the
+ * adapter's own value — proving the object equalled itself, which is the exact vacuity
+ * the paragraph above forbids. Every locked key now has an entry, transcribed from the
+ * installed bundle's default builder rather than guessed, and
+ * `measurement.test.ts` asserts the two sets agree so a key added to the lockdown
+ * without a default fails loudly instead of silently reintroducing the gap.
+ *
+ * Six keys remain vacuous no matter what this map says, because the vendor's own
+ * default already equals what the lockdown sends. They are named in
+ * `VACUOUS_BY_VENDOR_AGREEMENT` below rather than papered over.
  */
-const VENDOR_DOCUMENTED_DEFAULTS: VendorPostHogConfig = {
+export const VENDOR_DOCUMENTED_DEFAULTS: VendorPostHogConfig = {
+  // Supplied by `init` on every real call, so these two are the least interesting
+  // members — but they are the vendor's actual starting values and the map has to be
+  // complete for the completeness assertion in `measurement.test.ts` to mean anything.
+  token: '',
+  api_host: 'https://us.i.posthog.com',
+  ui_host: null,
+  // The vendor resolves this to the literal `'unset'` when nothing is passed, which is
+  // also what the lockdown sends. See VACUOUS_BY_VENDOR_AGREEMENT below.
+  defaults: 'unset',
   autocapture: true,
   rageclick: true,
   capture_pageview: true,
@@ -73,20 +94,67 @@ const VENDOR_DOCUMENTED_DEFAULTS: VendorPostHogConfig = {
   capture_exceptions: undefined,
   capture_performance: undefined,
   capture_dead_clicks: undefined,
+  // Date-gated, and `'unset'` sorts above every date literal, so the resolved default at
+  // this version is the regex rather than `undefined` (see WR-05). This is the key the
+  // fidelity gap mattered most for: the lockdown sets it to `null` precisely because a
+  // NON-null value enables person processing, so a fixture that started from `undefined`
+  // understated what the adapter has to overcome.
+  internal_or_test_user_hostname: /^(localhost|127\.0\.0\.1)$/,
   disable_session_recording: false,
   disable_surveys: false,
   disable_surveys_automatic_display: false,
   disable_product_tours: false,
   disable_conversations: false,
   disable_web_experiments: true,
+  // Absent from the vendor's defaults object entirely — it is only ever read at a use
+  // site — so the resolved default is `undefined`, not `false`. Recorded as `undefined`
+  // rather than guessed at `false`, because the point of this map is fidelity.
+  disable_scroll_properties: undefined,
   person_profiles: 'identified_only',
   persistence: 'localStorage+cookie',
   disable_persistence: false,
+  disableDeviceModel: false,
   save_referrer: true,
   save_campaign_params: true,
+  custom_campaign_params: [],
   advanced_disable_flags: false,
+  advanced_disable_feature_flags: false,
+  advanced_disable_toolbar_metrics: false,
   disable_external_dependency_loading: false,
+  opt_in_site_apps: false,
+  before_send: undefined,
 };
+
+/**
+ * The keys whose vendor default already equals the value this project locks.
+ *
+ * Naming them is the honest completion of the premise above. For these six the readback
+ * cannot prove the adapter supplied anything — the object would equal itself whether or
+ * not it did — and no fixture can change that, because the agreement is the vendor's,
+ * not the fixture's. What still covers them is the per-key hostile table in
+ * `measurement.test.ts`, which forces each one to a WRONG resolved value and requires a
+ * refusal.
+ *
+ * This list is not hand-maintained trivia: `measurement.test.ts` DERIVES the vacuous set
+ * by comparing the two maps and requires it to equal this list exactly. Two entries here
+ * were found that way rather than by reading — a set-difference assertion is the only
+ * thing that can tell you which of your assertions prove nothing.
+ */
+export const VACUOUS_BY_VENDOR_AGREEMENT = [
+  // The approved ingestion origin is also the vendor's own default host, so a build that
+  // supplied no api_host at all would read back as compliant. What actually stops that is
+  // the adapter's own emptiness gate, which refuses before `init` is ever called.
+  'api_host',
+  // The vendor resolves an unsupplied `defaults` to the literal `'unset'` — the same
+  // value the lockdown sends. See WR-05 for what that value really does.
+  'defaults',
+  // Vendor-off already. Locked anyway, because a default that is currently favourable is
+  // not a guarantee: it can move inside the vendor's own major line.
+  'disable_web_experiments',
+  'custom_campaign_params',
+  'ui_host',
+  'opt_in_site_apps',
+] as const;
 
 /**
  * The keys the vendor's own transport requires, carried inside `properties`.
