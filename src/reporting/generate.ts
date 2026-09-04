@@ -215,6 +215,16 @@ function haooFunnelSql(range: PeriodWindow | 'all'): string {
 }
 
 /**
+ * The single column this query projects, named once and asserted on the way back.
+ *
+ * Shared between the SQL builder and `parseFirstRecordedDay` rather than restated in
+ * both, so renaming the alias cannot leave the readback asserting a column the query no
+ * longer selects.
+ */
+const FIRST_DAY_COLUMN = 'first_day';
+const HOGQL_FIRST_DAY_COLUMNS = [FIRST_DAY_COLUMN] as const;
+
+/**
  * The first day on which any allowlisted action was recorded, in the reporting timezone.
  *
  * The previous provider echoed the range it resolved for an open-ended query, so the
@@ -223,7 +233,7 @@ function haooFunnelSql(range: PeriodWindow | 'all'): string {
  * single-value query rather than inferred.
  */
 function firstRecordedDaySql(): string {
-  return `SELECT toString(toDate(toTimeZone(min(timestamp), '${REPORT_TIMEZONE}'))) AS first_day\n`
+  return `SELECT toString(toDate(toTimeZone(min(timestamp), '${REPORT_TIMEZONE}'))) AS ${FIRST_DAY_COLUMN}\n`
     + 'FROM events\n'
     + `WHERE event IN (${eventNameLiterals()})\n`
     + 'LIMIT 1';
@@ -315,10 +325,29 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
  * and not a licence to invent one. Anything else is a refusal that aborts before any
  * write, on the same fail-closed footing as `parseGoalCounts`: a heading that names a
  * wrong first day is a claim the report cannot support.
+ *
+ * The `columns` equality assertion is the same one `parseGoalCounts` makes and for the
+ * same reason: this is a POSITIONAL read of `results[0][0]`, and a response projecting a
+ * different single column would parse cleanly into a wrong claim. The row-length and
+ * `ISO_DAY` checks below bound the damage but do not close it — any single ISO-shaped
+ * column would be accepted and printed into the all-time heading as the first recorded
+ * day. `COVERAGE.md` records the `columns` equality assertion as an INTEGRATE capability
+ * of this Query API surface, so applying it at one of the two positional reads and not
+ * the other was a divergence from the phase's own recorded contract.
  */
 function parseFirstRecordedDay(body: unknown): FirstDayOutcome {
   try {
     if (!isPlainObject(body)) return { ok: false, reason: 'invalid' };
+
+    // Asserted before any row is read, for the same reason `parseGoalCounts` asserts it
+    // before its loop: a renamed or reordered projection invalidates every row under it.
+    const columns = body.columns;
+    if (!Array.isArray(columns)) return { ok: false, reason: 'invalid' };
+    if (columns.length !== HOGQL_FIRST_DAY_COLUMNS.length) return { ok: false, reason: 'invalid' };
+    if (!HOGQL_FIRST_DAY_COLUMNS.every((name, index) => columns[index] === name)) {
+      return { ok: false, reason: 'invalid' };
+    }
+
     if (!Array.isArray(body.results)) return { ok: false, reason: 'invalid' };
     if (body.results.length === 0) return { ok: true, day: null };
     if (body.results.length !== 1) return { ok: false, reason: 'invalid' };

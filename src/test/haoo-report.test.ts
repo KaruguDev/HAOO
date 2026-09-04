@@ -1765,6 +1765,16 @@ describe('all four reporting periods', () => {
     { label: 'more than one row', body: { columns: ['first_day'], results: [['2025-11-04'], ['2025-11-05']] } },
     { label: 'a day that is not an ISO calendar day', body: { columns: ['first_day'], results: [['4 November 2025']] } },
     { label: 'a results value that is not an array', body: { columns: ['first_day'], results: 'none' } },
+    // The projection rows. `results[0][0]` is a POSITIONAL read, so a differently-named
+    // single ISO-shaped column would have parsed cleanly into the all-time heading as a
+    // first recorded day the query never asked for. The empty-results row matters just as
+    // much: a wrong projection must be refused rather than read as "nothing recorded yet",
+    // which is a claim the report would print.
+    { label: 'a renamed single column', body: { columns: ['min_timestamp'], results: [['2025-11-04']] } },
+    { label: 'a widened projection', body: { columns: ['first_day', 'occurrences'], results: [['2025-11-04']] } },
+    { label: 'an absent columns projection', body: { results: [['2025-11-04']] } },
+    { label: 'a columns value that is not an array', body: { columns: 'first_day', results: [['2025-11-04']] } },
+    { label: 'a wrong projection over no rows', body: { columns: ['min_timestamp'], results: [] } },
   ])('aborts before writing when the first-recorded-day query answers with $label', async ({ body }) => {
     const { fetchSpy } = stubFetch(EVERY_PERIOD, DEFAULT_SUBMITTED_QUERIES, body);
     const { fs, files } = memoryFs();
