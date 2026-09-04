@@ -44,7 +44,7 @@ const REQUIRED_TABLES = {
     ['`POST /api/projects/:project_id/query/`', 'INTEGRATE'],
     ['`HogQLQuery` body kind', 'INTEGRATE'],
     ['the descriptive `name` parameter', 'INTEGRATE'],
-    ['bearer authentication from the local process environment with the single scope PostHog labels *Query Read*', 'INTEGRATE'],
+    ['bearer auth from the local process environment, scope *Query Read*', 'INTEGRATE'],
     ['`count()` aggregate grouped by `event`', 'INTEGRATE'],
     ["`toTimeZone(timestamp, 'Africa/Nairobi')` pinned inside the SQL", 'INTEGRATE'],
     ['explicit inclusive date bounds', 'INTEGRATE'],

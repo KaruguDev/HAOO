@@ -58,7 +58,7 @@
 | `POST /api/projects/:project_id/query/` | INTEGRATE | the single request the owner report issues per range |
 | `HogQLQuery` body kind | INTEGRATE | an aggregate over raw event names is what retires the ten-dashboard-goals human gate (D-06) instead of leaving it permanently open |
 | the descriptive `name` parameter | INTEGRATE | labels the request so the owner can recognise the report's own traffic rather than mistaking it for a visitor |
-| bearer auth from the process environment, scope *Query Read* | INTEGRATE | the report reads and never writes; every write-capable surface in this table is an explicit OPT-OUT |
+| bearer auth from the local process environment, scope *Query Read* | INTEGRATE | the report reads and never writes; every write-capable surface in this table is an explicit OPT-OUT |
 | `count()` aggregate grouped by `event` | INTEGRATE | returns one occurrence count per allowlisted name, the shape `parseGoalCounts` already validates |
 | `toTimeZone(timestamp, 'Africa/Nairobi')` pinned inside the SQL | INTEGRATE | pinning the timezone in the query text removes the provider-mismatch failure mode instead of detecting it, and the report still states which timezone its days are in |
 | explicit inclusive date bounds | INTEGRATE | every bounded window is an inclusive ISO pair rather than a relative preset, so the locked 90-day window cannot be silently rendered as 91 days |
