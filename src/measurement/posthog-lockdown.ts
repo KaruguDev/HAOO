@@ -24,8 +24,32 @@ import type { CaptureResult, PostHogConfig } from 'posthog-js';
  *   provider-gated build-time constant, so the value arrives as a parameter.
  * - `ui_host: null` and `opt_in_site_apps: false` keep the vendor's own hosted surfaces
  *   out of the page entirely.
- * - `defaults: 'unset'` pins behaviour to the values written here rather than to the
- *   vendor's date-gated default bundle, which moves inside its own major line.
+ * - `defaults: 'unset'` does NOT pin the date-gated default bundle, and the comment that
+ *   said it did was wrong. At this version the vendor's default builder gates each key
+ *   with a plain string comparison against the `defaults` value — `t >= "2026-01-30"`,
+ *   `"2025-11-30" > t` — and only `session_recording` special-cases the literal
+ *   `'unset'`. Lexicographically `'unset'` sorts ABOVE every date literal, so it selects
+ *   the NEWEST branch of every other gate rather than "no defaults":
+ *   `'unset' >= '2026-01-30'` is `true` and `'2025-11-30' > 'unset'` is `false`.
+ *
+ *   There is no live impact today. Every date-gated key that carries a privacy decision
+ *   — `rageclick`, `capture_pageview`, `internal_or_test_user_hostname` — is explicitly
+ *   overridden below and read back by `lockdownHolds`, so the branch the vendor would
+ *   have chosen never survives. What the option does not do is protect the keys that are
+ *   NOT in this object: a date-gated default the vendor adds in future is opted into at
+ *   its newest value rather than pinned, which is the drift this option was chosen to
+ *   prevent.
+ *
+ *   Standing rule, and it is executable rather than advisory: a version bump requires
+ *   re-reading the SDK's default builder for newly date-gated keys.
+ *   `measurement.test.ts` extracts every date-gated key out of the installed
+ *   `posthog-js` bundle and fails on any key this project has not either locked or
+ *   explicitly acknowledged, so the bump reports the new key by name.
+ *
+ *   Pinning for real would mean passing an early date literal instead of `'unset'`, so
+ *   every comparison resolves to the oldest branch deterministically. That is a
+ *   behavioural decision about which vendor default set this project adopts — not a
+ *   comment correction — and it is deliberately not taken here.
  * - `internal_or_test_user_hostname: null` is explicit because a non-null value enables
  *   person processing, which this project never wants under any hostname.
  * - `autocapture`, `rageclick`, `capture_pageview`, `capture_dead_clicks`,

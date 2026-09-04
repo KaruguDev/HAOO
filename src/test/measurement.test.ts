@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MEASUREMENT_TRACK_ARGUMENT_COUNT, createMeasurement } from '../measurement';
 import {
@@ -1693,5 +1695,97 @@ describe('PostHog tracer: one event end-to-end', () => {
     expect(scope.posthog).toBe(foreign);
     expect(Object.keys(foreign)).toEqual(['init']);
     expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.foreignClient);
+  });
+});
+
+/**
+ * The executable half of the `defaults: 'unset'` standing rule (WR-05).
+ *
+ * The lockdown's doc comment used to claim `defaults: 'unset'` pins behaviour away from
+ * the vendor's date-gated default bundle. It does not. At this version the vendor gates
+ * each default with a plain STRING comparison against the `defaults` value, and only
+ * `session_recording` special-cases the literal `'unset'`. Lexicographically `'unset'`
+ * sorts above every date literal, so it selects the NEWEST branch of every other gate.
+ *
+ * A corrected comment is prose, and prose does not survive a version bump. This describe
+ * reads the gates out of the installed SDK instead, so the bump that adds a new
+ * date-gated key fails here and names the key rather than opting into it silently.
+ */
+describe('posthog-js date-gated defaults', () => {
+  /**
+   * The comparison semantics, asserted directly rather than described.
+   *
+   * These four facts are the entire reason the original comment was wrong. If a future
+   * reader is tempted to restore the "pins behaviour" claim, this is what refutes it.
+   */
+  it('sorts the unset sentinel above every date literal, selecting the newest branch', () => {
+    expect('unset' >= '2026-01-30').toBe(true);
+    expect('2025-11-30' > 'unset').toBe(false);
+    expect('2025-05-24' > 'unset').toBe(false);
+    // Not a quirk of the dates that happen to exist today: any calendar date the vendor
+    // could add sorts below the sentinel, because every one of them begins with a digit.
+    expect('unset' >= '9999-12-31').toBe(true);
+  });
+
+  /**
+   * Every date-gated default key in the installed bundle, extracted rather than restated.
+   *
+   * Three of them carry a privacy decision and are locked and read back, so the branch
+   * the vendor would have chosen never survives. The rest are acknowledged here — named,
+   * with the value `'unset'` actually selects — because acknowledging them is what makes
+   * a NEW one detectable. This list is not permission for them to exist; it is the
+   * baseline a version bump is diffed against.
+   */
+  const ACKNOWLEDGED_UNLOCKED_DATE_GATED_KEYS = [
+    // Where the SDK would inject a script tag. Moot under
+    // `disable_external_dependency_loading: true`, which is locked and read back.
+    'external_scripts_inject_target',
+    // Both are persistence tuning. Moot under `persistence: 'memory'` plus
+    // `disable_persistence: true`, which are locked and read back.
+    'persistence_save_debounce_ms',
+    'split_storage',
+    'cookieWinsOnConflict',
+    // A user-agent heuristic. Not a channel this project's bare-name payload can carry,
+    // but it is a vendor behaviour this project has not switched off, so it is named.
+    'detect_google_search_app',
+    // Strips URL fragments. The newest branch is the more conservative one here, and the
+    // adapter never sends a URL property at all.
+    'disable_capture_url_hashes',
+  ];
+
+  it('locks or acknowledges every date-gated default key the installed SDK carries', () => {
+    const bundle = readFileSync(
+      resolve(import.meta.dirname, '../../node_modules/posthog-js/dist/module.js'),
+      'utf8',
+    );
+    // Minifiers rewrite identifiers but never configuration KEY names, since those are
+    // the vendor's own public API. The gate is recognised by a date literal appearing in
+    // the value expression of a `key:` pair.
+    const gated = new Set(
+      [...bundle.matchAll(/([A-Za-z_$][A-Za-z0-9_$]*)\s*:\s*[^,{}]{0,80}?"\d{4}-\d{2}-\d{2}"/g)]
+        .map(([, key]) => key),
+    );
+
+    // The extraction itself has to be falsifiable: a re-minified bundle that broke the
+    // shape above would otherwise report an empty set and pass by finding nothing.
+    expect(gated.size).toBeGreaterThanOrEqual(9);
+    expect(gated).toContain('capture_pageview');
+    expect(gated).toContain('internal_or_test_user_hostname');
+
+    const unaccountedFor = [...gated]
+      .filter((key) => !LOCKED_KEYS.includes(key))
+      .filter((key) => !ACKNOWLEDGED_UNLOCKED_DATE_GATED_KEYS.includes(key))
+      .sort();
+
+    // A bump that adds a date-gated key fails here and NAMES it. Either lock the key in
+    // POSTHOG_LOCKDOWN and read it back, or add it above with the reason it is safe to
+    // leave at the newest branch.
+    expect(unaccountedFor).toEqual([]);
+  });
+
+  it('locks and reads back every date-gated key that carries a privacy decision', () => {
+    for (const key of ['rageclick', 'capture_pageview', 'internal_or_test_user_hostname']) {
+      expect(LOCKED_KEYS, key).toContain(key);
+    }
   });
 });
