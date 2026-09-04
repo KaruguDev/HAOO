@@ -286,11 +286,29 @@ function oldestOutput() {
     .reduce((oldest, output) => (output.mtimeMs < oldest.mtimeMs ? output : oldest));
 }
 
+/**
+ * The built bundle, or a loud failure — never the empty string.
+ *
+ * `listFiles` returns `[]` for a missing directory, so this helper used to return `''`
+ * when `dist/` had not been built. Every prohibition expressed as
+ * `expect(bundle).not.toMatch(...)` then PASSED against nothing: the credential-boundary
+ * scan, the identity-channel scan, and the approved-ingestion-origin absence case all
+ * reported green on a build that was never produced. The staleness case fails separately,
+ * but it is a different test — a reader scanning results saw the security assertions pass.
+ *
+ * `npm test` chains `npm run build` first, but `npm run test:unit` (documented and used)
+ * does not, so the vacuity was reachable in normal use. Throwing here converts a silent
+ * false green into an actionable message naming the command that fixes it.
+ */
 function builtBundleText() {
-  return listFiles(resolve(DIST, 'assets'))
-    .filter((file) => file.endsWith('.js'))
-    .map((file) => readFileSync(file, 'utf8'))
-    .join('\n');
+  const files = listFiles(resolve(DIST, 'assets')).filter((file) => file.endsWith('.js'));
+  if (files.length === 0) {
+    throw new Error(
+      'No built bundle to scan under dist/assets. Run `npm run build` before asserting against the bundle.',
+    );
+  }
+
+  return files.map((file) => readFileSync(file, 'utf8')).join('\n');
 }
 
 function noScriptMarkup(html: string) {
@@ -698,15 +716,21 @@ describe('Phase 1 static build contracts', () => {
       /approvedScriptSourcesForProvider/,
       /approved-analytics-script-sources/,
     ];
+    // Carried as (path, text) pairs rather than bare strings: `readText` returns `''` for
+    // a missing path, and a `.not.toMatch` over `''` passes for the wrong reason. A rename
+    // of either named file would have silently emptied this scan while it reported green,
+    // so each subject is asserted non-empty first — the guard the narrowed-boundary case
+    // above already applies.
     const retired = [
-      readText(resolve(ROOT, 'vite.config.ts')),
-      readText(resolve(ROOT, 'src/vite-env.d.ts')),
-      ...PRODUCTION_SOURCE_INPUTS.map((path) => readText(path)),
-    ];
+      resolve(ROOT, 'vite.config.ts'),
+      resolve(ROOT, 'src/vite-env.d.ts'),
+      ...PRODUCTION_SOURCE_INPUTS,
+    ].map((path) => ({ relativePath: relative(ROOT, path).replace(/\\/g, '/'), text: readText(path) }));
 
-    for (const text of retired) {
+    for (const { relativePath, text } of retired) {
+      expect(text, relativePath).not.toBe('');
       for (const forbidden of superseded) {
-        expect(text, String(forbidden)).not.toMatch(forbidden);
+        expect(text, `${relativePath} :: ${forbidden}`).not.toMatch(forbidden);
       }
     }
   });
