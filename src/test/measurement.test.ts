@@ -547,10 +547,25 @@ function hostileValue(locked: unknown): unknown {
   if (typeof locked === 'boolean') return !locked;
   if (locked === null) return 'a value the lockdown requires to be null';
   if (Array.isArray(locked)) return ['utm_term'];
-  if (typeof locked === 'function') return 'not a function';
+  // A SUBSTITUTED function, not a non-function. The only locked function is
+  // `before_send`, the property chokepoint, and the escape route worth closing is a
+  // client that keeps the option callable while swapping in a reducer of its own — which
+  // a `'not a function'` row can never reach, because it is refused by the `typeof` guard
+  // before identity is ever consulted. The non-function case keeps its own explicit row
+  // below, so strengthening this one costs no coverage.
+  if (typeof locked === 'function') return SUBSTITUTED_BEFORE_SEND;
   if (typeof locked === 'string') return `${locked}-drifted`;
   return 'drifted';
 }
+
+/**
+ * A reducer that is a perfectly good function and is not this project's.
+ *
+ * It even behaves plausibly — it passes the payload straight through — which is the
+ * point: nothing about its shape distinguishes it from the real chokepoint, so only an
+ * identity comparison can refuse it.
+ */
+const SUBSTITUTED_BEFORE_SEND = (result: unknown): unknown => result;
 
 /** The transport shape a real capture arrives in, before the chokepoint reduces it. */
 function vendorPayload(
@@ -890,6 +905,38 @@ describe('fail-closed provider initialization', () => {
     expect(LOCKED_KEYS).toContain('advanced_disable_flags');
     expect(LOCKED_KEYS).toContain('token');
   });
+
+  /**
+   * The chokepoint is pinned by identity, so the non-callable case needs its own row.
+   *
+   * The derived table above now substitutes a *callable* reducer for `before_send`,
+   * because a client that keeps the option callable while swapping the function is the
+   * escape route worth closing. That strengthening would have quietly retired the
+   * original assertion — that a non-function is refused — so it is restated here rather
+   * than dropped. Both must refuse, and both must refuse at the same gate.
+   */
+  it.each([
+    ['a substituted reducer that is not this project’s', SUBSTITUTED_BEFORE_SEND],
+    ['a non-callable value', 'not a function'],
+    ['an absent chokepoint', undefined],
+  ] as const)(
+    'withholds the sink when the merged before_send is %s',
+    (_label, value) => {
+      const scope: VendorPostHogScope = {};
+      const client = installPostHogVendorClient(scope, { before_send: value });
+      const reasons: string[] = [];
+
+      expect(
+        createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+          scope: scope as PostHogScope,
+          signalRefusal: (reason) => reasons.push(reason),
+        }),
+      ).toBeUndefined();
+      expect(client.capturedEvents()).toEqual([]);
+      expect(client.deliveredPayloads()).toEqual([]);
+      expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown]);
+    },
+  );
 
   const hostileSlotRows: readonly [string, unknown][] = [
     ['a non-callable value', { init: 'foreign' }],
@@ -1483,8 +1530,18 @@ describe('PostHog tracer: one event end-to-end', () => {
 
     const resolved = client.initializedConfig();
     expect(resolved).not.toBeNull();
-    expect(lockdownHolds(resolved, { apiHost: APPROVED_HOST, token: PROJECT_TOKEN }))
-      .toBe(true);
+    // The `beforeSend` member is deliberately taken from the resolved configuration here.
+    // The adapter mints its chokepoint inside `createPostHogEventSink` and does not expose
+    // it, so this re-assertion cannot obtain the sent function independently — and it does
+    // not need to. That the identity held is already proven by `sink` being a function at
+    // all: the adapter returns one only after its own `lockdownHolds` agreed. What this
+    // call adds is an independent re-read of the other 32 keys, and what proves the
+    // identity comparison can FAIL is the substituted-reducer row in the hostile table.
+    expect(lockdownHolds(resolved, {
+      apiHost: APPROVED_HOST,
+      token: PROJECT_TOKEN,
+      beforeSend: resolved?.before_send,
+    })).toBe(true);
 
     // Spot-check the four options whose defaults are `undefined` — meaning "ask the
     // remote configuration" — plus the switch that makes them unbypassable.

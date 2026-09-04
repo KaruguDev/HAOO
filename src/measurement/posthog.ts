@@ -228,12 +228,19 @@ export function createPostHogEventSink<EventName extends string>(
     return undefined;
   }
 
+  // Retained rather than constructed inline at the call: `POSTHOG_LOCKDOWN` is a factory,
+  // so each invocation mints a fresh `before_send` closure. Holding on to the object that
+  // was actually sent is what lets the readback below prove the resolved chokepoint is
+  // THIS project's reducer by identity, rather than merely some function.
+  const lockdown = POSTHOG_LOCKDOWN(
+    providerConfig.apiHost,
+    providerConfig.token,
+    config.events,
+  );
+
   let instance: unknown;
   try {
-    instance = resolvedClient.client.init(
-      providerConfig.token,
-      POSTHOG_LOCKDOWN(providerConfig.apiHost, providerConfig.token, config.events),
-    );
+    instance = resolvedClient.client.init(providerConfig.token, lockdown);
   } catch {
     // A throwing initializer leaves the lockdown unproven, which is indistinguishable
     // from automatic capture being enabled. Refuse rather than guess.
@@ -246,6 +253,7 @@ export function createPostHogEventSink<EventName extends string>(
     confirmed = lockdownHolds(readProperty(instance, 'config'), {
       apiHost: providerConfig.apiHost,
       token: providerConfig.token,
+      beforeSend: lockdown.before_send,
     });
   } catch {
     // The merged configuration is the LAST untrusted value on this path, and the readback

@@ -171,6 +171,26 @@ export function stripToBareName(
 export interface PostHogLockdownExpectation {
   readonly apiHost: string;
   readonly token: string;
+  /**
+   * The exact `before_send` this project passed to `init`, compared by identity.
+   *
+   * Every other locked option is a value with a literal to compare against. A function
+   * has none, and `typeof merged.before_send === 'function'` — which is what this
+   * predicate used to check — accepts ANY function. That made the single most
+   * privacy-load-bearing option the one option nothing proved: a client free to choose
+   * what it exposes as `config` could echo back all 32 locked values verbatim and
+   * substitute its own reducer, passing the readback while the property chokepoint that
+   * reduces a capture to a bare name was never installed at all.
+   *
+   * It is supplied by the caller rather than read from `POSTHOG_LOCKDOWN` here on
+   * purpose: `POSTHOG_LOCKDOWN` is a factory, so calling it again in this module would
+   * mint a DIFFERENT closure and compare the resolved value against a function that was
+   * never sent. The identity that matters is the one from the call that initialized this
+   * instance, so the call site retains the object it sent and passes that function in.
+   * This is the one member of the expectation that may not be restated locally, and the
+   * reason is the opposite of drift: restating it would make the check unsatisfiable.
+   */
+  readonly beforeSend: unknown;
 }
 
 /**
@@ -237,6 +257,12 @@ export function lockdownHolds(
     merged.save_campaign_params === false &&
     Array.isArray(campaignParams) &&
     campaignParams.length === 0 &&
-    typeof merged.before_send === 'function'
+    // Identity, not `typeof`. The chokepoint is only installed if the function that came
+    // back is the very function that went in; any other function — including one the
+    // client minted for itself — is an unconfirmed lockdown. The `typeof` guard is kept
+    // ahead of it so the assertion still reads as a claim about a callable, and so an
+    // expectation carrying a non-function could never accidentally satisfy it.
+    typeof merged.before_send === 'function' &&
+    merged.before_send === expected.beforeSend
   );
 }
