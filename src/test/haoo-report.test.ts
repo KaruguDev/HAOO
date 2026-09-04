@@ -15,6 +15,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 import { HAOO_MEASUREMENT_EVENTS, type HaooMeasurementEvent } from '../products/haoo';
 import {
@@ -1555,6 +1556,61 @@ describe('credentialed CLI', () => {
     expect(coverage).toContain('POSTHOG_PROJECT_ID');
     expect(coverage).toMatch(/local report-process inputs/i);
     expect(coverage).toMatch(/may enter a `VITE_\*` variable or the published bundle/i);
+  });
+
+  /**
+   * The real auditor, called — not four `toContain` checks that resemble it.
+   *
+   * `auditPhase4Coverage` holds 69 required capability rows and nine operational-boundary
+   * assertions, including the ones stating that production analytics remains OPT-OUT and
+   * that the report credentials never enter a `VITE_*` variable. It was exported and
+   * imported nowhere: no npm script ran it, the deploy workflow did not run it, and the
+   * only test that mentioned the file asserted that ESLint supplied it with rules. A
+   * 200-line enforcement module ran solely when a human typed the command, so COVERAGE.md
+   * could drift arbitrarily without any gate noticing.
+   *
+   * It now has an npm script and a CI step; this case is the third gate, so the audit
+   * cannot be silently unwired from either of the other two without a test going red.
+   */
+  it('passes the real capability audit rather than a hand-rolled resemblance of it', async () => {
+    const phaseDirectory = readdirSync(resolve(ROOT, '.planning/phases'))
+      .find((entry) => entry.startsWith('04.1-')) ?? '';
+    expect(phaseDirectory, 'this phase directory').toBeTruthy();
+    const coverage = readFileSync(
+      resolve(ROOT, '.planning/phases', phaseDirectory, 'COVERAGE.md'),
+      'utf8',
+    );
+
+    // Imported by resolved file URL rather than by a static specifier: the script is
+    // plain `.mjs` with no declaration file, and a static import would need a bare `any`
+    // to typecheck. The URL is built from the same path the npm script names, so this
+    // case and the wiring case below load the same module.
+    const auditModule = (await import(
+      pathToFileURL(resolve(ROOT, 'scripts/verify-phase4-coverage.mjs')).href
+    )) as { auditPhase4Coverage: (markdown: string) => { tables: number; requiredRows: number } };
+    const { auditPhase4Coverage } = auditModule;
+
+    expect(() => auditPhase4Coverage(coverage)).not.toThrow();
+    // The audit reports what it actually enforced, so a REQUIRED_TABLES gutted down to
+    // one row would fail here rather than pass by having nothing left to check.
+    const result = auditPhase4Coverage(coverage);
+    expect(result.tables).toBe(3);
+    expect(result.requiredRows).toBeGreaterThanOrEqual(69);
+  });
+
+  it('runs the capability audit from an npm script and from the deploy workflow', () => {
+    const pkg: { scripts: Record<string, string> } = JSON.parse(
+      readFileSync(resolve(ROOT, 'package.json'), 'utf8'),
+    );
+    const workflow = readFileSync(resolve(ROOT, '.github/workflows/deploy.yml'), 'utf8');
+
+    const script = pkg.scripts['verify:coverage'] ?? '';
+    expect(script).toContain('scripts/verify-phase4-coverage.mjs');
+    // The script resolves a real file: a renamed phase directory leaves the wired command
+    // pointing at nothing, which is precisely the drift a never-executed gate hides.
+    const auditedPath = script.split(/\s+/).at(-1) ?? '';
+    expect(existsSync(resolve(ROOT, auditedPath)), auditedPath).toBe(true);
+    expect(workflow).toContain('npm run verify:coverage');
   });
 });
 

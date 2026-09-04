@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "npm run build && vitest run",
     "test:unit": "vitest run",
+    "verify:coverage": "node scripts/verify-phase4-coverage.mjs .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/COVERAGE.md",
     "test:phase1:red": "node scripts/assert-phase1-red.mjs",
     "report:haoo": "node scripts/generate-haoo-report.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
