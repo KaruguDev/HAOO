@@ -209,7 +209,7 @@ intent is unchanged.*
 5. A failure to establish the automatic-capture lockdown refuses initialization, leaves every visitor action working, and is visible to the owner rather than silent.
 6. The visitor-facing measurement disclosure states that analytics data is processed in the United States.
 
-**Plans:** 7/9 plans executed
+**Plans:** 8/8 plans executed
 
 Plans:
 
@@ -220,7 +220,7 @@ Plans:
 - [x] 04.1-05-PLAN.md — Two independent automatic-capture gates, a visible refusal, and the journey-survives-failure guard *(wave 4)*
 - [x] 04.1-06-PLAN.md — Visitor disclosure states that analytics data is processed in the United States *(wave 5)*
 - [x] 04.1-07-PLAN.md — Owner report reads PostHog through one HogQL aggregate per range, with the provenance loss stated *(wave 3)*
-- [ ] 04.1-08-PLAN.md — Owner activation instructions, the re-scoped human gates, and the restated Phase 4 claims *(wave 6)*
+- [x] 04.1-08-PLAN.md — Owner activation instructions, the re-scoped human gates, and the restated Phase 4 claims *(wave 6)*
 
 ### Phase 5: Prove the Deployed Journey
 
