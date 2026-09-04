@@ -111,7 +111,12 @@ export const POSTHOG_REFUSAL = Object.freeze({
    * initializer, so the lockdown could never be sent and no readback could prove it.
    */
   unusableBoundClient: 'posthog:unusable-bound-provider-client',
-  /** The adopted-versus-installed gate: the slot holds something this module will not use. */
+  /**
+   * The client gate: the ambient slot is occupied, so the value in it is not this
+   * repository's and will not be initialized. Narrowed by plan `04.1-10` from "the slot
+   * holds something this module will not use" to "the slot holds anything at all" —
+   * strictly more values reach this reason, and none stopped reaching it.
+   */
   foreignClient: 'posthog:foreign-provider-global',
   /** The initializer threw, leaving the lockdown unproven. */
   initialization: 'posthog:initialization-refused',
@@ -179,6 +184,19 @@ function readProperty(candidate: unknown, key: string): unknown {
   }
 }
 
+/**
+ * A structural guard on the value THIS REPOSITORY imported — not a trust decision about
+ * somebody else's.
+ *
+ * NARROWED by plan `04.1-10`. Until then this same predicate was also the whole of the
+ * trust decision for an ambient `window.posthog`: a value exposing a callable `init` was
+ * adopted. It is not a trust decision and never was, because exposing a callable property
+ * is precisely what a hostile global is free to do. Its remaining caller is the bound
+ * module, where the question is not "do I trust this" but "did the import resolve to
+ * something usable" — a wrong version, a mangled bundle or a transform that dropped the
+ * default export are all reachable, and each of them must be `unusableBoundClient` rather
+ * than a call into a value with no initializer.
+ */
 function hasCallableInit(candidate: unknown): candidate is PostHogClient {
   return typeof readProperty(candidate, 'init') === 'function';
 }
@@ -188,30 +206,53 @@ function isReadableInstance(candidate: unknown): candidate is PostHogInstance {
 }
 
 /**
- * Decide before assigning.
+ * Decide before assigning: classify the slot, refuse every occupied one, and initialize
+ * only the module this repository imported.
  *
- * A pre-existing value in the provider slot is classified before anything is written
- * anywhere. A value exposing a callable initializer is ADOPTED — never replaced, never
- * wrapped. Any other defined value is refused outright and left byte-identical:
- * overwriting somebody else's global is not this adapter's to do, and refusing here,
- * before anything could have replaced it, is why no refusal path ever has anything to
- * restore (the 04-12 rule).
+ * **The withdrawn rule.** Until plan `04.1-10` this function ADOPTED any ambient value
+ * exposing a callable initializer — never replaced, never wrapped — and refused only the
+ * values that had none. That rule is withdrawn. It is named here rather than deleted,
+ * because a reader who finds the old shape in a prior summary, a review, or the phase's
+ * own security register must be able to see a narrowing rather than mistake it for a
+ * behaviour that was silently dropped (D-05, T-04.1-08).
  *
- * An EMPTY slot is no longer a refusal (plan `04.1-09`, deferred item D4). It is the
- * normal path: this module now binds the pinned SDK itself, so an empty slot means
- * nothing else on the page claimed the name, and the bound module is used. Nothing is
- * ever written INTO the slot — the bound value is passed straight to the caller — so an
+ * **Why it was withdrawn** (`04.1-VERIFICATION.md`, gap `G-04.1-2`, code-review blocker
+ * CR-02). The presence of a callable initializer is not evidence of anything: it is
+ * exactly the property a hostile global is free to expose. An adopted client received the
+ * public project key and all ten first-party event names, and — because it CHOOSES what
+ * to expose as `instance.config` — could echo the configuration object it was handed so
+ * the readback agreed with itself. The 33rd key closes half of that (`lockdownHolds`
+ * compares `before_send` by identity against the function this project passed to `init`),
+ * but the adoption itself remained. And `MeasurementDisclosure.tsx` renders a sentence
+ * naming PostHog in the United States as the SOLE processor of that data (D-10, MEAS-04's
+ * factual basis) — a statement that was not true of an adopted global. The narrowing is
+ * what makes the rendered sentence a fact about this code rather than an assumption about
+ * the page.
+ *
+ * **The successor rule.** After the injected-client seam and the unclassifiable-read
+ * guard, ANY defined, non-null ambient value is refused with
+ * `POSTHOG_REFUSAL.foreignClient` and left byte-identical. The set of clients this
+ * adapter can initialize is therefore exactly {the module this repository imported, a
+ * client a test injected explicitly} and nothing else.
+ *
+ * **What did NOT change.** Refusing still means leaving somebody else's value exactly
+ * where it is: nothing is overwritten, wrapped, deleted or initialized. The
+ * classification still happens before anything is written anywhere, which is why no
+ * refusal path has anything to restore (the 04-12 rule) — and it is why removing the
+ * adoption branch removed a branch, not a restore obligation.
+ *
+ * An EMPTY slot is still not a refusal (plan `04.1-09`, deferred item D4): this module
+ * binds the pinned SDK itself, so an empty slot means nothing else on the page claimed
+ * the name, and the bound module is used. Nothing is ever written INTO the slot, so an
  * empty slot stays empty and a later reader of `scope.posthog` still sees `undefined`.
- * The bound module is not trusted for being bound: it goes through the same
- * `hasCallableInit` gate an ambient value goes through, and a module with no callable
- * initializer is refused as `unusableBoundClient` — the successor to the retired
- * `absentClient`, which is documented as withdrawn on the member itself.
+ * The bound module is not trusted for being bound — it goes through `hasCallableInit`,
+ * and a module with no callable initializer is refused as `unusableBoundClient`, the
+ * successor to the retired `absentClient`.
  *
- * The ambient branch is untouched by that change and stays AHEAD of the bound module on
- * purpose: a page that already carries a usable provider global is still adopted rather
- * than displaced. Removing that adoption is plan `04.1-10`, and it depends on this
- * binding existing first — there is no fallback to refuse an occupied slot in favour of
- * until there is a client of this project's own.
+ * This narrowing depended on `04.1-09` landing first. Before the SDK was bound in a value
+ * position there was no client of this project's own to refuse an occupied slot in favour
+ * of, so refusing here would have made the sink permanently undefined — a fail-closed
+ * regression dressed as a hardening.
  */
 function resolveClient(
   scope: PostHogScope,
@@ -229,14 +270,16 @@ function resolveClient(
     return { reason: POSTHOG_REFUSAL.foreignClient };
   }
 
-  if (ambient === undefined || ambient === null) {
-    const bound = boundPostHogClient();
-    if (!hasCallableInit(bound)) return { reason: POSTHOG_REFUSAL.unusableBoundClient };
-    return { client: bound };
+  // An OCCUPIED slot is foreign, whatever shape it takes. No structural check runs here
+  // any more, because there is no structural check a hostile value could not satisfy.
+  if (ambient !== undefined && ambient !== null) {
+    return { reason: POSTHOG_REFUSAL.foreignClient };
   }
-  if (!hasCallableInit(ambient)) return { reason: POSTHOG_REFUSAL.foreignClient };
 
-  return { client: ambient };
+  const bound = boundPostHogClient();
+  if (!hasCallableInit(bound)) return { reason: POSTHOG_REFUSAL.unusableBoundClient };
+
+  return { client: bound };
 }
 
 /**
@@ -244,10 +287,15 @@ function resolveClient(
  *
  * The order of operations IS the privacy contract, and it is the order the adapter this
  * one replaced established: provider check, then configuration emptiness, then capability
- * resolution, then the adopted-versus-installed decision on any pre-existing global, then
- * initialization, then the confirmed lockdown readback — and only then a sink. Every
- * unconfirmed outcome returns `undefined`, so no capture is reachable until the merged
- * configuration has been re-read and agreed with what was sent.
+ * resolution, then the client gate on any pre-existing global, then initialization, then
+ * the confirmed lockdown readback — and only then a sink. Every unconfirmed outcome
+ * returns `undefined`, so no capture is reachable until the merged configuration has been
+ * re-read and agreed with what was sent.
+ *
+ * The ORDER is unchanged by plan `04.1-10`; what changed is which client reaches the
+ * later gates. The fourth gate used to decide adopted-versus-installed and is now a flat
+ * refusal of every occupied slot (see `resolveClient`), so D-03's posture and D-04's two
+ * independent layers below it are untouched.
  *
  * Returns `undefined` — meaning the existing inert no-op path stays exactly as it is —
  * whenever the resolved provider is not exactly `'posthog'`, or either half of the

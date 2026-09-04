@@ -1134,6 +1134,41 @@ describe('fail-closed provider initialization', () => {
     expect(Object.keys(ambient as unknown as object)).toEqual(ownKeysBefore);
   });
 
+  /**
+   * The injected seam is authoritative, and it short-circuits the slot read entirely.
+   *
+   * Asserted rather than assumed, and asserted by CONSEQUENCE rather than by a spy: the
+   * scope's `posthog` accessor throws, so any read of it at all would be classified as an
+   * unclassifiable global and refused as `foreignClient`. A returned sink is therefore
+   * proof that the slot was never touched — which is what makes the whole suite's use of
+   * the injected seam a statement about the resolved client rather than about the page
+   * (plan `04.1-10`, Task 1).
+   */
+  it('uses an explicitly injected client and never reads the ambient slot at all', () => {
+    const client = createPostHogVendorClient();
+    const scope: PostHogScope = {};
+    let slotReads = 0;
+    Object.defineProperty(scope, 'posthog', {
+      get() {
+        slotReads += 1;
+        throw new Error('the ambient slot must not be read when a client is injected');
+      },
+      configurable: true,
+    });
+    const reasons: string[] = [];
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        client,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeTypeOf('function');
+    expect(reasons).toEqual([]);
+    expect(slotReads).toBe(0);
+    expect(client.initializedToken()).toBe(PROJECT_TOKEN);
+  });
+
   it('refuses when the ambient value exposes a throwing property getter', () => {
     const ambient = {};
     Object.defineProperty(ambient, 'init', {
