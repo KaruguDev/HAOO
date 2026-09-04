@@ -108,7 +108,15 @@ function parseTables(markdown) {
       // wrong cell count is a malformed row, and saying so beats skipping it and letting
       // the capability be re-reported as absent. Outside them, other sections may shape
       // their tables however they like, so a mismatch is simply not our row.
-      if (heading in REQUIRED_TABLES) {
+      // `Object.hasOwn`, not `in`. `REQUIRED_TABLES` is a plain object literal, so `in`
+      // walks its prototype: a section headed `## constructor`, `## toString`,
+      // `## valueOf` or `## hasOwnProperty` satisfied it, and a malformed row inside one
+      // aborted the whole audit with an error naming a table that does not exist. The
+      // reverse held too — `tables.get(heading)` and `Object.entries(REQUIRED_TABLES)`
+      // below both use own-key semantics, so the two halves of this audit disagreed about
+      // what a required table is. Same class of issue the `isPlainObject` guard in
+      // `src/reporting/untrusted.ts` exists to prevent, applied consistently.
+      if (Object.hasOwn(REQUIRED_TABLES, heading)) {
         throw new Error(`${heading}: malformed row with ${cells.length} cells: ${line}`);
       }
       continue;
@@ -169,9 +177,27 @@ export function auditPhase4Coverage(markdown) {
       'processor approval, project creation, and deployment variables remain deferred',
       /deferred\s+processor\s+approval,\s+project\s+creation,\s+and\s+deployment\s+variables/iu,
     ],
-    ['provider selector remains unset', /provider selector\s+remains unset/iu],
-    ['POSTHOG_QUERY_API_KEY stays local', /`POSTHOG_QUERY_API_KEY`/u],
-    ['POSTHOG_PROJECT_ID stays local', /`POSTHOG_PROJECT_ID`/u],
+    [
+      // Tightened past the bare phrase for the same reason as the two entries above and
+      // the two below: a fragment that merely APPEARS in the section passes on a sentence
+      // saying the opposite. Pinned to the claim — that the capabilities are implemented
+      // and verified WHILE the selector is unset — rather than to the words alone.
+      'the integration capabilities are verified while the provider selector remains unset',
+      /capabilities\s+above\s+are\s+implemented\s+and\s+fixture-verified\s+while\s+the\s+provider\s+selector\s+remains\s+unset/iu,
+    ],
+    [
+      // Both report variables were name-presence only: a sentence saying
+      // `POSTHOG_QUERY_API_KEY` may be published would have passed the check that exists
+      // to forbid exactly that. The two names and the claim about them are one sentence
+      // in the document, so they are pinned as one assertion rather than three fragments
+      // that can each be satisfied by an unrelated mention.
+      'POSTHOG_QUERY_API_KEY and POSTHOG_PROJECT_ID are local report-process inputs',
+      /`POSTHOG_QUERY_API_KEY`\s+and\s+`POSTHOG_PROJECT_ID`\s+are\s+local\s+report-process\s+inputs/iu,
+    ],
+    [
+      'neither report variable is a browser capability',
+      /neither\s+is\s+a\s+browser\s+capability/iu,
+    ],
     ['local report variables stay outside Vite/browser configuration', /neither may enter a `VITE_\*` variable or the published bundle/iu],
     [
       // Tightened past a bare /United States/ for the same reason as the deferral entry
