@@ -14,7 +14,7 @@
 
 | capability | decision | reason |
 |---|---|---|
-| `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the whole automatic-capture posture is passed as one literal object (D-03) so no surface is left to a default. Implemented and fixture-verified; not yet reached at runtime, because no production module imports the SDK as a value (D4) |
+| `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the automatic-capture posture is passed as one literal object (D-03), leaving no surface at a default. Fixture-verified, not yet reached at runtime: no production module imports the SDK (D4) |
 | merged-config readback via `instance.config` | INTEGRATE | `init` assigns the fully merged config before returning, so the readback proves resolved values rather than submitted ones — and `init` does not throw on a blank token, so the readback is the gate |
 | `capture(name)` with a bare name and no property argument | INTEGRATE | the ten allowlisted HAOO names are the entire event vocabulary (MEAS-02) |
 | `before_send` payload reduction | INTEGRATE | the sole property chokepoint: it runs last, after `property_denylist` and after `$process_person_profile` is appended, and returning `null` drops anything outside the allowlist |
@@ -48,7 +48,7 @@
 | `property_denylist` as a privacy boundary | OPT-OUT | it runs before `$process_person_profile` is appended and therefore cannot be the contract; `before_send` is the chokepoint and the denylist is at most a redundant second layer |
 | `sanitize_properties` | OPT-OUT | `@deprecated - use before_send instead`, and setting it logs a runtime error |
 | the deprecated `ip` option | OPT-OUT | `@deprecated - THIS OPTION HAS NO EFFECT`; setting it would record a suppression that does not exist |
-| `cookieless_mode` | OPT-OUT | it makes the server derive `hash(team_id, daily_salt, ip_address, user_agent, hostname)`, an identifier derived from personal data, and it silently ignores every event when the matching project setting is off — the dead-funnel failure D-05 exists to prevent |
+| `cookieless_mode` | OPT-OUT | derives `hash(team_id, daily_salt, ip_address, user_agent, hostname)` — an identifier from personal data — and silently drops every event when the project setting is off (D-05 dead funnel) |
 | `$geoip_disable` as an event property | OPT-OUT | it is the only client-side GeoIP lever, but adding it would contradict the bare-name payload; suppression is the owner-performed "Discard client IP data" project setting instead |
 
 ## PostHog — Query API
@@ -58,7 +58,7 @@
 | `POST /api/projects/:project_id/query/` | INTEGRATE | the single request the owner report issues per range |
 | `HogQLQuery` body kind | INTEGRATE | an aggregate over raw event names is what retires the ten-dashboard-goals human gate (D-06) instead of leaving it permanently open |
 | the descriptive `name` parameter | INTEGRATE | labels the request so the owner can recognise the report's own traffic rather than mistaking it for a visitor |
-| bearer authentication from the local process environment with the single scope PostHog labels *Query Read* | INTEGRATE | the report reads and never writes; every write-capable surface in this table is an explicit OPT-OUT |
+| bearer auth from the process environment, scope *Query Read* | INTEGRATE | the report reads and never writes; every write-capable surface in this table is an explicit OPT-OUT |
 | `count()` aggregate grouped by `event` | INTEGRATE | returns one occurrence count per allowlisted name, the shape `parseGoalCounts` already validates |
 | `toTimeZone(timestamp, 'Africa/Nairobi')` pinned inside the SQL | INTEGRATE | pinning the timezone in the query text removes the provider-mismatch failure mode instead of detecting it, and the report still states which timezone its days are in |
 | explicit inclusive date bounds | INTEGRATE | every bounded window is an inclusive ISO pair rather than a relative preset, so the locked 90-day window cannot be silently rendered as 91 days |
