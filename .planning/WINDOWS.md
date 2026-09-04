@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 16
+open_count: 19
 waived_count: 0
-fixed_count: 3
-total_count: 19
-last_updated: 2026-09-03T18:38:40.212Z
+fixed_count: 4
+total_count: 23
+last_updated: 2026-09-04T22:24:21.297Z
 ---
 
 # Broken Windows Ledger
@@ -33,7 +33,11 @@ last_updated: 2026-09-03T18:38:40.212Z
 | 16 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MEAS-08 human gate open: live report reconciliation against the raw provider dashboard is unrun | open |  | 2026-09-02T05:45:11.752Z |  |
 | 17 | 04 | unrun-verify | .planning/REQUIREMENTS.md |  | MVP outcome and privacy readability judgment at 320px and 200% zoom with keyboard and screen-reader use is unrun; carries the five backstop UI considerations E1, E2, E3, E4, E7 | open |  | 2026-09-02T05:45:11.913Z |  |
 | 18 | 04 | deviation | .planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/04-USER-SETUP.md |  | 04-13 Task 3: plan's automated literal 'Status: Incomplete' never matched the shipped '**Status:** Incomplete' header; intent satisfied by a truthful restatement instead of editing the prohibited header line | open |  | 2026-09-02T11:11:42.813Z |  |
-| 19 | 04.1 | deviation | scripts/generate-haoo-report.mjs | 97 | CLI removed-variable table must keep the four previous-provider names; collides with 04.1-08 whole-tree name gate | open |  | 2026-09-03T18:38:40.212Z |  |
+| 19 | 04.1 | deviation | scripts/generate-haoo-report.mjs | 97 | CLI removed-variable table must keep the four previous-provider names; collides with 04.1-08 whole-tree name gate | fixed |  | 2026-09-03T18:38:40.212Z | 2026-09-03T19:55:34.314Z |
+| 20 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/deferred-items.md |  | 04.1-08 narrowed the whole-tree provider-name gate to three justified line shapes; the narrowed grep is prose, not a committed test | open |  | 2026-09-03T19:55:58.994Z |  |
+| 21 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md |  | 04.1-10 Task 2: the plan's stated post-task ambient-slot-literal count for measurement.test.ts (13) was not met; the true count is 9. Reported as a finding with a per-literal reconciliation in 04.1-10-SUMMARY rather than adjusted. Five literals whose subjects reached LATER gates were migrated to the injected-client seam to preserve initialization/lockdown/absentCapture coverage; their ambient halves moved into hostileSlotRows. | open |  | 2026-09-04T22:02:48.727Z |  |
+| 22 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md |  | 04.1-10 Task 2: the plan's call-site criterion is self-contradictory (all 16 sites use the non-occupying shape AND grep installPostHogVendorClient( still reports 15/1). Intent met: 0/0 for the occupying installer, 19/1 for createPostHogVendorClient, no call site deleted. | open |  | 2026-09-04T22:02:48.872Z |  |
+| 23 | 04.1 | unmet-truth | .github/workflows/deploy.yml |  | Deploy workflow reads VITE_HAOO_MEASUREMENT_PROVIDER/TOKEN/API_HOST, but the three GitHub Actions repository variables are NOT confirmed created — an absent variable fails the selector closed to none and the deploy captures nothing while every gate passes | open |  | 2026-09-04T22:24:21.297Z |  |
 
 ````json
 [
@@ -260,9 +264,57 @@ last_updated: 2026-09-03T18:38:40.212Z
     "file": "scripts/generate-haoo-report.mjs",
     "line": 97,
     "description": "CLI removed-variable table must keep the four previous-provider names; collides with 04.1-08 whole-tree name gate",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-03T18:38:40.212Z",
+    "resolved_at": "2026-09-03T19:55:34.314Z"
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "04.1",
+    "file": ".planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/deferred-items.md",
+    "line": null,
+    "description": "04.1-08 narrowed the whole-tree provider-name gate to three justified line shapes; the narrowed grep is prose, not a committed test",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-03T19:55:58.994Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "deviation",
+    "phase": "04.1",
+    "file": ".planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md",
+    "line": null,
+    "description": "04.1-10 Task 2: the plan's stated post-task ambient-slot-literal count for measurement.test.ts (13) was not met; the true count is 9. Reported as a finding with a per-literal reconciliation in 04.1-10-SUMMARY rather than adjusted. Five literals whose subjects reached LATER gates were migrated to the injected-client seam to preserve initialization/lockdown/absentCapture coverage; their ambient halves moved into hostileSlotRows.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-04T22:02:48.727Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "04.1",
+    "file": ".planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md",
+    "line": null,
+    "description": "04.1-10 Task 2: the plan's call-site criterion is self-contradictory (all 16 sites use the non-occupying shape AND grep installPostHogVendorClient( still reports 15/1). Intent met: 0/0 for the occupying installer, 19/1 for createPostHogVendorClient, no call site deleted.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-04T22:02:48.872Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "unmet-truth",
+    "phase": "04.1",
+    "file": ".github/workflows/deploy.yml",
+    "line": null,
+    "description": "Deploy workflow reads VITE_HAOO_MEASUREMENT_PROVIDER/TOKEN/API_HOST, but the three GitHub Actions repository variables are NOT confirmed created — an absent variable fails the selector closed to none and the deploy captures nothing while every gate passes",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-04T22:24:21.297Z",
     "resolved_at": null
   }
 ]

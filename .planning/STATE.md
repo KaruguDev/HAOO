@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04.1
 current_phase_name: Migrate Measurement from Plausible to PostHog (INSERTED)
 status: executing
-stopped_at: Completed 04.1-10-PLAN.md
-last_updated: "2026-09-04T22:01:28.201Z"
+stopped_at: Completed 04.1-11-PLAN.md
+last_updated: "2026-09-04T22:26:50.880Z"
 last_activity: 2026-09-05
 last_activity_desc: Completed 04.1-10 — the accept half of the trust decision closed (G-04.1-2)
-state_head: c5f602a6cd34d615f7fab555de748c23a1f25c7f
+state_head: b3ffd4c035086615a9a03e30c08cb9766c93da06
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 46
-  completed_plans: 43
+  completed_plans: 44
   percent: 33
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04.1 (Migrate Measurement from Plausible to PostHog (INSERTED)) — EXECUTING
-Plan: 10 of 11 complete (04.1-01..04.1-10; 04.1-11 outstanding)
+Plan: 11 of 11 complete (04.1-01..04.1-10; 04.1-11 outstanding)
 Total Plans in Phase: 11
 Status: Ready to execute
 Last activity: 2026-09-05 — Completed 04.1-10 (adoption of an ambient window.posthog removed outright)
@@ -88,6 +88,7 @@ Progress: 43/46 plans ([███░░░░░░░] 33%)
 | Phase 04.1 P05 | 22 min | 3 tasks | 5 files |
 | Phase 04.1 P06 | 25 min | 3 tasks | 6 files |
 | Phase 04.1 P10 | 18 min | 3 tasks | 5 files |
+| Phase 04.1 P11 | 22 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -193,6 +194,7 @@ Recent decisions affecting current work:
 - [Phase 04.1]: Adoption removed outright rather than tightened: no structural check can distinguish a client this repository chose from one it did not, so the ambient-slot gate became a provenance gate
 - [Phase 04.1]: Five test cases whose subjects reached later gates through the ambient slot were migrated to the injected-client seam rather than left to collapse into duplicate client-gate refusals; the plan's predicted ambient-literal count (13) was reported as a finding at its true value (9) rather than adjusted
 - [Phase 04.1]: T-04.1-14 raised medium to high: a threat whose realization makes a rendered privacy disclosure untrue is not a medium
+- [Phase 04.1]: Production analytics delivery enabled for HAOO: owner's verbatim 'approved' recorded before any enabling variable was set (D-06), deploy workflow supplies the three public VITE_HAOO_* values from repository VARIABLES not secrets — The phc_ project key is public write-only by design and Vite inlines it into a world-readable bundle; storing it as a secret would imply a confidentiality property the artifact cannot have
 
 ### Pending Todos
 
@@ -213,6 +215,7 @@ None yet.
 - [Phase 4] 04-UI-SPEC.md's Locked banned vocabulary list and its Caveat block copy contradict each other: the locked caveat contains people, sessions and customer. Plan 04-03 resolved this in code by scoping the ban to everything except the authored denial block; the UI-SPEC itself still needs amending to say so.
 - [Phase 4 verification] Plausible preload options use the wrong vendor contract; report responses do not validate echoed query provenance; rename failure can leave a temporary report; owner setup omits `PLAUSIBLE_SITE_ID`. See 04-VERIFICATION.md and plan gap closure before enabling production analytics.
 - No production module loads posthog-js as a value, so a deployed provider-selected build finds an empty provider slot and fails closed to no analytics. Importing it breaks two deliberately-established bundle invariants; see phase deferred-items D4 for the measured detail.
+- 04.1: the three GitHub Actions repository variables (VITE_HAOO_MEASUREMENT_PROVIDER / VITE_HAOO_POSTHOG_TOKEN / VITE_HAOO_POSTHOG_API_HOST) are NOT confirmed created. The deploy workflow reads them; nothing in this repo can observe them. An absent variable fails the selector closed to none and the deploy captures nothing while every gate stays green — a green workflow is not evidence of a capturing deploy. Blocks UAT 10 and 8, and therefore MEAS-01/MEAS-08.
 
 ### Quick Tasks Completed
 
@@ -234,6 +237,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-04T22:01:16.662Z
-Stopped at: Completed 04.1-10-PLAN.md
+Last session: 2026-09-04T22:26:40.615Z
+Stopped at: Completed 04.1-11-PLAN.md
 Resume file: None
