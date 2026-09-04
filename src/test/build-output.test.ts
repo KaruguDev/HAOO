@@ -936,6 +936,75 @@ describe('Phase 1 static build contracts', () => {
     }
   });
 
+  /**
+   * The credential boundary one layer earlier than the bundle scan can reach.
+   *
+   * `ships the unset provider bundle without competitor analytics, property, or credential
+   * seams` reads the built artifact, which is the right place to catch a credential that
+   * already leaked. It is the wrong place to catch the leak being ARRANGED: the deploy
+   * workflow's Build environment is what Vite inlines from, so a `VITE_POSTHOG_QUERY_API_KEY`
+   * exported there would be inside `dist` before any scan of `dist` ran, and the scan would
+   * be reporting a fact rather than preventing one. Added by `04.1-11`, the commit that first
+   * gave that Build step analytics variables at all (T-04.1-25).
+   *
+   * The forbidden names are DERIVED from `REPORT_CREDENTIAL_BUNDLE_FORBIDDEN` rather than
+   * restated, so widening that group without widening this gate is impossible — the two
+   * cannot drift. `POSTHOG_PROJECT_ID` is the one name added by hand, with its reason
+   * recorded: it is deliberately absent from that group because a numeric project id is not
+   * a credential SHAPE and asserting it over a minified bundle would be noise. It is still a
+   * local report-process input that may never enter the browser build, so this gate names it
+   * and the derivation covers the rest.
+   *
+   * Presence is asserted before absence. A prohibition over a file that failed to load, or
+   * over a Build step whose `env` block moved or was renamed, is vacuously true — which is
+   * how a gate keeps passing after it has stopped reading anything.
+   */
+  it('keeps every report credential out of the deploy workflow Build environment', () => {
+    const workflow = readText(resolve(ROOT, '.github/workflows/deploy.yml'));
+    expect(workflow, '.github/workflows/deploy.yml').not.toBe('');
+
+    const buildStep = workflow.split(/^ {6}- name: Build$/mu)[1] ?? '';
+    expect(buildStep, 'the Build step in .github/workflows/deploy.yml').not.toBe('');
+    const buildEnv = buildStep.split(/^ {8}run:/mu)[0] ?? '';
+    expect(buildEnv, "the Build step's env block").toContain('env:');
+
+    // The three public values this project's measurement sink is selected and addressed by.
+    // Each must be wired exactly once, in the Build step and nowhere else: a second
+    // assignment in another step is a second source of truth for what the bundle carries.
+    for (const name of [
+      'VITE_HAOO_MEASUREMENT_PROVIDER',
+      'VITE_HAOO_POSTHOG_TOKEN',
+      'VITE_HAOO_POSTHOG_API_HOST',
+    ]) {
+      const inBuildEnv = buildEnv.match(new RegExp(`^ +${name}: `, 'gmu')) ?? [];
+      expect(inBuildEnv.length, `${name} assignments in the Build step env block`).toBe(1);
+      const inWholeFile = workflow.match(new RegExp(`^ +${name}: `, 'gmu')) ?? [];
+      expect(inWholeFile.length, `${name} assignments anywhere in the workflow`).toBe(1);
+    }
+
+    const derivedCredentialNames = REPORT_CREDENTIAL_BUNDLE_FORBIDDEN
+      .map((pattern) => pattern.source)
+      .filter((source) => /^[A-Z][A-Z0-9_]+$/u.test(source));
+    expect(
+      derivedCredentialNames,
+      'REPORT_CREDENTIAL_BUNDLE_FORBIDDEN no longer yields any environment-variable name, so '
+      + 'this gate would assert nothing. Restore the derivation rather than hardcoding names.',
+    ).toContain('POSTHOG_QUERY_API_KEY');
+
+    for (const name of [...derivedCredentialNames, 'POSTHOG_PROJECT_ID']) {
+      expect(
+        workflow,
+        `${name} must never appear under a browser prefix in the deploy workflow — Vite would `
+        + 'inline it into a world-readable bundle.',
+      ).not.toMatch(new RegExp(`VITE[A-Z0-9_]*_${name}|VITE_${name}`, 'u'));
+      expect(
+        workflow.match(new RegExp(`^ *(?:VITE_[A-Z0-9_]*)?${name}: `, 'gmu')) ?? [],
+        `${name} must never be assigned in any step of the deploy workflow — it is a local `
+        + 'input to `npm run report:haoo`, not a build input.',
+      ).toHaveLength(0);
+    }
+  });
+
   it('pins the local record and bare tracking call to finite structural shapes', () => {
     const source = readText(resolve(ROOT, 'src/measurement/index.ts'));
     const measurement = createMeasurement(HAOO_PRODUCT.measurement, {

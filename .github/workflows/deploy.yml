@@ -43,17 +43,46 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # The Phase 4 capability audit: 69 required capability rows and nine
-      # operational-boundary assertions, including the checks that production analytics
-      # remains OPT-OUT and that the report credentials stay out of every `VITE_*`
-      # variable. It was an exported function no npm script and no workflow ever called,
-      # so COVERAGE.md could drift arbitrarily without any gate noticing.
+      # The Phase 4 capability audit: 69 required capability rows and eleven
+      # operational-boundary assertions. It was an exported function no npm script and no
+      # workflow ever called, so COVERAGE.md could drift arbitrarily without any gate
+      # noticing.
+      #
+      # Restated by `04.1-11` in the same commit that added the Build variables below.
+      # This comment used to say the audit checks "that production analytics remains
+      # OPT-OUT" — `04.1-11` replaced exactly that assertion, so leaving the sentence here
+      # would have stood a false statement in CI. The audit now asserts that enablement is
+      # opt-in and ENABLED, that the processor approval is recorded and the workflow
+      # supplies the three public build variables, that the capabilities are reached at
+      # runtime, that a green workflow run is NOT evidence of a capturing deploy, and that
+      # the report credentials stay out of every `VITE_*` variable.
       - name: Verify capability coverage
         run: npm run verify:coverage
 
+      # The three PostHog values are repository VARIABLES, not secrets, and the distinction
+      # is deliberate rather than an oversight. Vite inlines every `VITE_*` value into the
+      # published JavaScript bundle, so all three are world-readable the moment the site
+      # deploys. The project key is public write-only by design; storing it as a secret
+      # would imply a confidentiality property the artifact cannot have, and would teach the
+      # next reader that `VITE_*` is a place secrets may go. It is not.
+      #
+      # `POSTHOG_QUERY_API_KEY` and `POSTHOG_PROJECT_ID` are deliberately absent and must
+      # stay absent. They are local inputs to `npm run report:haoo`; exporting either here
+      # under a browser prefix would inline a credential into that world-readable bundle
+      # before any bundle scan ran. `src/test/build-output.test.ts` reads this file and
+      # asserts their absence, deriving the forbidden names from the credential group the
+      # bundle scan already uses.
+      #
+      # Enabled by `04.1-11`, after the privacy owner recorded the re-opened processor
+      # approval (04.1-USER-SETUP.md). An unset variable expands to the empty string, the
+      # selector fails closed to `none`, and the build captures nothing — so this step going
+      # green is not evidence that the deploy captures.
       - name: Build
         env:
           VITE_HAOO_FORM_ENDPOINT: ${{ vars.VITE_HAOO_FORM_ENDPOINT }}
+          VITE_HAOO_MEASUREMENT_PROVIDER: ${{ vars.VITE_HAOO_MEASUREMENT_PROVIDER }}
+          VITE_HAOO_POSTHOG_TOKEN: ${{ vars.VITE_HAOO_POSTHOG_TOKEN }}
+          VITE_HAOO_POSTHOG_API_HOST: ${{ vars.VITE_HAOO_POSTHOG_API_HOST }}
         run: npm run build
 
       # `test:unit`, not `test`: `test` re-runs `build` without the endpoint variable and
