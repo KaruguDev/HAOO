@@ -170,6 +170,33 @@ scan to the entry chunk, or by loading the SDK through a provider-gated dynamic 
 whose chunk is only emitted for a selected build. Neither is a test edit on its own; both
 are a recorded narrowing with a named successor, in the shape `04.1-01` established.
 
+**RESOLVED by `04.1-09`.** Option **A — static value import** was chosen at the gated
+decision in `04.1-09` Task 1 and recorded by the owner. `src/measurement/posthog.ts` now
+imports `posthog-js` in a value position and exposes it as `boundPostHogClient()`;
+`resolveClient` falls back to it when the ambient slot is empty, so the empty-slot refusal
+`absentClient` is WITHDRAWN with `unusableBoundClient` named as its successor on the member
+itself. Option B was rejected on its recorded cost: the sink seam is synchronous, so a
+dynamic import would drop the first `haoo_page_view` unless this project kept an ordered
+emission buffer — and `eventQueue`, `eventLog`, `emittedEvents`, `retryTimer`, `setTimeout`
+and `setInterval` are forbidden by name, so it would have cost two widened privacy
+prohibitions on top of an async facade.
+
+The vendor chunk is isolated as `posthog-sdk` by `build.rollupOptions.output.manualChunks`
+in `vite.config.ts`, and the partition is asserted in both directions so the exclusion
+cannot hide this project's own code. FOUR build-output cases were affected — two more than
+the table above predicted — and all four were resolved in the same commit as the import:
+
+| Case | Resolution |
+|---|---|
+| `keeps the production bundle free of identity and ordered-emission channels` | NARROWED to a named successor, `keeps this project's own chunks free of identity and ordered-emission channels`, scanning `projectBundleText()`. Measured: all three patterns fire on the vendor chunk (`sessionStorage`, `sessionId`, `UUID`) and none on the project chunks |
+| `ships the provider-unset bundle with no approved ingestion origin at all` | NARROWED to a named successor that builds its OWN provider-unset probe rather than assuming the repository's `dist` is one — needed twice over, because `04.1-11` adds the provider variables to the deployment build |
+| `publishes the approved ingestion origin exactly once in a provider-selected build` | AMENDED with the narrowing recorded: the exactly-once count moved from the whole probe bundle to the probe's project chunks, and the vendor's own default host is now asserted explicitly as a claim about the vendor's artifact |
+| `ships the unset provider bundle without competitor analytics, property, or credential seams` | WHOLE-BUNDLE SCOPE RETAINED, re-justified by measurement rather than inherited. All six patterns were measured against the emitted `posthog-sdk` chunk alone at pinned version 1.425.1 and every one was no-hit, so nothing was narrowed. The stale doc-comment claim that the credential shapes "were verified absent from the published SDK artifact" was replaced by this commit's own measurement, and pinned by the companion case `keeps the vendor chunk itself free of every report credential shape` so a version bump that introduces one goes red |
+
+Delivery is still OFF: `VITE_HAOO_MEASUREMENT_PROVIDER` remains unset outside throwaway
+probe build directories. Turning it on is `04.1-11` and is gated on an owner approval this
+plan did not hold (D-06).
+
 ## D5 — `git grep -il 'plausible' -- src config` is non-empty by design after `04.1-04`
 
 **Found during:** `04.1-04` Task 1

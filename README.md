@@ -105,30 +105,36 @@ wrong, no sink is returned. It sends no event properties, form values, stable
 identifiers, retry buffer, or ordered clickstream, and it creates no person
 profile.
 
-### No event is delivered yet — the SDK is pinned, not loaded
+### The SDK is loaded — delivery depends on the provider selector
 
-**Read this before drawing any conclusion from a report that shows zeros.** The
-adapter, the lockdown, the merged-configuration readback and the payload
-chokepoint are all built and tested, but **no production module imports
-`posthog-js` as a value**. The only reference in the tree is an `import type`,
-which TypeScript erases, so the SDK is not in the built bundle and nothing ever
-occupies the global slot the adapter resolves its client from.
+**Read this before drawing any conclusion from a report that shows zeros.**
+`src/measurement/posthog.ts` imports `posthog-js` in a value position, so the SDK
+is bound by a production module and the vendor chunk (`posthog-sdk`) ships in
+every build. The adapter no longer refuses at an empty global slot: it falls back
+to the bound module, sends the lockdown, and re-reads the merged configuration
+before any sink exists.
 
-The consequence, stated plainly: on a fully configured production build the
-adapter refuses at its absent-client gate, writes
-`posthog:absent-provider-client` to the browser console on every page load, and
-returns no sink. **Zero of the ten allowlisted events are currently delivered,**
-and `npm run report:haoo` will correctly report zeros for as long as that is
-true. A permanently refusing provider is indistinguishable from a dead funnel to
-anyone not watching the console, which is exactly why it is said here rather than
-left to be discovered.
+**Events are delivered only when `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`.**
+That selector is still unset in deployment, so no event is delivered today and
+`npm run report:haoo` will correctly report zeros until it is set. This is a
+deliberate hold, not an oversight: enabling delivery needs processor approval,
+project creation and the deployment variables, and the phase assigns that change
+to plan `04.1-11`. A build that has not selected the provider carries no approved
+ingestion origin in any of this project's own chunks and cannot address the
+endpoint at all.
 
-Turning delivery on is not a one-line import. It emits the vendor chunk into
-every build, which contradicts two bundle-level invariants this project
-deliberately established and proved falsifiable — that the built bundle carries
-no approved ingestion origin at all, and that it carries no browser-storage or
-identifier channels. Whichever change enables delivery has to restate both in the
-same commit, and the phase records that decision as deferred item D4.
+Loading the SDK was not a free change, and the record of what it cost is kept
+rather than tidied away. Putting a third party's minified artifact into every
+build made several bundle-level invariants claims about the vendor rather than
+about this project. Each was resolved in the same commit as the import: the
+identity and ordered-emission scan was narrowed to this project's own chunks with
+its predecessor named, the approved-origin absence case now builds its own
+provider-unset probe instead of assuming the repository's `dist` is one, the
+exactly-once origin count moved to the probe's project chunks, and the
+competitor-origin and report-credential scan kept its whole-bundle scope only
+because every one of its patterns was measured against the emitted vendor chunk
+and found absent. The partition that makes those scans possible is itself
+asserted, so the exclusion cannot hide this project's own code.
 
 ### What the delivery change already cost — and what replaced it
 

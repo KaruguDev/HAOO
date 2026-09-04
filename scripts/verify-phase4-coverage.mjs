@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const REQUIRED_TABLES = {
-  'PostHog — browser SDK (posthog-js, pinned; not yet loaded)': new Map([
+  'PostHog — browser SDK (posthog-js, pinned and loaded; delivery gated on the selector)': new Map([
     ['`posthog.init(token, config)` with an explicit lockdown object', 'INTEGRATE'],
     ['merged-config readback via `instance.config`', 'INTEGRATE'],
     ['`capture(name)` with a bare name and no property argument', 'INTEGRATE'],
@@ -199,13 +199,21 @@ export function auditPhase4Coverage(markdown) {
       /neither\s+is\s+a\s+browser\s+capability/iu,
     ],
     [
-      // The claim this row exists to keep honest is that the browser-SDK rows above
-      // describe an implemented capability, NOT a delivered one. A reader who takes an
-      // INTEGRATE row as evidence that events are flowing would misread a report of zeros
-      // as a dead funnel. Pinned to the sentence, for the same reason as the rows above:
-      // a bare /not loaded/ would pass on a sentence claiming the opposite.
-      'the browser SDK is pinned but not loaded, so no event is delivered',
-      /browser\s+SDK\s+is\s+pinned\s+but\s+not\s+loaded[\s\S]{0,200}?no\s+event\s+is\s+delivered/iu,
+      // Successor to the unloaded-SDK assertion, moved by plan 04.1-09 in the same commit
+      // as the prose it pins — the predecessor read
+      // `/browser SDK is pinned but not loaded[...]no event is delivered/` and became
+      // false the moment `src/measurement/posthog.ts` bound the SDK by value.
+      //
+      // The claim this row exists to keep honest changed with it. It used to be that an
+      // INTEGRATE row described an implemented but unreached capability; now it is that
+      // the SDK is genuinely loaded AND that delivery still turns on the selector. A
+      // reader who took `loaded` as `delivering` would misread a report of zeros as a
+      // dead funnel, which is the same misreading the predecessor guarded from the other
+      // side. Pinned across the whole claim rather than to a fragment, following the
+      // convention of every entry in this array: a bare /loaded/ would pass on a sentence
+      // saying the opposite, and so would a bare /selector/.
+      'the browser SDK is loaded by src/measurement/posthog.ts and delivery depends on the provider selector',
+      /browser\s+SDK\s+is\s+loaded\s+by\s+`src\/measurement\/posthog\.ts`[\s\S]{0,400}?[Dd]elivery\s+depends\s+on\s+the\s+provider\s+selector/u,
     ],
     ['local report variables stay outside Vite/browser configuration', /neither may enter a `VITE_\*` variable or the published bundle/iu],
     [

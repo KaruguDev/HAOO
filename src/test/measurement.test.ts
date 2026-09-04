@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MEASUREMENT_TRACK_ARGUMENT_COUNT, createMeasurement } from '../measurement';
+import posthog from 'posthog-js';
 import {
   POSTHOG_REFUSAL,
+  boundPostHogClient,
   createPostHogEventSink,
   type PostHogClient,
   type PostHogScope,
@@ -85,6 +87,46 @@ function measurementWithStorage(storage: Storage, href = 'https://www.zero-paper
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+/**
+ * Temporarily make the bound SDK unusable, so the refusal that replaced the retired
+ * empty-slot one is reachable without a stubbed module registry.
+ *
+ * Since plan `04.1-09` an empty ambient slot resolves the value-imported module rather
+ * than refusing, so `POSTHOG_REFUSAL.unusableBoundClient` — the successor to the retired
+ * `absentClient` — can only be reached when the bound module exposes no callable
+ * initializer. Replacing that one property is the smallest mutation that produces it, and
+ * critically it also GUARANTEES the real initializer cannot run: the value is not
+ * callable, so no test on this path can put the suite on the network (MEAS-07).
+ *
+ * `vi.restoreAllMocks` does not undo a `defineProperty`, so the descriptor is captured and
+ * restored explicitly by the `afterEach` below.
+ */
+let restoreBoundInitializer: (() => void) | null = null;
+
+function breakBoundInitializer() {
+  const target = boundPostHogClient() as Record<string, unknown>;
+  const original = Object.getOwnPropertyDescriptor(target, 'init');
+
+  Object.defineProperty(target, 'init', {
+    value: 'not callable',
+    configurable: true,
+    writable: true,
+  });
+
+  restoreBoundInitializer = () => {
+    if (original === undefined) {
+      delete target.init;
+    } else {
+      Object.defineProperty(target, 'init', original);
+    }
+  };
+}
+
+afterEach(() => {
+  restoreBoundInitializer?.();
+  restoreBoundInitializer = null;
 });
 
 describe('closed event-name contract', () => {
@@ -1051,9 +1093,55 @@ describe('fail-closed provider initialization', () => {
     expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
   });
 
-  it('refuses an empty ambient slot rather than installing a stub of its own', () => {
+  /**
+   * Restatement of `refuses an empty ambient slot rather than installing a stub of its
+   * own`, whose meaning plan `04.1-09` inverted.
+   *
+   * The predecessor asserted that an empty slot produced `POSTHOG_REFUSAL.absentClient`
+   * and no sink, on the premise that this project installed no client of its own. Since
+   * `04.1-09` bound `posthog-js` in a value position (deferred item D4), an empty slot is
+   * the NORMAL path: the adapter falls back to the bound module. The case is restated
+   * rather than deleted, because the half of it that still matters is the half nobody
+   * would think to re-add — that resolving a client of its own still does not WRITE one
+   * into somebody else's global.
+   *
+   * The real initializer is never invoked: it is replaced by a spy for the duration, which
+   * is also what proves the bound module is the value that reached `init` (MEAS-07).
+   */
+  it('resolves the bound module for an empty ambient slot without ever occupying it', () => {
     const scope: PostHogScope = {};
     const reasons: string[] = [];
+    // Returns a merged configuration that cannot satisfy the readback, so the path stops
+    // at the lockdown gate. The point of the case is which client was resolved, not
+    // whether a stub could pass a lockdown it was never given.
+    const init = vi
+      .spyOn(boundPostHogClient() as PostHogClient, 'init')
+      .mockImplementation(() => ({ config: {}, capture: () => undefined }));
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeUndefined();
+
+    // The bound module was the resolved client, and it was sent this build's token.
+    expect(init).toHaveBeenCalledTimes(1);
+    expect(init.mock.calls[0][0]).toBe(CONFIGURED_MEASUREMENT.providerConfig.token);
+    // Resolved, never installed: the slot this adapter classifies is still empty, so a
+    // later reader of the ambient global sees exactly what it saw before.
+    expect(scope.posthog).toBeUndefined();
+    // The retired reason is gone from this path, and the refusal that remains is the
+    // lockdown gate rather than the withdrawn empty-slot one.
+    expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown]);
+    expect(reasons).not.toContain(POSTHOG_REFUSAL.absentClient);
+  });
+
+  it('refuses when the bound module exposes no callable initializer', () => {
+    const scope: PostHogScope = {};
+    const reasons: string[] = [];
+
+    breakBoundInitializer();
 
     expect(
       createPostHogEventSink(CONFIGURED_MEASUREMENT, {
@@ -1062,7 +1150,7 @@ describe('fail-closed provider initialization', () => {
       }),
     ).toBeUndefined();
     expect(scope.posthog).toBeUndefined();
-    expect(reasons).toEqual([POSTHOG_REFUSAL.absentClient]);
+    expect(reasons).toEqual([POSTHOG_REFUSAL.unusableBoundClient]);
   });
 
   it('refuses, without throwing, when the initializer throws', () => {
@@ -1167,6 +1255,41 @@ describe('fail-closed provider initialization', () => {
 });
 
 /**
+ * The binding itself — the single link `04.1-VERIFICATION.md` recorded as NOT WIRED.
+ *
+ * Gap `G-04.1-1` / deferred item D4: until plan `04.1-09` the only reference to the vendor
+ * package in the tree was an erased `import type`, so no build carried the SDK and the
+ * adapter could never resolve a client of this project's own. These cases assert the link
+ * exists, and assert it by IDENTITY against a direct import rather than by re-deriving it
+ * — a structural check would pass on any object with an `init`, which is exactly the
+ * assumption the adapter's own gates exist to refuse.
+ *
+ * Every assertion here is inert by construction: the module value is read, its `init` is
+ * inspected with `typeof`, and none of these cases calls it. Loading the SDK must not put
+ * the suite on the network (MEAS-07).
+ */
+describe('the bound provider SDK', () => {
+  it('binds the same module a direct value import resolves', () => {
+    expect(boundPostHogClient()).toBe(posthog);
+  });
+
+  it('exposes a callable initializer without this suite ever calling it', () => {
+    const bound = boundPostHogClient() as Record<string, unknown>;
+
+    expect(typeof bound.init).toBe('function');
+  });
+
+  it('leaves the ambient slot undefined, so importing it never occupies the classified name', () => {
+    // Reading the binding is the whole action: if merely importing the SDK assigned
+    // `window.posthog`, the adapter's adopted-versus-installed gate would be classifying
+    // this project's own module as somebody else's global, and the ambient branch would
+    // silently become unreachable.
+    expect(boundPostHogClient()).toBe(posthog);
+    expect((window as unknown as PostHogScope).posthog).toBeUndefined();
+  });
+});
+
+/**
  * MEAS-07 on the refused-initialization path.
  *
  * Refusing to collect is a privacy decision, never a degradation of the journey: with no
@@ -1181,8 +1304,18 @@ describe('fail-closed provider initialization in the full journey', () => {
       () => ({ scope: { posthog: { init: 'foreign' } }, reason: POSTHOG_REFUSAL.foreignClient }),
     ],
     [
-      'the ambient slot is empty',
-      () => ({ scope: {}, reason: POSTHOG_REFUSAL.absentClient }),
+      // Restated by plan `04.1-09`, not dropped. This row used to drive an empty ambient
+      // slot to `POSTHOG_REFUSAL.absentClient`; since the SDK is bound by value an empty
+      // slot resolves the bound module instead, so the row keeps the SAME empty scope and
+      // moves to the successor reason, reached by making the bound module unusable. The
+      // journey claim this table exists to prove is unchanged: every refusal cause, not
+      // only the ones that happened to be written down first.
+      'the bound module exposes no callable initializer',
+      () => {
+        breakBoundInitializer();
+
+        return { scope: {}, reason: POSTHOG_REFUSAL.unusableBoundClient };
+      },
     ],
     [
       'the initializer throws',
@@ -1337,15 +1470,25 @@ describe('provider failure isolation', () => {
     expectSilent(spies);
   });
 
-  it('leaves the journey unchanged when the provider global is absent', () => {
+  /**
+   * Restated by plan `04.1-09`: the predecessor was
+   * `leaves the journey unchanged when the provider global is absent`, which drove an
+   * empty scope to `POSTHOG_REFUSAL.absentClient`. An absent global is no longer a
+   * refusal — the bound module is used — so the case keeps the empty scope and asserts
+   * the successor refusal, which is the one an absent global can still produce.
+   */
+  it('leaves the journey unchanged when the bound module cannot be initialized', () => {
     const spies = silentConsole();
+
+    breakBoundInitializer();
+
     const { measurement } = isolatedMeasurement({ providerAdapters: { scope: {} } });
 
     measurement.initialize();
     for (const event of HAOO_MEASUREMENT_EVENTS) {
       expect(measurement.track(event), event).toBe(true);
     }
-    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.absentClient);
+    expectOnlyRefusalWarning(spies, POSTHOG_REFUSAL.unusableBoundClient);
   });
 
   it('leaves the journey unchanged when reading the provider global throws', () => {

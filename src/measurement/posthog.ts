@@ -1,3 +1,4 @@
+import posthog from 'posthog-js';
 import type { MeasurementProviderConfig, ProductMeasurement } from '../products/types';
 import { POSTHOG_LOCKDOWN, lockdownHolds } from './posthog-lockdown';
 
@@ -24,6 +25,37 @@ export interface PostHogScope {
  */
 export interface PostHogClient {
   init(token: string, config?: Record<string, unknown>): unknown;
+}
+
+/**
+ * The pinned SDK, bound in a VALUE position — the single link `04.1-VERIFICATION.md`
+ * recorded as NOT WIRED (gap `G-04.1-1`, deferred item D4), closed by plan `04.1-09`.
+ *
+ * Until this import existed the only reference to the vendor package in the whole tree
+ * was an `import type` in `./posthog-lockdown`, which TypeScript erases. Nothing reached
+ * a bundle, nothing ever occupied the ambient slot, and every privacy invariant this
+ * phase proves was a statement about unreachable code. The static form is a recorded
+ * one-way decision (D4, option A): the sink seam in `../measurement` assigns
+ * synchronously inside the product page's mount effect and the first event fires on the
+ * same tick, so a provider-gated dynamic import would drop it unless this project kept an
+ * ordered emission buffer of its own — which MEAS-02 forbids by name. The price paid
+ * instead is that the vendor chunk ships in EVERY build, including a provider-unset one,
+ * and the build-output invariants that contradicted are renarrowed in the same commit
+ * rather than widened or silenced.
+ *
+ * Returned as `unknown` on purpose. A module resolved from `node_modules` is not more
+ * trustworthy than a value found on the page — a wrong version, a mangled bundle, or a
+ * transform that dropped the default export are all reachable — so the caller passes it
+ * through the same `hasCallableInit` gate the ambient slot goes through, and refuses on
+ * the same terms. Declaring it `PostHogClient` here would hand the adapter the assumption
+ * that gate exists to refuse.
+ *
+ * It is an accessor rather than a re-export so the binding can be asserted by identity
+ * from a test without that test having any way to initialize it: reading this value is
+ * inert, and no code path under the test runner calls the real initializer (MEAS-07).
+ */
+export function boundPostHogClient(): unknown {
+  return posthog;
 }
 
 /**
@@ -56,8 +88,29 @@ export const POSTHOG_REFUSAL = Object.freeze({
   unconfigured: 'posthog:unconfigured-provider-configuration',
   /** No global scope could be reached at all. */
   unreachableScope: 'posthog:unreachable-global-scope',
-  /** The provider slot is empty, and this module installs no stub of its own. */
+  /**
+   * WITHDRAWN by plan `04.1-09`. Successor: `unusableBoundClient`.
+   *
+   * This named the refusal for an empty provider slot, on the premise that an absent
+   * client meant an unconfigured page and that this module installed no stub of its own.
+   * Since `04.1-09` bound the pinned SDK in a value position, an EMPTY slot is the normal
+   * path rather than a refusal: `resolveClient` falls back to `boundPostHogClient()` and
+   * proceeds. The gate it used to guard did not disappear — it moved to the bound value,
+   * which is checked for a callable initializer on exactly the terms an ambient value is,
+   * and refuses as `unusableBoundClient` when it has none.
+   *
+   * Retained rather than deleted, and its string value deliberately NOT repurposed. A
+   * reader who finds `posthog:absent-provider-client` in an old console record, a report,
+   * or a prior summary must be able to see a changed refusal vocabulary rather than
+   * mistake it for a refusal path that was silently dropped (D-05, T-04.1-08). Nothing
+   * returns it any more; the successor below is what a live build can emit.
+   */
   absentClient: 'posthog:absent-provider-client',
+  /**
+   * Successor to `absentClient`: the bound module resolved, but exposes no callable
+   * initializer, so the lockdown could never be sent and no readback could prove it.
+   */
+  unusableBoundClient: 'posthog:unusable-bound-provider-client',
   /** The adopted-versus-installed gate: the slot holds something this module will not use. */
   foreignClient: 'posthog:foreign-provider-global',
   /** The initializer threw, leaving the lockdown unproven. */
@@ -142,8 +195,23 @@ function isReadableInstance(candidate: unknown): candidate is PostHogInstance {
  * wrapped. Any other defined value is refused outright and left byte-identical:
  * overwriting somebody else's global is not this adapter's to do, and refusing here,
  * before anything could have replaced it, is why no refusal path ever has anything to
- * restore (the 04-12 rule). An empty slot is refused too, because this slice installs no
- * stub of its own — an absent client is an unconfigured page, not a page to instrument.
+ * restore (the 04-12 rule).
+ *
+ * An EMPTY slot is no longer a refusal (plan `04.1-09`, deferred item D4). It is the
+ * normal path: this module now binds the pinned SDK itself, so an empty slot means
+ * nothing else on the page claimed the name, and the bound module is used. Nothing is
+ * ever written INTO the slot — the bound value is passed straight to the caller — so an
+ * empty slot stays empty and a later reader of `scope.posthog` still sees `undefined`.
+ * The bound module is not trusted for being bound: it goes through the same
+ * `hasCallableInit` gate an ambient value goes through, and a module with no callable
+ * initializer is refused as `unusableBoundClient` — the successor to the retired
+ * `absentClient`, which is documented as withdrawn on the member itself.
+ *
+ * The ambient branch is untouched by that change and stays AHEAD of the bound module on
+ * purpose: a page that already carries a usable provider global is still adopted rather
+ * than displaced. Removing that adoption is plan `04.1-10`, and it depends on this
+ * binding existing first — there is no fallback to refuse an occupied slot in favour of
+ * until there is a client of this project's own.
  */
 function resolveClient(
   scope: PostHogScope,
@@ -162,7 +230,9 @@ function resolveClient(
   }
 
   if (ambient === undefined || ambient === null) {
-    return { reason: POSTHOG_REFUSAL.absentClient };
+    const bound = boundPostHogClient();
+    if (!hasCallableInit(bound)) return { reason: POSTHOG_REFUSAL.unusableBoundClient };
+    return { client: bound };
   }
   if (!hasCallableInit(ambient)) return { reason: POSTHOG_REFUSAL.foreignClient };
 

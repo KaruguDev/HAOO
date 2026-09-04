@@ -39,6 +39,40 @@ export default defineConfig(({ mode }) => {
           main: resolve(__dirname, 'index.html'),
           haoo: resolve(__dirname, 'products/haoo/index.html'),
         },
+        /**
+         * Isolate the vendor SDK under a name the build-output suite can partition on.
+         *
+         * Since `04.1-09` bound `posthog-js` in a value position, the vendor chunk ships
+         * in every build. A minified third-party bundle legitimately carries
+         * browser-storage tokens, identifier tokens and the vendor's own default host
+         * string, so a whole-bundle prohibition asserted after that point would be a
+         * claim about the VENDOR's published artifact rather than about this repository.
+         * Naming the chunk is what lets those prohibitions stay claims about this
+         * project: `src/test/build-output.test.ts` partitions `dist/assets` on this name
+         * and scans the project side.
+         *
+         * The seed list is MEASURED, not guessed. `posthog-js` alone pulled its whole
+         * transitive runtime into this chunk, but each package is named explicitly so a
+         * dependency that later resolves differently lands here by declaration rather
+         * than by luck — a vendor module leaking into a project chunk must be fixed by
+         * extending this list, never by relaxing a prohibition in the suite. The
+         * partition is asserted in BOTH directions there (the vendor side must be
+         * non-empty and carry a marker unique to the pinned SDK, the project side must be
+         * non-empty and carry this project's own context keys), so a seed change that
+         * swallowed project code fails loudly instead of passing on nothing.
+         */
+        output: {
+          manualChunks: {
+            'posthog-sdk': [
+              'posthog-js',
+              'preact',
+              'dompurify',
+              'fflate',
+              'core-js',
+              'web-vitals',
+            ],
+          },
+        },
       },
     },
   };

@@ -10,11 +10,11 @@
 > recorded below as a reasoned OPT-OUT, which is what makes the lockdown a decision rather than
 > a configuration accident.
 
-## PostHog — browser SDK (posthog-js, pinned; not yet loaded)
+## PostHog — browser SDK (posthog-js, pinned and loaded; delivery gated on the selector)
 
 | capability | decision | reason |
 |---|---|---|
-| `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the automatic-capture posture is passed as one literal object (D-03), leaving no surface at a default. Fixture-verified, not yet reached at runtime: no production module imports the SDK (D4) |
+| `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the automatic-capture posture is passed as one literal object (D-03), leaving no surface at a default. Reached at runtime: `src/measurement/posthog.ts` binds the SDK by value (D4 closed by 04.1-09) |
 | merged-config readback via `instance.config` | INTEGRATE | `init` assigns the fully merged config before returning, so the readback proves resolved values rather than submitted ones — and `init` does not throw on a blank token, so the readback is the gate |
 | `capture(name)` with a bare name and no property argument | INTEGRATE | the ten allowlisted HAOO names are the entire event vocabulary (MEAS-02) |
 | `before_send` payload reduction | INTEGRATE | the sole property chokepoint: it runs last, after `property_denylist` and after `$process_person_profile` is appended, and returning `null` drops anything outside the allowlist |
@@ -102,11 +102,14 @@ different processor in a different region with a different retention posture, so
 approval is not inherited (D-06). The integration capabilities above are implemented and
 fixture-verified while the provider selector remains unset.
 
-The browser SDK is pinned but not loaded: no production module imports `posthog-js` as a value, so
-the adapter refuses at its absent-client gate and no event is delivered (D4). Every browser-SDK row
-above records a capability that is implemented and fixture-verified, not one that is reached at
-runtime today. Enabling delivery requires restating the two bundle-level invariants the vendor chunk
-would contradict, in the same commit.
+The browser SDK is loaded by `src/measurement/posthog.ts`, which imports `posthog-js` in a value
+position, so the vendor chunk ships in every build and the adapter resolves a real client instead of
+refusing at an empty slot (D4, closed by 04.1-09). Delivery depends on the provider selector: events
+reach the endpoint only on a build where `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`, and
+that selector is still unset, so every browser-SDK row above records a capability that is
+implemented and reachable rather than one that is delivering today. The bundle-level invariants the
+vendor chunk contradicted were resolved in the same commit as the import — narrowed with named
+successors, or re-justified by measuring each pattern against the emitted vendor chunk.
 
 `POSTHOG_QUERY_API_KEY` and `POSTHOG_PROJECT_ID` are local report-process inputs;
 neither is a browser capability, and neither may enter a `VITE_*` variable or the published bundle.

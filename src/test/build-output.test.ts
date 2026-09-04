@@ -259,8 +259,31 @@ const MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN = [
 /**
  * Credential-only report shapes must never enter any browser bundle.
  *
- * `Authorization` and `Bearer ` stay on the bundle scan unchanged: both were verified
- * absent from the published SDK artifact, so they remain claims about this project.
+ * `Authorization` and `Bearer ` stay on the WHOLE-bundle scan, and since plan `04.1-09`
+ * that scope rests on a measurement rather than on the claim it replaces.
+ *
+ * What this comment used to say: that both shapes "were verified absent from the
+ * published SDK artifact". That verification was taken before any build emitted the
+ * vendor chunk — `posthog-js` was a pinned dependency nothing imported as a value — so
+ * nothing had re-run it against a shipping artifact, and it was inherited rather than
+ * re-established. `04.1-09` bound the SDK in a value position, which put a third party's
+ * minified artifact into every build and made the inherited claim load-bearing for the
+ * first time.
+ *
+ * What was measured instead, in the commit that bound it: every pattern in this group,
+ * plus every pattern in `UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN`, applied to the
+ * emitted `posthog-sdk` chunk ALONE at pinned version 1.425.1. All four shapes here were
+ * no-hit; the competitor-origin group was no-hit; the event-with-property-bag pattern was
+ * no-hit. The SDK carries a Segment integration and issues authorized requests against
+ * `/api/…` paths at runtime, but it composes those header and path strings rather than
+ * shipping these literals, so the scope of the case that applies this group is
+ * RE-JUSTIFIED by that measurement rather than assumed — and it stays a claim this
+ * repository can make about its whole bundle.
+ *
+ * This must be re-measured at any version bump. It is not left as prose: the case
+ * `keeps the vendor chunk itself free of every report credential shape` pins it, so a
+ * future SDK version that introduced one of these literals goes red there rather than
+ * quietly invalidating this paragraph.
  */
 const REPORT_CREDENTIAL_BUNDLE_FORBIDDEN = [
   /POSTHOG_QUERY_API_KEY/,
@@ -309,6 +332,94 @@ function builtBundleText() {
   }
 
   return files.map((file) => readFileSync(file, 'utf8')).join('\n');
+}
+
+/**
+ * The name `vite.config.ts` gives the isolated vendor chunk, and the partition key every
+ * helper below reads. Restated here rather than imported because importing the Vite
+ * config into the test would evaluate the `define` block and the approved-host contract
+ * as a side effect; the pairing is asserted instead by the vendor-identity case, which
+ * fails if this name stops matching what the build actually emits.
+ */
+const VENDOR_CHUNK_NAME = 'posthog-sdk';
+/**
+ * The exact pinned SDK version, derived from `package.json` rather than restated.
+ *
+ * The pin is exact (no range), so this string must appear in the emitted vendor chunk. It
+ * is the marker the vendor-identity case uses to prove the exclusion really does contain
+ * the SDK, and deriving it means a pin that changed without the chunk changing — or a
+ * chunk that stopped being the SDK — goes red rather than passing on a stale literal.
+ */
+const PINNED_SDK_VERSION = (
+  JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) as {
+    dependencies: Record<string, string>;
+  }
+).dependencies['posthog-js'];
+
+function chunkFilesIn(dir: string) {
+  return listFiles(resolve(dir, 'assets')).filter((file) => file.endsWith('.js'));
+}
+
+/**
+ * The vendor side of the `dist/assets` partition, or a loud failure — never `[]`.
+ *
+ * Same discipline as `builtBundleText` above, and for the same reason: a partition that
+ * silently returned nothing would let every `expect(...).not.toMatch(...)` in this file
+ * pass against the empty string. An empty partition is a broken build or a renamed chunk,
+ * not a clean one, so it throws and names the command that fixes it.
+ */
+function vendorChunkFiles(dir: string = DIST) {
+  const files = chunkFilesIn(dir).filter((file) =>
+    file.includes(VENDOR_CHUNK_NAME),
+  );
+  if (files.length === 0) {
+    throw new Error(
+      `No ${VENDOR_CHUNK_NAME} chunk under ${dir}/assets. Since plan 04.1-09 a value import of `
+      + 'posthog-js means every build emits one. Run `npm run build`, and if it is still absent '
+      + `check that build.rollupOptions.output.manualChunks in vite.config.ts still names '${VENDOR_CHUNK_NAME}'.`,
+    );
+  }
+
+  return files;
+}
+
+/**
+ * This project's own chunks — everything the vendor partition does not claim.
+ *
+ * Guarded in the same direction: an empty project side would mean the seed list in
+ * `vite.config.ts` had swallowed the whole bundle, and every project-scoped prohibition
+ * below would then be a claim about nothing at all. That is the exact failure the
+ * companion vendor-identity case exists to catch, and this guard is its first line.
+ */
+function projectChunkFiles(dir: string = DIST) {
+  const files = chunkFilesIn(dir).filter(
+    (file) => !file.includes(VENDOR_CHUNK_NAME),
+  );
+  if (files.length === 0) {
+    throw new Error(
+      `No project chunks under ${dir}/assets — every emitted chunk matched the ${VENDOR_CHUNK_NAME} `
+      + 'partition. Run `npm run build`, and if the partition is still total, the manualChunks seed '
+      + 'list in vite.config.ts is capturing this project\'s own modules.',
+    );
+  }
+
+  return files;
+}
+
+function readChunks(files: readonly string[]) {
+  return files.map((file) => readFileSync(file, 'utf8')).join('\n');
+}
+
+/**
+ * The joined text of this project's own chunks — the subject of every prohibition that
+ * stopped being truthful over the whole bundle once the vendor chunk started shipping.
+ */
+function projectBundleText(dir: string = DIST) {
+  return readChunks(projectChunkFiles(dir));
+}
+
+function vendorBundleText(dir: string = DIST) {
+  return readChunks(vendorChunkFiles(dir));
 }
 
 function noScriptMarkup(html: string) {
@@ -735,14 +846,50 @@ describe('Phase 1 static build contracts', () => {
     }
   });
 
+  /**
+   * Whole-bundle scope RETAINED by plan `04.1-09`, on a measurement rather than on
+   * inheritance.
+   *
+   * The identity and queue patterns this case used to carry moved to the production
+   * source scan (`MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN`), and the provider-origin
+   * prohibition was withdrawn with its successor named
+   * (`PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`). What remains is what a bundle scan can
+   * assert truthfully about this project rather than about a vendor: no competitor
+   * origin, no report credential shape, and no HAOO event name carried alongside a
+   * property bag.
+   *
+   * Since `04.1-09` the subject `builtBundleText()` includes a third party's minified
+   * artifact, so every one of those patterns became a claim about the vendor too. Under
+   * this repository's discipline that is not something to leave standing on the grounds
+   * that it is still green: `04.1-01` relocated `MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN`
+   * and withdrew the bundle-level origin claim for exactly this reason. The difference
+   * here is what the measurement found.
+   *
+   * MEASURED in this commit, per pattern, against the emitted `posthog-sdk` chunk alone
+   * at pinned version 1.425.1 — all six no-hit:
+   *
+   *   /googletagmanager|google-analytics|umami|segment\.com/i   no-hit
+   *   /POSTHOG_QUERY_API_KEY/                                   no-hit
+   *   /Authorization/                                           no-hit
+   *   /Bearer\s/                                                no-hit
+   *   /\/api\/projects\/[^/]*\/query/                           no-hit
+   *   /haoo_page_view[^;]{0,240}(?:properties|payload|formData)/i  no-hit
+   *
+   * So no pattern here is narrowed and none is deleted: the whole-bundle scope is
+   * RE-JUSTIFIED by that result rather than assumed, and the case goes on proving the
+   * stronger claim it always made — that these shapes are absent from everything this
+   * repository publishes, vendor chunk included. The event pattern is the least
+   * surprising of the six (a project-only event name cannot appear in a vendor's
+   * artifact) and was measured anyway, because a measurement with a hole in it is an
+   * assumption wearing a table.
+   *
+   * Re-measure at any version bump. The companion case below pins that obligation
+   * mechanically rather than trusting this comment to be re-read.
+   *
+   * The patterns are derived from the two exported constants, never restated, so a later
+   * widening of either group is measured by this case automatically.
+   */
   it('ships the unset provider bundle without competitor analytics, property, or credential seams', () => {
-    // The identity and queue patterns this case used to carry moved to the production
-    // source scan (`MEASUREMENT_IDENTITY_SOURCE_FORBIDDEN`), and the provider-origin
-    // prohibition was withdrawn with its successor named
-    // (`PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`). What remains here is what a bundle
-    // scan can still assert truthfully about this project rather than about a vendor:
-    // no competitor analytics origin, no report credential shape, and no HAOO event
-    // name carried alongside a property bag.
     const bundle = builtBundleText();
     const forbiddenBundlePatterns = [
       ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
@@ -752,6 +899,40 @@ describe('Phase 1 static build contracts', () => {
 
     for (const forbidden of forbiddenBundlePatterns) {
       expect(bundle, String(forbidden)).not.toMatch(forbidden);
+    }
+  });
+
+  /**
+   * The measurement that re-justified the case above, pinned so it cannot go stale.
+   *
+   * The whole-bundle scope of `ships the unset provider bundle without competitor
+   * analytics, property, or credential seams` rests on a result taken against ONE pinned
+   * SDK version. A version bump that introduced any of these literals into the vendor
+   * artifact would silently turn that case from a claim about this project into a claim
+   * about the vendor that happens to still hold — and the day it stopped holding, the
+   * failure would read as this project having leaked a credential shape.
+   *
+   * Asserting the vendor partition separately keeps the two claims distinguishable: this
+   * case is the one that goes red on a vendor regression, naming the vendor chunk, while
+   * the case above stays the claim about this repository's own output. Together they are
+   * the difference between a measured scope and a remembered one (T-04.1-26).
+   */
+  it('keeps the vendor chunk itself free of every report credential shape', () => {
+    const vendor = vendorBundleText();
+
+    expect(vendor.length).toBeGreaterThan(0);
+    for (const forbidden of [
+      ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
+      ...REPORT_CREDENTIAL_BUNDLE_FORBIDDEN,
+    ]) {
+      expect(
+        vendor,
+        `${String(forbidden)} appeared in the pinned SDK's own chunk. The whole-bundle scope of `
+        + '"ships the unset provider bundle without competitor analytics, property, or credential '
+        + 'seams" was re-justified by measuring this exact group against the vendor chunk at the '
+        + 'pinned version. Re-measure and either narrow that pattern to projectBundleText() with '
+        + 'the evidence recorded, or pin the new version — do not widen either group.',
+      ).not.toMatch(forbidden);
     }
   });
 
@@ -800,8 +981,36 @@ describe('Phase 1 static build contracts', () => {
     expect(serializedBody).not.toMatch(/engagement|campaign|utm_/i);
   });
 
-  it('keeps the production bundle free of identity and ordered-emission channels', () => {
-    const bundle = builtBundleText();
+  /**
+   * Successor to `keeps the production bundle free of identity and ordered-emission
+   * channels`, narrowed by plan `04.1-09` and recorded here rather than changed silently.
+   *
+   * What the predecessor proved: that the WHOLE built bundle carried no browser-storage,
+   * identifier or ordered-emission token, and did carry this project's two bounded
+   * context keys. It was proved falsifiable by mutation probe and was green for as long
+   * as no vendor code shipped.
+   *
+   * What this successor proves: the same three prohibitions and the same two positive
+   * assertions, over THIS PROJECT'S OWN CHUNKS.
+   *
+   * Why the claim moved: `04.1-09` bound `posthog-js` in a value position (deferred item
+   * D4, option A), so the vendor chunk now ships in every build. A minified vendor
+   * artifact legitimately carries browser-storage and identifier tokens of its own —
+   * measured against the emitted chunk at the pinned version, all three patterns fire on
+   * the vendor side (`sessionStorage`, `sessionId`, `UUID`) and none fires on the project
+   * side. Continuing to assert them over the whole bundle would therefore be a claim
+   * about the VENDOR's implementation, which this repository does not get to make, and
+   * widening or deleting the case to accommodate the import is the move `04.1-03` Task 2
+   * instructs an executor to refuse. It is narrowed instead, in the shape `04.1-01`
+   * established when it withdrew the delivery-mechanism guarantee: predecessor named,
+   * successor named, reason recorded, narrowing plan named.
+   *
+   * The exclusion is not taken on trust. The companion case below asserts the partition
+   * in both directions, so a seed list that swallowed this project's code could not make
+   * this scan pass on nothing.
+   */
+  it("keeps this project's own chunks free of identity and ordered-emission channels", () => {
+    const bundle = projectBundleText();
     const forbiddenBundlePatterns = [
       /document\.cookie|sessionStorage|indexedDB/,
       /\b(?:visitor|user|device|session)(?:Id|ID)\b/,
@@ -813,6 +1022,45 @@ describe('Phase 1 static build contracts', () => {
     for (const forbidden of forbiddenBundlePatterns) {
       expect(bundle, String(forbidden)).not.toMatch(forbidden);
     }
+  });
+
+  /**
+   * The exclusion above must have teeth, or it is a hiding place rather than a narrowing.
+   *
+   * A partition is only an honest subject if it partitions. Two failures would otherwise
+   * be silent: a vendor side that captured this project's own modules (the identity scan
+   * then passes because the code it should scan was excluded), and a project side that
+   * captured the vendor (the scan then fails for the vendor's reasons, or a future
+   * loosening hides real code). Both directions are asserted here, and `04.1-09` added
+   * this case in the same commit as the narrowing precisely so the narrowing cannot be
+   * read as a way to stop looking (T-04.1-24).
+   *
+   * The vendor marker is the exact pinned version derived from `package.json`, so this
+   * also proves the chunk really is the SDK this repository pinned rather than merely a
+   * file whose name matches the partition key.
+   */
+  it('partitions the built bundle into a vendor chunk that is the pinned SDK and project chunks that are not', () => {
+    const vendorFiles = vendorChunkFiles();
+    const projectFiles = projectChunkFiles();
+    const vendor = readChunks(vendorFiles);
+    const project = readChunks(projectFiles);
+
+    expect(vendorFiles.length).toBeGreaterThan(0);
+    expect(projectFiles.length).toBeGreaterThan(0);
+    expect(vendor.length).toBeGreaterThan(0);
+    expect(project.length).toBeGreaterThan(0);
+
+    // The vendor side is the SDK: it carries the pinned version and the vendor's own
+    // default ingestion host, neither of which this project's modules contain.
+    expect(vendor, PINNED_SDK_VERSION).toContain(PINNED_SDK_VERSION);
+    expect(vendor).toContain('us.i.posthog.com');
+
+    // The project side is this project: it carries the bounded context keys and the
+    // allowlisted event vocabulary, and it is not where the vendor's artifact landed.
+    expect(project).toContain('visitOrdinal');
+    expect(project).toContain('lastSeenDay');
+    expect(project).toContain('haoo_page_view');
+    expect(project).not.toContain(PINNED_SDK_VERSION);
   });
 
   it('keeps measurement disclosure static, bounded, and fragment-discoverable', () => {
@@ -955,6 +1203,28 @@ describe('approved analytics ingestion host boundary', () => {
    * The probe builds into its own throwaway directory so the repository's `dist` — which
    * every other case in this file asserts against, and which must stay a provider-unset
    * build — is never disturbed.
+   *
+   * AMENDED by plan `04.1-09`, and recorded rather than passed off as a mechanical edit:
+   * moving a count's subject is a narrowing under this repository's discipline even when
+   * the assertion's text barely changes.
+   *
+   * What the predecessor counted: occurrences of each approved origin across EVERY chunk
+   * the probe emitted.
+   *
+   * What the successor counts: occurrences across the probe's PROJECT chunks only.
+   *
+   * Why the subject moved: since `04.1-09` bound the SDK in a value position the probe
+   * also emits the vendor chunk, and the vendor's minified artifact carries the vendor's
+   * own default host string — which is the same host D-08 selects. A whole-bundle count
+   * would therefore be counting the vendor as well as this project, and `exactly once`
+   * would fail for a reason that says nothing about whether this project's single route
+   * into the bundle is still single. The claim worth making is about this project's own
+   * code, so that is what is counted.
+   *
+   * The vendor's copy is not ignored, which would be indistinguishable from not having
+   * looked: it is asserted explicitly below as what it is — a string in a third party's
+   * published artifact, stated as a claim about the vendor rather than about this
+   * repository.
    */
   it('publishes the approved ingestion origin exactly once in a provider-selected build', () => {
     const probeDir = resolve(ROOT, 'dist-approved-host-probe');
@@ -990,17 +1260,22 @@ describe('approved analytics ingestion host boundary', () => {
 
       expect(build.status, build.stderr ?? '').toBe(0);
 
-      const probeBundle = listFiles(resolve(probeDir, 'assets'))
-        .filter((file) => file.endsWith('.js'))
-        .map((file) => readFileSync(file, 'utf8'))
-        .join('\n');
+      const probeBundle = projectBundleText(probeDir);
 
       expect(probeBundle.length).toBeGreaterThan(0);
       for (const host of APPROVED_ANALYTICS_HOSTS) {
         // Exactly once: present because the build deliberately selected the provider,
-        // and once because the constant has exactly one route into the bundle.
+        // and once because the constant has exactly one route into this project's code.
         expect(probeBundle.split(host.origin).length - 1, host.origin).toBe(1);
       }
+
+      // The vendor's own default host, acknowledged explicitly rather than excluded
+      // quietly. This is a claim about `posthog-js`'s published artifact — that it
+      // hardcodes the same Cloud US host D-08 selected — and NOT a claim about this
+      // repository, which reaches the endpoint only through the provider-gated
+      // build-time constant counted above. Stated so a reader of the partition can see
+      // what the exclusion contains instead of having to trust that it is harmless.
+      expect(vendorBundleText(probeDir)).toContain('us.i.posthog.com');
     } finally {
       rmSync(probeDir, { recursive: true, force: true });
     }
@@ -1042,6 +1317,19 @@ describe('approved analytics ingestion host boundary', () => {
       readme.includes('### No event is delivered yet — the SDK is pinned, not loaded')
       && readme.includes('**Zero of the ten allowlisted events are currently delivered,**');
 
+    // Strengthened by plan `04.1-09`, which made the loaders-present branch reachable for
+    // the first time. Requiring only the ABSENCE of the disclaimer would have let that
+    // branch pass on a README that had simply deleted the section — turning a documented
+    // withdrawal into a silence, which is the one move this repository does not allow. So
+    // the branch now demands the positive successor by name, its delivery-condition
+    // sentence verbatim, and the module path that does the loading, so a reader of the
+    // shipped documentation can find the loading module without reading `.planning/`.
+    const readmeStatesLoaded =
+      readme.includes('### The SDK is loaded — delivery depends on the provider selector')
+      && readme.includes(
+        '**Events are delivered only when `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`.**',
+      );
+
     if (loaders.length === 0) {
       expect(
         readmeDisclaimsDelivery,
@@ -1054,18 +1342,94 @@ describe('approved analytics ingestion host boundary', () => {
         `${loaders.join(', ')} now loads the SDK, so README.md must no longer state that `
         + 'no event is delivered. Rewrite that section in this commit.',
       ).toBe(false);
+      expect(
+        readmeStatesLoaded,
+        `${loaders.join(', ')} now loads the SDK, so README.md must carry the `
+        + '"### The SDK is loaded — delivery depends on the provider selector" heading and the '
+        + 'sentence "**Events are delivered only when `VITE_HAOO_MEASUREMENT_PROVIDER` is set to '
+        + '`posthog`.**" verbatim.',
+      ).toBe(true);
+      for (const loader of loaders) {
+        expect(
+          readme,
+          `README.md must name ${loader} as a module that loads the SDK, so the loading module is `
+          + 'discoverable from the shipped documentation.',
+        ).toContain(loader);
+      }
     }
   });
 
-  it('ships the provider-unset bundle with no approved ingestion origin at all', () => {
-    // Derived from the contract rather than restated, so widening the approved list
-    // without widening the gate fails here. Absent entirely, not merely unused: a build
-    // that has not deliberately selected the provider cannot address the endpoint.
-    const bundle = builtBundleText();
+  /**
+   * Successor to `ships the provider-unset bundle with no approved ingestion origin at
+   * all`, narrowed by plan `04.1-09` on BOTH of its axes, each for its own reason.
+   *
+   * What the predecessor proved: that the repository's `dist` — asserted as a whole
+   * bundle — contained no approved ingestion origin, so a build that had not deliberately
+   * selected the provider could not address the endpoint (D-08).
+   *
+   * What this successor proves: the same claim, over a provider-unset build's own PROJECT
+   * chunks.
+   *
+   * Why the subject moved, first axis (whole bundle to project chunks): `04.1-09` bound
+   * the SDK in a value position, so the vendor chunk ships in every build and carries the
+   * vendor's own default host string — measured present in the emitted chunk. A
+   * whole-bundle assertion would from that commit onward be a claim about the vendor's
+   * published artifact rather than about this repository, which is the same reasoning
+   * `04.1-01` used when it withdrew the bundle-level half of the origin guarantee and
+   * replaced it with `PROVIDER_INGESTION_HOST_SOURCE_FORBIDDEN`.
+   *
+   * Why the subject moved, second axis (`dist` to an own probe): `dist` is only a
+   * provider-unset artifact for as long as nothing sets the selector at build time, and
+   * plan `04.1-11` adds the provider variables to the deployment build. A case that kept
+   * assuming `dist` is unset would then start passing or failing for reasons unrelated to
+   * what it means. Building its own probe with the selector blanked makes the subject
+   * match the claim permanently, and the probe never disturbs the repository's `dist`.
+   *
+   * Together these keep the D-08 guarantee falsifiable: an unselected build carries no
+   * route to the endpoint in any code this project wrote.
+   */
+  it('builds a provider-unset probe whose project chunks carry no approved ingestion origin at all', () => {
+    const probeDir = resolve(ROOT, 'dist-provider-unset-probe');
 
-    for (const host of APPROVED_ANALYTICS_HOSTS) {
-      expect(bundle, host.origin).not.toContain(host.origin);
-      expect(bundle, host.origin).not.toContain(new URL(host.origin).hostname);
+    try {
+      const build = spawnSync(
+        // Same platform handling as the provider-selected probe above: `npx` is `npx.cmd`
+        // on Windows, and `spawnSync` without `shell: true` does not resolve the
+        // extension.
+        process.platform === 'win32' ? 'npx.cmd' : 'npx',
+        ['vite', 'build', '--outDir', probeDir, '--emptyOutDir'],
+        {
+          cwd: ROOT,
+          encoding: 'utf8',
+          // Blanked rather than inherited, exactly as the provider-selected probe blanks
+          // the token and host. Here the SELECTOR is the variable that matters: a
+          // developer shell that exports `posthog` — the shell an owner performing the
+          // 04.1-11 enablement has — would otherwise produce a provider-SELECTED build
+          // and this case would assert the opposite of what it claims, silently.
+          env: {
+            ...process.env,
+            VITE_HAOO_MEASUREMENT_PROVIDER: '',
+            VITE_HAOO_POSTHOG_TOKEN: '',
+            VITE_HAOO_POSTHOG_API_HOST: '',
+          },
+        },
+      );
+
+      expect(build.status, build.stderr ?? '').toBe(0);
+
+      // The partition helpers throw on an empty side, so a probe that emitted nothing
+      // cannot pass this case by scanning the empty string.
+      const probeProjectBundle = projectBundleText(probeDir);
+      expect(probeProjectBundle.length).toBeGreaterThan(0);
+
+      // Derived from the contract rather than restated, so widening the approved list
+      // without widening the gate fails here. Absent entirely, not merely unused.
+      for (const host of APPROVED_ANALYTICS_HOSTS) {
+        expect(probeProjectBundle, host.origin).not.toContain(host.origin);
+        expect(probeProjectBundle, host.origin).not.toContain(new URL(host.origin).hostname);
+      }
+    } finally {
+      rmSync(probeDir, { recursive: true, force: true });
     }
-  });
+  }, 180_000);
 });
