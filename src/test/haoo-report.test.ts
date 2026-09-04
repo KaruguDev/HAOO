@@ -1392,6 +1392,65 @@ describe('credentialed CLI', () => {
   });
 
   /**
+   * The project id is the only environment value that shapes the URL the API key travels
+   * to, so a shape check is a credential boundary rather than a tidiness rule.
+   *
+   * Each row is a real way the interpolation could be reshaped: a traversal that reaches a
+   * different API on the same host, an absolute URL, a query and a fragment that truncate
+   * the intended path, and a bare non-numeric label. The assertion that matters is the
+   * audit — `count: 0` means the credential was never put on the wire at all, not merely
+   * that the run failed afterwards.
+   */
+  it.each([
+    ['a path traversal to another API', '1/../../users/@me'],
+    ['an embedded path segment', '70707/query'],
+    ['an absolute URL', 'https://us.posthog.com/api/projects/70707'],
+    ['a query string', '70707?refresh=true'],
+    ['a fragment', '70707#anchor'],
+    ['a non-numeric label', 'haoo-production'],
+  ])('refuses a project id carrying %s before any credentialed request', (_label, malformed) => {
+    const execution = runCli({
+      POSTHOG_QUERY_API_KEY: secret,
+      POSTHOG_PROJECT_ID: malformed,
+    });
+
+    try {
+      expect(execution.result.status).toBe(1);
+      expect(execution.result.stderr).toContain('POSTHOG_PROJECT_ID must be the numeric project id');
+      expect(execution.result.stderr).toContain(ERROR_STATE_SENTENCE);
+      // Neither the credential nor the rejected value is echoed: the rejected value came
+      // out of the same shell as the key, and this command echoes nothing it read there.
+      expect(execution.result.stdout).not.toContain(secret);
+      expect(execution.result.stderr).not.toContain(secret);
+      expect(execution.result.stderr).not.toContain(malformed);
+      expect(execution.audit).toEqual({ count: 0, urls: [] });
+      expect(existsSync(execution.outputPath)).toBe(false);
+    } finally {
+      rmSync(execution.directory, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts a numeric project id carrying shell whitespace', () => {
+    const execution = runCli({
+      POSTHOG_QUERY_API_KEY: secret,
+      POSTHOG_PROJECT_ID: `  ${project}\n`,
+    });
+
+    try {
+      // Trimmed before it reaches the URL, so a heredoc newline is a working id rather
+      // than a request to a path with an encoded newline in it.
+      expect(execution.result.stderr).not.toContain('POSTHOG_PROJECT_ID must be');
+      expect(execution.audit.count).toBeGreaterThan(0);
+      for (const url of execution.audit.urls) {
+        expect(url).toContain(`/api/projects/${project}/query/`);
+        expect(url).not.toMatch(/\s|%0A|%20/u);
+      }
+    } finally {
+      rmSync(execution.directory, { recursive: true, force: true });
+    }
+  });
+
+  /**
    * A stale environment is the one realistic failure this migration creates: the owner
    * already holds a credential under a name that no longer exists. Reporting the new name
    * as merely missing would point them at creating a credential they may already have,

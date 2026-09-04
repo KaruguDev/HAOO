@@ -76,7 +76,26 @@ function writeTerminalError(...lines) {
 }
 
 const apiKey = process.env.POSTHOG_QUERY_API_KEY ?? '';
-const projectId = process.env.POSTHOG_PROJECT_ID ?? '';
+const projectId = (process.env.POSTHOG_PROJECT_ID ?? '').trim();
+
+/**
+ * The project id is the ONLY environment value that shapes the URL the API key is sent
+ * to, so it is the one value whose shape has to be checked rather than merely its
+ * emptiness.
+ *
+ * Interpolated unvalidated, a value carrying `/`, `..`, `?` or `#` silently reshapes the
+ * endpoint below: `POSTHOG_PROJECT_ID='1/../../users/@me'` would send the credential to a
+ * different API on the same host, and a `?`/`#` would truncate the intended path
+ * entirely. `README.md` already promises this is "the numeric project id" that "must not
+ * be entered as a URL with a scheme or path" — this makes the promise enforceable rather
+ * than advisory, matching the exhaustive rejection `resolvePostHogToken` and
+ * `resolvePostHogApiHost` already apply to the two browser values.
+ *
+ * Digits only, anchored, no separators: PostHog project ids are integers, so anything
+ * else is a misconfiguration whether or not it is hostile. The trim above is part of the
+ * same rule — a trailing newline from a shell heredoc would otherwise reach the URL.
+ */
+const PROJECT_ID_SHAPE = /^[0-9]+$/u;
 
 /**
  * Every environment variable this migration removed, paired with the variable that
@@ -124,6 +143,17 @@ if (staleVariables.length > 0) {
 } else if (missingVariables.length > 0) {
   writeTerminalError(
     `Missing required environment variables: ${missingVariables.join(', ')}`,
+    ERROR_STATE_SENTENCE,
+  );
+  process.exitCode = 1;
+} else if (!PROJECT_ID_SHAPE.test(projectId)) {
+  // Checked here, before `generateHaooReport` is reached, for the same reason the two
+  // branches above are: no request may be built from a value that has not been accepted.
+  // The rejected value is NOT echoed — it is adjacent to a credential in the shell that
+  // produced it, and this command's whole boundary is that nothing it reads from the
+  // environment reaches stdout, the terminal, or the generated document.
+  writeTerminalError(
+    'POSTHOG_PROJECT_ID must be the numeric project id, with no scheme, path, query, or fragment.',
     ERROR_STATE_SENTENCE,
   );
   process.exitCode = 1;

@@ -90,7 +90,11 @@ export function installCliFetchFixture() {
   const auditPath = process.env.HAOO_REPORT_CLI_AUDIT_PATH;
   if (!auditPath) throw new Error('HAOO_REPORT_CLI_AUDIT_PATH is required by the test preload');
 
-  const projectId = process.env.POSTHOG_PROJECT_ID ?? '';
+  // Trimmed for the same reason the CLI trims: the fixture's job is to know the exact
+  // endpoint the CLI will address, and the CLI validates the project id after trimming it.
+  // Mirroring the RAW variable here would make a whitespace-carrying id look like an
+  // unexpected endpoint rather than the working one it now is.
+  const projectId = (process.env.POSTHOG_PROJECT_ID ?? '').trim();
   const expectedEndpoint = `${EXPECTED_ORIGIN}/api/projects/${projectId}/query/`;
   // Resolve the reporting day exactly once. Re-reading the clock per response let a run
   // that straddles 00:00 Africa/Nairobi expect a range the CLI no longer submits, which
