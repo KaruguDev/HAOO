@@ -7,6 +7,7 @@ import {
   POSTHOG_REFUSAL,
   boundPostHogClient,
   createPostHogEventSink,
+  type PostHogAdapters,
   type PostHogClient,
   type PostHogScope,
 } from '../measurement/posthog';
@@ -30,10 +31,9 @@ import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts'
 import {
   VACUOUS_BY_VENDOR_AGREEMENT,
   VENDOR_DOCUMENTED_DEFAULTS,
-  installPostHogVendorClient,
+  createPostHogVendorClient,
   type VendorBeforeSend,
   type VendorCaptureResult,
-  type VendorPostHogScope,
 } from './fixtures/posthog-capture-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
@@ -726,14 +726,13 @@ describe('fail-closed provider resolution', () => {
     // Neither says anything about what happens when the page actually runs, which is what
     // this asserts: with the selector unset the factory returns undefined and the vendor's
     // `init` is never reached at all. The two records point at each other deliberately.
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
 
     expect(resolveMeasurementProvider(undefined)).toBe('none');
     expect(
       createPostHogEventSink(
         { ...CONFIGURED_MEASUREMENT, provider: resolveMeasurementProvider(undefined) },
-        { scope: scope as PostHogScope },
+        { client },
       ),
     ).toBeUndefined();
     expect(client.initializedToken()).toBeNull();
@@ -764,14 +763,13 @@ describe('name-only provider sink', () => {
   it.each(unconfiguredRows)(
     'returns no sink, and attempts no initialization, when %s',
     (_label, token, apiHost) => {
-      const scope: VendorPostHogScope = {};
-      const client = installPostHogVendorClient(scope);
+      const client = createPostHogVendorClient();
       const reasons: string[] = [];
 
       expect(
         createPostHogEventSink(
           { ...CONFIGURED_MEASUREMENT, providerConfig: { token, apiHost } },
-          { scope: scope as PostHogScope, signalRefusal: (reason) => reasons.push(reason) },
+          { client, signalRefusal: (reason) => reasons.push(reason) },
         ),
       ).toBeUndefined();
       // The configuration gate runs before any capability is resolved, so a build with a
@@ -783,13 +781,12 @@ describe('name-only provider sink', () => {
   );
 
   it('returns no sink for the no-op provider without touching the client', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
 
     expect(
       createPostHogEventSink(
         { ...CONFIGURED_MEASUREMENT, provider: 'none' },
-        { scope: scope as PostHogScope },
+        { client },
       ),
     ).toBeUndefined();
     expect(client.initializedToken()).toBeNull();
@@ -797,23 +794,17 @@ describe('name-only provider sink', () => {
   });
 
   it('takes exactly one argument, so a property bag has no parameter to travel through', () => {
-    const scope: VendorPostHogScope = {};
-    installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
 
-    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-      scope: scope as PostHogScope,
-    });
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
 
     expect(sink).toBeTypeOf('function');
     expect(sink).toHaveLength(1);
   });
 
   it('delivers exactly one payload for an allowlisted name and none for any other', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
-    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-      scope: scope as PostHogScope,
-    });
+    const client = createPostHogVendorClient();
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
 
     sink?.('haoo_page_view');
     expect(client.deliveredPayloads()).toHaveLength(1);
@@ -832,10 +823,9 @@ describe('name-only provider sink', () => {
    * the provider will actually call is the one asserted here.
    */
   function resolvedBeforeSend(): VendorBeforeSend {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
 
-    createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope: scope as PostHogScope });
+    createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
 
     const beforeSend = client.initializedConfig()?.before_send;
     expect(beforeSend).toBeTypeOf('function');
@@ -927,15 +917,14 @@ describe('fail-closed provider initialization', () => {
   it.each(LOCKED_KEYS.map((key) => [key] as const))(
     'withholds the sink when the merged configuration resolves %s wrong',
     (key) => {
-      const scope: VendorPostHogScope = {};
-      const client = installPostHogVendorClient(scope, {
+      const client = createPostHogVendorClient({
         [key]: hostileValue(LOCKED_CONFIGURATION[key]),
       });
       const reasons: string[] = [];
 
       expect(
         createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-          scope: scope as PostHogScope,
+          client,
           signalRefusal: (reason) => reasons.push(reason),
         }),
       ).toBeUndefined();
@@ -1012,13 +1001,12 @@ describe('fail-closed provider initialization', () => {
   ] as const)(
     'withholds the sink when the merged before_send is %s',
     (_label, value) => {
-      const scope: VendorPostHogScope = {};
-      const client = installPostHogVendorClient(scope, { before_send: value });
+      const client = createPostHogVendorClient({ before_send: value });
       const reasons: string[] = [];
 
       expect(
         createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-          scope: scope as PostHogScope,
+          client,
           signalRefusal: (reason) => reasons.push(reason),
         }),
       ).toBeUndefined();
@@ -1028,11 +1016,43 @@ describe('fail-closed provider initialization', () => {
     },
   );
 
+  /**
+   * Every shape an occupied ambient slot can take, all refused at the same gate.
+   *
+   * The last three rows are the successors plan `04.1-10` owes for three cases that used
+   * to live further down this file as ambient-slot subjects of LATER gates — the
+   * initializer that throws, the initializer that returns an unreadable instance, and the
+   * initialized instance with no capture entry point. Each of those was reachable only
+   * because `resolveClient` ADOPTED any value exposing a callable `init`. With adoption
+   * removed none of them can reach its old gate through the slot any more, so the gate
+   * assertion moved to the explicit injected-client seam (named in each case's own
+   * comment) and the ambient half moved HERE, where it now proves the stronger thing: a
+   * client that looks completely well-formed is refused before its initializer is called
+   * at all.
+   */
   const hostileSlotRows: readonly [string, unknown][] = [
     ['a non-callable value', { init: 'foreign' }],
     ['a frozen object with no initializer', Object.freeze({ marker: 'frozen' })],
     ['a string', 'posthog'],
     ['a number', 7],
+    [
+      'an object whose initializer throws when it is called',
+      {
+        init() {
+          throw new Error('the ambient initializer must never be reached');
+        },
+      },
+    ],
+    ['an object whose initializer returns an unreadable instance', { init: () => 'initialized' }],
+    [
+      'an object whose initialized instance exposes no capture entry point',
+      {
+        init: (_token?: string, config?: Record<string, unknown>) => ({
+          config,
+          capture: 'not callable',
+        }),
+      },
+    ],
   ];
 
   it.each(hostileSlotRows)(
@@ -1050,9 +1070,69 @@ describe('fail-closed provider initialization', () => {
       // Somebody else's global is left byte-identical: not replaced, not wrapped, and not
       // decorated with anything this adapter would have needed.
       expect(scope.posthog).toBe(ambient);
+      // The gate is the CLIENT gate, on every row. A row whose initializer throws would
+      // report `initialization` instead if the value had been adopted, so this single
+      // expectation is what proves the initializer was never called.
       expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
     },
   );
+
+  /**
+   * The CR-02 regression.
+   *
+   * `04.1-VERIFICATION.md` adjudicated code-review blocker CR-02 as CONFIRMED: a client a
+   * third party leaves on `window` was ADOPTED on the presence of one callable `init`,
+   * handed the public project key and all ten first-party event names, and could echo the
+   * configuration object it was given so the readback passed. `MeasurementDisclosure.tsx`
+   * names PostHog in the United States as the sole processor of that data (D-10), which
+   * was not true of an adopted global.
+   *
+   * The case shows BOTH halves deliberately, because either alone proves nothing:
+   *
+   * 1. This exact client DOES satisfy every downstream gate. Reached through the explicit
+   *    injected seam it merges the lockdown, echoes it back verbatim, and the adapter
+   *    returns a sink. So the refusal in half 2 cannot be explained away as a malformed
+   *    client failing some later check.
+   * 2. The same client, reached the ONLY way a third party can reach it — by occupying
+   *    the ambient name — never gets there at all. It is refused at the client gate, its
+   *    initializer is never called, and the value is left exactly where it was.
+   *
+   * Before plan `04.1-10` half 2 returned a working sink. This case is the falsifiable
+   * statement of the narrowing; restoring adoption makes exactly it go red.
+   */
+  it('refuses an ambient client whose merged configuration would have echoed the lockdown back', () => {
+    // Half 1 — the same shape, through the seam this repository chose, reaches the sink.
+    const injected = createPostHogVendorClient();
+
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { client: injected }))
+      .toBeTypeOf('function');
+    expect(injected.initializedToken()).toBe(PROJECT_TOKEN);
+    expect(injected.initializedConfig()?.before_send).toBeTypeOf('function');
+
+    // Half 2 — the identical shape, occupying the ambient name, is refused outright.
+    const ambient = createPostHogVendorClient();
+    const scope: PostHogScope = { posthog: ambient };
+    const ownKeysBefore = Object.keys(ambient as unknown as object);
+    const reasons: string[] = [];
+
+    expect(
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, {
+        scope,
+        signalRefusal: (reason) => reasons.push(reason),
+      }),
+    ).toBeUndefined();
+
+    expect(reasons).toEqual([POSTHOG_REFUSAL.foreignClient]);
+    // Never initialized: no project key and no event name ever reached it.
+    expect(ambient.initializedToken()).toBeNull();
+    expect(ambient.initializedConfig()).toBeNull();
+    expect(ambient.capturedEvents()).toEqual([]);
+    expect(ambient.deliveredPayloads()).toEqual([]);
+    // Left byte-identical by reference AND by own-property set: refusing before anything
+    // could have been written is why no refusal path has anything to restore.
+    expect(scope.posthog).toBe(ambient);
+    expect(Object.keys(ambient as unknown as object)).toEqual(ownKeysBefore);
+  });
 
   it('refuses when the ambient value exposes a throwing property getter', () => {
     const ambient = {};
@@ -1153,12 +1233,18 @@ describe('fail-closed provider initialization', () => {
     expect(reasons).toEqual([POSTHOG_REFUSAL.unusableBoundClient]);
   });
 
+  /**
+   * Migrated to the injected-client seam by plan `04.1-10`; predecessor drove the same
+   * initializer through the ambient slot, which is now refused at the CLIENT gate before
+   * `init` can be reached. The ambient half of this case survives as the
+   * `an object whose initializer throws when it is called` row in `hostileSlotRows`
+   * above; this half keeps the assertion that only it can make — that a THROWING
+   * initializer is `POSTHOG_REFUSAL.initialization` and never an escaping exception.
+   */
   it('refuses, without throwing, when the initializer throws', () => {
-    const scope: PostHogScope = {
-      posthog: {
-        init() {
-          throw new Error('initializer unavailable');
-        },
+    const client: PostHogClient = {
+      init() {
+        throw new Error('initializer unavailable');
       },
     };
     const reasons: string[] = [];
@@ -1166,7 +1252,7 @@ describe('fail-closed provider initialization', () => {
 
     expect(() => {
       sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-        scope,
+        client,
         signalRefusal: (reason) => reasons.push(reason),
       });
     }).not.toThrow();
@@ -1182,33 +1268,44 @@ describe('fail-closed provider initialization', () => {
     ['an object whose config is not an object', { config: 'merged', capture: () => undefined }],
   ];
 
+  /**
+   * Migrated to the injected-client seam by plan `04.1-10`. The predecessor drove these
+   * five return values through the ambient slot; with adoption removed all five would
+   * refuse identically at the CLIENT gate, which would have turned a five-row table into
+   * five copies of one assertion. The ambient half survives as the
+   * `an object whose initializer returns an unreadable instance` row in `hostileSlotRows`
+   * above, and the five distinct return shapes keep their own gate here.
+   */
   it.each(unreadableInstanceRows)(
     'refuses when the initializer returns %s',
     (_label, instance) => {
-      const scope: PostHogScope = { posthog: { init: () => instance } };
       const reasons: string[] = [];
 
       expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-        scope,
+        client: { init: () => instance },
         signalRefusal: (reason) => reasons.push(reason),
       })).toBeUndefined();
       expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown]);
     },
   );
 
+  /**
+   * Migrated to the injected-client seam by plan `04.1-10`; the ambient half survives as
+   * the `an object whose initialized instance exposes no capture entry point` row in
+   * `hostileSlotRows` above. Only this half can still reach the capture gate, which is
+   * the last gate before a sink and the one no other case asserts.
+   */
   it('refuses an initialized instance whose capture entry point is not callable', () => {
-    const scope: PostHogScope = {
-      posthog: {
-        init: (_token: string, config: Record<string, unknown>) => ({
-          config,
-          capture: 'not callable',
-        }),
-      },
+    const client: PostHogClient = {
+      init: (_token: string, config?: Record<string, unknown>) => ({
+        config,
+        capture: 'not callable',
+      }),
     };
     const reasons: string[] = [];
 
     expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-      scope,
+      client,
       signalRefusal: (reason) => reasons.push(reason),
     })).toBeUndefined();
     expect(reasons).toEqual([POSTHOG_REFUSAL.absentCapture]);
@@ -1298,10 +1395,35 @@ describe('the bound provider SDK', () => {
  * one that happened to be written down.
  */
 describe('fail-closed provider initialization in the full journey', () => {
-  const refusalCauses: readonly [string, () => { scope: PostHogScope; reason: string }][] = [
+  /**
+   * The row builder returns the whole `PostHogAdapters` object, not merely a scope.
+   *
+   * Widened by plan `04.1-10`. Two causes — a throwing initializer and an initialized
+   * instance with no capture entry point — used to be produced by occupying the ambient
+   * slot, which reached them only because `resolveClient` adopted any value with a
+   * callable `init`. With adoption removed the slot can only ever produce
+   * `foreignClient`, so driving those two causes through it would have collapsed three
+   * distinct rows into one and quietly stopped proving that the journey survives the
+   * later gates. Each keeps its cause by arriving through the explicit injected-client
+   * seam instead. Every reason in `POSTHOG_REFUSAL` a live build can emit is still
+   * represented exactly once.
+   */
+  const refusalCauses: readonly [string, () => { adapters: PostHogAdapters; reason: string }][] = [
     [
       'the ambient slot holds a non-callable value',
-      () => ({ scope: { posthog: { init: 'foreign' } }, reason: POSTHOG_REFUSAL.foreignClient }),
+      () => ({
+        adapters: { scope: { posthog: { init: 'foreign' } } },
+        reason: POSTHOG_REFUSAL.foreignClient,
+      }),
+    ],
+    [
+      // Added by plan `04.1-10`: the CR-02 cause at journey level. A well-formed client
+      // occupying the ambient name is refused outright, and the visitor pays nothing.
+      'the ambient slot holds a well-formed client this repository did not choose',
+      () => ({
+        adapters: { scope: { posthog: createPostHogVendorClient() } },
+        reason: POSTHOG_REFUSAL.foreignClient,
+      }),
     ],
     [
       // Restated by plan `04.1-09`, not dropped. This row used to drive an empty ambient
@@ -1314,14 +1436,14 @@ describe('fail-closed provider initialization in the full journey', () => {
       () => {
         breakBoundInitializer();
 
-        return { scope: {}, reason: POSTHOG_REFUSAL.unusableBoundClient };
+        return { adapters: { scope: {} }, reason: POSTHOG_REFUSAL.unusableBoundClient };
       },
     ],
     [
       'the initializer throws',
       () => ({
-        scope: {
-          posthog: {
+        adapters: {
+          client: {
             init() {
               throw new Error('initializer unavailable');
             },
@@ -1332,19 +1454,17 @@ describe('fail-closed provider initialization in the full journey', () => {
     ],
     [
       'the initializer silently resolves a locked key wrong',
-      () => {
-        const scope: VendorPostHogScope = {};
-        installPostHogVendorClient(scope, { autocapture: true });
-
-        return { scope: scope as PostHogScope, reason: POSTHOG_REFUSAL.lockdown };
-      },
+      () => ({
+        adapters: { client: createPostHogVendorClient({ autocapture: true }) },
+        reason: POSTHOG_REFUSAL.lockdown,
+      }),
     ],
     [
       'the initialized instance exposes no capture entry point',
       () => ({
-        scope: {
-          posthog: {
-            init: (_token: string, config: Record<string, unknown>) => ({
+        adapters: {
+          client: {
+            init: (_token: string, config?: Record<string, unknown>) => ({
               config,
               capture: 'not callable',
             }),
@@ -1359,14 +1479,14 @@ describe('fail-closed provider initialization in the full journey', () => {
     'keeps every event path of the whole journey working when %s',
     (_label, build) => {
       const spies = silentConsole();
-      const { scope, reason } = build();
+      const { adapters, reason } = build();
       const storage = new MemoryStorage();
       const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
         storage,
         now: () => TODAY,
         location: { href: PRODUCT_HREF },
         history: { state: null, replaceState: vi.fn() },
-        providerAdapters: { scope },
+        providerAdapters: adapters,
       });
 
       measurement.initialize();
@@ -1575,14 +1695,13 @@ describe('facade contract under the widened provider seam', () => {
   });
 
   it('wires the configured provider sink when no sink adapter is injected', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
 
     measurement.initialize();
@@ -1596,9 +1715,11 @@ describe('facade contract under the widened provider seam', () => {
       .toEqual([...HAOO_MEASUREMENT_EVENTS]);
   });
 
-  it('touches no provider global for the no-op provider', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+  // Renamed by plan `04.1-10` from `touches no provider global for the no-op provider`:
+  // the fixture no longer occupies a global, so the subject is the resolved client. The
+  // assertion — that the no-op provider reaches the vendor at all — is unchanged.
+  it('touches no provider client for the no-op provider', () => {
+    const client = createPostHogVendorClient();
 
     expect(HAOO_MEASUREMENT.provider).toBe('none');
 
@@ -1606,7 +1727,7 @@ describe('facade contract under the widened provider seam', () => {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
 
     measurement.initialize();
@@ -1619,15 +1740,14 @@ describe('facade contract under the widened provider seam', () => {
   });
 
   it('keeps an injected sink authoritative over the configured provider', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
     const eventSink = vi.fn();
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       eventSink,
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
 
     measurement.initialize();
@@ -1639,14 +1759,13 @@ describe('facade contract under the widened provider seam', () => {
   });
 
   it('rejects a name outside the closed list without reaching the provider', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
 
     measurement.initialize();
@@ -1655,14 +1774,13 @@ describe('facade contract under the widened provider seam', () => {
   });
 
   it('normalizes and clears campaign parameters before the provider is initialized', () => {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope);
+    const client = createPostHogVendorClient();
     const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
       location: { href: `${PRODUCT_HREF}?utm_source=partner` },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
 
     measurement.initialize();
@@ -1691,29 +1809,24 @@ describe('facade contract under the widened provider seam', () => {
  * can return true.
  */
 describe('PostHog tracer: one event end-to-end', () => {
-  function tracerScope(overrides: Record<string, unknown> = {}) {
-    const scope: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(scope, overrides);
-
-    return { scope, client };
+  function tracerClient(overrides: Record<string, unknown> = {}) {
+    return createPostHogVendorClient(overrides);
   }
 
-  function tracerMeasurement(scope: VendorPostHogScope, storage: Storage) {
+  function tracerMeasurement(client: PostHogClient, storage: Storage) {
     return createMeasurement(CONFIGURED_MEASUREMENT, {
       storage,
       now: () => TODAY,
       location: { href: PRODUCT_HREF },
       history: { state: null, replaceState: vi.fn() },
-      providerAdapters: { scope: scope as PostHogScope },
+      providerAdapters: { client },
     });
   }
 
   it('initializes exactly once with the locked configuration and returns a sink', () => {
-    const { scope, client } = tracerScope();
+    const client = tracerClient();
 
-    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, {
-      scope: scope as PostHogScope,
-    });
+    const sink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
 
     expect(sink).toBeTypeOf('function');
     expect(sink).toHaveLength(1);
@@ -1753,9 +1866,9 @@ describe('PostHog tracer: one event end-to-end', () => {
   });
 
   it('carries one HAOO event through the facade as a bare name with three transport keys', () => {
-    const { scope, client } = tracerScope();
+    const client = tracerClient();
     const storage = new MemoryStorage();
-    const measurement = tracerMeasurement(scope, storage);
+    const measurement = tracerMeasurement(client, storage);
 
     measurement.initialize();
     expect(measurement.track('haoo_page_view')).toBe(true);
@@ -1825,14 +1938,14 @@ describe('PostHog tracer: one event end-to-end', () => {
 
   it('withholds the sink when any one locked key resolves wrong', () => {
     const spies = silentConsole();
-    const { scope, client } = tracerScope({ advanced_disable_flags: false });
+    const client = tracerClient({ advanced_disable_flags: false });
     const storage = new MemoryStorage();
 
     expect(
-      createPostHogEventSink(CONFIGURED_MEASUREMENT, { scope: scope as PostHogScope }),
+      createPostHogEventSink(CONFIGURED_MEASUREMENT, { client }),
     ).toBeUndefined();
 
-    const measurement = tracerMeasurement(scope, storage);
+    const measurement = tracerMeasurement(client, storage);
     measurement.initialize();
 
     // Refusing to collect is never a degradation of the journey.
@@ -1859,7 +1972,7 @@ describe('PostHog tracer: one event end-to-end', () => {
   it.each(inertSelectorRows)(
     'creates no sink and never initializes for a selector that is %s',
     (_label, configured) => {
-      const { scope, client } = tracerScope();
+      const client = tracerClient();
 
       expect(
         createPostHogEventSink(
@@ -1867,7 +1980,7 @@ describe('PostHog tracer: one event end-to-end', () => {
             ...CONFIGURED_MEASUREMENT,
             provider: resolveMeasurementProvider(configured),
           },
-          { scope: scope as PostHogScope },
+          { client },
         ),
       ).toBeUndefined();
       expect(client.initializedToken()).toBeNull();

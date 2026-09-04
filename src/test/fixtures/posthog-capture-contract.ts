@@ -203,9 +203,14 @@ function assembleVendorPayload(
  * `overrides` is applied last, after the caller's options, so a test can force a single
  * resolved key to a wrong value and exercise the adapter's refusal on an unconfirmed
  * readback.
+ *
+ * It RETURNS the client and occupies nothing. Reaching the adapter is the caller's
+ * choice, made explicitly through `PostHogAdapters.client`, because since plan `04.1-10`
+ * the ambient slot is not a delivery path at all: any defined value there is refused as
+ * `foreignClient`. The occupying installer below is retained for what it transcribes, not
+ * as a way in.
  */
-export function installPostHogVendorClient(
-  scope: VendorPostHogScope,
+export function createPostHogVendorClient(
   overrides: VendorPostHogConfig = {},
 ): InstalledVendorPostHogClient {
   let initializedToken: string | null = null;
@@ -249,6 +254,32 @@ export function installPostHogVendorClient(
     capturedEvents: () => capturedEvents,
     deliveredPayloads: () => deliveredPayloads,
   };
+
+  return client;
+}
+
+/**
+ * The occupying installer, SUPERSEDED for adapter-facing use by plan `04.1-10`.
+ * Successor: `createPostHogVendorClient` above, which every adapter-facing call site now
+ * uses.
+ *
+ * This shape put the fixture's client into `scope.posthog` — the ambient slot. That was
+ * the only way to reach the adapter before `04.1-09` bound a client of this project's
+ * own, and it is precisely the path `04.1-10` now refuses outright: any defined,
+ * non-null ambient value is `POSTHOG_REFUSAL.foreignClient`, so a fixture that installs
+ * itself there can no longer reach `init` at all.
+ *
+ * Retained rather than deleted, and its assignment deliberately left byte-identical. It
+ * is the fixture's transcription of how a real vendor snippet OCCUPIES the global name,
+ * which is the shape the adapter's refusal is a claim about; deleting it would remove the
+ * only executable statement of what is being refused. It has no adapter-facing caller —
+ * every one of them was migrated to the successor rather than dropped (04.1-10, Task 2).
+ */
+export function installPostHogVendorClient(
+  scope: VendorPostHogScope,
+  overrides: VendorPostHogConfig = {},
+): InstalledVendorPostHogClient {
+  const client = createPostHogVendorClient(overrides);
 
   scope.posthog = client;
 

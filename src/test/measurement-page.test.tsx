@@ -5,7 +5,11 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { createMeasurement } from '../measurement';
-import { POSTHOG_REFUSAL, type PostHogScope } from '../measurement/posthog';
+import {
+  POSTHOG_REFUSAL,
+  type PostHogClient,
+  type PostHogScope,
+} from '../measurement/posthog';
 import { TRANSPORT_REQUIRED_PROPERTIES } from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
@@ -15,11 +19,10 @@ import {
 import { qualifyCollectionNotePageContext } from '../products/copy';
 import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
 import {
-  installPostHogVendorClient,
+  createPostHogVendorClient,
   type InstalledVendorPostHogClient,
   type VendorBeforeSend,
   type VendorCaptureResult,
-  type VendorPostHogScope,
 } from './fixtures/posthog-capture-contract';
 
 const CONTEXT_KEY = 'zph.haoo.ctx.v1';
@@ -1355,9 +1358,16 @@ describe('network payload regression', () => {
    * Render the product page with the provider configured and drive every one of the ten
    * event paths a visitor can reach.
    *
-   * The scope is a getter rather than a plain slot so the address bar can be sampled at
-   * the exact moment the provider is resolved. That is what proves campaign cleanup
+   * The client is wrapped rather than passed bare so the address bar can be sampled at
+   * the exact moment the provider is initialized. That is what proves campaign cleanup
    * completes BEFORE a sink exists, rather than merely before the assertions run.
+   *
+   * The sampling point moved from the ambient-slot READ to the `init` CALL in plan
+   * `04.1-10`. The predecessor installed the fixture into `scope.posthog` and sampled
+   * inside a getter on that slot; since `04.1-10` refuses every occupied ambient slot
+   * outright, a fixture installed there is refused at the client gate and this journey
+   * would deliver nothing at all. `init` is the strictly later of the two moments and is
+   * still strictly before a sink exists, so the ordering claim is unchanged.
    *
    * The ten paths this drives, and the interaction that drives each — written as a map
    * for a reader auditing exhaustiveness, never as the expected set, which is derived
@@ -1378,13 +1388,13 @@ describe('network payload regression', () => {
     window.history.replaceState({}, '', initialUrl);
     const storageKeysBefore = storageKeys();
 
-    const holder: VendorPostHogScope = {};
-    const client = installPostHogVendorClient(holder);
+    const client = createPostHogVendorClient();
     let searchAtProviderResolution: string | null = null;
-    const scope: PostHogScope = {
-      get posthog() {
+    const observed: PostHogClient = {
+      init(token: string, config?: Record<string, unknown>) {
         searchAtProviderResolution = window.location.search;
-        return holder.posthog;
+
+        return client.init(token, config);
       },
     };
 
@@ -1410,7 +1420,7 @@ describe('network payload regression', () => {
     render(
       <ProductPage
         product={CONFIGURED_PRODUCT}
-        measurementAdapters={{ providerAdapters: { scope } }}
+        measurementAdapters={{ providerAdapters: { client: observed } }}
       />,
     );
 
