@@ -73,6 +73,14 @@ jobs:
       # asserts their absence, deriving the forbidden names from the credential group the
       # bundle scan already uses.
       #
+      # Widened by code-review WR-02, which measured that the sentence above described only
+      # half a gate. Forbidding NAMES cannot stop a credential assigned to a name nobody
+      # thought to forbid, and the same test now also reads what every `VITE_*` variable in
+      # this file is ASSIGNED: each must be exactly one `${{ vars.* }}` expression, never a
+      # secret, a literal, or any other context. That rule is what makes the paragraph
+      # above enforceable rather than merely stated, and it is the reason a value here may
+      # only ever come from a repository variable.
+      #
       # Enabled by `04.1-11`, after the privacy owner recorded the re-opened processor
       # approval (04.1-USER-SETUP.md). An unset variable expands to the empty string, the
       # selector fails closed to `none`, and the build captures nothing — so this step going

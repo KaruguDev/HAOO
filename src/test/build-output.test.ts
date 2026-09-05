@@ -297,6 +297,45 @@ const BUILD_OUTPUTS = [
   ...listFiles(resolve(DIST, 'assets')),
 ];
 
+/**
+ * Every browser-prefixed workflow assignment, read as a NAME and a VALUE.
+ *
+ * Added by code-review WR-02. The credential gate below used to read workflow text only
+ * for names it already knew to forbid, which is a prohibition an unbounded set of names
+ * can walk around: a credential assigned to `VITE_ANYTHING_AT_ALL` carries the forbidden
+ * name on the value side, where nothing was looking.
+ *
+ * Parsed with a line-anchored regex over the file's own text rather than by shelling out
+ * to a YAML tool. That is deliberate on two counts: the workflow's text is what a reader
+ * and a reviewer see, and — since this file's inputs include repository content — building
+ * a command line out of them would put an injection surface inside the very gate that
+ * exists to keep credentials out of a build. Nothing here is executed, interpolated into a
+ * shell, or passed to a process.
+ *
+ * `VITE_` is the prefix, because it is Vite's own inlining trigger: a variable carrying it
+ * is inlined into world-readable JavaScript, and one that does not is not. The value is
+ * captured verbatim to end of line, trailing comment and all, so a rule written against it
+ * cannot be dodged by what follows on the same line.
+ */
+function browserPrefixedAssignments(workflowText: string) {
+  return [...workflowText.matchAll(/^ +(VITE_[A-Z0-9_]*): *(.*)$/gmu)]
+    .map(([, name, value]) => ({ name, value: value.trim() }));
+}
+
+/**
+ * The one form a browser-prefixed value may take: a repository VARIABLE expression.
+ *
+ * An allowlist, not a denylist on `secrets.`. A denylist would pass a literal
+ * `VITE_HAOO_ANALYTICS_KEY: phx_liveKey`, which is the same leak with the expression
+ * removed, and it would pass `${{ github.event.* }}` — attacker-controlled text inlined
+ * into the shipped bundle. `vars.*` is the only source whose contents are world-readable
+ * by construction, which is exactly the property `dist` gives everything it carries.
+ */
+const REPOSITORY_VARIABLE_EXPRESSION = /^\$\{\{ *vars\.[A-Z0-9_]+ *\}\}$/u;
+
+/** A value drawn from the secrets context, in either interpolation spelling. */
+const SECRETS_CONTEXT = /\bsecrets\s*[.[]/u;
+
 function newestInput() {
   return BUILD_INPUTS
     .map((path) => ({ path, mtimeMs: statSync(path).mtimeMs }))
@@ -958,6 +997,20 @@ describe('Phase 1 static build contracts', () => {
    * Presence is asserted before absence. A prohibition over a file that failed to load, or
    * over a Build step whose `env` block moved or was renamed, is vacuously true — which is
    * how a gate keeps passing after it has stopped reading anything.
+   *
+   * WIDENED by code-review WR-02, which measured what the name-side half alone lets
+   * through. Both prohibitions above key on the credential's NAME, and neither looks at
+   * what a browser-prefixed variable is ASSIGNED, so
+   * `VITE_HAOO_ANALYTICS_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}` in the Build `env`
+   * block passed them green — the forbidden name appears only on the value side, under a
+   * `VITE_` name that is not on any list and cannot be, because the list of names a
+   * credential could be smuggled under is unbounded. The bundle scan does not catch it
+   * either: Vite inlines the VALUE, so the key reaches `dist` as an opaque `phx_…` string
+   * matching no pattern in this file. The name-side assertions are kept exactly as they
+   * were — they were never wrong, only partial — and the value-side rule below is added
+   * beside them. `catches a report credential smuggled under an unforbidden browser-prefixed
+   * name` is the executable form of that measurement, and it fails if either half stops
+   * biting.
    */
   it('keeps every report credential out of the deploy workflow Build environment', () => {
     const workflow = readText(resolve(ROOT, '.github/workflows/deploy.yml'));
@@ -1003,6 +1056,85 @@ describe('Phase 1 static build contracts', () => {
         + 'input to `npm run report:haoo`, not a build input.',
       ).toHaveLength(0);
     }
+
+    // The value side (WR-02). Everything above asks what a variable is CALLED; a
+    // credential smuggled under an unforbidden browser-prefixed name is caught only by
+    // asking what it is ASSIGNED.
+    const assignments = browserPrefixedAssignments(workflow);
+    // Presence before absence, again: a value-side rule over an empty list is vacuous, and
+    // this is the assertion that fails if the workflow's variables are ever renamed out of
+    // the browser prefix or this parser stops matching the file's shape.
+    expect(
+      assignments.length,
+      'browser-prefixed assignments found in .github/workflows/deploy.yml',
+    ).toBeGreaterThan(0);
+
+    for (const { name, value } of assignments) {
+      expect(
+        value,
+        `${name} carries a secrets-context value. Vite inlines every VITE_* value into a `
+        + 'world-readable bundle, so a secret assigned here is published — whatever the '
+        + 'variable is named.',
+      ).not.toMatch(SECRETS_CONTEXT);
+      expect(
+        value,
+        `${name} must be assigned exactly one repository variable expression. A literal, a `
+        + 'secret, or any other context is either unreadable in review or attacker-'
+        + 'influenced, and all three are inlined into a world-readable bundle.',
+      ).toMatch(REPOSITORY_VARIABLE_EXPRESSION);
+    }
+
+    // Last, because it is the coarsest: the exact roster. It runs AFTER the value-side
+    // rules so a smuggled credential is reported as a credential rather than as an
+    // unexpected list length, and it stands after them so a browser variable added without
+    // a decision is still a red test rather than a silent widening of what ships.
+    expect(
+      assignments.map(({ name }) => name),
+      'the browser-prefixed variables this workflow may set',
+    ).toEqual([
+      'VITE_HAOO_FORM_ENDPOINT',
+      'VITE_HAOO_MEASUREMENT_PROVIDER',
+      'VITE_HAOO_POSTHOG_TOKEN',
+      'VITE_HAOO_POSTHOG_API_HOST',
+    ]);
+  });
+
+  /**
+   * The measurement that widened the gate above, pinned so it cannot go stale.
+   *
+   * Code-review WR-02 added the leak line below to a copy of the real workflow and ran the
+   * gate's two name-side regexes against it: `browser-prefix match: false | assignment
+   * count: 0` — green, with a report credential in the Build environment. This case is that
+   * experiment, executable. It asserts BOTH halves of the finding: that the name-side rules
+   * are blind to it (so a future reader cannot mistake the value-side rule for a
+   * duplicate), and that the value-side rule catches it (so the widening cannot be quietly
+   * narrowed back).
+   *
+   * The mutant is built from the real file rather than from a hand-written fixture. A
+   * fixture would keep passing after the workflow's shape moved out from under the parser,
+   * which is the failure mode that let the original gap through.
+   */
+  it('catches a report credential smuggled under an unforbidden browser-prefixed name', () => {
+    const workflow = readText(resolve(ROOT, '.github/workflows/deploy.yml'));
+    expect(workflow, '.github/workflows/deploy.yml').not.toBe('');
+
+    const smuggled = 'VITE_HAOO_ANALYTICS_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}';
+    const mutant = workflow.replace(
+      /^( +)(VITE_HAOO_POSTHOG_TOKEN: .*)$/mu,
+      `$1$2\n$1${smuggled}`,
+    );
+    expect(mutant, 'the mutated workflow').not.toBe(workflow);
+
+    // What the name-side rules see: nothing. `POSTHOG_QUERY_API_KEY` never appears under a
+    // browser prefix, and it is never the name being assigned — it is the value.
+    expect(mutant).not.toMatch(/VITE[A-Z0-9_]*_POSTHOG_QUERY_API_KEY|VITE_POSTHOG_QUERY_API_KEY/u);
+    expect(mutant.match(/^ *(?:VITE_[A-Z0-9_]*)?POSTHOG_QUERY_API_KEY: /gmu) ?? []).toHaveLength(0);
+
+    // What the value-side rule sees: exactly one offending assignment, by name.
+    const offending = browserPrefixedAssignments(mutant)
+      .filter(({ value }) => SECRETS_CONTEXT.test(value) || !REPOSITORY_VARIABLE_EXPRESSION.test(value));
+
+    expect(offending.map(({ name }) => name)).toEqual(['VITE_HAOO_ANALYTICS_KEY']);
   });
 
   it('pins the local record and bare tracking call to finite structural shapes', () => {
