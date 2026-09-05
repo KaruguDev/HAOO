@@ -1,4 +1,4 @@
-name: Deploy ZERO-PAPERHUB
+name: Deploy HAOO
 
 on:
   push:
@@ -53,12 +53,23 @@ jobs:
       # OPT-OUT" — `04.1-11` replaced exactly that assertion, so leaving the sentence here
       # would have stood a false statement in CI. The audit now asserts that enablement is
       # opt-in and ENABLED, that the processor approval is recorded and the workflow
-      # supplies the three public build variables, that the capabilities are reached at
+      # supplies the three PostHog build variables, that the capabilities are reached at
       # runtime, that a green workflow run is NOT evidence of a capturing deploy, and that
       # the report credentials stay out of every `VITE_*` variable.
+      #
+      # Re-worded by `04.2-02`. The previous phrasing counted the public build variables
+      # as three and named neither the provider nor the fourth. Four
+      # browser-prefixed names are assigned in the Build step below, so a bare "three"
+      # is a sentence a reader can check against the file underneath it and find wrong.
+      # The three it means are the PostHog three; the fourth is the form endpoint.
       - name: Verify capability coverage
         run: npm run verify:coverage
 
+      # FOUR browser-prefixed assignments follow, and only THREE of them are PostHog. The
+      # fourth, the form endpoint, is real and deliberately has no repository variable: it
+      # expands to the empty string and `resolveQualifyEndpoint` falls back to the HAOO
+      # inbox endpoint, which is the intended production behaviour rather than a gap.
+      #
       # The three PostHog values are repository VARIABLES, not secrets, and the distinction
       # is deliberate rather than an oversight. Vite inlines every `VITE_*` value into the
       # published JavaScript bundle, so all three are world-readable the moment the site
