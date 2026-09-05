@@ -8,11 +8,11 @@
 ### Product Discovery
 
 - [x] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
-- [x] **PROD-02**: Visitor can open a stable HAOO product URL at `/products/haoo/` directly or from the Products section
+- [ ] **PROD-02**: Visitor can open the stable HAOO product URL on the HAOO production domain (`https://haoo.online/`) directly or from the ZERO-PAPER HUB Products section, and a visitor arriving at the retired `https://www.zero-paperhub.com/products/haoo/` path is still carried to it by the published recovery document. *Mechanism named honestly: a client-side zero-second meta refresh plus `rel="canonical"`, because GitHub Pages emits no per-path server redirect — the only real 301 option, a CDN in front of Pages, was considered and scoped out (D-12, RESEARCH Pitfall 3). Amended by Phase 04.2; supersedes the `/products/haoo/` wording. The four brochure assets under the retired path are NOT retained — see QUAL-04 — so no retention period is claimed for them.*
 - [x] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
 - [x] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
-- [x] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the product page
-- [x] **PROD-06**: HAOO content and contact details are sourced from centralized product data that can support future products without duplicating the page shell
+- [ ] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the HAOO site's own published document. *Amended by Phase 04.2 so the claim attaches to whatever document path the split settles (recorded in `04.2-SPLIT-CONTRACT.md` § Published document path) rather than to the retired `/products/haoo/` page. Strength unchanged.*
+- [ ] **PROD-06**: HAOO content and contact details are sourced from centralized product data — the product shell sources carry no product-name literal, and every product fact the shell renders is read from the product definition. *Successor claim per D-05, amended by Phase 04.2.* **WITHDRAWN HALF, named rather than deleted:** the original requirement also claimed the collection *demonstrates reuse across more than one product without duplicating the page shell*. That half is **withdrawn** by Phase 04.2 — after the split the HAOO repository holds exactly one product, so reuse across products is no longer provable there and cannot be restored without a second product. The successor above is what stays both true and enforceable. The in-code half of this withdrawal lands in **plan 04.2-02**, in the same commit that makes the shell single-product.
 
 ### Onboarding Paths
 
@@ -120,9 +120,16 @@ deploy. MEAS-01 and MEAS-08 stay unchecked and `Gaps Found`.*
 - [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
 - [ ] **QUAL-02**: Visitor can navigate product content, brochure controls, form fields, validation messages, and onboarding links by keyboard with visible focus
 - [ ] **QUAL-03**: HAOO page preserves semantic heading order, descriptive link and control names, zoom support, reduced-motion behavior, and an HTML equivalent for brochure information
-- [x] **QUAL-04**: Direct navigation and browser refresh work for `/products/haoo/` and the published brochure asset on the production host
+- [ ] **QUAL-04**: Direct navigation and browser refresh work for the HAOO document and the published brochure asset on the HAOO production host `haoo.online`, both served as physical files. **Retired-path asset disposition, stated explicitly (RESEARCH Pitfall 6 gap, closed by Phase 04.2):** the four assets formerly published under `https://www.zero-paperhub.com/products/haoo/` — `HAOO-Marketing-Brochure.pdf`, `brochure-preview.png`, `haoo-hero.png`, `haoo-logo.png` — are **not copied into and not retained by ZERO-PAPER HUB; those URLs 404 after cutover.** This is an accepted, recorded cost, not an oversight: a static host emits no per-path redirect, so an already-published brochure URL either resolves or 404s. Only the retired *page* keeps a recovery document (D-12); the retired *asset files* do not. *Amended by Phase 04.2.*
 - [ ] **QUAL-05**: Build, typecheck, lint, automated contract/component tests, and required deployed manual checks pass before launch
 - [x] **QUAL-06**: Published HAOO claims, phone number, email address, and onboarding URL match the supplied brochure source material
+
+### Repository and Domain Separation
+
+- [ ] **SPLT-01**: HAOO builds, tests, and deploys from a repository containing no ZERO-PAPER HUB source, and ZERO-PAPER HUB builds and deploys containing no HAOO source, with neither suite reading a file the other owns
+- [ ] **SPLT-02**: Every published HAOO URL and asset path — canonical, social metadata, brochure PDF and preview, and `noscript` recovery links — resolves on the HAOO production domain, and a visitor arriving at the retired `/products/haoo/` path still reaches the HAOO page
+- [ ] **SPLT-03**: Measurement build variables, the approved ingestion origin, and the report credentials are configured in the HAOO repository only, and a ZERO-PAPER HUB build carries no measurement code, ingestion origin, or credential shape
+- [ ] **SPLT-04**: Visitor-facing relationship, data-controller, and measurement-disclosure statements are true of HAOO as a standalone domain
 
 ## v2 Requirements
 
@@ -162,11 +169,11 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROD-01 | Phase 1 | Complete |
-| PROD-02 | Phase 1 | Complete |
+| PROD-02 | Phase 04.2 | Pending |
 | PROD-03 | Phase 1 | Complete |
 | PROD-04 | Phase 1 | Complete |
-| PROD-05 | Phase 1 | Complete |
-| PROD-06 | Phase 1 | Complete |
+| PROD-05 | Phase 04.2 | Pending |
+| PROD-06 | Phase 04.2 | Pending |
 | ONBD-01 | Phase 1 | Complete |
 | ONBD-02 | Phase 1 | Complete |
 | ONBD-03 | Phase 1 | Complete |
@@ -190,16 +197,27 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | QUAL-01 | Phase 5 | Pending |
 | QUAL-02 | Phase 5 | Pending |
 | QUAL-03 | Phase 5 | Pending |
-| QUAL-04 | Phase 1 | Complete |
+| QUAL-04 | Phase 04.2 | Pending |
 | QUAL-05 | Phase 5 | Pending |
 | QUAL-06 | Phase 1 | Complete |
+| SPLT-01 | Phase 04.2 | Pending |
+| SPLT-02 | Phase 04.2 | Pending |
+| SPLT-03 | Phase 04.2 | Pending |
+| SPLT-04 | Phase 04.2 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 36 total
+- Mapped to phases: 36
 - Unmapped: 0
+
+*Phase 04.2 re-points eight requirement IDs. `SPLT-01` through `SPLT-04` are new v1 requirements
+introduced by the repository-and-domain split. `PROD-02`, `PROD-05`, `PROD-06` and `QUAL-04` moved
+from `Phase 1 | Complete` to `Phase 04.2 | Pending`: Phase 1 genuinely met them, but this phase makes
+their original statements false, so they are owed re-verification against the amended text rather
+than inherited as complete. `PROD-06`'s reuse half is withdrawn with a named successor, never
+deleted — see the requirement.*
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-08-29 after roadmap creation*
+*Last updated: 2026-09-05 — Phase 04.2 plan 01 amended PROD-02, PROD-05, PROD-06, QUAL-04 and mapped SPLT-01..04*
