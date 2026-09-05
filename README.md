@@ -1,22 +1,11 @@
-# ZERO-PAPERHUB
+# HAOO
 
-[![Open in Bolt](https://bolt.new/static/open-in-bolt.svg)](https://bolt.new/~/sb1-qh3qzu6i)
-
-## Contact form
-
-The contact form posts to FormSubmit and delivers enquiries to `info@zero-paperhub.com`. FormSubmit provides server-side reCAPTCHA filtering, and the form also includes a honeypot field and browser validation.
-
-After deploying the form for the first time:
-
-1. Submit one test enquiry from `https://www.zero-paperhub.com/#contact`.
-2. Open the activation message sent by FormSubmit to `info@zero-paperhub.com` and confirm the form.
-3. Submit a second enquiry and verify that it is delivered. Check the spam folder if the activation message does not appear in the inbox.
-
-Activation is required only once for this domain and recipient address.
+The HAOO product page — a Kenya-focused property-management platform by ZERO-PAPER HUB —
+published as a static site at `https://www.haoo.online/`.
 
 ## HAOO qualification form
 
-The qualification form on `https://www.zero-paperhub.com/products/haoo/` submits by AJAX — a JSON `fetch` sent from the visitor's browser, so the visitor never leaves the page — to FormSubmit, which delivers the enquiry to `info@haoo.online`.
+The qualification form on `https://www.haoo.online/` submits by AJAX — a JSON `fetch` sent from the visitor's browser, so the visitor never leaves the page — to FormSubmit, which delivers the enquiry to `info@haoo.online`.
 
 ### The `VITE_HAOO_FORM_ENDPOINT` variable
 
@@ -206,7 +195,7 @@ published bundle.
 
 ### Spam handling
 
-FormSubmit's reCAPTCHA is disabled for this form — the page sends `_captcha: 'false'` in the request body — so the reCAPTCHA filtering described for the contact form above does not apply to it.
+FormSubmit's reCAPTCHA is disabled for this form — the page sends `_captcha: 'false'` in the request body — so FormSubmit's own server-side reCAPTCHA filtering does not apply to it.
 
 The form carries an off-screen honeypot field and browser validation. **Neither is inbox protection.** Both live in the page, while the endpoint is inlined into the world-readable bundle: anyone can post to it directly with `_captcha: 'false'` and an empty `_honey`, never load the page, and reach the inbox. The honeypot deters naive page-scraping bots only, and its field name and off-screen offset are a widely fingerprinted pattern.
 

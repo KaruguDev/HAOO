@@ -108,7 +108,7 @@ function syntheticProduct(
       endpoint: 'https://formsubmit.co/ajax/hello@zenith.example',
       subject: 'New ZENITH qualification enquiry — ZERO-PAPER HUB',
       sourceNote:
-        'Sent from the ZENITH product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/zenith/)',
+        'Sent from the ZENITH product page on ZERO-PAPER HUB (www.zenith.example)',
       // Field, group and engagement-summary configuration are reused verbatim from the
       // shipped product so the "no HAOO literal" assertion below proves the form itself
       // is product-generic. The summary is never rendered — it exists only on the

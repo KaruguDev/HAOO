@@ -582,7 +582,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
     endpoint: QUALIFY_ENDPOINT,
     subject: 'New HAOO qualification enquiry — ZERO-PAPER HUB',
     sourceNote:
-      'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
+      'Sent from the HAOO product page on ZERO-PAPER HUB (www.haoo.online)',
     collectionNote: {
       purpose: qualifyCollectionNotePurpose('HAOO'),
       processor: qualifyCollectionNoteProcessor(),

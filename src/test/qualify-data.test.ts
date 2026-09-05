@@ -186,7 +186,7 @@ describe('HAOO qualification product data', () => {
   it('retains the approved subject and source identities', () => {
     expect(qualify.subject).toBe('New HAOO qualification enquiry — ZERO-PAPER HUB');
     expect(qualify.sourceNote).toBe(
-      'Sent from the HAOO product page on ZERO-PAPER HUB (www.zero-paperhub.com/products/haoo/)',
+      'Sent from the HAOO product page on ZERO-PAPER HUB (www.haoo.online)',
     );
   });
 
