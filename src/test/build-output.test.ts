@@ -1209,7 +1209,7 @@ describe('Phase 1 static build contracts', () => {
     const source = readText(resolve(ROOT, 'src/measurement/index.ts'));
     const measurement = createMeasurement(HAOO_PRODUCT.measurement, {
       storage: window.localStorage,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+      location: { href: 'https://www.haoo.online/' },
     });
 
     expect(CONTEXT_RECORD_KEYS).toEqual([

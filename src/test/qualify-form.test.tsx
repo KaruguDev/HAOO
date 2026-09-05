@@ -2143,7 +2143,7 @@ function facadeContext(previousOrdinal: number | null, elapsedDays: number) {
   const measurement = createMeasurement(HAOO_MEASUREMENT, {
     storage,
     now: () => SUMMARY_TODAY,
-    location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+    location: { href: 'https://www.haoo.online/' },
     history: { state: null, replaceState: () => {} },
   });
 

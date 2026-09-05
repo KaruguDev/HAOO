@@ -335,7 +335,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
 
   it('keeps only a unique, whole-value-valid bounded campaign in page memory', () => {
     const location = {
-      href: 'https://www.zero-paperhub.com/products/haoo/?utm_source=%20Partner%20&utm_medium=email&utm_campaign=launch-2026&utm_campaign=duplicate&utm_content=creative&utm_term=private',
+      href: 'https://www.haoo.online/?utm_source=%20Partner%20&utm_medium=email&utm_campaign=launch-2026&utm_campaign=duplicate&utm_content=creative&utm_term=private',
     };
     const history = { state: null, replaceState: vi.fn() };
     const measurement = createMeasurement(HAOO_MEASUREMENT, { location, history });
@@ -346,7 +346,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
       utm_source: 'partner',
       utm_medium: 'email',
     });
-    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/products/haoo/');
+    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/');
     expect(JSON.stringify(measurement.readContext())).not.toContain('utm_');
   });
 });

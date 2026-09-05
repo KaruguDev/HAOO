@@ -77,7 +77,7 @@ function storedContext(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function measurementWithStorage(storage: Storage, href = 'https://www.zero-paperhub.com/products/haoo/') {
+function measurementWithStorage(storage: Storage, href = 'https://www.haoo.online/') {
   return createMeasurement(HAOO_MEASUREMENT, {
     storage,
     now: () => TODAY,
@@ -150,7 +150,7 @@ describe('closed event-name contract', () => {
       eventSink,
       storage: new MemoryStorage(),
       now: () => TODAY,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+      location: { href: 'https://www.haoo.online/' },
     });
 
     for (const event of HAOO_MEASUREMENT_EVENTS) {
@@ -178,7 +178,7 @@ describe('closed event-name contract', () => {
       storage,
       eventSink,
       now: () => TODAY,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+      location: { href: 'https://www.haoo.online/' },
     });
     const dynamicTrack = measurement.track as (event: unknown) => boolean;
 
@@ -195,7 +195,7 @@ describe('closed event-name contract', () => {
       eventSink,
       storage: new MemoryStorage(),
       now: () => TODAY,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/' },
+      location: { href: 'https://www.haoo.online/' },
     });
 
     expect(measurement.track('haoo_page_view')).toBe(true);
@@ -416,7 +416,7 @@ describe('campaign whole-value allowlist', () => {
     const measurement = createMeasurement(HAOO_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
-      location: { href: `https://www.zero-paperhub.com/products/haoo/${query}#details` },
+      location: { href: `https://www.haoo.online/${query}#details` },
       history,
     });
 
@@ -426,7 +426,7 @@ describe('campaign whole-value allowlist', () => {
     expect(history.replaceState).toHaveBeenCalledWith(
       history.state,
       '',
-      '/products/haoo/#details',
+      '/#details',
     );
   });
 
@@ -435,14 +435,14 @@ describe('campaign whole-value allowlist', () => {
     const measurement = createMeasurement(HAOO_MEASUREMENT, {
       storage: new MemoryStorage(),
       now: () => TODAY,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/?UTM_SOURCE=private&utm_person=email&keep=yes' },
+      location: { href: 'https://www.haoo.online/?UTM_SOURCE=private&utm_person=email&keep=yes' },
       history,
     });
 
     measurement.initialize();
 
     expect(measurement.readCampaign()).toEqual({});
-    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/products/haoo/?keep=yes');
+    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/?keep=yes');
   });
 
   it('kills a forbidden-character stripping mutant', () => {
@@ -473,7 +473,7 @@ describe('browser failure containment and clear result', () => {
   it('contains storage property access and history replacement exceptions', () => {
     const adapters = {
       now: () => TODAY,
-      location: { href: 'https://www.zero-paperhub.com/products/haoo/?utm_source=partner' },
+      location: { href: 'https://www.haoo.online/?utm_source=partner' },
       history: {
         state: null,
         replaceState: vi.fn(() => { throw new DOMException('blocked', 'SecurityError'); }),
@@ -527,7 +527,7 @@ describe('browser failure containment and clear result', () => {
  */
 const APPROVED_HOST = APPROVED_ANALYTICS_HOSTS[0].origin;
 const PROJECT_TOKEN = 'phc_tracerFixtureToken0123456789';
-const PRODUCT_HREF = 'https://www.zero-paperhub.com/products/haoo/';
+const PRODUCT_HREF = 'https://www.haoo.online/';
 
 const CONFIGURED_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
   ...HAOO_MEASUREMENT,
@@ -2121,7 +2121,7 @@ describe('PostHog tracer: one event end-to-end', () => {
         token: PROJECT_TOKEN,
         distinct_id: 'tracer-distinct-1',
         $process_person_profile: false,
-        $current_url: 'https://www.zero-paperhub.com/products/haoo/',
+        $current_url: 'https://www.haoo.online/',
         $referrer: 'https://search.example/',
         $lib: 'web',
       },

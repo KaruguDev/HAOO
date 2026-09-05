@@ -176,7 +176,7 @@ function assembleVendorPayload(
       token,
       distinct_id: `vendor-fixture-distinct-${ordinal}`,
       $process_person_profile: false,
-      $current_url: 'https://www.zero-paperhub.com/products/haoo/',
+      $current_url: 'https://www.haoo.online/',
       $referrer: 'https://search.example/',
       $lib: 'web',
     },

@@ -43,5 +43,9 @@ dist-ssr
 # repository content, and must not reach a published bundle or a code review diff.
 .reports/
 
-# Throwaway output of the provider-selected ingestion-host bundle probe (src/test/build-output.test.ts)
+# Throwaway output of the two bundle probes in src/test/build-output.test.ts: one built
+# with the provider selected, one with it blanked. Both cases remove their directory in a
+# `finally` block, so these rules are the belt to that braces -- a run interrupted between
+# the build and the cleanup would otherwise leave a whole untracked dist tree behind.
 dist-approved-host-probe/
+dist-provider-unset-probe/
