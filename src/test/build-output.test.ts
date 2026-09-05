@@ -927,8 +927,25 @@ describe('Phase 1 static build contracts', () => {
    *
    * The patterns are derived from the two exported constants, never restated, so a later
    * widening of either group is measured by this case automatically.
+   *
+   * RENAMED by code-review WR-05. Predecessor: `ships the unset provider bundle without
+   * competitor analytics, property, or credential seams`. The name outlived its subject.
+   * `builtBundleText()` is this repository's `dist`, and since `04.1-11` gave the deploy
+   * workflow the three `VITE_HAOO_*` variables, the `dist` that CI's Test step scans is a
+   * provider-SELECTED build — so in the one environment that gates a deploy, the case had
+   * not read an unset bundle for some time. `04.1-11` renamed three sibling cases for
+   * exactly this reason and left this one behind; a reader auditing provider-unset
+   * coverage would have counted it twice.
+   *
+   * Nothing about what is asserted changed, and nothing was narrowed: all six patterns
+   * were measured absent from BOTH partitions, so the claim was always scope-independent
+   * and the successor name says so. This repository's `dist` is provider-unset locally and
+   * provider-selected in CI, and this case is deliberately written to hold in both. The
+   * provider-unset claim keeps its own hermetic probe — `builds a provider-unset probe
+   * whose project chunks carry no approved ingestion origin at all` — which builds its own
+   * bundle instead of inferring the environment from this one.
    */
-  it('ships the unset provider bundle without competitor analytics, property, or credential seams', () => {
+  it('ships every built bundle without competitor analytics, property, or credential seams', () => {
     const bundle = builtBundleText();
     const forbiddenBundlePatterns = [
       ...UNCONDITIONAL_ANALYTICS_ORIGINS_FORBIDDEN,
@@ -944,8 +961,8 @@ describe('Phase 1 static build contracts', () => {
   /**
    * The measurement that re-justified the case above, pinned so it cannot go stale.
    *
-   * The whole-bundle scope of `ships the unset provider bundle without competitor
-   * analytics, property, or credential seams` rests on a result taken against ONE pinned
+   * The whole-bundle scope of `ships every built bundle without competitor analytics,
+   * property, or credential seams` rests on a result taken against ONE pinned
    * SDK version. A version bump that introduced any of these literals into the vendor
    * artifact would silently turn that case from a claim about this project into a claim
    * about the vendor that happens to still hold — and the day it stopped holding, the
@@ -967,7 +984,7 @@ describe('Phase 1 static build contracts', () => {
       expect(
         vendor,
         `${String(forbidden)} appeared in the pinned SDK's own chunk. The whole-bundle scope of `
-        + '"ships the unset provider bundle without competitor analytics, property, or credential '
+        + '"ships every built bundle without competitor analytics, property, or credential '
         + 'seams" was re-justified by measuring this exact group against the vendor chunk at the '
         + 'pinned version. Re-measure and either narrow that pattern to projectBundleText() with '
         + 'the evidence recorded, or pin the new version — do not widen either group.',
@@ -978,8 +995,8 @@ describe('Phase 1 static build contracts', () => {
   /**
    * The credential boundary one layer earlier than the bundle scan can reach.
    *
-   * `ships the unset provider bundle without competitor analytics, property, or credential
-   * seams` reads the built artifact, which is the right place to catch a credential that
+   * `ships every built bundle without competitor analytics, property, or credential seams`
+   * reads the built artifact, which is the right place to catch a credential that
    * already leaked. It is the wrong place to catch the leak being ARRANGED: the deploy
    * workflow's Build environment is what Vite inlines from, so a `VITE_POSTHOG_QUERY_API_KEY`
    * exported there would be inside `dist` before any scan of `dist` ran, and the scan would
