@@ -244,23 +244,28 @@ QUAL-04 (amend), SPLT-01, SPLT-02, SPLT-03, SPLT-04
 1. HAOO builds, typechecks, lints, tests, and deploys from its own repository with no import of and
    no reference to ZERO-PAPER HUB source; the ZERO-PAPER HUB repository does the same with no HAOO
    source; and neither repository's suite reads a file the other owns.
+
 2. Every published HAOO URL — canonical, `og:url`, `og:image`, `twitter:image`, the brochure PDF and
    preview, and each `noscript` recovery link — resolves on the HAOO domain, and the ZERO-PAPER HUB
    Products card links to it.
+
 3. Direct navigation and browser refresh work for the HAOO page and the published brochure asset on
    the HAOO production host, and a visitor arriving at the retired `/products/haoo/` path still
    reaches the HAOO page.
+
 4. The three `VITE_HAOO_*` build variables, the approved PostHog ingestion host, and the report
    credentials are configured in the HAOO repository only, and a build of the ZERO-PAPER HUB
    repository carries no measurement code, no ingestion origin, and no credential shape.
+
 5. The parent-relationship line, the measurement disclosure, and the qualification subject and
    source line each state the relationship and the data controller that are true of a standalone
    HAOO domain.
+
 6. Every privacy and boundary invariant Phases 3 and 04.1 established is asserted by the HAOO
    repository's own suite at the same strength, and any case that cannot survive the move is
    withdrawn with a named successor in the same commit — never silently dropped.
 
-**Plans**: 9 plans
+**Plans**: 0/9 plans executed
 
 Plans:
 
@@ -329,5 +334,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
-| 04.2. Split HAOO into its Own Repository and Domain | 0/9 | Not started | - |
+| 04.2. Split HAOO into its Own Repository and Domain | 0/9 | Planned    |  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

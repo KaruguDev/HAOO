@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-current_phase: 04.1
-current_phase_name: Migrate Measurement from Plausible to PostHog (INSERTED)
+current_phase: 04.2
+current_phase_name: Split HAOO into its Own Repository and Domain (INSERTED)
 status: executing
-stopped_at: Phase 04.2 planned — 9 plans, 7 waves; blocked on the haoo.online domain reclaim
-last_updated: "2026-09-05T19:54:40.764Z"
+stopped_at: "Phase 04.2 plan 01 HALTED at task 1 (checkpoint:human-action, gate=blocking-human) — haoo.online takeover still live, both domains unverified. Zero tasks executed, zero commits."
+last_updated: "2026-09-05T20:00:17.877Z"
 last_activity: 2026-09-05
-last_activity_desc: Completed 04.1-10 — the accept half of the trust decision closed (G-04.1-2)
-state_head: dea2adf597dc6ee6f02f923bad12a7ca2c249c6c
+last_activity_desc: Phase 04.2 execution started
+state_head: 8b34a7cd0bb0fc2219e8f61b27e6538c4b539eb9
 progress:
   total_phases: 7
   completed_phases: 2
@@ -23,15 +23,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 04.1 — Migrate Measurement from Plausible to PostHog (INSERTED)
+**Current focus:** Phase 04.2 — Split HAOO into its Own Repository and Domain (INSERTED)
 
 ## Current Position
 
-Phase: 04.1 (Migrate Measurement from Plausible to PostHog (INSERTED)) — EXECUTING
-Plan: 11 of 11 complete (04.1-01..04.1-10; 04.1-11 outstanding)
-Total Plans in Phase: 11
-Status: Ready to execute
-Last activity: 2026-09-05 — Completed 04.1-10 (adoption of an ambient window.posthog removed outright)
+Phase: 04.2 (Split HAOO into its Own Repository and Domain (INSERTED)) — EXECUTING
+Plan: 1 of 9
+Total Plans in Phase: 9
+Status: Executing Phase 04.2
+Last activity: 2026-09-05 — Phase 04.2 execution started
 
 Progress: 43/46 plans ([███░░░░░░░] 33%)
 
@@ -215,7 +215,8 @@ None yet.
 - [Phase 4] 04-UI-SPEC.md's Locked banned vocabulary list and its Caveat block copy contradict each other: the locked caveat contains people, sessions and customer. Plan 04-03 resolved this in code by scoping the ban to everything except the authored denial block; the UI-SPEC itself still needs amending to say so.
 - [Phase 4 verification] Plausible preload options use the wrong vendor contract; report responses do not validate echoed query provenance; rename failure can leave a temporary report; owner setup omits `PLAUSIBLE_SITE_ID`. See 04-VERIFICATION.md and plan gap closure before enabling production analytics.
 - No production module loads posthog-js as a value, so a deployed provider-selected build finds an empty provider slot and fails closed to no analytics. Importing it breaks two deliberately-established bundle invariants; see phase deferred-items D4 for the measured detail.
-- 04.1: the three GitHub Actions repository variables (VITE_HAOO_MEASUREMENT_PROVIDER / VITE_HAOO_POSTHOG_TOKEN / VITE_HAOO_POSTHOG_API_HOST) are NOT confirmed created. The deploy workflow reads them; nothing in this repo can observe them. An absent variable fails the selector closed to none and the deploy captures nothing while every gate stays green — a green workflow is not evidence of a capturing deploy. Blocks UAT 10 and 8, and therefore MEAS-01/MEAS-08.
+- 04.1: the three GitHub Actions repository variables (VITE_HAOO_MEASUREMENT_PROVIDER / VITE_HAOO_POSTHOG_TOKEN / VITE_HAOO_POSTHOG_API_HOST) are NOT confirmed created. The deploy workflow reads them; nothing in this repo can observe them. An absent variable fails the selector closed to and the deploy captures nothing while every gate stays green — a green workflow is not evidence of a capturing deploy. Blocks UAT 10 and 8, and therefore MEAS-01/MEAS-08.
+- [Phase 04.2 BLOCKING] haoo.online is under an active third-party GitHub Pages takeover, re-measured 2026-09-05 by plan 04.2-01: www.haoo.online returns HTTP 200 serving Indonesian gambling SEO spam (title "MEGAWIN | Daftar Situs Slot77 ..."), server: GitHub.com; haoo.online returns 301 to www. Both _github-pages-challenge-karugudev TXT lookups (haoo.online and zero-paperhub.com) are EMPTY, so both domains are unverified and both are takeable. haoo.online also has no MX records while zero-paperhub.com has privateemail.com MX, so mail to info@haoo.online very likely does not arrive. Plan 04.2-01 tasks 1 and 2 are gate="blocking-human" and task 3 preconditions on both; the entire phase is halted with zero commits until the owner verifies both domains in the GitHub account-level Pages UI and returns the four command outputs plus the four structural decisions.
 
 ### Quick Tasks Completed
 
@@ -238,6 +239,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-05T19:54:40.379Z
-Stopped at: Phase 04.2 planned — 9 plans, 7 waves; blocked on the haoo.online domain reclaim
+Last session: 2026-09-05T20:00:17.747Z
+Stopped at: Phase 04.2 plan 01 HALTED at task 1 (checkpoint:human-action, gate=blocking-human) — haoo.online takeover still live, both domains unverified. Zero tasks executed, zero commits.
 Resume file: .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-01-PLAN.md
