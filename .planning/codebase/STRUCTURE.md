@@ -1,195 +1,154 @@
 ---
-last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+last_mapped_commit: e91a3b97ce46cd965624cfda94abc6c34c86d2a4
 ---
-<!-- refreshed: 2026-09-02 -->
+<!-- refreshed: 2026-09-05 -->
 # Codebase Structure
 
-**Analysis Date:** 2026-09-02
+**Analysis Date:** 2026-09-05
 
 ## Directory Layout
 
 ```
 ZERO-PAPERHUB/
-├── index.html                  # Home entry document (Vite input "main")
+├── index.html                  # Vite input 1 — company site document
 ├── products/
-│   └── haoo/index.html         # HAOO product entry document (Vite input "haoo")
+│   └── haoo/index.html         # Vite input 2 — HAOO product document (data-page="haoo-product")
 ├── src/
-│   ├── main.tsx                # React bootstrap
-│   ├── App.tsx                 # HomePage + data-page router
-│   ├── index.css               # Tailwind directives / global styles
-│   ├── vite-env.d.ts           # Typed import.meta.env declarations
-│   ├── components/             # Presentational, props-driven units
-│   ├── pages/                  # Whole-document compositions
-│   ├── products/               # Product data layer (types, definitions, registry, copy)
-│   ├── measurement/            # Engagement context facade + Plausible sink
-│   ├── reporting/              # Node-only owner-report pipeline (never bundled)
-│   └── test/                   # All vitest suites (+ test/fixtures/)
-├── public/                     # Copied verbatim to dist/ (images, PDFs, CNAME, .htaccess)
-├── scripts/
-│   ├── assert-phase1-red.mjs      # Red-state guard script
-│   ├── generate-haoo-report.mjs   # Credentialed owner-report CLI (npm run report:haoo)
-│   └── verify-phase4-coverage.mjs # Capability-coverage guard for a phase COVERAGE.md
-├── .reports/                   # Generated owner reports (gitignored, business counts)
-├── dist/                       # Build output (generated, gitignored)
-├── .github/workflows/deploy.yml   # Typecheck→lint→build→test→Pages deploy
-├── .planning/                  # GSD planning artifacts
-├── AGENTS.md                   # Agent working agreement for this repo
-└── vite.config.ts / vitest.config.ts / tailwind.config.js / eslint.config.js / tsconfig*.json
+│   ├── main.tsx                # Single React root, shared by both documents
+│   ├── App.tsx                 # HomePage (company site) + App() page branch
+│   ├── index.css               # Tailwind entry
+│   ├── vite-env.d.ts           # ImportMetaEnv + __HAOO_APPROVED_ANALYTICS_HOSTS__ declarations
+│   ├── pages/                  # Full-page compositions (product-generic)
+│   ├── components/             # Reusable product-shell UI + pure form logic
+│   ├── products/               # Product definitions, contract, generic copy builders
+│   ├── measurement/            # Engagement context + PostHog sink + lockdown contract
+│   ├── reporting/              # Offline HAOO funnel report (Node only)
+│   └── test/                   # All tests + fixtures
+├── config/
+│   └── approved-analytics-hosts.ts   # Trust anchor, deliberately outside src/
+├── scripts/                    # Node CLIs (report generation, coverage/red-state gates)
+├── public/                     # Static root copied verbatim into dist/
+├── dist/                       # Build output (generated)
+├── vite.config.ts              # Two HTML inputs, define constant, posthog-sdk manual chunk
+├── vitest.config.ts
+├── tailwind.config.js / postcss.config.js / eslint.config.js
+└── tsconfig.json / tsconfig.app.json (src) / tsconfig.node.json (vite.config.ts + config/)
 ```
 
 ## Directory Purposes
 
-**`src/components/`:**
-- Purpose: Reusable presentational units rendered by pages
-- Contains: `.tsx` components plus co-located pure logic modules
-- Key files: `QualifyForm.tsx`, `qualify-form.logic.ts`, `OnboardingChoices.tsx`, `BrochurePanel.tsx`, `ProductHeader.tsx`, `QualifyFallback.tsx`, `MeasurementDisclosure.tsx`, `ProductsSection.tsx`
-- Rule: never import from `src/pages/`; never hardcode product facts
-
 **`src/pages/`:**
-- Purpose: Full-document composition and page-level effects
-- Key files: `ProductPage.tsx` (the reusable product shell)
-- Note: the home page still lives inline as `HomePage` inside `src/App.tsx`
+- Purpose: full-page composition for a product
+- Key files: `src/pages/ProductPage.tsx` (product-generic shell, driven by a `ProductDefinition` prop)
+
+**`src/components/`:**
+- Purpose: reusable, product-agnostic UI parts and pure logic
+- Key files: `src/components/QualifyForm.tsx` (631 lines), `src/components/qualify-form.logic.ts` (pure, non-JSX), `src/components/BrochurePanel.tsx`, `src/components/ProductHeader.tsx`, `src/components/OnboardingChoices.tsx`, `src/components/QualifyFallback.tsx`, `src/components/MeasurementDisclosure.tsx`, `src/components/ProductsSection.tsx` (company-site only)
 
 **`src/products/`:**
-- Purpose: Single source of truth for product facts and their contract
-- Key files: `types.ts` (contract), `haoo.ts` (the one live definition, ~700 lines), `registry.ts` (which products ship, route derivation), `copy.ts` (identity-guarded shared labels), `engagement-summary.ts` (pure band→sentence formatter for the enquiry email)
+- Purpose: declarative product data and its contract
+- Key files: `src/products/types.ts` (the `ProductDefinition` contract), `src/products/haoo.ts` (all HAOO facts, 810 lines), `src/products/registry.ts` (which products are live), `src/products/copy.ts` (generic label builders taking `productName`), `src/products/engagement-summary.ts`
 
 **`src/measurement/`:**
-- Purpose: Local engagement-context facade with injectable adapters, plus provider delivery
-- Key files: `index.ts` (facade, banding, storage, campaign parsing), `plausible.ts` (name-only provider sink: preload queue, `init`, script append)
+- Purpose: bounded engagement context and provider-gated capture
+- Key files: `src/measurement/index.ts` (generic, `createMeasurement`), `src/measurement/posthog.ts` (sink + refusal reasons), `src/measurement/posthog-lockdown.ts` (frozen init contract)
 
 **`src/reporting/`:**
-- Purpose: Node-only pipeline that turns Plausible aggregates into one owner-facing HTML document. Never imported by browser code.
-- Key files: `generate.ts` (capability-injected orchestration + atomic write), `haoo-report.ts` (closed label/stage/period dictionary), `stats-response.ts` (fail-closed goal-count parsing), `query-provenance.ts` (echoed-query validation), `render.ts` (script-free self-contained HTML + CSS)
-- Rules: erasable TypeScript syntax only, explicit `.ts` import extensions, and never read `process.env` or name the provider origin/query path/credential variable
-
-**`src/test/fixtures/`:**
-- Purpose: Test-only doubles and independent contract transcriptions
-- Key files: `plausible-preload-contract.ts` (independent transcription of the vendor preload contract), `haoo-report-cli-fetch-preload.mjs` (fetch preload for exercising the report CLI end to end)
+- Purpose: offline funnel report from PostHog HogQL results; never bundled into the browser
+- Key files: `src/reporting/generate.ts` (orchestration), `src/reporting/render.ts`, `src/reporting/haoo-report.ts` (stage/period vocabulary), `src/reporting/query-provenance.ts`, `src/reporting/stats-response.ts`, `src/reporting/untrusted.ts`
 
 **`src/test/`:**
-- Purpose: All tests, centralized (not co-located)
-- Key files: `setup.ts` (vitest setup), `build-output.test.ts` (asserts the real `dist/`), `qualify-form.test.tsx`, `qualify-data.test.ts`, `measurement.test.ts`, `measurement-page.test.tsx`, `haoo-report.test.ts`, `haoo-page.test.tsx`, `haoo-content.test.ts`, `product-shell-reuse.test.tsx`, `products-section.test.tsx`, `focus-contrast.test.ts`
+- Purpose: every test in the repo, plus fixtures
+- Key files: `src/test/build-output.test.ts` (1653 lines — scans `dist/assets`, partitions on the `posthog-sdk` chunk), `src/test/product-shell-reuse.test.tsx` (enforces the generic-shell boundary), `src/test/setup.ts`, `src/test/fixtures/`
+
+**`config/`:**
+- Purpose: repository-owned trust anchors that must not be importable from `src/`
+- Key files: `config/approved-analytics-hosts.ts`
+
+**`scripts/`:**
+- Purpose: Node CLIs
+- Key files: `scripts/generate-haoo-report.mjs` (only `process.env` reader), `scripts/verify-phase4-coverage.mjs`, `scripts/assert-phase1-red.mjs`
 
 **`public/`:**
-- Purpose: Assets served at the URL root, untouched by the bundler
-- Contains: `products/haoo/` brochure PDF + preview/hero/logo PNGs, `marketing/` collateral, `zero-paper_hub_hi-def.png`, `CNAME.txt`, `.htaccess`
-
-**`products/`:**
-- Purpose: Per-product HTML entry documents only (no TS/JS). Distinct from `src/products/` (data) and `public/products/` (assets).
+- Purpose: static assets copied verbatim
+- Contents: `public/products/haoo/` (HAOO brochure PDF, hero, logo, preview — product half), `public/marketing/` and `public/zero-paper_hub_hi-def.png` (company half), `public/.htaccess` (MIME fixes + rewrite of non-file requests to `/index.html`), `public/CNAME.txt`
+- Generated: No — Committed: Yes
 
 ## Key File Locations
 
 **Entry Points:**
-- `index.html`: home document, home SEO metadata
-- `products/haoo/index.html`: product document, sets `data-page="haoo-product"`, noscript fallback
-- `src/main.tsx`: React root mount
-- `src/App.tsx`: page selection + HomePage
+- `index.html`: company-site document
+- `products/haoo/index.html`: HAOO product document, carries `data-page` and the no-JS fallback
+- `src/main.tsx`: shared React root
+- `src/App.tsx` (line 655): the `data-page` branch
+- `scripts/generate-haoo-report.mjs`: report CLI (`npm run report:haoo`)
 
 **Configuration:**
-- `vite.config.ts`: multi-page Rollup inputs, `base: '/'`, `lucide-react` excluded from prebundling
-- `vitest.config.ts`: jsdom environment, `src/test/setup.ts`
-- `tsconfig.app.json` / `tsconfig.node.json` / `tsconfig.json`: project references
-- `eslint.config.js`, `tailwind.config.js`, `postcss.config.js`
-- `src/vite-env.d.ts`: declares `VITE_HAOO_FORM_ENDPOINT`, `VITE_HAOO_MEASUREMENT_PROVIDER`
-- `.github/workflows/deploy.yml`: CI/CD gate order
+- `vite.config.ts`: two HTML inputs, `__HAOO_APPROVED_ANALYTICS_HOSTS__` define, `posthog-sdk` manual chunk
+- `vitest.config.ts`, `eslint.config.js`, `tailwind.config.js`, `postcss.config.js`
+- `tsconfig.app.json` covers `src`; `tsconfig.node.json` covers `vite.config.ts` and `config`
+- `src/vite-env.d.ts`: declares `VITE_HAOO_FORM_ENDPOINT`, `VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_POSTHOG_TOKEN`, `VITE_HAOO_POSTHOG_API_HOST`
 
 **Core Logic:**
-- `src/products/types.ts`: the contract new products must satisfy
-- `src/products/haoo.ts`: every HAOO fact, including endpoint resolution
-- `src/components/qualify-form.logic.ts`: validation, submission body, status copy
-- `src/measurement/index.ts`: context banding, campaign parsing, storage lifecycle
-
-**Reporting:**
-- `scripts/generate-haoo-report.mjs`: the only module that reads `process.env`, names `https://plausible.io/api/v2/query`, and knows the output path `.reports/haoo-funnel-report.html`
-- `src/reporting/generate.ts`: query → validate → render → temp-write → rename
-- `src/reporting/haoo-report.ts`: every owner-facing word in the report
+- `src/products/haoo.ts`: all HAOO facts and every env resolver
+- `src/pages/ProductPage.tsx`: the product shell
+- `src/measurement/index.ts`: engagement-context derivation
 
 **Testing:**
-- `src/test/*.test.ts` / `*.test.tsx`, fixtures in `src/test/fixtures/`
-- `scripts/assert-phase1-red.mjs`, `scripts/verify-phase4-coverage.mjs`
+- `src/test/*.test.ts` / `*.test.tsx`
 
 ## Naming Conventions
 
 **Files:**
-- React components: `PascalCase.tsx` — `QualifyForm.tsx`, `ProductPage.tsx`
-- Pure logic / data modules: `kebab-case.ts` or single-word lowercase — `qualify-form.logic.ts`, `registry.ts`, `copy.ts`, `haoo.ts`, `engagement-summary.ts`, `stats-response.ts`, `query-provenance.ts`
-- Node entry points and test preloads: `kebab-case.mjs` under `scripts/` or `src/test/fixtures/`
-- Co-located logic for a component: `<component-kebab>.logic.ts`
-- Tests: `<subject>.test.ts` for logic, `<subject>.test.tsx` for rendering
-- Barrel-style module entry: `index.ts` (used only by `src/measurement/`)
+- React components: `PascalCase.tsx` (`QualifyForm.tsx`, `ProductPage.tsx`)
+- Non-JSX modules: `kebab-case.ts` (`engagement-summary.ts`, `posthog-lockdown.ts`, `query-provenance.ts`)
+- Pure logic split out of a component: `<component-name>.logic.ts` (`qualify-form.logic.ts`)
+- Tests: `kebab-case.test.ts` / `.test.tsx` under `src/test/`
+- Node CLIs: `kebab-case.mjs` under `scripts/`
 
 **Directories:**
-- Lowercase, singular-by-concern: `components`, `pages`, `products`, `measurement`, `test`
-- Product asset and document folders are named by slug: `haoo`
+- lowercase, singular for a layer (`pages`, `products`, `measurement`, `reporting`), plural for collections (`components`, `scripts`)
+- Product routes mirror the slug: `products/<slug>/`, `public/products/<slug>/`
 
-**Exports:**
-- Components: `export default`
-- Data, types, helpers, constants: named exports; constants `SCREAMING_SNAKE_CASE` (`PRODUCTS`, `QUALIFY_ENDPOINT_FALLBACK`, `HONEYPOT_NAME`)
-
-**Routes:** derived from slug as `/products/<slug>/` via `productRoute()` in `src/products/registry.ts`.
+**Symbols:**
+- Product data constants: `SCREAMING_SNAKE_CASE` (`HAOO_PRODUCT`, `HAOO_MEASUREMENT_EVENTS`, `QUALIFY_ENDPOINT`)
+- Env resolvers: `resolveX(configuredValue?: string)`
 
 ## Where to Add New Code
 
-**New product:**
-1. Definition: `src/products/<slug>.ts` exporting a `ProductDefinition`
-2. Register: add to `PRODUCTS` in `src/products/registry.ts`
-3. Entry document: `products/<slug>/index.html` with `<body data-page="<slug>-product">`, canonical URL, metadata, noscript fallback
-4. Register the document as a Rollup input in `vite.config.ts`
-5. Add the branch in `App` (`src/App.tsx`)
-6. Assets: `public/products/<slug>/`
-7. Tests: `src/test/<slug>-content.test.ts` and `src/test/<slug>-page.test.tsx`; extend `src/test/build-output.test.ts`
+**New product (second product alongside HAOO):**
+- Document: `products/<slug>/index.html` with `<body data-page="<slug>-product">`
+- Data: `src/products/<slug>.ts` exporting a `ProductDefinition`
+- Register: add to `PRODUCTS` in `src/products/registry.ts`
+- Build: add the input to `rollupOptions.input` in `vite.config.ts`
+- Branch: add the case in `App()` (`src/App.tsx:655`)
+- Assets: `public/products/<slug>/`
 
-**New product page section:**
-- Component: `src/components/<Name>.tsx`, props typed from `src/products/types.ts`
-- Compose in `src/pages/ProductPage.tsx`
-- Any new copy becomes a definition field, not an inline string
+**New product-page UI:**
+- Component: `src/components/<Name>.tsx`, parameterised by props from `ProductDefinition` — never naming a product
+- Copy builders: `src/products/copy.ts` (take `productName`/`slug`)
+- Contract change: `src/products/types.ts`
 
-**New product field:**
-- Extend `src/products/types.ts` first (readonly), then every definition, then consumers — the compiler drives the change
-
-**New shared label:**
-- `src/products/copy.ts`, guarded by `requireIdentity`
-
-**New measurement event or flag:**
-- Add the event name and `interactionEventFlags` entry in the product's `measurement` config (`src/products/haoo.ts`); if the stored record shape changes, bump `schemaVersion` and update `CONTEXT_RECORD_KEYS` in `src/measurement/index.ts`
-- Add disclosure text under `measurement.disclosure.signalLines` — the disclosure is typed per event name, so an undisclosed event fails typecheck
-
-**New form field:**
-- Add a `QualifyField` to the product's `qualify.fields` and place its name in a `groups` entry; validation is derived, not hand-written. Never use a name in `RESERVED_EMAIL_LABELS`.
-
-**New reporting logic:**
-- Add to `src/reporting/`, importing siblings with an explicit `.ts` extension and erasable syntax only
-- Take every side effect (`fetch`, `now`, `fs`) as an injected capability on the options object — never import `node:fs` or read `process.env` under `src/`
-- Owner-facing wording belongs in `src/reporting/haoo-report.ts`, never inline in `render.ts`
-- Extend the `.mjs` entry only when a new credential or origin is needed
+**New company-site section:**
+- `HomePage` in `src/App.tsx`, plus an entry in `NAV_LINKS` (`src/App.tsx:110`)
 
 **New measurement event:**
-- Add the name to `HAOO_MEASUREMENT_EVENTS` and `interactionEventFlags` in `src/products/haoo.ts`, the disclosure line under `measurement.disclosure.signalLines`, and a label + stage in `src/reporting/haoo-report.ts` — the `Readonly<Record<HaooMeasurementEvent, …>>` maps make omissions typecheck failures
-- Configure the matching goal on the Plausible site; the browser sink sends the bare name only
+- Add the name to `HAOO_MEASUREMENT_EVENTS` (`src/products/haoo.ts:24`) and its disclosure entry in `HAOO_MEASUREMENT`
+- Add the reporting stage/label in `src/reporting/haoo-report.ts`
 
-**Static asset:**
-- `public/` (root-served, hashed nothing) — reference by absolute path such as `/products/haoo/haoo-hero.png`
+**New analytics origin:**
+- `config/approved-analytics-hosts.ts` only — never a literal under `src/`
 
 **Tests:**
-- Always `src/test/`, never co-located
+- `src/test/<subject>.test.ts(x)`; fixtures in `src/test/fixtures/`
 
 ## Special Directories
 
-**`dist/`:** build output. Generated: yes. Committed: no (gitignored). Asserted by `src/test/build-output.test.ts`, so it must exist before `npm run test:unit`.
-
-**`.reports/`:** generated owner reports. Generated: yes (`npm run report:haoo`). Committed: no — gitignored because the documents carry aggregate HAOO business counts. `.tmp` siblings here are reserved exclusively during a run; a leftover one fails the next run closed and must be removed by hand.
-
+**`dist/`:** build output; generated; not committed as source (`npm test` builds it first, and `src/test/build-output.test.ts` scans `dist/assets`).
 **`node_modules/`:** generated, not committed.
-
-**`.planning/`:** GSD phase plans, roadmap, state, and these codebase documents. Committed.
-
-**`.claude/worktrees/`:** transient GSD execution worktrees containing full repo copies. Not source; exclude from searches and analysis.
-
-**`.bolt/`, `.gsd/`:** tooling metadata (`config.json`, `prompt`, `dispatch-isolation-sentinel.json`). Not application code.
-
-**`public/marketing/`:** marketing collateral (HTML/PDF/PNG) shipped as static files, not part of the React app.
+**`.planning/`:** GSD planning artifacts, committed.
+**`config/`:** must not be imported from `src/`; only `vite.config.ts` reads it.
 
 ---
 
-*Structure analysis: 2026-09-02*
+*Structure analysis: 2026-09-05*

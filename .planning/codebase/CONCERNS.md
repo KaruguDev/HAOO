@@ -1,265 +1,213 @@
 ---
-last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+last_mapped_commit: e91a3b97ce46cd965624cfda94abc6c34c86d2a4
 ---
-<!-- refreshed: 2026-09-02 -->
+<!-- refreshed: 2026-09-05 -->
 # Codebase Concerns
 
-**Analysis Date:** 2026-09-02
+**Analysis Date:** 2026-09-05
 
-`npm run typecheck` and `npm run lint` both exit clean. `npx vitest run` reports 723 passing tests across 21 files — but only 11 of those files are real; the rest are collected from abandoned worktrees (see Known Bugs).
+**Verification basis:** every claim below was checked against the working tree at `e91a3b9`, not against the planning record. `npm run typecheck && lint && build && test:unit && verify:coverage` were all run: **685 tests pass in 11 files, coverage audit passes (69 capabilities / 3 tables).** Several items the prompt listed as "known open" are in fact ALREADY CLOSED in code and are recorded here as stale-documentation concerns instead.
 
-Since the previous audit, Phase 3 and Phase 4 landed `src/measurement/plausible.ts`, `src/products/engagement-summary.ts`, and the whole `src/reporting/` + `scripts/generate-haoo-report.mjs` owner-report path. The dead-analytics-stub debt from the last audit is **closed** — `resolveMeasurementProvider()` now resolves against a real provider tuple and a validated script source. Two new blocking security concerns replaced it, both formally recorded as failed truths in `04-VERIFICATION.md`. The legacy home page (`src/App.tsx`) is unchanged and remains the largest concentration of debt.
+---
+
+## Blocking Concern — the deployed site does not do what the repository does
+
+**G-04.1-3 (open, owner action, no code can close it):**
+- Issue: HAOO measurement is fully implemented and proven against the real pinned SDK, but the published site captures nothing.
+- Files: `.github/workflows/deploy.yml` (Build step reads `${{ vars.VITE_HAOO_MEASUREMENT_PROVIDER }}`, `VITE_HAOO_POSTHOG_TOKEN`, `VITE_HAOO_POSTHOG_API_HOST`), `src/products/haoo.ts:220-224` (`resolveMeasurementProvider` / `providerConfig`), `.planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-VERIFICATION.md`
+- Two independent causes:
+  1. **Unpushed work.** `origin/main` is at `7ba2c89`; `HEAD` is **2 commits ahead** (the verification report's "14 commits behind" is stale — most of that round has since been pushed).
+  2. **The three GitHub Actions repository VARIABLES are not confirmed created.** An absent variable expands to `""`, `resolveMeasurementProvider` fails closed to `none`, no sink is created, and typecheck, lint, `verify:coverage`, build and all 685 tests stay green while the deploy captures nothing.
+- Impact: a green CI run is not evidence of a capturing deploy. Zero events in PostHog will read as a dead funnel rather than a broken configuration. UAT checkpoints 8 and 10 cannot run.
+- Fix approach: owner creates `VITE_HAOO_MEASUREMENT_PROVIDER=posthog`, `VITE_HAOO_POSTHOG_TOKEN=phc_...`, `VITE_HAOO_POSTHOG_API_HOST=https://us.i.posthog.com` as repository *variables* (not secrets), pushes `main`, then performs UAT checkpoint 10 before checkpoint 8. **Do not route this to `/gsd-plan-phase --gaps`** — the repository side is already satisfied.
+
+---
 
 ## Tech Debt
 
-**`src/App.tsx` is a 661-line mixed-concern module:**
-- Issue: Routing, the `useInView` hook, the profile-download side effect, nav-link composition, all page copy, and the whole home page JSX live in one file. Compare with `src/pages/ProductPage.tsx` (315 lines), which delegates to `src/components/*`.
+**Stale verification and audit records (highest-value cleanup):**
+- Issue: `.planning/` describes defects that the tree no longer has. Downstream agents planning 04.2 will re-fix already-fixed code or block on phantom gaps.
+- Files: `.planning/phases/02-submit-a-qualified-haoo-enquiry/02-VERIFICATION.md` (`status: gaps_found`, `verified: 2026-08-30`), `.planning/v1-MILESTONE-AUDIT.md` (`audited: 2026-08-30`, still says Phases 03/04/05 have "no phase directory")
+- Measured against the tree, **three of the four upheld Phase 2 blockers are closed:**
+  | Reported blocker | Live state |
+  |---|---|
+  | CR-02 success copy overclaims email delivery | **CLOSED.** `src/products/copy.ts:88` now reads "Your details were submitted. If you don't hear back within one business day, use one of the contacts below." No delivery claim. |
+  | CR-01 disclosure/payload contradiction | **CLOSED.** `qualifyCollectionNotePageContext` (`copy.ts:123-127`) and `buildSubmissionBody` (`qualify-form.logic.ts:112-147`, appends `qualify.engagementSummary.emailLabel`) now agree; the summary is really attached. |
+  | Phone validator accepts punctuation-only values | **CLOSED.** `src/products/haoo.ts:712` — `^(?=(?:[^0-9]*[0-9]){7,})\+?[0-9 ()-]+$` requires at least seven digits. |
+  | CR-04 edits during submission discarded | **CLOSED.** `src/components/QualifyForm.tsx:395` (`disabled: state === 'submitting'`) plus the snapshot comment at `:389-394`; pinned by the passing test "locks every control while a request is in flight, then releases them". |
+- Residual (genuinely still open): `QUALIFY_CONFIRMATION_HEADING = 'Your details are on their way'` (`QualifyForm.tsx:52`) is still a soft transit claim derived from `response.ok` alone (`:358`), and there is no re-verification run recording any of the above.
+- Fix approach: re-run `/gsd-verify-work` for Phase 2 and re-run `/gsd-audit-milestone`; do not carry the 2026-08-30 verdicts into 04.2 planning.
+
+**Draft validation contracts:**
+- Issue: `status: draft` / `nyquist_compliant: false` — confirmed in the tree.
+- Files: `.planning/phases/02-submit-a-qualified-haoo-enquiry/02-VALIDATION.md`, `.planning/phases/03-build-privacy-bounded-engagement-context/03-VALIDATION.md`
+- Impact: two of five executed phases have no audited feedback-sampling contract. `/gsd-audit-milestone` §5.5 will classify them NOT-VALIDATED, not PARTIAL.
+- Fix approach: `/gsd-validate-phase 02` and `/gsd-validate-phase 03`. Note both files travel to the new HAOO repository under 04.2 D-03 and are still owed there.
+
+**Hardcoded phase path in the CI coverage gate:**
+- Issue: `package.json` `verify:coverage` hardcodes `.planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/COVERAGE.md`, and `.github/workflows/deploy.yml` runs it as a deploy-blocking step.
+- Files: `package.json:11`, `scripts/verify-phase4-coverage.mjs` (317 lines, named for Phase 4 but auditing 04.1), `.github/workflows/deploy.yml`
+- Impact: the next phase's COVERAGE.md is unaudited unless someone remembers to edit the script argument; renaming or archiving the 04.1 phase directory breaks the deploy.
+- Fix approach: accept a phase argument or glob the current phase from `.planning/STATE.md`; rename the script off `phase4`.
+
+**Placeholder project identity:**
+- Issue: `package.json` still declares `"name": "vite-react-typescript-starter"`, `"version": "0.0.0"`.
+- Files: `package.json:2-4`
+- Impact: cosmetic today, actively confusing at the 04.2 split when two repositories both claim the starter name.
+
+**Home page monolith with no measurement or test coverage:**
+- Issue: `src/App.tsx` is 661 lines carrying the entire ZERO-PAPER HUB marketing page plus its own hand-rolled FormSubmit contact form (`:142-143`, `:557`), none of which uses the product shell, the measurement facade, or the disclosure discipline the HAOO half is held to.
 - Files: `src/App.tsx`
-- Impact: Every home page change touches the same file; conflicts and accidental copy regressions are likely.
-- Fix approach: Split along the boundaries `ProductPage` already demonstrates — a `pages/HomePage.tsx`, a `home/copy.ts`, and section components.
+- Impact: the company-site half has effectively no automated coverage while the product half has 685 tests. Any regression there ships silently.
 
-**Two form implementations with divergent quality:**
-- Issue: The HAOO qualification form (`src/components/QualifyForm.tsx`, `src/components/qualify-form.logic.ts`) is an AJAX form with validation, an abort-based 15s timeout, an allowlist-checked payload builder, a reserved-label guard, an engagement-context field, and a recovery panel. The home contact form (`src/App.tsx:547`) is a raw native `<form action method="POST">` with only browser-native constraint validation and no recovery path.
-- Files: `src/App.tsx:142-200`, `src/App.tsx:547-628`
-- Impact: The primary company-wide lead capture path has strictly weaker guarantees than the product-specific one, and shares no code with it.
-- Fix approach: Migrate the home contact form onto the `QualifyForm` + `ProductQualifyForm` config seam already proven for HAOO. `src/products/types.ts` already models an endpoint-per-form.
-
-**Home page copy is duplicated between the rendered page and the download blob:**
-- Issue: Company history, mission, vision, and all three service descriptions are written twice — once inside the `downloadCompanyProfile()` template literal (`src/App.tsx:26-88`) and once in the JSX/`SERVICES` constant (`src/App.tsx:153-168`, `src/App.tsx:327`).
-- Files: `src/App.tsx`
-- Impact: The downloaded company profile can silently drift from the published page. No test asserts they agree.
-- Fix approach: Extract a single copy module (mirroring `src/products/copy.ts`) and generate the download from it.
-
-**The Stats API request has no timeout or abort:**
-- Issue: `queryRange()` in `src/reporting/generate.ts:127` awaits `options.fetch(...)` with no `AbortSignal` and no deadline, unlike `QualifyForm`, which uses an explicit 15s abort for the same class of call.
-- Files: `src/reporting/generate.ts:115-150`, `scripts/generate-haoo-report.mjs`
-- Impact: A hung provider connection hangs `npm run report:haoo` indefinitely with no output and no error state — a CLI, so the blast radius is small.
-- Fix approach: Thread an `AbortSignal` with a documented deadline through the injected `ReportFetch` capability; the seam already exists.
-
-**Seven sequential network round-trips per report:**
-- Issue: `generateHaooReport()` awaits three bounded periods (current + previous each) and then all-time strictly serially (`src/reporting/generate.ts:190-215`).
-- Files: `src/reporting/generate.ts`
-- Impact: Report latency is 7 × RTT. Acceptable for a manual owner command; it becomes a problem only if the report is ever put on a schedule.
-- Fix approach: `Promise.all` over the range list. Fail-closed semantics are unaffected because every result is validated before any write.
-
-**Scaffold metadata never updated:**
-- Issue: `package.json` still declares `"name": "vite-react-typescript-starter"` and `"version": "0.0.0"`.
-- Files: `package.json`
-- Impact: Cosmetic, but the project has no version identity for release notes or bug reports.
-- Fix approach: Set a real name and adopt versioning at milestone boundaries.
-
-**`QualifyForm.tsx` exports non-component values, disabling Fast Refresh:**
-- Issue: `react-refresh/only-export-components` warnings, documented in `.planning/phases/02-submit-a-qualified-haoo-enquiry/deferred-items.md`. Lint exits 0 because these are warnings.
-- Files: `src/components/QualifyForm.tsx`
-- Impact: Developer experience only — the file does not hot-reload.
-- Fix approach: The pure helpers already have a home in `src/components/qualify-form.logic.ts`; move the remaining exports.
+**Documentation still naming the retired provider:**
+- Issue: deliberate and documented (`.planning/phases/04.1-*/deferred-items.md` D5) — the reporting surface, two negative assertions, and the phase directory name retain "plausible" on purpose. But `README.md` and `04-USER-SETUP.md` still carry the four *removed* report-variable names (deferred-items "From 04.1-07").
+- Fix approach: sweep the removed variable names out of `README.md` and `04-USER-SETUP.md`; leave the intentional retentions alone.
 
 ## Known Bugs
 
-**Vitest collects and runs tests out of two leftover git worktrees:**
-- Symptoms: 21 test files collected where `src/test/` contains 11; suites such as `.claude/worktrees/rf-03-retry-1788205465/src/test/measurement.test.ts` run alongside the real ones. The worktree copies have **diverged** — the worktree's `build-output.test.ts` reports 25 tests versus 26 in `src/`, and its `measurement.test.ts` 77 versus 113.
-- Files: `vitest.config.ts` (no `test.include` / `test.exclude`), `.claude/worktrees/rf-03-2-1788205432/`, `.claude/worktrees/rf-03-retry-1788205465/`
-- Trigger: Any abandoned GSD review-fix worktree under `.claude/worktrees/`. A stale recovery marker at `.planning/phases/03-build-privacy-bounded-engagement-context/.review-fix-recovery-pending.json` still points at one of them.
-- Workaround: `git worktree remove` both, or pin `test.include: ['src/**/*.test.{ts,tsx}']` in `vitest.config.ts`. The latter is the durable fix — divergent copies can turn a passing branch red, mask a deleted test, or inflate the pass count. Recorded as deferred in `.planning/phases/04-report-and-enrich-the-haoo-funnel-truthfully/deferred-items.md`.
+**Double-initialization raises the loudest privacy alarm falsely:**
+- Symptoms: a second `createPostHogEventSink` call in one page load returns `undefined` and signals `posthog:unconfirmed-lockdown-readback`.
+- Files: `src/measurement/posthog.ts` (~`:374`), `src/measurement/posthog-lockdown.ts:289-290`
+- Trigger: `POSTHOG_LOCKDOWN` mints a fresh `before_send` per call while `boundPostHogClient()` returns the posthog-js module **singleton**, whose `init` short-circuits on re-entry and keeps the first configuration; identity comparison then fails.
+- Workaround: the precondition holds today only by accident — MPA routing on `document.body.dataset.page` (`src/App.tsx:657`), one `useMemo` facade per mount, StrictMode double-mount being development-only, and no caller passing `measurementAdapters`. Nothing in `src/measurement` declares or enforces it.
+- Fix approach: memoize the established sink per client+token+apiHost (review WR-01), or declare and assert the single-initialization precondition.
 
-**`npm run test:unit` fails on a stale `dist/` in a clean checkout:**
-- Symptoms: `src/test/build-output.test.ts:256` fails with `Stale build output ... is older than build input ... Run npm run build.` Not reproducing at this analysis (dist is current), but the assertion is unchanged and fires on any source edit without a rebuild.
-- Files: `src/test/build-output.test.ts`, `package.json` (`test` vs `test:unit`)
-- Trigger: Editing any source file without re-running `npm run build`. CI is safe because `.github/workflows/deploy.yml` runs Build immediately before `test:unit`.
-- Workaround: Run `npm run test` (which builds first) or `npm run build` before `test:unit`.
-
-**Contact success banner is triggered by a URL query parameter alone:**
-- Symptoms: `src/App.tsx:181` derives `contactSubmitted` from `?contact=success` and renders "Message sent successfully / Our team will get back to you shortly." Anyone visiting or bookmarking that URL sees the confirmation without having sent anything.
-- Files: `src/App.tsx:180-195`, `src/App.tsx:143` (`CONTACT_SUCCESS_URL`)
-- Trigger: Navigating to `https://www.zero-paperhub.com/?contact=success`.
-- Workaround: None in code. This directly contradicts the truthfulness discipline enforced on the HAOO path, where `QualifyForm` derives its terminal state from `response.ok` only.
-
-**An abandoned reservation sibling permanently blocks report regeneration:**
-- Symptoms: `generateHaooReport()` reserves a fixed temporary sibling with `openSync(path, 'wx')` (`scripts/generate-haoo-report.mjs`, `src/reporting/generate.ts:250`). Cleanup runs on caught failures, but an uncatchable termination (SIGKILL, power loss) leaves the sibling; every subsequent run then fails closed at reservation with the generic error sentence.
-- Files: `src/reporting/generate.ts:248-275`, `scripts/generate-haoo-report.mjs`
-- Trigger: Killing `npm run report:haoo` mid-write.
-- Workaround: Delete the sibling under `.reports/` manually. The behavior is deliberate (documented in-code), but the terminal error does not name the file to delete.
+**FormSubmit endpoint is unactivated:**
+- Symptoms: a real prospect can complete the form, see the confirmation panel, and have the submission go nowhere.
+- Files: `src/products/haoo.ts` (`QUALIFY_ENDPOINT_FALLBACK` → `https://formsubmit.co/ajax/info@haoo.online`), `.planning/phases/02-*/02-USER-SETUP.md` (status Incomplete)
+- Fix approach: Phase 5 LEAD-07 — activate the endpoint and prove a uniquely tagged production submission reaches the inbox or spam folder.
 
 ## Security Considerations
 
-**The analytics script origin is unconstrained (open failed truth, T-04 family):**
-- Risk: `resolvePlausibleScriptSrc()` (`src/products/haoo.ts:63-85`) validates URL shape only — absolute `https:`, no credentials, no query, no fragment, path ending in `.js` — and deliberately does **not** compare the host against an approved origin. A tampered build variable (`VITE_HAOO_PLAUSIBLE_SRC`) therefore loads attacker-controlled JavaScript with full page, form, and `localStorage` access.
-- Files: `src/products/haoo.ts:63-85`, `src/measurement/plausible.ts:68-80` (`appendProviderScript`)
-- Current mitigation: The build variable is a GitHub Actions repository variable, so the attack requires repo/CI write. The comment explains the origin was left out of `src/` to keep it out of unconfigured bundles.
-- Recommendations: Validate against an independently trusted approved origin/path contract (an allowlist injected at build time, or a Subresource Integrity hash), and add a regression case in `src/test/measurement.test.ts` that rejects a structurally valid HTTPS `.js` URL on a foreign origin. Recorded verbatim as a failed truth in `04-VERIFICATION.md`.
+**`VITE_*` is world-readable and only a test enforces it:**
+- Risk: Vite inlines every `VITE_*` value into the published bundle. A credential assigned to a `VITE_*` name would ship to every visitor.
+- Files: `.github/workflows/deploy.yml` (Build env), `src/test/build-output.test.ts` (reads the workflow at `:743`, asserts every `VITE_*` value is exactly one `${{ vars.* }}` expression and that `POSTHOG_QUERY_API_KEY` / `POSTHOG_PROJECT_ID` are absent)
+- Current mitigation: the workflow-shape assertion plus the bundle credential scan — genuinely good, and the reason the three PostHog values are variables rather than secrets.
+- Recommendations: keep the workflow-reading assertions load-bearing through the 04.2 split; they are the only thing standing between the report credentials and the public bundle.
 
-**Provider initialization is not fail-closed (open failed truth):**
-- Risk: `createPlausibleEventSink()` appends the provider script *before* initializing, treats any pre-existing `window.plausible` function as trusted (`src/measurement/plausible.ts:88-90`), calls `init?.()` optionally, swallows an initialization throw, and returns a live sink regardless (`src/measurement/plausible.ts:130-155`). The `autoCapturePageviews: false` opt-out is therefore not guaranteed to be established before collection begins, so automatic pageview capture — which could carry `utm_*` values into provider dimensions — can occur.
-- Files: `src/measurement/plausible.ts:88-155`
-- Current mitigation: Every provider call is name-only; `PlausibleGlobal` has no property-bag parameter, so no form value or visitor identifier can travel even if the sink is live.
-- Recommendations: Require successful `init` before script insertion and before returning a sink; add absent-initializer and throwing-initializer tests asserting no script tag and no sink while the local journey stays functional.
+**Spam control is a honeypot and nothing else:**
+- Risk: `_captcha: 'false'` (`src/components/qualify-form.logic.ts:118`) plus `_honey`. A trivially scriptable endpoint sits behind a public form.
+- Files: `src/components/qualify-form.logic.ts:112-125`, `src/components/QualifyForm.tsx`
+- Recommendations: accepted for v1; revisit if the HAOO inbox takes volume after LEAD-07 activation.
 
-**All lead data transits a third-party form relay:**
-- Risk: Both forms POST visitor-entered names, emails, organizations, portfolio details, free-text messages, and now a human-readable `HAOO engagement context` paragraph (`src/components/qualify-form.logic.ts:54`) to `formsubmit.co`, which sees the entire payload before forwarding to a mailbox.
-- Files: `src/App.tsx:142`, `src/products/haoo.ts` (`QUALIFY_ENDPOINT_FALLBACK`), `src/products/copy.ts`, `src/products/engagement-summary.ts`
-- Current mitigation: Strong. The endpoint is validated to an absolute `https://formsubmit.co/ajax/{target}` URL. `buildSubmissionBody()` throws if a product field claims a reserved provider label. `formatEngagementSummary()` reads a hardcoded three-member pick list (`READABLE_MEMBERS` in `src/products/engagement-summary.ts:17`) rather than spreading the stored record, so adding a member to the browser context cannot silently add it to an outbound email.
-- Recommendations: Document the relay in a privacy notice as prominently as the measurement disclosure. Longer term, a first-party endpoint removes the class entirely.
-
-**Endpoint and provider configuration are build-time only and silently fall back:**
-- Risk: `VITE_HAOO_FORM_ENDPOINT`, `VITE_HAOO_MEASUREMENT_PROVIDER`, `VITE_HAOO_PLAUSIBLE_SRC`, and `VITE_HAOO_PLAUSIBLE_DOMAIN` are inlined at build time. Unset, misspelled, or invalid values all resolve to a silent inert default — `'none'`, `''`, or `QUALIFY_ENDPOINT_FALLBACK` — with a clean build and no signal.
-- Files: `src/products/haoo.ts:43-130`, `src/vite-env.d.ts`, `.github/workflows/deploy.yml`
-- Current mitigation: The fail-closed default is correct behavior; the defect is only the absence of a signal.
-- Recommendations: Fail the build (or emit a loud CI warning step) when the production build resolves any of the four to its inert default.
-
-**The home contact form and the HAOO form make inconsistent anti-abuse claims:**
-- Risk: `src/App.tsx:617` states "Protected by reCAPTCHA and an automated spam trap." The HAOO payload sets `_captcha: 'false'`, so that path has the honeypot only. Copy drift between the two makes the claim false.
-- Files: `src/App.tsx:617`, `src/components/qualify-form.logic.ts`
-- Current mitigation: Honeypot `_honey` on both forms; length caps on every input.
-- Recommendations: Add a test asserting the trust line matches the actual `_captcha` value, the way `src/test/haoo-content.test.ts` pins other copy.
-
-**Not found (good):** `scripts/generate-haoo-report.mjs` is the only module reading `process.env` and the only one naming the provider origin, and it never writes either into the generated HTML or stdout — asserted by a source test in `src/test/haoo-report.test.ts`. Generated reports land in `.reports/`, which `.gitignore` excludes with an explanatory comment, alongside the whole `.env.*` family. `src/reporting/render.ts:74` escapes every interpolated value with `escapeHtml`. Untrusted provider responses are validated fail-closed by `src/reporting/stats-response.ts` and `src/reporting/query-provenance.ts` (rebuilt literals, never spread). No secrets committed. No `dangerouslySetInnerHTML`, `eval`, `innerHTML`, `@ts-ignore`, `eslint-disable`, or `any` in `src/`. No TODO/FIXME/HACK markers anywhere.
+**Unresolved Kenya DPA 2019 / processor sign-off:**
+- Risk: the collection disclosure is published copy about a real data-collection practice with no privacy/legal sign-off recorded.
+- Files: `.planning/phases/02-*/02-VALIDATION.md:91`, `src/products/copy.ts:105-127`, `src/components/MeasurementDisclosure.tsx`
+- Current mitigation: `qualifyCollectionNoteProcessor` names FormSubmit explicitly; 04.1 added the US-processing statement.
+- Recommendations: 04.2 D-09 makes this a BLOCKING human checkpoint — a change of origin for the collecting site falls squarely inside what the sign-off must cover. An executor may not clear it.
 
 ## Performance Bottlenecks
 
-None material — a static two-page Vite site with three runtime dependencies, plus an offline report CLI.
+**279.67 kB vendor chunk on a marketing product page:**
+- Problem: `posthog-js` 1.425.1 ships as the `posthog-sdk` manual chunk in **every** build, including provider-unset builds.
+- Files: `vite.config.ts:65-68`, `src/measurement/posthog.ts:1`
+- Cause: a value-position import was required to close G-04.1-1; the chunk is emitted regardless of whether the provider resolves to `none`.
+- Improvement path: dynamic `import()` behind the provider check, so a `none` build never fetches it. Would need the bundle invariants in `src/test/build-output.test.ts` re-derived against an async chunk.
 
-**Per-section `IntersectionObserver` instances:**
-- Problem: `useInView()` (`src/App.tsx:94`) creates one observer per animated section; five are live on the home page (`src/App.tsx:202-206`).
-- Improvement path: Not worth changing. Each observer self-disconnects on first intersection.
-
-**Unthrottled scroll listener:**
-- Problem: `src/App.tsx:185` attaches a `scroll` handler calling `setScrolled` on every event.
-- Cause: No `requestAnimationFrame` guard; React bails out on the identical boolean, so the cost is the handler call itself.
-- Improvement path: Guard with a ref comparison if the home page ever gets heavier.
-
-**Report is rendered as one in-memory string:**
-- Problem: `renderReport()` (`src/reporting/render.ts`, 527 lines) concatenates the whole self-contained HTML document before writing.
-- Cause: Deliberate — write-on-success requires the full document in memory before the temp sibling is reserved.
-- Improvement path: None needed. Output is bounded by ten events × four periods.
+**Build-output suite dominates test time:**
+- Problem: `src/test/build-output.test.ts` takes ~16.8s of an ~18.6s run, with two cases spending 10.3s and 6.3s spawning their own probe builds.
+- Files: `src/test/build-output.test.ts:411-460`
+- Improvement path: acceptable today; watch it if more probe builds are added at the split.
 
 ## Fragile Areas
 
-**Routing is a single `data-page` attribute read:**
-- Files: `src/App.tsx:655` (`document.body.dataset.page === 'haoo-product'`), `products/haoo/index.html`, `vite.config.ts`
-- Why fragile: There is no router. Page identity lives in a hand-written HTML attribute in a second entry-point file that must stay in sync with `vite.config.ts` inputs and the deploy directory layout. A typo silently renders the home page at the product URL. `document` is read at module scope, so any SSR or non-DOM import breaks.
-- Safe modification: When adding a product, change all three in one commit — the `products/<slug>/index.html` entry, the `rollupOptions.input` key, and `PRODUCTS` in `src/products/registry.ts:14`.
-- Test coverage: Good — `src/test/product-shell-reuse.test.tsx` and `src/test/build-output.test.ts`.
+**`src/test/build-output.test.ts` (1653 lines) — the single most fragile artifact in the repository:**
+- Files: `src/test/build-output.test.ts`
+- Why fragile: it reads three inputs it does not own — `.github/workflows/deploy.yml`, the repository's own `dist/` (gitignored, so a stale build silently changes what is asserted), and the source tree via a path-keyed `PRODUCT_SOURCE_BOUNDARY` map (`:129-156`). Its own comments record that an earlier version passed vacuously against nothing.
+- Safe modification: never delete a boundary regex — narrow it to a named successor and record the withdrawal (the 04.1 precedent in `deferred-items.md` D1–D5). Never remove a `toBeGreaterThan(0)` guard; those are what stop vacuous passes.
 
-**The closed event tuple is a cross-module contract with four owners:**
-- Files: `src/products/haoo.ts` (`HAOO_MEASUREMENT_EVENTS`, `disclosure.signalLines`), `src/reporting/haoo-report.ts:22` (`REPORT_EVENT_LABELS`, `REPORT_EVENT_STAGES`), `scripts/verify-phase4-coverage.mjs`, and the ten goals configured manually in the provider dashboard.
-- Why fragile: Adding an eleventh event requires an in-repo label, a stage, a disclosure line, and a **dashboard change made outside the repo**. Only the first three are compiler-enforced (via `Readonly<Record<HaooMeasurementEvent, …>>`); a missing dashboard goal silently reports zero forever.
-- Safe modification: Change the tuple and the dashboard in the same session; re-run `npm run report:haoo` and confirm the new row is non-zero after exercising the action.
-- Test coverage: Strong in-repo (`src/test/haoo-report.test.ts`, 1,707 lines). Zero coverage of the dashboard side — this is a human gate listed in `04-VERIFICATION.md`.
+**Vendor contract is a transcription, not the vendor:**
+- Files: `src/test/fixtures/posthog-capture-contract.ts`, `src/measurement/posthog-lockdown.ts`
+- Why fragile: every in-repo test exercises a fixture copy of posthog-js defaults (recorded gap WR-F: 20 documented default keys vs 33 asserted). The 33-key readback was only ever confirmed against the real SDK by an out-of-band verifier probe; **nothing in the suite re-runs that probe**, so a version bump can drift the fixture away from reality while staying green.
+- Fix approach: add a test that imports the pinned module, runs `init` with `POSTHOG_LOCKDOWN`, and runs `lockdownHolds` against `instance.config` with network patched out.
 
-**`QualifyForm` state composition depends on a ref, not the render closure:**
-- Files: `src/components/QualifyForm.tsx` (`valuesRef`), `src/components/QualifyForm.tsx:281-326`
-- Why fragile: The WR-08 fix routes field writes through `valuesRef.current` because the render closure is stale under batched writes. The fix has **no direct regression test** — it was proven untestable through DOM events under React 18 + jsdom. A future refactor can silently reintroduce the stale-closure bug. The same function now also composes the engagement summary before submission (`engagementSummary()` at line 281), widening what a stale read would corrupt.
-- Safe modification: Extract field-write composition into a standalone reducer that can be unit-tested directly.
-- Test coverage: Indirect only — payload contracts in `src/test/qualify-form.test.tsx` assert against `valuesRef.current`, so a broken ref read is caught but a broken closure write is not.
-
-**`localStorage` context parsing is strict by design and fails closed:**
-- Files: `src/measurement/index.ts:97-145` (`parseContext`)
-- Why fragile: `exactKeys()` rejects any record whose key set is not byte-exact, and any record whose `version` differs from `config.schemaVersion`. Any change to `interactionFlags` in `src/products/haoo.ts` invalidates every stored record in the field.
-- Safe modification: Correct and intentional — invalid records are removed and a fresh context written, so the failure mode is losing engagement history, never a crash. Bump `schemaVersion` deliberately when changing the flag list.
-- Test coverage: Strong — `src/test/measurement.test.ts` (809 lines) and `src/test/measurement-page.test.tsx` (1,047 lines).
-
-**Report modules are loaded through Node's native TypeScript type stripping:**
-- Files: `scripts/generate-haoo-report.mjs`, `src/reporting/*.ts` (all import each other by explicit `.ts` extension)
-- Why fragile: The whole `src/reporting/` tree must use erasable syntax only and must import with `.ts` extensions — constraints no linter rule enforces here. Introducing an enum, a parameter property, or an extensionless import breaks `npm run report:haoo` at runtime while `npm run typecheck` and the Vitest suite (which go through Vite) stay green. It also pins `engines.node >= 22.18.0`.
-- Safe modification: Run `npm run report:haoo` after any edit under `src/reporting/`, even a typing-only one.
-- Test coverage: Partial — `src/test/fixtures/haoo-report-cli-fetch-preload.mjs` exercises the CLI path; ordinary suites do not.
-
-**`document.getElementById('root')!` non-null assertion:**
-- Files: `src/main.tsx:6`
-- Why fragile: Both entry HTML files must contain `<div id="root">`. A missing root throws an unhandled TypeError with no fallback UI. Both files include a `<noscript>` block, so the no-JS path degrades well; the failed-JS path does not.
-- Test coverage: Indirect via build-output assertions.
+**Path-keyed and literal-keyed invariants generally:**
+- Files: `src/test/build-output.test.ts:129-156`, `src/test/qualify-data.test.ts:189`, `src/test/measurement.test.ts:40` and its ~20 hardcoded `www.zero-paperhub.com/products/haoo/` hrefs
+- Why fragile: a file move or a hostname change breaks assertions in files far from the change.
 
 ## Scaling Limits
 
-**Product registry is a hand-maintained array:**
-- Current capacity: One product (`HAOO_PRODUCT` in `src/products/registry.ts:14`).
-- Limit: Each additional product needs a Vite rollup input, an HTML entry file, a definition module, and a registry entry — four coordinated edits with no generator.
-- Scaling path: Derive `rollupOptions.input` from `PRODUCTS` in `vite.config.ts`, and template the entry HTML. `productRoute()` already derives the URL from the slug.
+**CI runs on `push: main` only:**
+- Current capacity: one workflow, `.github/workflows/deploy.yml`, triggered by push to `main` or manual dispatch.
+- Limit: there is **no pull-request gate**. Typecheck, lint, coverage audit and the 685 tests run only at deploy time, so a bad merge is discovered by a failed deploy rather than by a failed check.
+- Scaling path: split a `ci.yml` (typecheck/lint/verify/test on PR) from the deploy job; the split into two repositories in 04.2 forces this workflow to become two anyway.
 
-**Reporting is HAOO-specific, not product-generic:**
-- Current capacity: One product's funnel. `src/reporting/haoo-report.ts` hardcodes the HAOO event tuple, its labels, and its four stages; `scripts/generate-haoo-report.mjs` hardcodes one output path and one site.
-- Limit: A second product needs a parallel report module and script, or a generic refactor.
-- Scaling path: The rest of the pipeline is already product-agnostic — `stats-response.ts`, `query-provenance.ts`, `render.ts`, and `generate.ts` all take their dictionary as data. Only `haoo-report.ts` and the CLI need parameterizing.
-
-**Static hosting has no server-side capability:**
-- Current capacity: GitHub Pages, custom domain via `CNAME`.
-- Limit: No server means no rate limiting, no server-side validation, no submission log, and no way to prove delivery. All three are outsourced to `formsubmit.co`.
-- Scaling path: A serverless function endpoint when lead volume or compliance requires an audit trail.
+**`npm test` is not what CI runs:**
+- Issue: `"test": "npm run build && vitest run"` rebuilds *without* the deploy env, so running it in the deploy job would overwrite the artifact about to be uploaded — which is why the workflow runs `test:unit` after Build. A contributor running `npm test` locally is therefore validating a differently-configured `dist/` than the one that ships.
+- Files: `package.json:8-9`, `.github/workflows/deploy.yml` (Test step comment)
 
 ## Dependencies at Risk
 
-**`formsubmit.co`:**
-- Risk: A free third-party relay is the single point of failure for every lead the business receives, with no SLA and no delivery receipt. `.planning/v1-MILESTONE-AUDIT.md` records endpoint activation and mailbox delivery as **unproved**.
-- Impact: Total, silent lead loss. `QualifyForm` correctly reports only "Your details were sent" (never "received"), so a provider that 200s and drops the mail is invisible from the page.
-- Migration plan: Serverless relay behind a first-party domain. The `ProductQualifyForm.endpoint` seam in `src/products/types.ts` and the validation in `src/products/haoo.ts` make swapping providers a contained change.
+**`posthog-js` 1.425.1 (exact pin):**
+- Risk: the pin is asserted as a literal inside the emitted vendor chunk; the privacy guarantees depend on a 33-key config readback against a minified third-party artifact.
+- Impact: any bump can silently break `lockdownHolds`, or introduce an identity/storage token that the narrowed bundle scans no longer cover.
+- Migration plan: bump only alongside a real-SDK probe test (see Fragile Areas) and a re-measurement of the `deferred-items.md` D4 narrowing table.
 
-**`plausible.io` Stats API v2:**
-- Risk: The owner report depends on a hosted third party for both collection and query, authenticated by a personal API key held in the operator's local environment (`PLAUSIBLE_STATS_API_KEY`). The coverage matrix in `scripts/verify-phase4-coverage.mjs` opts out of Shared links, embeds, and funnels, so there is no fallback view.
-- Impact: A provider outage, key revocation, or API v2 schema change makes the report unavailable — but never wrong: every failure path aborts before writing and leaves the previous report byte-identical.
-- Migration plan: The `ReportQuery` / `ReportFetch` capabilities in `src/reporting/generate.ts` are injected, so a different provider is a new adapter plus a new response parser, not a rewrite.
-
-**`lucide-react` is excluded from dependency pre-bundling:**
-- Risk: `vite.config.ts` sets `optimizeDeps.exclude: ['lucide-react']`, a workaround dating to the Bolt scaffold (`.bolt/`).
-- Impact: Slower cold dev-server starts. No production impact.
-- Migration plan: Remove the exclusion and confirm dev startup; likely obsolete on Vite 5.
+**FormSubmit (third-party email forwarder):**
+- Risk: the entire lead funnel depends on an unactivated free third-party endpoint whose token-to-mailbox mapping lives outside this repository.
+- Impact: total lead loss with a 2xx-shaped success.
+- Migration plan: LEAD-07 activation proof first; a self-owned endpoint is the long-term answer.
 
 ## Missing Critical Features
 
-**Phase 4 is not sealed — two blocking truths remain failed:**
-- Problem: `04-VERIFICATION.md` reports `status: gaps_found` with two failed truths: unconstrained analytics script origin, and non-fail-closed provider initialization (both detailed under Security Considerations). Plans `04-08`, `04-09`, and `04-10` are written but have no `-SUMMARY.md`, so the gap closure is planned and unexecuted.
-- Files: `src/products/haoo.ts`, `src/measurement/plausible.ts`, `src/test/measurement.test.ts`
-- Blocks: `MEAS-01`, `MEAS-05`, `MEAS-08`. `04-VERIFICATION.md` explicitly states Phase 5 does not own either blocker, so neither is deferred.
-
-**No deployed proof of the HAOO qualification journey (Phase 5, unimplemented):**
-- Problem: `.planning/v1-MILESTONE-AUDIT.md` records that the production site contains Phase 1 but not the Phase 2 qualification journey, and that device, accessibility, deployment, and provider checks have never run against production.
-- Blocks: Launch. Requirements `LEAD-07`, `QUAL-01..QUAL-03`, `QUAL-05` are unowned by any phase directory.
-
-**Live provider and report reconciliation never performed:**
-- Problem: `04-VERIFICATION.md` lists three human gates: approving the processor and creating the exact ten dashboard goals, reconciling report counts against the raw dashboard, and reviewing a maximum-context enquiry at 320px / 200% zoom with keyboard and screen-reader use. All report evidence to date is fixture-based.
-- Blocks: Any claim that the owner report reflects reality.
-
-**No end-to-end or real-browser testing:**
-- Problem: All suites run in jsdom. Items automated checks cannot reach: 320px/200%-zoom layout, native PDF handling, real `localStorage` policy, actual provider UX, and real network behavior of the report CLI.
-- Blocks: Confidence in the deployed journey.
+- **Proof of live delivery** (LEAD-07, Phase 5) — nothing today proves a submission reaches a mailbox.
+- **Live measurement acceptance** — whether PostHog Cloud US accepts a payload reduced to three transport properties, and honours `$process_person_profile: false`, is unproven (UAT checkpoint 10).
+- **LEAD-02 routing fidelity** — a prospect selecting role "Other" gives no free-text follow-up; flagged for owner judgment, unresolved.
 
 ## Test Coverage Gaps
 
-**Repository hygiene affecting the suite:**
-- What's not tested: Nothing guards against Vitest collecting from `.claude/worktrees/`. Two divergent worktree copies currently run on every invocation, inflating the reported total from ~11 files to 21.
-- Files: `vitest.config.ts`
-- Risk: False greens and false reds; a deleted test can appear to still pass from a stale worktree copy.
-- Priority: High — one-line fix.
+**No layout engine, therefore no responsive/zoom proof:**
+- What's not tested: 320px reflow and 200% zoom for the qualification form, the error summary, the collection notice and the measurement disclosure processor group.
+- Files: `src/components/QualifyForm.tsx`, `src/components/MeasurementDisclosure.tsx`
+- Risk: clipped or overlapping privacy copy on real phones — the copy most needs to be readable.
+- Priority: High (Phase 2 COVERAGE D9; 04.1 UAT checkpoint 7).
 
-**Adversarial provider-configuration paths:**
-- What's not tested: A structurally valid HTTPS `.js` URL on a foreign origin (accepted today), a pre-existing non-Plausible `window.plausible` function, an absent `init`, and a throwing `init`.
-- Files: `src/test/measurement.test.ts`, `src/measurement/plausible.ts`, `src/products/haoo.ts`
-- Risk: The two open Phase 4 security blockers have no failing test pinning them, so a fix cannot be proven and a regression cannot be caught.
-- Priority: High.
-
-**`src/App.tsx` home page — largely untested:**
-- What's not tested: The contact form (submit handler, `checkValidity` gate, disabled-button state), the `?contact=success` banner, `downloadCompanyProfile()`, `useInView`, the mobile menu, and the scroll header. Only `homeNavLinks` composition is exercised, via `src/test/products-section.test.tsx`.
-- Files: `src/App.tsx`
-- Risk: The company's primary lead form and its spoofable success banner can regress unnoticed. Contrast with `src/components/QualifyForm.tsx`, covered by a 2,402-line suite.
-- Priority: High.
-
-**Report CLI runtime constraints:**
-- What's not tested: That `src/reporting/*.ts` stays loadable under Node type stripping (erasable syntax, `.ts`-extension imports). Vite-based suites resolve these modules differently from the CLI, so a breaking edit passes CI.
-- Files: `src/reporting/*`, `scripts/generate-haoo-report.mjs`
-- Risk: `npm run report:haoo` breaks while every gate stays green.
-- Priority: Medium — a smoke test that spawns the script with a stubbed fetch would close it; `src/test/fixtures/haoo-report-cli-fetch-preload.mjs` is most of the machinery already.
-
-**WR-08 stale-closure regression:**
-- What's not tested: Field-write composition from `valuesRef.current` under batched writes.
-- Files: `src/components/QualifyForm.tsx`
-- Risk: Silent payload corruption on fast/batched input, now including the engagement-context field.
-- Priority: Medium — needs the reducer extraction first.
-
-**Copy synchronization between page and downloadable profile:**
-- What's not tested: That `downloadCompanyProfile()` output agrees with the rendered `SERVICES` / about copy.
-- Files: `src/App.tsx`
-- Risk: A published page and a downloaded profile stating different things about the company.
+**No browser/e2e layer at all:**
+- What's not tested: the real navigation, real network, real storage path. Everything is jsdom.
 - Priority: Medium.
+
+**The ZERO-PAPER HUB home page:**
+- What's not tested: `src/App.tsx` and its contact form — no dedicated suite exists.
+- Files: `src/App.tsx`
+- Risk: the half of the product that survives the 04.2 split is the untested half.
+- Priority: High, and rising, because 04.2 leaves this file behind alone.
 
 ---
 
-*Concerns audit: 2026-09-02*
+## Split Fragility — what breaks if this becomes two repositories
+
+Assessed against `.planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-CONTEXT.md` and measured against the tree. Ordered by risk.
+
+**1. `src/test/build-output.test.ts` — highest risk, both of its inputs change.**
+- It reads `.github/workflows/deploy.yml` (`:743`) and the repository's own `dist/`. After the split there are two workflows and two `dist/`s, and the reduced ZERO-PAPERHUB build has no PostHog variables, no `posthog-sdk` chunk and no HAOO entry.
+- Concretely at risk: `chunkFilesIn`/`vendorChunkText` (`:398-425`) throws "No `posthog-sdk` chunk" in the ZERO-PAPERHUB repo by construction; `projectBundleText()` (`:426-460`) becomes the whole bundle there; every `PRODUCT_TITLE`/`PRODUCT_URL`/`PRODUCT_IMAGE` HTML assertion (`:551-570`) loses its subject in ZERO-PAPERHUB and every `ROOT_*` assertion (`:576-593`) loses its subject in HAOO; the asset SHA pins (`:608-616`) follow `public/products/haoo/` to the new repo.
+- `PRODUCT_SOURCE_BOUNDARY` (`:129-156`) is keyed by repo-relative path *and* cross-checked against declared dependencies (`:789`), so half its keys become nonexistent files in each repo — a boundary map with a missing subject can pass vacuously, which is exactly the failure mode this file was written to prevent.
+
+**2. Hostname and identity literals that become false on `haoo.online`.**
+- `src/products/haoo.ts:585` — the form's `Source` line names `www.zero-paperhub.com/products/haoo/`, pinned byte-for-byte at `src/test/qualify-data.test.ts:189`.
+- `CNAME` (`www.zero-paperhub.com`) and `public/CNAME.txt`.
+- `products/haoo/index.html` — `rel="canonical"`, `og:url`, `og:site_name`.
+- `src/test/measurement.test.ts` — roughly twenty hardcoded `https://www.zero-paperhub.com/products/haoo/` hrefs (`:80`, `:153`, `:181`, `:198`, `:419`, `:438`, `:476`, `:530`, `:2124`, …). These are the quietest breakage: they will keep passing while asserting a hostname the site no longer has.
+
+**3. The `zph.` storage key.**
+- `src/products/haoo.ts:188` `storageKey: 'zph.haoo.ctx.v1'`, pinned at `src/test/measurement.test.ts:40`. `localStorage` is origin-scoped, so every existing record is unreachable at the new origin (accepted as a reset, D-10) and the prefix becomes a misnomer. Renaming it must be handled as a Phase 3 D-10 schema-version event, not an edit.
+
+**4. The reuse guarantee, PROD-06.**
+- `src/test/product-shell-reuse.test.tsx` builds a **synthetic** product (`:61`, `:194`) rather than a second real one, so mechanically it survives the split intact — its own comment at `:186` calls it "the only enforcement of the reuse rule". What genuinely dies is the *claim* that the registry demonstrates reuse across more than one product (`src/products/registry.ts` imports `HAOO_PRODUCT`; `src/test/products-section.test.tsx` asserts across both halves). Retire the withdrawn half with a named successor (D-05) rather than deleting the test.
+
+**5. The build-time coupling and the scripts.**
+- `src/products/registry.ts` → `HAOO_PRODUCT` is the single build-time edge D-06 severs; the replacement inline card can drift from HAOO's own copy with nothing checking it (named as an accepted cost).
+- `package.json` `verify:coverage` and `report:haoo` both point at HAOO phase paths and must move with HAOO — and `verify:coverage` is a deploy-blocking step in a workflow that stays behind.
+- `vite.config.ts:38-68` — two entry inputs and the `posthog-sdk` manual chunk; each repo keeps one entry and ZERO-PAPERHUB needs neither the chunk nor the analytics `define`.
+- `config/approved-analytics-hosts.ts` — the repository-owned ingestion trust anchor, meaningless in the reduced repo.
+
+**6. Cross-document SHA citations.**
+- 04.1 documents cite commit SHAs directly (`caf7957`, `2179e6a`, `b3ffd4c`, `4df69a3`). D-01's clone-and-prune preserves them; any history rewrite would silently invalidate the entire 04.1 evidence trail. Treat `filter-repo` as prohibited, as D-02 already does.
+
+**7. Debt that simply travels.**
+- The Phase 2 draft VALIDATION.md, the Phase 3 draft VALIDATION.md, the open Kenya DPA sign-off, and the confirmation-heading residual all move to the HAOO repository unchanged and are still owed there. `.planning/` moving whole (D-03) means the ZERO-PAPERHUB repo loses its own planning history along with it.
+
+---
+
+*Concerns audit: 2026-09-05*

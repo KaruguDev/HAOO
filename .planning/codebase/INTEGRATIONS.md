@@ -1,134 +1,107 @@
 ---
-last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+last_mapped_commit: e91a3b97ce46cd965624cfda94abc6c34c86d2a4
 ---
-<!-- refreshed: 2026-09-02 -->
+<!-- refreshed: 2026-09-05 -->
 # External Integrations
 
-**Analysis Date:** 2026-09-02
+**Analysis Date:** 2026-09-05
 
 ## APIs & External Services
 
-**1. Form delivery (FormSubmit.co) — the only outbound API from the browser today:**
-- `formsubmit.co` — email delivery for both enquiry forms. No SDK; plain `fetch`/HTML form POST.
-  - **HAOO qualification form (AJAX/JSON):** `https://formsubmit.co/ajax/info@haoo.online` (fallback constant `QUALIFY_ENDPOINT_FALLBACK`, `src/products/haoo.ts:209`), overridable at build time by `VITE_HAOO_FORM_ENDPOINT`.
-    - Request issued in `src/components/QualifyForm.tsx` (`fetch(qualify.endpoint, { method: 'POST', headers: Content-Type/Accept application/json, signal })`)
-    - Body built by `buildSubmissionBody()` in `src/components/qualify-form.logic.ts` — injects provider options `_subject`, `_template: 'table'`, `_captcha: 'false'`, `_honey`, plus `Source`
-    - `RESERVED_EMAIL_LABELS` (`src/components/qualify-form.logic.ts`) blocks visitor fields from overriding provider control keys
-    - 15s abort budget: `QUALIFY_REQUEST_TIMEOUT_MS` via `AbortController`
-    - Success is determined by `response.ok` only; the provider response body is never parsed
-  - **Site contact form (classic HTML POST):** `https://formsubmit.co/info@zero-paperhub.com` — `CONTACT_FORM_ENDPOINT` in `src/App.tsx:142`, native `<form action=... method="POST">` with hidden `_subject`, `_template`, `_next`, `_url`, `_autoresponse`, `_honey` fields
-    - Redirect target `CONTACT_SUCCESS_URL` = `https://www.zero-paperhub.com/?contact=success#contact`
-  - Auth: none. The mailbox address in the URL is the only identifier; there is no API key.
+**Product analytics — PostHog (the only measurement provider):**
+- PostHog Cloud **US** region (a one-way regional choice; PostHog does not migrate projects between Cloud regions).
+- SDK/Client: `posthog-js` pinned at `1.425.1`, **bundled** as a dependency — never fetched from a remote script origin.
+  - Adapter: `src/measurement/posthog.ts` (`createPostHogEventSink`, `boundPostHogClient`, `POSTHOG_REFUSAL` sentinels — the adapter returns sentinels instead of throwing).
+  - Privacy lockdown: `src/measurement/posthog-lockdown.ts` (`POSTHOG_LOCKDOWN`, `lockdownHolds`) disables `autocapture`, `rageclick`, `capture_pageview`, `capture_dead_clicks`, session recording, surveys, product tours, conversations, web experiments, external dependency loading, scroll properties and device model; sets `person_profiles: 'never'`, `persistence: 'memory'`, `disable_persistence: true`, `advanced_disable_flags: true`.
+  - Provider-neutral facade: `src/measurement/index.ts` (`createMeasurement`) — the single place a provider sink is constructed, inside the product page mount effect.
+- Ingestion origin (approved set): **`https://us.i.posthog.com`**, declared in `config/approved-analytics-hosts.ts` (`APPROVED_ANALYTICS_HOSTS`, `approvedAnalyticsHostsForProvider`). This module lives outside `src/` on purpose: no production module may contain the ingestion host literal. It reaches the bundle only through the Vite `define` constant `__HAOO_APPROVED_ANALYTICS_HOSTS__`, and only when the provider resolves to exactly `posthog`.
+- Query/reporting origin: **`https://us.posthog.com`**, path `/api/projects/{POSTHOG_PROJECT_ID}/query/` — built only in `scripts/generate-haoo-report.mjs`.
+- Auth:
+  - Browser capture: `VITE_HAOO_POSTHOG_TOKEN` (public, write-only project key, world-readable in the bundle by design).
+  - Reporting: `POSTHOG_QUERY_API_KEY` sent **only** as `Authorization: Bearer …` (`src/reporting/generate.ts`), never in the body, never echoed to stdout or into the generated document.
 
-**Endpoint hardening:**
-- `resolveQualifyEndpoint()` in `src/products/haoo.ts` accepts only `https://formsubmit.co/ajax/{single-segment}` — rejects other hosts, lookalike subdomains, `http:`, credentials, query, fragment, extra/empty/encoded-slash segments. Anything else falls back to the readable default. Exhaustive rejection table in `src/test/qualify-data.test.ts`.
+**Enquiry form delivery — FormSubmit:**
+- Endpoint contract: absolute `https://formsubmit.co/ajax/{target}` only; host must be exactly `formsubmit.co` and protocol `https:` (`src/products/haoo.ts` `resolveQualifyEndpoint`).
+- Fallback when unconfigured: `QUALIFY_ENDPOINT_FALLBACK = 'https://formsubmit.co/ajax/info@haoo.online'`.
+- Configured by `VITE_HAOO_FORM_ENDPOINT` (a repository *variable*, not a secret).
+- Submission: `fetch(qualify.endpoint, …)` in `src/components/QualifyForm.tsx:346`; pure validation logic in `src/components/qualify-form.logic.ts`.
 
-**2. Plausible Analytics — client script (built, currently fail-closed OFF):**
-- Adapter: `src/measurement/plausible.ts` (no npm package; hand-written).
-- Selected only when `VITE_HAOO_MEASUREMENT_PROVIDER === 'plausible'` AND a valid `VITE_HAOO_PLAUSIBLE_SRC` AND a non-empty `VITE_HAOO_PLAUSIBLE_DOMAIN` are present. Any missing/rejected value returns `undefined` — the inert no-op sink stays in place.
-- `.github/workflows/deploy.yml` does **not** pass the three measurement variables, so deployed builds ship with the provider off pending privacy-owner approval (documented in `README.md`).
-- Mechanics: appends a `defer` `<script src=...>` once (deduplicated by `src` attribute), installs the official pre-load stub queue (`plausible.q`), and calls `init({ domain, autoCapturePageviews: false })`. Automatic pageview/outbound/download/form/hash capture is opt-out by contract, encoded in the `PlausibleInitOptions` type.
-- The sink forwards **exactly one argument — the bare event name**. No property bag parameter exists in the type, so no form value or visitor identifier can travel. Every call is wrapped in try/catch; provider failure never affects the visitor journey.
-- Browser capabilities (`document`, `window`) arrive through injected `PlausibleAdapters`, so tests never touch the live document or the network.
-- Auth: none client-side. `src`/`domain` are public site identifiers.
-
-**3. Plausible Stats API v2 — owner report CLI (credentialed, local-only):**
-- Endpoint constant `https://plausible.io/api/v2/query` — declared only in `scripts/generate-haoo-report.mjs:33`, never in `src/`.
-- Client: `queryRange()` in `src/reporting/generate.ts:127`, `POST` with injected `fetch`. Body: `{ site_id, metrics: ['events'], date_range, dimensions: ['event:goal'], filters: [['is','event:goal',[...HAOO_REPORT_EVENTS]]] }`.
-- Auth: `Authorization: Bearer ${PLAUSIBLE_STATS_API_KEY}` header only — the key is never placed in the query object, never logged, never returned, and never written into the generated HTML.
-- Four queries per run: `all` plus three bounded inclusive ISO calendar windows of 7 / 30 / 90 days (`BOUNDED_PERIOD_DAYS` in `src/reporting/generate.ts`); explicit ranges are used rather than the provider's 91-day preset.
-- **Response is untrusted and fail-closed validated twice:**
-  - `validateEchoedQuery()` (`src/reporting/query-provenance.ts`) confirms the provider echoed back the exact `site_id`, metrics, dimensions, filter triple, and a coherent calendar `date_range` — otherwise the run aborts.
-  - `parseGoalCounts()` (`src/reporting/stats-response.ts`) rejects unknown goals, duplicate rows, non-integer/negative/non-finite counts; absent goals become real zeros.
-- Output: `.reports/haoo-funnel-report.html`, rendered by `renderReport()` (`src/reporting/render.ts:497`) as a standalone HTML document with HTML-escaped values (`escapeHtml`), written via reserve-temp + `renameSync` so a failed run leaves the previous report untouched.
-- Run: `npm run report:haoo`. Never invoked by CI.
-
-**Outbound contact deep links (no API, user-initiated navigation):**
-- WhatsApp: `https://wa.me/254702188044?text=...` — `src/products/haoo.ts` (`whatsappHref`)
-- Phone: `tel:+254702188044`
-- Email: `mailto:info@haoo.online`
-- HAOO self-onboarding app: `https://manage.haoo.online/` — `selfOnboardingHref` (`src/products/haoo.ts:461`); also duplicated in the `<noscript>` block of `products/haoo/index.html`
+**Outbound contact / onboarding destinations (`src/products/haoo.ts`):**
+- WhatsApp deep link `https://wa.me/{PHONE_NUMBER}?text=…`
+- `mailto:info@haoo.online`
+- Self-onboarding app `https://manage.haoo.online/`
 
 ## Data Storage
 
 **Databases:**
-- None. No database, ORM, or server-side persistence anywhere in the repo.
+- None. No ORM, no database client, no server-side persistence.
 
 **Browser storage:**
-- `window.localStorage`, key `zph.haoo.ctx.v1` (`HAOO_MEASUREMENT.storageKey`, `src/products/haoo.ts:93`)
-  - Managed exclusively by `createMeasurement()` in `src/measurement/index.ts`
-  - Stores a privacy-bounded engagement context: schema `version`, `visitBand`, `lastSeenBand`, boolean `flags`, `visitOrdinal` (capped at 4), `lastSeenDay` (day-only)
-  - Strict schema validation on read (`parseContext` — exact key set, schema version, enum membership); malformed or >180-day-old records are removed
-  - Every storage access is wrapped in try/catch; storage failure disables persistence without breaking the page
+- `window.localStorage`, single key `zph.haoo.ctx.v1` (`src/products/haoo.ts` `storageKey`), holding the privacy-bounded engagement context (visit band, last-seen band) read/written by `src/measurement/index.ts`. Storage failures degrade to `storage = null` rather than throwing.
+- PostHog itself writes **nothing** to storage or cookies (`persistence: 'memory'`, `disable_persistence: true`); `src/test/measurement-page.test.tsx` asserts `sessionStorage.length === 0` and `document.cookie === ''`.
 
 **File Storage:**
-- Static assets served from the repo: `public/products/haoo/HAOO-Marketing-Brochure.pdf`, `public/products/haoo/brochure-preview.png`, `public/marketing/*`, `public/zero-paper_hub_hi-def.png`
-- Local generated artifact: `.reports/haoo-funnel-report.html` (git-ignored — carries aggregate HAOO business counts)
+- Local filesystem only. `npm run report:haoo` writes `.reports/haoo-funnel-report.html` (gitignored) via a reserve-temp-then-rename write in `scripts/generate-haoo-report.mjs`.
+- Static marketing assets served from `public/` (`public/products/haoo/*`, `public/marketing/*`).
 
 **Caching:**
-- None beyond the CDN/browser caching provided by GitHub Pages.
+- None at application level. CI uses npm's `setup-node` cache.
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- None. The site is fully public and unauthenticated. No login, session, cookie, or user identity of any kind.
-- No cookies, UUIDs, fingerprints, or cross-site identifiers are set — stated as a product boundary in the disclosure copy in `src/products/haoo.ts` and surfaced by `src/components/MeasurementDisclosure.tsx`.
-- The only credential in the whole project is `PLAUSIBLE_STATS_API_KEY`, used by the local report CLI and never by the site.
+- None. The site is fully public and anonymous; no user accounts, sessions, or login flow. PostHog `person_profiles: 'never'` means no identified persons are created.
 
 ## Monitoring & Observability
 
-**Analytics / Measurement:**
-- `MeasurementProvider = 'none' | 'plausible'` (`src/products/types.ts:156`); `providerScript: MeasurementProviderScript` is a *required* field so a product selecting a provider without script config fails typecheck (`src/products/types.ts:216-222`).
-- The measurement facade (`src/measurement/index.ts`) owns the injectable `eventSink` seam that `src/measurement/plausible.ts` plugs into. Sink errors are swallowed so delivery never affects visitor actions.
-- Closed event list `HAOO_MEASUREMENT_EVENTS` (page view, brochure preview/open/download, qualify start/submit, assisted whatsapp/phone/email, self-onboarding). Events are sent as bare names — no form answers or visitor properties attached.
-- Reporting side re-derives its allowlist as `HAOO_REPORT_EVENTS` from the stage map in `src/reporting/haoo-report.ts`, grouped into `REPORT_STAGES` with period views `last-7/30/90-days` and `all-time`.
-- Campaign params `utm_source`, `utm_medium`, `utm_campaign` are read once per page load, lowercased, validated against `/^[a-z0-9-]+$/`, truncated to 32 chars, and stripped from the address bar via `history.replaceState`.
-
 **Error Tracking:**
-- None. No Sentry/Rollbar/equivalent.
+- None (no Sentry or equivalent). Failures fail closed: the measurement adapter returns refusal sentinels, the report CLI sets `process.exitCode = 1` and prints a redacted sentence that never echoes the offending environment value.
+
+**Analytics:**
+- PostHog custom events only — the ten-name allowlist `HAOO_MEASUREMENT_EVENTS` in `src/products/haoo.ts`: `haoo_page_view`, `haoo_brochure_preview`, `haoo_brochure_open`, `haoo_brochure_download`, `haoo_qualify_start`, `haoo_qualify_submit`, `haoo_assisted_whatsapp`, `haoo_assisted_phone`, `haoo_assisted_email`, `haoo_self_onboarding`. Any name off the list is rejected by `isMeasurementEventName`.
+- Visitor-facing disclosure component: `src/components/MeasurementDisclosure.tsx`.
 
 **Logs:**
-- None in the browser; failures are silently absorbed into user-visible states.
-- The report CLI writes failure text to **stderr only** (`writeTerminalError`), with the locked `ERROR_STATE_SENTENCE`, and never into the generated document or stdout.
+- No log aggregation. Only CI step output and the report CLI's single stdout success line.
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- GitHub Pages, custom domain `www.zero-paperhub.com` (`CNAME`)
+- GitHub Pages, custom domain `www.zero-paperhub.com` (`CNAME`).
 
 **CI Pipeline:**
-- `.github/workflows/deploy.yml` — triggers on push to `main` and `workflow_dispatch`
-- Steps: checkout → setup-node 22 (npm cache) → `npm ci` → `npm run typecheck` → `npm run lint` → `npm run build` (with `VITE_HAOO_FORM_ENDPOINT` from repo vars) → `npm run test:unit` → configure-pages → upload-pages-artifact (`./dist`) → deploy-pages
-- Concurrency group `pages`, `cancel-in-progress: false` (a cancelled publish can leave the site partially updated)
-- Permissions: `contents: read`, `pages: write`, `id-token: write`
-- `test:unit` is used deliberately instead of `test` so the build artifact about to be uploaded is not overwritten by a build lacking the endpoint variable
-- No secrets are consumed by the workflow.
+- `.github/workflows/deploy.yml`, triggered on push to `main` and `workflow_dispatch`. Concurrency group `pages` with `cancel-in-progress: false`.
+- Permissions: `contents: read`, `pages: write`, `id-token: write`.
+- The four `VITE_*` build inputs are supplied **as repository variables** (`${{ vars.* }}`) and never as secrets; `src/test/build-output.test.ts` parses this workflow and asserts both that `POSTHOG_QUERY_API_KEY` / `POSTHOG_PROJECT_ID` are absent and that every `VITE_*` assignment is exactly one `vars.*` expression.
 
 ## Environment Configuration
 
-**Required env vars (Node CLI only):**
-- `PLAUSIBLE_STATS_API_KEY` — Stats API bearer token, `scripts/generate-haoo-report.mjs`
-- `PLAUSIBLE_SITE_ID` — Plausible site identifier
-- Missing either → stderr error + exit 1, no file written.
+**Browser build variables (public, inlined into the bundle):**
+- `VITE_HAOO_FORM_ENDPOINT`
+- `VITE_HAOO_MEASUREMENT_PROVIDER` (`none` | `posthog`; anything else fails closed to `none`)
+- `VITE_HAOO_POSTHOG_TOKEN`
+- `VITE_HAOO_POSTHOG_API_HOST` (must match an entry in the approved host list)
 
-**Optional build-time vars (GitHub Actions repository *variables*, not secrets):**
-- `VITE_HAOO_FORM_ENDPOINT` — HAOO form destination; validated, falls back to `https://formsubmit.co/ajax/info@haoo.online`
-- `VITE_HAOO_MEASUREMENT_PROVIDER` — `plausible` selects the provider; anything else fails closed to `none`
-- `VITE_HAOO_PLAUSIBLE_SRC` — absolute `https:` `.js` URL, no credentials/query/fragment
-- `VITE_HAOO_PLAUSIBLE_DOMAIN` — Plausible site domain; empty disables collection
+**Local-only report credentials (must never carry a `VITE_` prefix):**
+- `POSTHOG_QUERY_API_KEY`
+- `POSTHOG_PROJECT_ID` (numeric only — validated against scheme, path, query and fragment injection)
 
 **Secrets location:**
-- Only the local shell environment of the report operator. Nothing secret reaches the bundle: Vite inlines every `VITE_*` value into world-readable JavaScript by construction (documented in `src/vite-env.d.ts`). `.env` and `.env.*` are git-ignored (`!.env.example` allowed).
+- No secrets are stored in the repository or in CI. The two report credentials exist only in the operator's local shell. `.env` / `.env.*` are gitignored.
+
+**Retired provider names (rename table only):**
+- `scripts/generate-haoo-report.mjs` retains `PLAUSIBLE_STATS_API_KEY`, `PLAUSIBLE_SITE_ID`, `VITE_HAOO_PLAUSIBLE_SRC`, `VITE_HAOO_PLAUSIBLE_DOMAIN` **solely** as a migration rename table that warns when a removed variable is still set. Plausible is not an integration of this project; PostHog fully replaced it. Related negative fixtures live in `src/test/fixtures/posthog-capture-contract.ts` (e.g. a rejected `persistence: 'localStorage+cookie'` value).
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None. Static hosting with no server endpoints.
+- None. Static site with no server endpoints.
 
 **Outgoing:**
-- None beyond the two FormSubmit POSTs and the four Stats API POSTs above.
-- The classic contact form relies on FormSubmit's `_next` redirect back to `https://www.zero-paperhub.com/?contact=success#contact`, which `src/App.tsx` detects to show the success state.
+- PostHog event ingestion POSTs from the browser to `https://us.i.posthog.com`.
+- FormSubmit AJAX POST from `src/components/QualifyForm.tsx`.
+- PostHog HogQL query POST from the local report CLI to `https://us.posthog.com/api/projects/{id}/query/`; the response is provenance-checked in `src/reporting/query-provenance.ts` (the echoed query kind and text must match what was submitted, else the report refuses and leaves the previous file untouched).
 
 ---
 
-*Integration audit: 2026-09-02*
+*Integration audit: 2026-09-05*

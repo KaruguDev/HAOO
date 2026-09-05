@@ -1,118 +1,99 @@
 ---
-last_mapped_commit: 7a99cab52f8907ebb43e9618c909ed785d088dbe
+last_mapped_commit: e91a3b97ce46cd965624cfda94abc6c34c86d2a4
 ---
-<!-- refreshed: 2026-09-02 -->
+<!-- refreshed: 2026-09-05 -->
 # Technology Stack
 
-**Analysis Date:** 2026-09-02
+**Analysis Date:** 2026-09-05
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.5+ (`^5.5.3`) - All application source under `src/` (`.ts`, `.tsx`). Strict mode on (`tsconfig.app.json`).
-- TSX/JSX (`react-jsx` transform) - React components in `src/components/`, `src/pages/`, `src/App.tsx`
+- TypeScript ~5.5.3 — all application source under `src/`, plus root build configuration (`vite.config.ts`, `vitest.config.ts`) and the trust-anchor module `config/approved-analytics-hosts.ts`. Target `ES2020`, `strict: true`, `moduleResolution: "bundler"`, `jsx: "react-jsx"` (`tsconfig.app.json`).
+- TSX — React components in `src/components/`, `src/pages/`, `src/App.tsx`, `src/main.tsx`.
 
 **Secondary:**
-- JavaScript (ESM `.mjs`/`.js`) - Tooling and CLI only: `eslint.config.js`, `tailwind.config.js`, `postcss.config.js`, `scripts/assert-phase1-red.mjs`, `scripts/generate-haoo-report.mjs`, `scripts/verify-phase4-coverage.mjs`
-- HTML - Multi-page Vite entry points: `index.html`, `products/haoo/index.html` (the HAOO page ships a full `<noscript>` recovery block). Also emitted as report output by `src/reporting/render.ts`.
-- CSS - `src/index.css` (Tailwind directives); the generated report carries its own inline stylesheet (`src/reporting/render.ts`)
+- JavaScript ESM (`.mjs`) — Node-side CLI tooling in `scripts/` (`generate-haoo-report.mjs`, `verify-phase4-coverage.mjs`, `assert-phase1-red.mjs`) and the test preload fixture `src/test/fixtures/haoo-report-cli-fetch-preload.mjs`. Typechecked via `tsconfig.node.json`, linted under a Node-globals ESLint block.
+- HTML — two build entry documents: `index.html` (hub) and `products/haoo/index.html` (HAOO product page).
+- CSS via Tailwind directives — `src/index.css`.
 
 ## Runtime
 
-**Two runtimes, strictly separated:**
-
-**1. Browser (the shipped site):**
-- No server-side runtime; the build output is static and published to GitHub Pages.
-- ES2020 target, `module: ESNext`, `moduleResolution: bundler` (`tsconfig.app.json`)
-
-**2. Node.js (build, CI, and the owner report CLI):**
-- Node.js **>= 22.18.0**, enforced by `engines.node` in `package.json`. The floor is not arbitrary: `scripts/generate-haoo-report.mjs` imports `../src/reporting/generate.ts` directly and relies on Node's native TypeScript type stripping, on by default from 22.18.0 / 23.6.0.
-- CI pins `node-version: 22` (`.github/workflows/deploy.yml`, `actions/setup-node@v6`). No `.nvmrc` present.
+**Environment:**
+- Node.js — `engines.node: ">=22.18.0"` (`package.json`); CI pins `node-version: 22` (`.github/workflows/deploy.yml`). Local machine currently runs v24.12.0.
+- Browsers — the shipped artifact is a static ES2020 bundle; no server runtime in production.
 
 **Package Manager:**
-- npm (`npm ci` in CI)
-- Lockfile: present — `package-lock.json`
+- npm 11.x
+- Lockfile: `package-lock.json` present and committed; CI installs with `npm ci`.
 
 ## Frameworks
 
 **Core:**
-- React 18 (`^18.3.1`) + React DOM (`^18.3.1`) - SPA rendering, mounted in `src/main.tsx` under `StrictMode`
-- Tailwind CSS 3 (`^3.4.1`) - Utility styling; config `tailwind.config.js` scans `./index.html` and `./src/**/*.{js,ts,jsx,tsx}` (note: `products/haoo/index.html` is NOT in the content globs)
+- React 18.3.1 + React DOM 18.3.1 — `src/main.tsx`, `src/App.tsx`, `src/pages/ProductPage.tsx`.
+- Tailwind CSS 3.4.x — `tailwind.config.js` (content globs `./index.html`, `./src/**/*.{js,ts,jsx,tsx}`), no custom theme extensions, no plugins.
 
 **Testing:**
-- Vitest 3.2.4 - Test runner, config `vitest.config.ts`, `jsdom` environment, `globals: false` (explicit imports required)
-- @testing-library/react 16.3.2 + @testing-library/dom 10.4.1 - Component tests in `src/test/`
-- jsdom 26.1.0 - DOM implementation
-- Setup file: `src/test/setup.ts`
-- Node-level fixtures for the report CLI: `src/test/fixtures/haoo-report-cli-fetch-preload.mjs`, `src/test/fixtures/plausible-preload-contract.ts`
+- Vitest 3.2.4 — `vitest.config.ts`, `environment: 'jsdom'`, `globals: false`, setup file `src/test/setup.ts`. Excludes `.claude/**` and `.gsd/**` so agent worktree duplicates are not discovered.
+- `@testing-library/react` 16.3.2 and `@testing-library/dom` 10.4.1.
+- jsdom 26.1.0.
 
 **Build/Dev:**
-- Vite 5 (`^5.4.2`) - Dev server and bundler, config `vite.config.ts`
-- @vitejs/plugin-react (`^4.3.1`) - React fast refresh / JSX
-- PostCSS 8 + Autoprefixer - `postcss.config.js`
-- ESLint 9 flat config + typescript-eslint 8 - `eslint.config.js`, with a dedicated Node-globals block covering `scripts/**/*.mjs` so the credentialed report CLI is rule-checked
+- Vite ^5.4.2 with `@vitejs/plugin-react` ^4.3.1 — `vite.config.ts`.
+- PostCSS 8 + Autoprefixer 10 — `postcss.config.js`.
+- ESLint 9 flat config with `typescript-eslint` ^8.3.0, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh` — `eslint.config.js`.
 
 ## Key Dependencies
 
 **Critical:**
-- `react` / `react-dom` `^18.3.1` - Entire UI layer
-- `lucide-react` `^0.344.0` - Icon set used across `src/App.tsx` and components; explicitly excluded from Vite dep pre-bundling (`optimizeDeps.exclude` in `vite.config.ts`)
+- `posthog-js` **pinned at 1.425.1** (exact, no caret) — the only measurement provider. Bundled as a dependency rather than fetched as a remote script; wrapped by `src/measurement/posthog.ts` and constrained by `src/measurement/posthog-lockdown.ts`.
+- `lucide-react` ^0.344.0 — icon set; excluded from Vite dep pre-bundling via `optimizeDeps.exclude`.
 
 **Infrastructure:**
-- `typescript-eslint` `^8.3.0` - Type-aware linting gate in CI
-- `@types/node` `22.20.1` - Enables `node:path` / `node:fs` usage in `vite.config.ts` and `scripts/generate-haoo-report.mjs`
-
-**Notably absent:** no analytics SDK, no HTTP client, no state library, no router, no database driver. The Plausible integration (`src/measurement/plausible.ts`) is a hand-written script-tag + pre-load-queue adapter with zero dependencies; the Stats API client (`src/reporting/generate.ts`) uses injected `fetch`.
+- `@types/node` 22.20.1 — types for the Node-side scripts and root config.
+- Transitive PostHog runtime (`preact`, `dompurify`, `fflate`, `core-js`, `web-vitals`) — explicitly named in `vite.config.ts` `manualChunks` so the vendor SDK lands in an isolated `posthog-sdk` chunk that `src/test/build-output.test.ts` can partition on.
 
 ## Configuration
 
 **Environment:**
-
-*Browser build-time (`import.meta.env`, statically inlined by Vite — world-readable, never secrets):*
-- `VITE_HAOO_FORM_ENDPOINT` (optional) - HAOO enquiry endpoint override. Declared in `src/vite-env.d.ts`; validated by `resolveQualifyEndpoint()` in `src/products/haoo.ts`. GitHub Actions repository **variable**; address obfuscation only.
-- `VITE_HAOO_MEASUREMENT_PROVIDER` (optional) - `resolveMeasurementProvider()` in `src/products/haoo.ts`. Accepted set is `'none' | 'plausible'` (`src/products/types.ts:156`); every other value fails closed to `'none'`.
-- `VITE_HAOO_PLAUSIBLE_SRC` (optional) - Site script URL, validated by `resolvePlausibleScriptSrc()` (`src/products/haoo.ts:63`): absolute `https:`, no credentials/query/fragment, path must end `.js`; otherwise `''`.
-- `VITE_HAOO_PLAUSIBLE_DOMAIN` (optional) - Trimmed at `src/products/haoo.ts:128`; empty leaves collection disabled.
-- Gap: only `VITE_HAOO_FORM_ENDPOINT` is declared in the `ImportMetaEnv` interface in `src/vite-env.d.ts`; the three measurement variables are read without a declaration.
-- Gap: `.github/workflows/deploy.yml` passes only `VITE_HAOO_FORM_ENDPOINT`, so deployed builds resolve the provider to `'none'` by design pending privacy-owner approval (README.md).
-
-*Node runtime secrets (report CLI only, never bundled):*
-- `PLAUSIBLE_STATS_API_KEY` (**required**) - Read only at `scripts/generate-haoo-report.mjs:39`, sent only as an `Authorization: Bearer` header in `src/reporting/generate.ts:127`.
-- `PLAUSIBLE_SITE_ID` (**required**) - `scripts/generate-haoo-report.mjs:40`.
-- Both missing/blank → the CLI prints the locked error sentence to stderr and exits 1 without writing.
-
-- `.env`, `.env.*` are git-ignored (`.gitignore`, `!.env.example`); no `.env` file is present. `.reports/` is git-ignored because generated reports carry aggregate business counts.
+- Public, browser-inlined build variables (Vite `VITE_` prefix, declared exhaustively in `src/vite-env.d.ts`):
+  - `VITE_HAOO_FORM_ENDPOINT` — enquiry POST destination (obfuscation only, never secrecy).
+  - `VITE_HAOO_MEASUREMENT_PROVIDER` — fail-closed selector; only `none` or `posthog` accepted (`src/products/haoo.ts`).
+  - `VITE_HAOO_POSTHOG_TOKEN` — public write-only project key.
+  - `VITE_HAOO_POSTHOG_API_HOST` — may only *select from* the repository-approved host list, never widen it.
+- Server-side report credentials, read only by `scripts/generate-haoo-report.mjs` via `process.env`, and forbidden from any `VITE_*` name: `POSTHOG_QUERY_API_KEY`, `POSTHOG_PROJECT_ID`.
+- `.env` and `.env.*` are gitignored (`.env.example` exempted). No `.env` file is present in the tree.
+- Build-time injected constant: `__HAOO_APPROVED_ANALYTICS_HOSTS__`, defined in `vite.config.ts` from `config/approved-analytics-hosts.ts`, gated on the resolved provider (empty array unless the provider is exactly `posthog`).
 
 **Build:**
-- `vite.config.ts` - `base: '/'`, multi-page `rollupOptions.input` with `main` (`index.html`) and `haoo` (`products/haoo/index.html`)
-- `tsconfig.json` (project references) → `tsconfig.app.json` (`include: ["src"]`) + `tsconfig.node.json` (config files)
-- `vitest.config.ts` - separate config from Vite build
+- `vite.config.ts` — multi-entry rollup input (`index.html`, `products/haoo/index.html`), `base: '/'`, `define` block, `manualChunks`.
+- `tsconfig.json` (solution) → `tsconfig.app.json` (`src`) + `tsconfig.node.json` (root config and scripts).
+- `eslint.config.js`, `postcss.config.js`, `tailwind.config.js`.
 
-**Scripts (`package.json`):**
+## Scripts
+
 ```bash
 npm run dev              # vite dev server
-npm run build            # vite build -> dist/
-npm run lint             # eslint . (includes scripts/**/*.mjs)
-npm run typecheck        # tsc --noEmit -p tsconfig.app.json
-npm run test             # build + vitest run (build-output tests need dist/)
-npm run test:unit        # vitest run only
-npm run test:phase1:red  # node scripts/assert-phase1-red.mjs
-npm run report:haoo      # node scripts/generate-haoo-report.mjs -> .reports/haoo-funnel-report.html
+npm run build            # vite build (multi-entry -> dist/)
+npm run typecheck        # tsc --noEmit on both app and node projects
+npm run lint             # eslint .
+npm test                 # build, then vitest run
+npm run test:unit        # vitest run only (used in CI after Build)
+npm run verify:coverage  # phase capability-coverage audit
+npm run report:haoo      # credentialed PostHog HogQL funnel report -> .reports/
 ```
-Unlisted helper: `scripts/verify-phase4-coverage.mjs` (run directly with `node`).
 
 ## Platform Requirements
 
 **Development:**
-- Node.js >= 22.18.0, npm
-- No database, no backend service, no containers
+- Node >= 22.18.0, npm, POSIX shell. No database, container, or backend service needed to run the site locally.
+- `npm run report:haoo` additionally requires `POSTHOG_QUERY_API_KEY` and `POSTHOG_PROJECT_ID` in the local shell.
 
 **Production:**
-- GitHub Pages static hosting (`.github/workflows/deploy.yml`)
-- Custom domain `www.zero-paperhub.com` (`CNAME`, also `public/CNAME.txt`)
-- Artifact: `dist/` uploaded via `actions/upload-pages-artifact@v4`
-- Owner reporting runs **locally**, not in CI — no workflow invokes `report:haoo`, so the Stats API key never enters GitHub Actions.
+- GitHub Pages static hosting via `.github/workflows/deploy.yml` (`actions/configure-pages@v5`, `upload-pages-artifact@v4`, `deploy-pages@v4`), artifact path `./dist`.
+- Custom domain `www.zero-paperhub.com` (`CNAME`, `public/CNAME.txt`); `public/.htaccess` also shipped.
+- CI gate order: checkout → setup-node 22 (npm cache) → `npm ci` → typecheck → lint → `verify:coverage` → build (with the four `VITE_*` repository *variables*) → `test:unit` → Pages deploy.
 
 ---
 
-*Stack analysis: 2026-09-02*
+*Stack analysis: 2026-09-05*
