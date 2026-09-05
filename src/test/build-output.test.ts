@@ -35,7 +35,7 @@ const BUILT_PDF = resolve(ROOT, 'dist/brochure/HAOO-Marketing-Brochure.pdf');
 const PDF_SHA256 = '38d5ad8e7497c65c4fa2d374e7ed5e8d81ab79f3b25d1e0daa73321d45b9e7a6';
 const PRODUCT_TITLE = 'HAOO Property Management | ZERO-PAPER HUB';
 const PRODUCT_DESCRIPTION = 'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.';
-const PRODUCT_URL = 'https://haoo.online/';
+const PRODUCT_URL = 'https://www.haoo.online/';
 const PRODUCT_IMAGE = `${PRODUCT_URL}brochure/brochure-preview.png`;
 const PUBLIC_PREVIEW = resolve(ROOT, 'public/brochure/brochure-preview.png');
 const PREVIEW_SHA256 = '7e62c3b75a0bc7ba70c400b4ec63e93cbe51701da051127ba212be7c578c8087';
@@ -788,7 +788,13 @@ describe('Phase 1 static build contracts', () => {
     // hold DIFFERENT hostnames, so this pin is the cheapest guard against the canonical,
     // the two Open Graph URLs and the Twitter image drifting apart from the host the site
     // is actually served on.
-    expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('haoo.online');
+    //
+    // The value is the `www` leg, not the apex: the owner reversed decision (a) on
+    // 2026-09-06, after 04.2-02 had shipped `haoo.online`. This one line is what makes
+    // `www.haoo.online` canonical and leaves GitHub Pages redirecting the apex to it — the
+    // apex already carries the four A and four AAAA Pages records, so that redirect is
+    // automatic and needs no second recovery document.
+    expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('www.haoo.online');
   });
 
   it('keeps the product surface inside its narrowed static boundary', () => {
