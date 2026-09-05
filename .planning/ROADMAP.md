@@ -265,7 +265,7 @@ QUAL-04 (amend), SPLT-01, SPLT-02, SPLT-03, SPLT-04
    repository's own suite at the same strength, and any case that cannot survive the move is
    withdrawn with a named successor in the same commit — never silently dropped.
 
-**Plans**: 0/9 plans executed
+**Plans**: 1/9 plans executed
 
 Plans:
 
@@ -276,7 +276,7 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
 
 **Wave 1** — the two blocking gates, the split contract, and the sourceable environment file
 
-- [ ] 04.2-01-PLAN.md — Reclaim the hijacked HAOO domain, settle the four one-way structural choices, and amend PROD-02/PROD-05/PROD-06/QUAL-04 to post-split truth.
+- [x] 04.2-01-PLAN.md — Reclaim the hijacked HAOO domain, settle the four one-way structural choices, and amend PROD-02/PROD-05/PROD-06/QUAL-04 to post-split truth.
 
 **Wave 2** *(tracer — blocked on Wave 1; no expansion plan starts until this is live)*
 
@@ -334,5 +334,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
-| 04.2. Split HAOO into its Own Repository and Domain | 0/9 | Planned    |  |
+| 04.2. Split HAOO into its Own Repository and Domain | 1/9 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

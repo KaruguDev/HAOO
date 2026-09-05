@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04.2
 current_phase_name: Split HAOO into its Own Repository and Domain (INSERTED)
 status: executing
-stopped_at: "Phase 04.2 plan 01 HALTED at task 1 (checkpoint:human-action, gate=blocking-human) — haoo.online takeover still live, both domains unverified. Zero tasks executed, zero commits."
-last_updated: "2026-09-05T20:00:17.877Z"
+stopped_at: Completed 04.2-01-PLAN.md
+last_updated: "2026-09-05T20:54:58.703Z"
 last_activity: 2026-09-05
 last_activity_desc: Phase 04.2 execution started
-state_head: 8b34a7cd0bb0fc2219e8f61b27e6538c4b539eb9
+state_head: 49ec1c6866969efd667efb57c9f6fd4049987e99
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 55
-  completed_plans: 44
+  completed_plans: 45
   percent: 29
 ---
 
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 04.2 (Split HAOO into its Own Repository and Domain (INSERTED)) — EXECUTING
-Plan: 1 of 9
+Plan: 2 of 9
 Total Plans in Phase: 9
-Status: Executing Phase 04.2
+Status: Ready to execute
 Last activity: 2026-09-05 — Phase 04.2 execution started
 
-Progress: 43/46 plans ([███░░░░░░░] 33%)
+Progress: 43/46 plans ([███░░░░░░░] 29%)
 
 ## Performance Metrics
 
@@ -89,6 +89,7 @@ Progress: 43/46 plans ([███░░░░░░░] 33%)
 | Phase 04.1 P06 | 25 min | 3 tasks | 6 files |
 | Phase 04.1 P10 | 18 min | 3 tasks | 5 files |
 | Phase 04.1 P11 | 22 min | 3 tasks | 9 files |
+| Phase 04.2 P01 | 6 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -195,6 +196,11 @@ Recent decisions affecting current work:
 - [Phase 04.1]: Five test cases whose subjects reached later gates through the ambient slot were migrated to the injected-client seam rather than left to collapse into duplicate client-gate refusals; the plan's predicted ambient-literal count (13) was reported as a finding at its true value (9) rather than adjusted
 - [Phase 04.1]: T-04.1-14 raised medium to high: a threat whose realization makes a rendered privacy disclosure untrue is not a medium
 - [Phase 04.1]: Production analytics delivery enabled for HAOO: owner's verbatim 'approved' recorded before any enabling variable was set (D-06), deploy workflow supplies the three public VITE_HAOO_* values from repository VARIABLES not secrets — The phc_ project key is public write-only by design and Vite inlines it into a world-readable bundle; storing it as a secret would imply a confidentiality property the artifact cannot have
+- [Phase 04.2]: Apex haoo.online is the HAOO custom-domain leg; GitHub Pages supplies the www counterpart redirect, so no second recovery document is built
+- [Phase 04.2]: HAOO document publishes at repository-root index.html and the four assets MOVE to a root-level directory (recorded as assets/, pending Q3 amendment) — invalidates both SHA-256 path pins and turns every asset literal into an edit
+- [Phase 04.2]: New repository is KaruguDev/HAOO (created empty, private); Lipa-Nyumba explicitly not reused
+- [Phase 04.2]: Retired ZPH asset URLs are let go and 404 — nothing copied into the ZPH tree, no retention claimed; D-12's recovery document for the retired page still ships
+- [Phase 04.2]: PROD-06's reuse-across-products half is withdrawn under a named successor rather than deleted; the in-code withdrawal lands in plan 04.2-02
 
 ### Pending Todos
 
@@ -217,6 +223,7 @@ None yet.
 - No production module loads posthog-js as a value, so a deployed provider-selected build finds an empty provider slot and fails closed to no analytics. Importing it breaks two deliberately-established bundle invariants; see phase deferred-items D4 for the measured detail.
 - 04.1: the three GitHub Actions repository variables (VITE_HAOO_MEASUREMENT_PROVIDER / VITE_HAOO_POSTHOG_TOKEN / VITE_HAOO_POSTHOG_API_HOST) are NOT confirmed created. The deploy workflow reads them; nothing in this repo can observe them. An absent variable fails the selector closed to and the deploy captures nothing while every gate stays green — a green workflow is not evidence of a capturing deploy. Blocks UAT 10 and 8, and therefore MEAS-01/MEAS-08.
 - [Phase 04.2 BLOCKING] haoo.online is under an active third-party GitHub Pages takeover, re-measured 2026-09-05 by plan 04.2-01: www.haoo.online returns HTTP 200 serving Indonesian gambling SEO spam (title "MEGAWIN | Daftar Situs Slot77 ..."), server: GitHub.com; haoo.online returns 301 to www. Both _github-pages-challenge-karugudev TXT lookups (haoo.online and zero-paperhub.com) are EMPTY, so both domains are unverified and both are takeable. haoo.online also has no MX records while zero-paperhub.com has privateemail.com MX, so mail to info@haoo.online very likely does not arrive. Plan 04.2-01 tasks 1 and 2 are gate="blocking-human" and task 3 preconditions on both; the entire phase is halted with zero commits until the owner verifies both domains in the GitHub account-level Pages UI and returns the four command outputs plus the four structural decisions.
+- Plan 04.2-02 blocked on three owner items: (1) Q3 — confirm or amend the root-level asset directory 'assets/', which collides with Vite's default build.assetsDir; (2) gh lacks the workflow scope, run 'gh auth refresh -h github.com -s workflow'; (3) KaruguDev/HAOO is private and Pages from a private repo needs a paid plan (account plan unreadable — token lacks user scope)
 
 ### Quick Tasks Completed
 
@@ -239,6 +246,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-05T20:00:17.747Z
-Stopped at: Phase 04.2 plan 01 HALTED at task 1 (checkpoint:human-action, gate=blocking-human) — haoo.online takeover still live, both domains unverified. Zero tasks executed, zero commits.
-Resume file: .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-01-PLAN.md
+Last session: 2026-09-05T20:54:58.523Z
+Stopped at: Completed 04.2-01-PLAN.md
+Resume file: None

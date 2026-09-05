@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 19
+open_count: 20
 waived_count: 0
 fixed_count: 4
-total_count: 23
-last_updated: 2026-09-04T22:24:21.297Z
+total_count: 24
+last_updated: 2026-09-05T20:53:06.945Z
 ---
 
 # Broken Windows Ledger
@@ -38,6 +38,7 @@ last_updated: 2026-09-04T22:24:21.297Z
 | 21 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md |  | 04.1-10 Task 2: the plan's stated post-task ambient-slot-literal count for measurement.test.ts (13) was not met; the true count is 9. Reported as a finding with a per-literal reconciliation in 04.1-10-SUMMARY rather than adjusted. Five literals whose subjects reached LATER gates were migrated to the injected-client seam to preserve initialization/lockdown/absentCapture coverage; their ambient halves moved into hostileSlotRows. | open |  | 2026-09-04T22:02:48.727Z |  |
 | 22 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md |  | 04.1-10 Task 2: the plan's call-site criterion is self-contradictory (all 16 sites use the non-occupying shape AND grep installPostHogVendorClient( still reports 15/1). Intent met: 0/0 for the occupying installer, 19/1 for createPostHogVendorClient, no call site deleted. | open |  | 2026-09-04T22:02:48.872Z |  |
 | 23 | 04.1 | unmet-truth | .github/workflows/deploy.yml |  | Deploy workflow reads VITE_HAOO_MEASUREMENT_PROVIDER/TOKEN/API_HOST, but the three GitHub Actions repository variables are NOT confirmed created — an absent variable fails the selector closed to none and the deploy captures nothing while every gate passes | open |  | 2026-09-04T22:24:21.297Z |  |
+| 24 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md |  | Q3: recorded root-level asset directory 'assets/' collides with Vite's default build.assetsDir; build-output.test.ts scans every file under dist/assets as a build output. Owner must amend or confirm before plan 04.2-02 moves any file. | open |  | 2026-09-05T20:53:06.945Z |  |
 
 ````json
 [
@@ -315,6 +316,18 @@ last_updated: 2026-09-04T22:24:21.297Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-04T22:24:21.297Z",
+    "resolved_at": null
+  },
+  {
+    "id": 24,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md",
+    "line": null,
+    "description": "Q3: recorded root-level asset directory 'assets/' collides with Vite's default build.assetsDir; build-output.test.ts scans every file under dist/assets as a build output. Owner must amend or confirm before plan 04.2-02 moves any file.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-05T20:53:06.945Z",
     "resolved_at": null
   }
 ]
