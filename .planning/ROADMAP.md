@@ -15,6 +15,8 @@ This milestone turns the existing company landing page into a product-led site b
 - [ ] **Phase 2: Submit a Qualified HAOO Enquiry** - Let an interested prospect provide structured qualification details through an accessible HAOO-specific form.
 - [ ] **Phase 3: Build Privacy-Bounded Engagement Context** - Measure and retain only the disclosed, coarse engagement signals needed for privacy-first product learning.
 - [ ] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring.
+- [ ] **Phase 04.1: Migrate Measurement from Plausible to PostHog (INSERTED)** - Replace Plausible with PostHog while preserving and proving every Phase 3 and Phase 4 privacy contract.
+- [ ] **Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)** - Move HAOO to its own repository at `haoo.online` so Phase 5 proves the arrangement that ships permanently.
 - [ ] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts.
 
 ## Phase Details
@@ -228,11 +230,74 @@ Plans:
 - [x] 04.1-10-PLAN.md — Bind the client to the imported module and refuse any occupied ambient slot outright *(wave 2, G-04.1-2)*
 - [x] 04.1-11-PLAN.md — Enable delivery behind the owner's processor approval, and amend the operational boundary with its pinned assertions *(wave 3, G-04.1-1)*
 
+### Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)
+
+**Goal**: As the HAOO product owner, I want HAOO to build, deploy, and be measured from its own
+repository at `haoo.online`, so that the deployed journey Phase 5 proves is the one that ships
+permanently rather than an arrangement that is about to change.
+**Depends on**: Phase 04.1
+**Requirements**: PROD-02 (amend), PROD-05 (amend), PROD-06 (amend or retire with named successor),
+QUAL-04 (amend), SPLT-01, SPLT-02, SPLT-03, SPLT-04
+
+**Success Criteria** (what must be TRUE):
+
+1. HAOO builds, typechecks, lints, tests, and deploys from its own repository with no import of and
+   no reference to ZERO-PAPER HUB source; the ZERO-PAPER HUB repository does the same with no HAOO
+   source; and neither repository's suite reads a file the other owns.
+2. Every published HAOO URL — canonical, `og:url`, `og:image`, `twitter:image`, the brochure PDF and
+   preview, and each `noscript` recovery link — resolves on the HAOO domain, and the ZERO-PAPER HUB
+   Products card links to it.
+3. Direct navigation and browser refresh work for the HAOO page and the published brochure asset on
+   the HAOO production host, and a visitor arriving at the retired `/products/haoo/` path still
+   reaches the HAOO page.
+4. The three `VITE_HAOO_*` build variables, the approved PostHog ingestion host, and the report
+   credentials are configured in the HAOO repository only, and a build of the ZERO-PAPER HUB
+   repository carries no measurement code, no ingestion origin, and no credential shape.
+5. The parent-relationship line, the measurement disclosure, and the qualification subject and
+   source line each state the relationship and the data controller that are true of a standalone
+   HAOO domain.
+6. Every privacy and boundary invariant Phases 3 and 04.1 established is asserted by the HAOO
+   repository's own suite at the same strength, and any case that cannot survive the move is
+   withdrawn with a named successor in the same commit — never silently dropped.
+
+**Plans**: 9 plans
+
+Plans:
+
+**Wave 1** — the two blocking gates and the split contract
+
+- [ ] 04.2-01-PLAN.md — Reclaim the hijacked HAOO domain, settle the four one-way structural choices, and amend PROD-02/PROD-05/PROD-06/QUAL-04 to post-split truth.
+
+**Wave 2** *(tracer — blocked on Wave 1; no expansion plan starts until this is live)*
+
+- [ ] 04.2-02-PLAN.md — Tracer: clone without rewriting, prune the ZERO-PAPER HUB half and narrow every inventory in one commit, then publish the HAOO document on its own domain.
+
+**Wave 3** *(blocked on the tracer; 04.2-03 and 04.2-05 run in the HAOO repository, 04.2-06 in ZERO-PAPER HUB, all three file-disjoint)*
+
+- [ ] 04.2-03-PLAN.md — Re-point the form source line, its two mirrors and every simulated page origin; reduce the README to its own repository.
+- [ ] 04.2-05-PLAN.md — Bound every report query at the domain cutover day and withdraw the superseded all-time caveat with a named successor.
+- [ ] 04.2-06-PLAN.md — Reduce ZERO-PAPER HUB in one atomic commit: delete the HAOO half, sever the build-time coupling with an inline card record, narrow every inventory.
+
+**Wave 4** *(04.2-04 blocked on 04.2-03; 04.2-07 blocked on 04.2-06; different repositories, parallel)*
+
+- [ ] 04.2-04-PLAN.md — Add the approved data-controller statement as a required disclosure member, and rename the storage key with a bumped schema version.
+- [ ] 04.2-07-PLAN.md — Publish a scriptless recovery document at the retired path with its retained assets, and prove the reduced artifact carries no measurement.
+
+**Wave 5** *(blocked on both repositories reaching their final tree shape)*
+
+- [ ] 04.2-08-PLAN.md — Write the closed scaffold allowlist and the disjointness auditor, in both repositories, and pin its empty-tree refusal by test.
+
+**Wave 6**
+
+- [ ] 04.2-09-PLAN.md — Move the three build variables to the HAOO repository, enforce HTTPS, re-take the prior phase's capturing evidence on the final hostname, and set every requirement status truthfully.
+
+**UI hint**: no
+
 ### Phase 5: Prove the Deployed Journey
 
 **Goal**: Visitors can rely on the production HAOO funnel across supported devices and accessibility modes, and the team has direct evidence that its static routes, assets, checks, and email delivery work live.
 **Mode:** mvp
-**Depends on**: Phase 4
+**Depends on**: Phase 04.2
 **Requirements**: LEAD-07, QUAL-01, QUAL-02, QUAL-03, QUAL-05
 **Success Criteria** (what must be TRUE):
 
@@ -247,7 +312,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -255,4 +320,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Submit a Qualified HAOO Enquiry | 7/7 | In Progress|  |
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
+| 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
+| 04.2. Split HAOO into its Own Repository and Domain | 0/9 | Not started | - |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |
