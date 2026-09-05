@@ -238,3 +238,48 @@ word, or it will fail on its own phase directory name.
   those names in those two documents (it pins the separation, and pins the names against
   this phase's `COVERAGE.md` instead), so nothing in the suite blocks or duplicates
   `04.1-08`'s migration of them.
+
+## From 04.1-08 (owner instructions and the closing sweep) — RESOLVED
+
+**The whole-tree name gate is narrowed, and the detector is kept.** `04.1-08` Task 2's gate
+`git grep -ril 'plausible' -- src config scripts README.md` is unsatisfiable as literally
+written without destroying four things that are worth more than the grep. Nine occurrences
+survive, in exactly three justified forms, and all three are excluded deliberately:
+
+1. **The migration's own phase directory name in a path literal** — 3 occurrences
+   (`scripts/verify-phase4-coverage.mjs:211` usage string,
+   `src/test/fixtures/posthog-capture-contract.ts:133` and `src/test/measurement.test.ts:478`
+   docblock paths). The directory is named after the migration, so any file citing an
+   artifact inside it contains the word. Removing these would degrade a user-facing usage
+   message and two precise docblock references into globs. `README.md` — the one file
+   `04.1-08` owns that hit this form — *was* changed to the prefix form
+   `.planning/phases/04.1-*/`, following the convention `04.1-07` already adopted in
+   `haoo-report.test.ts` for exactly this reason, so the owner-facing document is clean.
+2. **The `REMOVED_VARIABLES` rename table** in `scripts/generate-haoo-report.mjs:97-100` —
+   4 occurrences. Kept: a rename cannot be named without naming what was renamed, and
+   dropping it reopens the "variable missing" vs "variable renamed" failure the CONTEXT
+   delegation named explicitly.
+3. **The superseded provider name as a rejected-value test fixture** —
+   `src/test/measurement.test.ts:579` (`['the superseded provider name', 'plausible', 'none']`)
+   and `src/test/build-output.test.ts:891` (in the `rejected` list for
+   `approvedAnalyticsHostsForProvider`). These are *negative* assertions proving the old
+   selector fails closed. Deleting them deletes a genuine migration guard — the exact
+   inversion of the gate's intent.
+
+The narrowed gate is not "exclude these files" (which would blind it); it excludes these
+three **line shapes**, so a re-introduction anywhere — including a new line in
+`generate-haoo-report.mjs` — still trips it:
+
+```bash
+git grep -in 'plausible' -- src config scripts README.md \
+  | grep -v '04\.1-migrate-measurement-from-plausible-to-posthog' \
+  | grep -vE "^scripts/generate-haoo-report\.mjs:[0-9]+: *\['(VITE_HAOO_)?PLAUSIBLE_[A-Z_]+', *'(VITE_HAOO_)?POSTHOG_[A-Z_]+'\],$" \
+  | grep -vE "^src/test/(build-output|measurement)\.test\.ts:[0-9]+: *(\['the superseded provider name', )?'plausible',( 'none'\],)?$"
+# must produce no output
+```
+
+**Carried, not closed:** this narrowed gate is prose, not code — nothing re-runs it
+automatically. The durable half of the invariant is already executable: `04.1-04` added a
+build-output case asserting the deleted provider artifacts stay deleted, and that is what a
+real re-introduction would have to defeat. Promoting the narrowed grep into a committed test
+was not done here because it would modify source files this plan does not own.
