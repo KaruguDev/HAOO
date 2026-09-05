@@ -30,13 +30,20 @@ export const RING_COLOR_TOKENS: Readonly<Record<string, string>> = {
  * than by widening RING_COLOR_TOKENS, so a focus style that is never measured cannot
  * ship. The contract asserts `pairs.length > 0`, so a file listed here with no focus
  * utility fails loudly.
+ *
+ * NARROWED from seven entries to six by plan `04.2-02`, which split ZERO-PAPER HUB and
+ * HAOO into separate repositories. `src/components/ProductsSection.tsx` rendered the
+ * parent site's product grid; it is not in this repository, and it travels to
+ * ZERO-PAPER HUB with the rest of the home page in plan `04.2-06`, which registers it in
+ * that repository's copy of this list. Removed PER FILE — the extractor, RING_COLOR_TOKENS
+ * and the `pairs.length > 0` guard are untouched, so the list is still closed and the six
+ * remaining sources are measured exactly as strictly as the seven were.
  */
 export const FOCUS_SOURCES = [
   'src/pages/ProductPage.tsx',
   'src/components/ProductHeader.tsx',
   'src/components/OnboardingChoices.tsx',
   'src/components/BrochurePanel.tsx',
-  'src/components/ProductsSection.tsx',
   'src/components/QualifyForm.tsx',
   'src/components/QualifyFallback.tsx',
 ] as const;

@@ -185,7 +185,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
   });
 
   it('publishes the original brochure PDF facts from centralized product data', () => {
-    expect(HAOO_PRODUCT.brochure.pdfHref).toBe('/products/haoo/HAOO-Marketing-Brochure.pdf');
+    expect(HAOO_PRODUCT.brochure.pdfHref).toBe('/brochure/HAOO-Marketing-Brochure.pdf');
     expect(HAOO_PRODUCT.brochure.downloadName).toBe('HAOO-Marketing-Brochure.pdf');
     expect(HAOO_PRODUCT.brochure.expectationLabel).toBe('PDF · 2.1 MB');
     expect(HAOO_PRODUCT.brochure.previewImageAlt).toBe('HAOO property-management brochure preview');
@@ -319,7 +319,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
   it('publishes the exact supplied logo and hero media with reserved space', () => {
     const { container } = renderPage();
 
-    const logo = container.querySelector('img[src="/products/haoo/haoo-logo.png"]');
+    const logo = container.querySelector('img[src="/brochure/haoo-logo.png"]');
     expect(logo).not.toBeNull();
     expect(logo!.getAttribute('alt')).toBe('');
     expect(logo!.getAttribute('width')).toBe('362');
@@ -328,7 +328,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     const hero = screen.getByRole('img', {
       name: 'Property manager outside a modern apartment building',
     });
-    expect(hero.getAttribute('src')).toBe('/products/haoo/haoo-hero.png');
+    expect(hero.getAttribute('src')).toBe('/brochure/haoo-hero.png');
     expect(hero.getAttribute('width')).toBe('1122');
     expect(hero.getAttribute('height')).toBe('1402');
     expect(hero.className).toContain('aspect-[4/3]');

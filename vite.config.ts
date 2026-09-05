@@ -35,9 +35,13 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       rollupOptions: {
+        /**
+         * One document, one input. Plan `04.2-02` moved the HAOO document to the
+         * repository root and pruned the ZERO-PAPER HUB site root, so this repository
+         * publishes exactly one page at `/`.
+         */
         input: {
-          main: resolve(__dirname, 'index.html'),
-          haoo: resolve(__dirname, 'products/haoo/index.html'),
+          haoo: resolve(__dirname, 'index.html'),
         },
         /**
          * Isolate the vendor SDK under a name the build-output suite can partition on.

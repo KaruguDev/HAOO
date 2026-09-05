@@ -18,30 +18,45 @@ import {
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
-const SOURCE_ROOT_HTML = resolve(ROOT, 'index.html');
-const BUILT_ROOT_HTML = resolve(ROOT, 'dist/index.html');
-const SOURCE_HTML = resolve(ROOT, 'products/haoo/index.html');
-const BUILT_HTML = resolve(ROOT, 'dist/products/haoo/index.html');
-const PUBLIC_PDF = resolve(ROOT, 'public/products/haoo/HAOO-Marketing-Brochure.pdf');
-const BUILT_PDF = resolve(ROOT, 'dist/products/haoo/HAOO-Marketing-Brochure.pdf');
+/**
+ * The HAOO document is this repository's ONE published page, at the site root.
+ *
+ * Plan `04.2-02` moved it there from `products/haoo/index.html` and pruned the
+ * ZERO-PAPER HUB site root, so the former `SOURCE_ROOT_HTML` / `BUILT_ROOT_HTML` pair
+ * (the parent site's own document) has no referent here and was removed with its four
+ * `ROOT_*` metadata constants. Collapsing the two pairs into one is required, not
+ * cosmetic: leaving both would have named the same file twice in `BUILD_OUTPUTS`, which
+ * the freshness case reads.
+ */
+const SOURCE_HTML = resolve(ROOT, 'index.html');
+const BUILT_HTML = resolve(ROOT, 'dist/index.html');
+const PUBLIC_PDF = resolve(ROOT, 'public/brochure/HAOO-Marketing-Brochure.pdf');
+const BUILT_PDF = resolve(ROOT, 'dist/brochure/HAOO-Marketing-Brochure.pdf');
 const PDF_SHA256 = '38d5ad8e7497c65c4fa2d374e7ed5e8d81ab79f3b25d1e0daa73321d45b9e7a6';
 const PRODUCT_TITLE = 'HAOO Property Management | ZERO-PAPER HUB';
 const PRODUCT_DESCRIPTION = 'Run the business—not the paperwork with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding.';
-const PRODUCT_URL = 'https://www.zero-paperhub.com/products/haoo/';
-const PRODUCT_IMAGE = `${PRODUCT_URL}brochure-preview.png`;
-const ROOT_TITLE = 'ZERO-PAPER HUB | Strategic Digital Workflows';
-const ROOT_DESCRIPTION = 'ZERO-PAPER HUB builds strategic digital products and workflows that help organizations work clearly and grow.';
-const ROOT_URL = 'https://www.zero-paperhub.com/';
-const ROOT_IMAGE = `${ROOT_URL}zero-paper_hub_hi-def.png`;
-const PUBLIC_PREVIEW = resolve(ROOT, 'public/products/haoo/brochure-preview.png');
+const PRODUCT_URL = 'https://haoo.online/';
+const PRODUCT_IMAGE = `${PRODUCT_URL}brochure/brochure-preview.png`;
+const PUBLIC_PREVIEW = resolve(ROOT, 'public/brochure/brochure-preview.png');
 const PREVIEW_SHA256 = '7e62c3b75a0bc7ba70c400b4ec63e93cbe51701da051127ba212be7c578c8087';
 const PDF_ALTERNATE_LINK =
-  '<link rel="alternate" type="application/pdf" href="/products/haoo/HAOO-Marketing-Brochure.pdf" title="HAOO Marketing Brochure (PDF)" />';
+  '<link rel="alternate" type="application/pdf" href="/brochure/HAOO-Marketing-Brochure.pdf" title="HAOO Marketing Brochure (PDF)" />';
+/**
+ * The published asset directory, settled as `brochure/` in `04.2-SPLIT-CONTRACT.md`.
+ *
+ * NOT `assets/`, and that exclusion is load-bearing rather than stylistic: `assets/` is
+ * Vite's default `build.assetsDir`, `BUILD_OUTPUTS` below reads EVERY file under
+ * `dist/assets` unfiltered, and the credential scan then reads each one as text. Putting
+ * a 2.3 MB PDF and three PNGs there would feed binaries into that scan while the build
+ * still succeeded. `brochure/` is a directory Vite does not own, so the partition this
+ * file depends on stays a partition over project code.
+ */
+const ASSET_DIR = '/brochure/';
 const PRODUCT_ASSETS = [
-  '/products/haoo/HAOO-Marketing-Brochure.pdf',
-  '/products/haoo/brochure-preview.png',
-  '/products/haoo/haoo-hero.png',
-  '/products/haoo/haoo-logo.png',
+  `${ASSET_DIR}HAOO-Marketing-Brochure.pdf`,
+  `${ASSET_DIR}brochure-preview.png`,
+  `${ASSET_DIR}haoo-hero.png`,
+  `${ASSET_DIR}haoo-logo.png`,
 ];
 /**
  * Derived, never restated. The notice is owner-approved byte-exact copy whose only
@@ -132,10 +147,8 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
   'src/components/OnboardingChoices.tsx': FULL_BOUNDARY,
   'src/components/MeasurementDisclosure.tsx': FULL_BOUNDARY,
   'src/components/ProductHeader.tsx': FULL_BOUNDARY,
-  'src/components/ProductsSection.tsx': FULL_BOUNDARY,
   'src/products/copy.ts': FULL_BOUNDARY,
   'src/products/engagement-summary.ts': FULL_BOUNDARY,
-  'src/products/registry.ts': FULL_BOUNDARY,
   'src/products/types.ts': FULL_BOUNDARY,
   'src/products/haoo.ts': [
     ...ALWAYS_FORBIDDEN,
@@ -195,7 +208,9 @@ const APPROVED_HOST_MODULE_FORBIDDEN = /approved-analytics-hosts/;
 const BUILD_INPUTS = [
   ...PRODUCTION_SOURCE_INPUTS,
   ...listFiles(resolve(ROOT, 'public')),
-  resolve(ROOT, 'index.html'),
+  // One document, named once. `SOURCE_HTML` IS the root `index.html` since `04.2-02`
+  // moved it there, so the former separate `resolve(ROOT, 'index.html')` entry would now
+  // be the same path twice.
   SOURCE_HTML,
   APPROVED_HOST_CONFIG_INPUT.contract,
   resolve(ROOT, 'vite.config.ts'),
@@ -292,8 +307,8 @@ const REPORT_CREDENTIAL_BUNDLE_FORBIDDEN = [
   /\/api\/projects\/[^/]*\/query/,
 ] as const;
 const BUILD_OUTPUTS = [
+  // Likewise one built document: `BUILT_HTML` IS `dist/index.html`.
   BUILT_HTML,
-  resolve(DIST, 'index.html'),
   ...listFiles(resolve(DIST, 'assets')),
 ];
 
@@ -526,7 +541,7 @@ describe('Phase 1 build artifact freshness', () => {
 
     expect(
       missingOutputs,
-      `Missing build output ${missingOutputs[0] ?? BUILT_HTML}. Run npm run build before asserting against dist/products/haoo/index.html.`,
+      `Missing build output ${missingOutputs[0] ?? BUILT_HTML}. Run npm run build before asserting against dist/index.html.`,
     ).toEqual([]);
   });
 
@@ -547,12 +562,20 @@ describe('Phase 1 build artifact freshness', () => {
 });
 
 describe('Phase 1 static build contracts', () => {
-  it('[phase1-red:build] emits a physical nested HAOO document', () => {
+  it('[phase1-red:build] emits a physical HAOO document at its published path', () => {
     expect(existsSync(SOURCE_HTML)).toBe(true);
     expect(existsSync(BUILT_HTML)).toBe(true);
   });
 
-  it('contains exact source and built canonical/social metadata', () => {
+  /**
+   * Renamed from `contains exact source and built canonical/social metadata` by plan
+   * `04.2-02`, and the NAMED SUCCESSOR to the retired case below. The HAOO document is
+   * this site's root document now, so the two former metadata cases describe one file;
+   * this one absorbed the two assertions the retired case carried that it did not
+   * already have — the icon asset existing in both the public tree and the built output,
+   * and the wider scaffolding-vendor negative check.
+   */
+  it('publishes first-party HAOO root canonical and social metadata', () => {
     for (const html of [readText(SOURCE_HTML), readText(BUILT_HTML)]) {
       expect(html).toContain(`<title>${PRODUCT_TITLE}</title>`);
       expect(html).toContain(`name="description" content="${PRODUCT_DESCRIPTION}"`);
@@ -567,31 +590,49 @@ describe('Phase 1 static build contracts', () => {
       expect(html).toContain(`name="twitter:title" content="${PRODUCT_TITLE}"`);
       expect(html).toContain(`name="twitter:description" content="${PRODUCT_DESCRIPTION}"`);
       expect(html).toContain(`name="twitter:image" content="${PRODUCT_IMAGE}"`);
-      expect(html).not.toContain('bolt.new/static/og_default.png');
-    }
-  });
-
-  it('publishes first-party root canonical and social metadata', () => {
-    for (const html of [readText(SOURCE_ROOT_HTML), readText(BUILT_ROOT_HTML)]) {
-      expect(html).toContain(ROOT_TITLE);
-      expect(html).toContain(`name="description" content="${ROOT_DESCRIPTION}"`);
-      expect(html).toContain(`rel="canonical" href="${ROOT_URL}"`);
-      expect(html).toContain('property="og:type" content="website"');
-      expect(html).toContain(`property="og:title" content="${ROOT_TITLE}"`);
-      expect(html).toContain(`property="og:description" content="${ROOT_DESCRIPTION}"`);
-      expect(html).toContain(`property="og:url" content="${ROOT_URL}"`);
-      expect(html).toContain(`property="og:image" content="${ROOT_IMAGE}"`);
-      expect(html).toContain('property="og:site_name" content="ZERO-PAPER HUB"');
-      expect(html).toContain('name="twitter:card" content="summary_large_image"');
-      expect(html).toContain(`name="twitter:title" content="${ROOT_TITLE}"`);
-      expect(html).toContain(`name="twitter:description" content="${ROOT_DESCRIPTION}"`);
-      expect(html).toContain(`name="twitter:image" content="${ROOT_IMAGE}"`);
+      // Absorbed from the retired root-metadata case: the WIDER form of the
+      // scaffolding-vendor negative check, not just its default social image.
       expect(html).not.toContain('bolt.new');
     }
 
-    expect(existsSync(resolve(ROOT, 'public/zero-paper_hub_hi-def.png'))).toBe(true);
-    expect(existsSync(resolve(ROOT, 'dist/zero-paper_hub_hi-def.png'))).toBe(true);
+    // Absorbed from the retired root-metadata case: the document's icon must exist in
+    // both the public tree and the built output. Derived from the document's own `href`
+    // rather than restated, so re-pointing the icon cannot leave this asserting a path
+    // the page no longer references.
+    const icon = /<link rel="icon"[^>]*href="([^"]+)"/.exec(readText(SOURCE_HTML))?.[1];
+    expect(icon, 'the HAOO document declares an icon').toBeTruthy();
+    expect(existsSync(resolve(ROOT, `public${icon}`))).toBe(true);
+    expect(existsSync(resolve(DIST, (icon ?? '').slice(1)))).toBe(true);
   });
+
+  /*
+   * WITHDRAWN by plan `04.2-02`. Successor:
+   * `publishes first-party HAOO root canonical and social metadata` (above).
+   *
+   * What this case claimed: that the site's ROOT document published ZERO-PAPER HUB's own
+   * first-party title, description, canonical, Open Graph and Twitter metadata — and that
+   * the company favicon it referenced existed in both `public/` and `dist/` — asserted
+   * over `index.html` and `dist/index.html`, which at the time were the PARENT site's
+   * document, distinct from the nested HAOO product page.
+   *
+   * What stopped being true, and why: `04.2-02` split the two products into separate
+   * repositories. The parent site's document is not in this repository at all — it travels
+   * to ZERO-PAPER HUB in plan `04.2-06` — and the HAOO document moved to the site root.
+   * The root document here is now the HAOO document, so every ZPH-shaped literal this case
+   * asserted (`ROOT_TITLE`, `ROOT_DESCRIPTION`, `ROOT_URL`, `ROOT_IMAGE`, the company
+   * favicon) has no referent. The case could not be narrowed: its subject moved out.
+   *
+   * What the successor proves instead: exactly the same property — that the document
+   * served at this site's root carries complete, first-party, non-scaffolding canonical
+   * and social metadata, asserted from BOTH the source and the built HTML in one loop —
+   * about the document this repository actually publishes. The two absorbed assertions
+   * above are the parts the product-metadata case did not already carry.
+   *
+   * Retained rather than deleted: a reader comparing this suite against Phase 1's
+   * inventory must be able to see a recorded narrowing rather than read a missing
+   * root-metadata case as an assertion that was dropped when the repository split
+   * (D-05, SC6).
+   */
 
   it('references emitted scripts, styles, and product assets from built HTML', () => {
     const html = readText(BUILT_HTML);
@@ -615,7 +656,7 @@ describe('Phase 1 static build contracts', () => {
     expect(existsSync(BUILT_PDF)).toBe(true);
     expect(sha256(PUBLIC_PDF)).toBe(PDF_SHA256);
     expect(sha256(BUILT_PDF)).toBe(PDF_SHA256);
-    expect(readText(BUILT_HTML)).toContain('/products/haoo/HAOO-Marketing-Brochure.pdf');
+    expect(readText(BUILT_HTML)).toContain(`${ASSET_DIR}HAOO-Marketing-Brochure.pdf`);
   });
 
   it('declares the original brochure as a static alternate of the product document', () => {
@@ -729,7 +770,7 @@ describe('Phase 1 static build contracts', () => {
   it('resolves every root-relative product reference inside the artifact', () => {
     const references = new Set(
       [...`${readText(BUILT_HTML)}\n${builtBundleText()}`
-        .matchAll(/\/products\/haoo\/[A-Za-z0-9._-]+/g)]
+        .matchAll(/\/brochure\/[A-Za-z0-9._-]+/g)]
         .map(([reference]) => reference),
     );
 
@@ -743,7 +784,11 @@ describe('Phase 1 static build contracts', () => {
     const workflow = readText(resolve(ROOT, '.github/workflows/deploy.yml'));
 
     expect(workflow).toContain('path: ./dist');
-    expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('www.zero-paperhub.com');
+    // One literal per repository. `CNAME` exists in both halves of the split and the two
+    // hold DIFFERENT hostnames, so this pin is the cheapest guard against the canonical,
+    // the two Open Graph URLs and the Twitter image drifting apart from the host the site
+    // is actually served on.
+    expect(readText(resolve(ROOT, 'CNAME')).trim()).toBe('haoo.online');
   });
 
   it('keeps the product surface inside its narrowed static boundary', () => {

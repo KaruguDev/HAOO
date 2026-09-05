@@ -1,14 +1,23 @@
 import { spawnSync } from 'node:child_process';
 
+/**
+ * NARROWED from four suites and four markers to three by plan `04.2-02`.
+ *
+ * `src/test/products-section.test.tsx` and its `[phase1-red:products]` marker asserted the
+ * parent site's product grid, which is not in this repository after the split. The
+ * ZERO-PAPER HUB successor is named: plan `04.2-06` gives that repository its own
+ * single-suite, single-marker version of this gate carrying exactly the removed pair.
+ * Removed per entry — the infrastructure-failure rejection list, the non-zero-exit
+ * requirement and the marker check are untouched, so the remaining three are gated as
+ * strictly as the four were.
+ */
 const suites = [
-  'src/test/products-section.test.tsx',
   'src/test/haoo-page.test.tsx',
   'src/test/haoo-content.test.ts',
   'src/test/build-output.test.ts',
 ];
 
 const expectedMarkers = [
-  '[phase1-red:products]',
   '[phase1-red:page]',
   '[phase1-red:content]',
   '[phase1-red:build]',
@@ -68,4 +77,4 @@ if (missingMarker) {
   process.exit(1);
 }
 
-console.log('Phase 1 RED confirmed: all four suites fail on named behavior contracts.');
+console.log('Phase 1 RED confirmed: all three suites fail on named behavior contracts.');

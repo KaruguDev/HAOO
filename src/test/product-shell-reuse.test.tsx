@@ -20,7 +20,6 @@ import {
   skipToContentLabel,
   whatsappActionLabel,
 } from '../products/copy';
-import { PRODUCTS } from '../products/registry';
 import type { ProductDefinition } from '../products/types';
 
 const ROOT = resolve(import.meta.dirname, '../..');
@@ -29,7 +28,9 @@ const GENERIC_PRODUCT_SOURCES = [
   'src/components/ProductHeader.tsx',
   'src/components/OnboardingChoices.tsx',
   'src/components/BrochurePanel.tsx',
-  'src/components/ProductsSection.tsx',
+  // NARROWED from eleven entries to ten by plan `04.2-02`: `ProductsSection.tsx` rendered
+  // the parent site's product grid and is not in this repository. Plan `04.2-06` registers
+  // it in ZERO-PAPER HUB's copy of this list.
   'src/components/QualifyForm.tsx',
   'src/components/qualify-form.logic.ts',
   'src/components/QualifyFallback.tsx',
@@ -264,32 +265,50 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(() => mobileNavigationId(' ')).toThrow('Product slug must not be empty');
   });
 
-  it('derives product-named shell surfaces for every registered product', () => {
-    expect(PRODUCTS.length).toBeGreaterThan(0);
-
-    for (const product of PRODUCTS) {
-      const view = render(<ProductPage product={product} />);
-
-      expect(screen.getByRole('link', { name: skipToContentLabel(product.name) })).toBeTruthy();
-      expect(screen.getByRole('navigation', { name: sectionsNavLabel(product.name) }))
-        .toBeTruthy();
-      const toggle = screen.getByRole('button', {
-        name: navigationToggleLabel(product.name, false),
-      });
-      fireEvent.click(toggle);
-      expect(screen.getByRole('navigation', { name: mobileSectionsNavLabel(product.name) }))
-        .toBeTruthy();
-      expect(screen.getAllByRole('link', { name: selfOnboardingActionLabel(product.name) }))
-        .toHaveLength(3);
-      expect(screen.getByText(parentRelationshipLine(product.name))).toBeTruthy();
-
-      view.unmount();
-    }
-  });
+  /*
+   * WITHDRAWN by plan `04.2-02`. Successors, all three in this file and all three green:
+   *   1. `renders a synthetic product through every product-named shell surface`
+   *   2. `reproduces every shipped product-name string byte for byte`
+   *   3. `rejects product-name literals in product-generic executable source`
+   *
+   * What this case claimed: that the shared product shell derives every product-named
+   * surface — skip link, sections navigation, mobile navigation toggle and panel,
+   * self-onboarding action and parent-relationship line — correctly for EVERY product in
+   * the registered collection, by rendering each one in turn. Its force came from
+   * iterating a collection with more than one member: a shell that had quietly hardcoded
+   * one product's name would render the second product wrongly and go red here.
+   *
+   * What stopped being true, and why: `04.2-02` split ZERO-PAPER HUB and HAOO into
+   * separate repositories. `src/products/registry.ts` was the parent site's product
+   * collection and is not in this repository; this repository has exactly one product.
+   * The claim did not become FALSE — it became VACUOUS. Iterating a one-element collection
+   * cannot distinguish a generic shell from one hardcoded to that single element, so the
+   * case would have gone on passing while proving nothing. A test that passes for a reason
+   * unrelated to what it names is worse than an absent one, which is why this is retired
+   * rather than kept in a shrunken form. (D-05.)
+   *
+   * What the successors prove instead, together and without a registry:
+   *   (1) renders a SYNTHETIC second product — `ZENITH`, defined in this file, deliberately
+   *       not the shipped one — through every one of those same shell surfaces, and
+   *       asserts `container.textContent` carries no `HAOO` anywhere. That is the real
+   *       content of the original claim: the shell works for a product it has never seen.
+   *   (2) pins every product-name string builder byte for byte, so the surfaces the
+   *       synthetic render exercises cannot drift in wording.
+   *   (3) scans every product-generic source for the shipped product's name and rejects it,
+   *       so genericity is enforced in the source as well as in one render.
+   *
+   * Retained rather than deleted so a reader comparing this suite against Phase 1's
+   * inventory sees a recorded withdrawal with named successors, not a case that vanished
+   * when the repository split (SC6, PROD-06).
+   */
 
   it('rejects product-name literals in product-generic executable source', () => {
     let scanned = 0;
-    const productName = PRODUCTS[0].name;
+    // Re-sourced from the product definition directly by plan `04.2-02`. This used to read
+    // `PRODUCTS[0].name` through the registry, which the split removed; the name is the
+    // same string, and taking it from the product module keeps this successor green
+    // without weakening what it asserts.
+    const productName = HAOO_PRODUCT.name;
     const productNamePattern = new RegExp(escapeRegExp(productName), 'i');
 
     for (const relativePath of GENERIC_PRODUCT_SOURCES) {
