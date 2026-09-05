@@ -264,7 +264,12 @@ QUAL-04 (amend), SPLT-01, SPLT-02, SPLT-03, SPLT-04
 
 Plans:
 
-**Wave 1** — the two blocking gates and the split contract
+*Wave rule: exactly ONE checkout exists per repository for the whole phase (recorded in
+`04.2-split-env.sh`), so no two plans in a wave may operate in the same checkout. Two plans building
+into one `dist/` would make every artifact assertion in `build-output.test.ts` nondeterministic. Each
+wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER HUB-side plan.*
+
+**Wave 1** — the two blocking gates, the split contract, and the sourceable environment file
 
 - [ ] 04.2-01-PLAN.md — Reclaim the hijacked HAOO domain, settle the four one-way structural choices, and amend PROD-02/PROD-05/PROD-06/QUAL-04 to post-split truth.
 
@@ -272,22 +277,25 @@ Plans:
 
 - [ ] 04.2-02-PLAN.md — Tracer: clone without rewriting, prune the ZERO-PAPER HUB half and narrow every inventory in one commit, then publish the HAOO document on its own domain.
 
-**Wave 3** *(blocked on the tracer; 04.2-03 and 04.2-05 run in the HAOO repository, 04.2-06 in ZERO-PAPER HUB, all three file-disjoint)*
+**Wave 3** *(04.2-03 in the HAOO checkout, 04.2-06 in the ZERO-PAPER HUB checkout — different repositories, so they run in parallel)*
 
 - [ ] 04.2-03-PLAN.md — Re-point the form source line, its two mirrors and every simulated page origin; reduce the README to its own repository.
-- [ ] 04.2-05-PLAN.md — Bound every report query at the domain cutover day and withdraw the superseded all-time caveat with a named successor.
 - [ ] 04.2-06-PLAN.md — Reduce ZERO-PAPER HUB in one atomic commit: delete the HAOO half, sever the build-time coupling with an inline card record, narrow every inventory.
 
-**Wave 4** *(04.2-04 blocked on 04.2-03; 04.2-07 blocked on 04.2-06; different repositories, parallel)*
+**Wave 4** *(04.2-04 in the HAOO checkout, 04.2-07 in the ZERO-PAPER HUB checkout — parallel)*
 
 - [ ] 04.2-04-PLAN.md — Add the approved data-controller statement as a required disclosure member, and rename the storage key with a bumped schema version.
 - [ ] 04.2-07-PLAN.md — Publish a scriptless recovery document at the retired path with its retained assets, and prove the reduced artifact carries no measurement.
 
-**Wave 5** *(blocked on both repositories reaching their final tree shape)*
+**Wave 5** *(HAOO checkout, sole occupant — it shares `dist/` and the working tree with 04.2-03 and 04.2-04, so it cannot run beside them)*
+
+- [ ] 04.2-05-PLAN.md — Bound every report query at the domain cutover day and withdraw the superseded all-time caveat with a named successor.
+
+**Wave 6** *(both checkouts, sole occupant — it asserts a clean tree in each)*
 
 - [ ] 04.2-08-PLAN.md — Write the closed scaffold allowlist and the disjointness auditor, in both repositories, and pin its empty-tree refusal by test.
 
-**Wave 6**
+**Wave 7** *(both checkouts)*
 
 - [ ] 04.2-09-PLAN.md — Move the three build variables to the HAOO repository, enforce HTTPS, re-take the prior phase's capturing evidence on the final hostname, and set every requirement status truthfully.
 
