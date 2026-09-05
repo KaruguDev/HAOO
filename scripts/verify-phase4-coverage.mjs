@@ -11,7 +11,20 @@ const REQUIRED_TABLES = {
     ["`persistence: 'memory'` with `disable_persistence: true`", 'INTEGRATE'],
     ['`advanced_disable_flags` to suppress the remote-configuration fetch', 'INTEGRATE'],
     ['`disable_external_dependency_loading`', 'INTEGRATE'],
-    ["`defaults: 'unset'` pinning of the date-gated default set", 'INTEGRATE'],
+    // Successor to `` `defaults: 'unset'` pinning of the date-gated default set ``, renamed
+    // by code-review WR-03 in the same commit as the COVERAGE.md row it pins. The
+    // predecessor required the continued presence of a capability claim the source code
+    // itself calls false: `posthog-lockdown.ts` records that `'unset'` sorts
+    // lexicographically ABOVE every date literal and therefore selects the NEWEST branch of
+    // every date gate but `session_recording`, and `measurement.test.ts` asserts exactly
+    // that. Because `npm run verify:coverage` is a deploy gate, the predecessor enforced
+    // that contradiction on every push — a gate that outlived its claim, the inverse of the
+    // failure this repository's convention usually names.
+    //
+    // Renamed rather than dropped. The `defaults` value is still sent, still read back by
+    // `lockdownHolds`, and still a decision a reader must be able to find; deleting the row
+    // would retire the audit of a capability that is very much still integrated.
+    ['`defaults` sentinel and the date-gated default set', 'INTEGRATE'],
     ['PostHog Cloud US ingestion host', 'INTEGRATE'],
     ['DOM autocapture (`autocapture`)', 'OPT-OUT'],
     ['rageclick (`rageclick`)', 'OPT-OUT'],
