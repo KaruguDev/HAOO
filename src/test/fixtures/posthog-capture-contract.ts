@@ -258,6 +258,55 @@ export function createPostHogVendorClient(
   return client;
 }
 
+/** Inspection surface added by the re-entrant client below. */
+export interface LoadedOnceVendorPostHogClient extends InstalledVendorPostHogClient {
+  /** Every `init` call, including the ones the short-circuit swallowed. */
+  initCallCount(): number;
+}
+
+/**
+ * The same client, plus the one vendor behaviour `createPostHogVendorClient` does not
+ * model: `init` is not idempotent-by-merge, it SHORT-CIRCUITS on re-entry.
+ *
+ * Transcribed from the installed bundle rather than assumed. `posthog-js@1.425.1`'s
+ * `dist/module.js` opens its initializer with
+ * `if(this.__loaded)return …console.warn("[PostHog.js]","You have already initialized
+ * PostHog! Re-initializing is a no-op"),this;this.__loaded=!0,this.config=…` — so the
+ * second call returns the FIRST instance, with the first call's merged configuration
+ * still attached, and never applies the second call's options. The sibling factory above
+ * re-merges on every call, which is faithful to a first call and silently wrong about a
+ * second; a test written against it could not have seen code-review WR-01 at all.
+ *
+ * This matters because `boundPostHogClient()` returns the vendor's module SINGLETON. Two
+ * `createPostHogEventSink` calls in one page are therefore two calls against one loaded
+ * instance, which is precisely the shape modelled here.
+ */
+export function createLoadedOncePostHogVendorClient(
+  overrides: VendorPostHogConfig = {},
+): LoadedOnceVendorPostHogClient {
+  const loaded = createPostHogVendorClient(overrides);
+  let firstInstance: VendorPostHogInstance | null = null;
+  let initCalls = 0;
+
+  return {
+    init(token: string, config: Record<string, unknown> = {}) {
+      initCalls += 1;
+
+      // The `__loaded` branch: the instance comes back, the configuration does not move.
+      if (firstInstance !== null) return firstInstance;
+
+      firstInstance = loaded.init(token, config);
+
+      return firstInstance;
+    },
+    initializedToken: loaded.initializedToken,
+    initializedConfig: loaded.initializedConfig,
+    capturedEvents: loaded.capturedEvents,
+    deliveredPayloads: loaded.deliveredPayloads,
+    initCallCount: () => initCalls,
+  };
+}
+
 /**
  * The occupying installer, SUPERSEDED for adapter-facing use by plan `04.1-10`.
  * Successor: `createPostHogVendorClient` above, which every adapter-facing call site now

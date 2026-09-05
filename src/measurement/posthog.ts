@@ -124,6 +124,24 @@ export const POSTHOG_REFUSAL = Object.freeze({
   lockdown: 'posthog:unconfirmed-lockdown-readback',
   /** The initialized instance exposes no callable capture entry point. */
   absentCapture: 'posthog:absent-capture-entry-point',
+  /**
+   * The client was already established under a DIFFERENT configuration, and cannot be
+   * re-initialized into this one.
+   *
+   * Added with the establishment record below (code-review WR-01). At the pinned SDK
+   * version the vendor's initializer short-circuits on re-entry — `if (this.__loaded)
+   * return …, this` — and KEEPS the configuration of the first call, so a second
+   * configuration sent to the same client is not applied. This module refuses to pretend
+   * otherwise: it will not hand back a sink whose events would travel under a project key
+   * and an allowlist the caller did not ask for.
+   *
+   * It exists as its OWN reason rather than reusing `lockdown` because the two say
+   * different things. `lockdown` means "the privacy lockdown could not be confirmed" —
+   * the loudest alarm this phase raises (D-05) — and firing it here would send an owner
+   * hunting a privacy regression that does not exist. This one means "the lockdown that
+   * is installed is a different, already-confirmed one".
+   */
+  reconfiguration: 'posthog:refused-client-reconfiguration',
 } as const);
 
 /**
@@ -283,14 +301,79 @@ function resolveClient(
 }
 
 /**
+ * What this module has already initialized, per client: the configuration it was
+ * initialized under, and the sink that initialization produced.
+ *
+ * **The defect this closes** (code-review WR-01). `boundPostHogClient()` returns the
+ * `posthog-js` module SINGLETON, and at the pinned 1.425.1 its initializer short-circuits
+ * on re-entry — `if (this.__loaded) return …, this` — returning the instance with the
+ * FIRST call's configuration still attached. `POSTHOG_LOCKDOWN` is a factory that mints a
+ * fresh `before_send` closure per call. So a second `createPostHogEventSink` against the
+ * bound module read back the first closure, compared it by identity against the second
+ * one, found them different, and refused with `POSTHOG_REFUSAL.lockdown` — the phase's
+ * loudest privacy alarm — for the rest of the page's life. The alarm would have been
+ * FALSE and the cause would have been this project's own re-entry: the lockdown that is
+ * installed is this project's, already confirmed, still filtering every capture.
+ *
+ * That was reachable only because nothing yet builds a second facade (`./index.ts` guards
+ * with an `initialized` flag, `ProductPage` with a ref, and `App.tsx` passes no adapters)
+ * — none of which this module declares, enforces, or can see. An alarm whose truthfulness
+ * depends on an undeclared precondition held by three other files is not an alarm, so the
+ * precondition is removed rather than documented.
+ *
+ * **What it does NOT do.** It is not a trust decision and it does not stand in for one.
+ * An entry is only ever written after a full pass through the gates below — the client
+ * gate, a real `init`, and a CONFIRMED lockdown readback — so nothing can be returned from
+ * here that was not first proven the long way. It is consulted AFTER `resolveClient`, so
+ * an occupied ambient slot is still `foreignClient` on the second call as on the first,
+ * and after the configuration gate, so a build that lost half its configuration still
+ * refuses as `unconfigured`. It is keyed by client IDENTITY, so it can never hand one
+ * client's sink to another.
+ *
+ * A `WeakMap` rather than a single slot: more than one client legitimately exists in one
+ * process (every test injects its own), and a single slot would silently drop the first
+ * client's establishment the moment a second appeared — reopening exactly this defect for
+ * the first client. It also holds no client alive on its own account.
+ */
+const established = new WeakMap<PostHogClient, {
+  readonly token: string;
+  readonly apiHost: string;
+  readonly events: readonly string[];
+  readonly sink: (event: string) => void;
+}>();
+
+/**
+ * Element-wise equality of two event allowlists.
+ *
+ * Compared rather than ignored because the allowlist is half of what `before_send` was
+ * built from: two pages sharing a client but not an allowlist are a reconfiguration, not
+ * a repeat. Plain `===` per element, in order — the same string comparison the chokepoint
+ * itself uses, with no case folding, trimming or normalization, so two allowlists that
+ * differ only in a way the chokepoint would notice are not treated as the same.
+ */
+function sameEvents(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((event, index) => event === right[index]);
+}
+
+/**
  * Resolve the configured provider sink, or `undefined` when this build has none.
  *
  * The order of operations IS the privacy contract, and it is the order the adapter this
  * one replaced established: provider check, then configuration emptiness, then capability
- * resolution, then the client gate on any pre-existing global, then initialization, then
- * the confirmed lockdown readback — and only then a sink. Every unconfirmed outcome
- * returns `undefined`, so no capture is reachable until the merged configuration has been
- * re-read and agreed with what was sent.
+ * resolution, then the client gate on any pre-existing global, then the re-entry gate on
+ * a client this module has already established, then initialization, then the confirmed
+ * lockdown readback — and only then a sink. Every unconfirmed outcome returns `undefined`,
+ * so no capture is reachable until the merged configuration has been re-read and agreed
+ * with what was sent.
+ *
+ * The re-entry gate was INSERTED by code-review WR-01, and its position is the whole of
+ * its safety: it sits after every gate that classifies a client and before anything is
+ * sent to one, so a repeat call can neither skip a refusal it would have earned nor
+ * manufacture one it would not have. It returns only a sink a previous call already
+ * proved the long way, for the same client and the same configuration; a repeat call
+ * carrying a DIFFERENT configuration is refused as `reconfiguration`, because the pinned
+ * SDK keeps its first configuration and this module will not deliver events under a
+ * project key and an allowlist the caller did not ask for. See `established` above.
  *
  * The ORDER is unchanged by plan `04.1-10`; what changed is which client reaches the
  * later gates. The fourth gate used to decide adopted-versus-installed and is now a flat
@@ -346,6 +429,31 @@ export function createPostHogEventSink<EventName extends string>(
     return undefined;
   }
 
+  // The re-entry gate, decided BEFORE anything is sent to the client and AFTER every gate
+  // that classifies one, so re-entry can neither skip a refusal nor cause one. A client
+  // this module already initialized under this exact configuration is not initialized
+  // again: the vendor would keep its first configuration and hand back a merged object
+  // whose `before_send` is the first call's closure, which the readback below would
+  // correctly report as not-the-function-just-sent and wrongly report as an unconfirmed
+  // lockdown. The established sink is the one that configuration actually produced.
+  const priorEstablishment = established.get(resolvedClient.client);
+  if (priorEstablishment !== undefined) {
+    if (
+      priorEstablishment.token === providerConfig.token
+      && priorEstablishment.apiHost === providerConfig.apiHost
+      && sameEvents(priorEstablishment.events, config.events)
+    ) {
+      return priorEstablishment.sink;
+    }
+
+    // A DIFFERENT configuration for a client that is already initialized. Re-initializing
+    // would be a no-op the vendor reports through a log line, leaving this call's events
+    // to travel under the previous call's project key and allowlist. Refuse instead, and
+    // say which gate refused in its own words.
+    signalRefusal(POSTHOG_REFUSAL.reconfiguration);
+    return undefined;
+  }
+
   // Retained rather than constructed inline at the call: `POSTHOG_LOCKDOWN` is a factory,
   // so each invocation mints a fresh `before_send` closure. Holding on to the object that
   // was actually sent is what lets the readback below prove the resolved chokepoint is
@@ -395,11 +503,24 @@ export function createPostHogEventSink<EventName extends string>(
 
   const initialized = instance;
 
-  return (event: EventName) => {
+  const sink = (event: string) => {
     try {
       initialized.capture(event);
     } catch {
       // Provider delivery is deliberately isolated from every visitor action.
     }
   };
+
+  // Recorded only here, on the far side of every gate: an entry exists if and only if this
+  // client was initialized with this configuration AND its lockdown was confirmed. The
+  // allowlist is copied rather than referenced so a caller mutating its own array after
+  // the fact cannot turn a later reconfiguration into a memo hit.
+  established.set(resolvedClient.client, {
+    token: providerConfig.token,
+    apiHost: providerConfig.apiHost,
+    events: [...config.events],
+    sink,
+  });
+
+  return sink;
 }

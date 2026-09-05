@@ -31,6 +31,7 @@ import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts'
 import {
   VACUOUS_BY_VENDOR_AGREEMENT,
   VENDOR_DOCUMENTED_DEFAULTS,
+  createLoadedOncePostHogVendorClient,
   createPostHogVendorClient,
   type VendorBeforeSend,
   type VendorCaptureResult,
@@ -1387,6 +1388,176 @@ describe('fail-closed provider initialization', () => {
 });
 
 /**
+ * Re-entry: a SECOND `createPostHogEventSink` against a client that is already loaded.
+ *
+ * The defect this table exists for (code-review WR-01) was a FALSE alarm. The pinned SDK
+ * short-circuits `init` on re-entry and keeps the first call's configuration, while
+ * `POSTHOG_LOCKDOWN` mints a fresh `before_send` per call — so the readback compared the
+ * first closure against the second, disagreed, and refused with
+ * `POSTHOG_REFUSAL.lockdown`: "the privacy lockdown could not be confirmed", the loudest
+ * alarm this phase raises, fired by this project's own second call while the lockdown was
+ * in fact installed and filtering. Nothing in the suite called the factory twice, so
+ * neither direction was covered.
+ *
+ * Both directions are covered here, and the second is the one that matters: an alarm that
+ * stopped firing would be a silenced alarm, not a fixed one. A client whose lockdown
+ * genuinely does not hold must still be refused, on the second call as on the first.
+ *
+ * The client is `createLoadedOncePostHogVendorClient`, which models the vendor's
+ * `__loaded` short-circuit. Against the re-merging sibling every case here would pass
+ * whether or not the module had been fixed, because that fixture answers a second `init`
+ * with the second call's own configuration — which the real SDK does not do.
+ */
+describe('repeat initialization against an already-loaded client', () => {
+  const OTHER_TOKEN = 'phc_tracerFixtureTokenSecondPage';
+
+  it('hands back the established sink, initializes once, and raises no alarm', () => {
+    const client = createLoadedOncePostHogVendorClient();
+    const reasons: string[] = [];
+    const adapters: PostHogAdapters = {
+      client,
+      signalRefusal: (reason) => reasons.push(reason),
+    };
+
+    const first = createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters);
+    const second = createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters);
+
+    expect(first).toBeTypeOf('function');
+    // The same sink, not merely an equivalent one: it is the sink whose lockdown was
+    // confirmed the long way, which is the only thing the re-entry gate is allowed to
+    // return.
+    expect(second).toBe(first);
+    // The vendor was never re-entered at all, so there is no second merged configuration
+    // for anything to disagree with.
+    expect(client.initCallCount()).toBe(1);
+    expect(reasons).toEqual([]);
+  });
+
+  it('keeps the second sink delivering through the confirmed chokepoint, in silence', () => {
+    const spies = silentConsole();
+    const client = createLoadedOncePostHogVendorClient();
+
+    createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
+    const second = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client });
+
+    second?.('haoo_page_view');
+    second?.('haoo_page_view_extra' as HaooMeasurementEvent);
+
+    // One allowlisted name in, one payload out: the chokepoint the FIRST call installed is
+    // still the one running, and it still drops everything else.
+    expect(client.capturedEvents()).toEqual(['haoo_page_view', 'haoo_page_view_extra']);
+    expect(client.deliveredPayloads()).toHaveLength(1);
+    // No refusal channel is injected here on purpose. The owner-visible console is where
+    // the false alarm would have appeared, and it is exactly what must stay quiet.
+    expectSilent(spies);
+  });
+
+  it('still refuses, on every call, when the lockdown genuinely does not hold', () => {
+    const client = createLoadedOncePostHogVendorClient({ autocapture: true });
+    const reasons: string[] = [];
+    const adapters: PostHogAdapters = {
+      client,
+      signalRefusal: (reason) => reasons.push(reason),
+    };
+
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters)).toBeUndefined();
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters)).toBeUndefined();
+
+    // Nothing is established by a refused call, so the second call is not a repeat of
+    // anything: it runs the whole gate sequence again and refuses again. The alarm kept
+    // its teeth.
+    expect(reasons).toEqual([POSTHOG_REFUSAL.lockdown, POSTHOG_REFUSAL.lockdown]);
+    expect(client.capturedEvents()).toEqual([]);
+    expect(client.deliveredPayloads()).toEqual([]);
+  });
+
+  const reconfigurationRows: readonly [string, ProductMeasurement<HaooMeasurementEvent>][] = [
+    [
+      'a different project key',
+      {
+        ...CONFIGURED_MEASUREMENT,
+        providerConfig: { token: OTHER_TOKEN, apiHost: APPROVED_HOST },
+      },
+    ],
+    [
+      'a different ingestion origin',
+      {
+        ...CONFIGURED_MEASUREMENT,
+        providerConfig: { token: PROJECT_TOKEN, apiHost: `${APPROVED_HOST}/second` },
+      },
+    ],
+    [
+      'a different event allowlist',
+      {
+        ...CONFIGURED_MEASUREMENT,
+        events: HAOO_MEASUREMENT_EVENTS.slice(0, 3),
+      },
+    ],
+  ];
+
+  it.each(reconfigurationRows)(
+    'refuses %s against an established client, in its own words',
+    (_label, reconfigured) => {
+      const client = createLoadedOncePostHogVendorClient();
+      const reasons: string[] = [];
+      const signalRefusal = (reason: string) => reasons.push(reason);
+
+      const first = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client, signalRefusal });
+
+      expect(first).toBeTypeOf('function');
+      expect(createPostHogEventSink(reconfigured, { client, signalRefusal })).toBeUndefined();
+
+      // Not `lockdown`. The lockdown is confirmed and installed; what cannot be honoured
+      // is the SECOND configuration, and saying so with the privacy alarm would send an
+      // owner hunting a regression that does not exist.
+      expect(reasons).toEqual([POSTHOG_REFUSAL.reconfiguration]);
+      // The vendor was not re-entered, so the established configuration is untouched and
+      // the first page's sink keeps working.
+      expect(client.initCallCount()).toBe(1);
+      first?.('haoo_page_view');
+      expect(client.deliveredPayloads()).toHaveLength(1);
+    },
+  );
+
+  it('is consulted after the configuration gate, so an emptied configuration still refuses', () => {
+    const client = createLoadedOncePostHogVendorClient();
+    const reasons: string[] = [];
+    const signalRefusal = (reason: string) => reasons.push(reason);
+
+    expect(createPostHogEventSink(CONFIGURED_MEASUREMENT, { client, signalRefusal }))
+      .toBeTypeOf('function');
+
+    // A repeat call is not a way past the gates ahead of the re-entry check: a build that
+    // lost half its provider configuration is still `unconfigured`, established or not.
+    expect(
+      createPostHogEventSink(
+        { ...CONFIGURED_MEASUREMENT, providerConfig: { token: '', apiHost: APPROVED_HOST } },
+        { client, signalRefusal },
+      ),
+    ).toBeUndefined();
+    expect(reasons).toEqual([POSTHOG_REFUSAL.unconfigured]);
+  });
+
+  it('establishes each client separately, so one client never answers for another', () => {
+    const first = createLoadedOncePostHogVendorClient();
+    const second = createLoadedOncePostHogVendorClient();
+
+    const firstSink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client: first });
+    const secondSink = createPostHogEventSink(CONFIGURED_MEASUREMENT, { client: second });
+
+    // Keyed by client identity, so this is a first call for the second client and it is
+    // initialized on its own terms. A gate that short-circuited on configuration alone
+    // would hand the second caller the first client's sink.
+    expect(secondSink).not.toBe(firstSink);
+    expect(second.initCallCount()).toBe(1);
+
+    secondSink?.('haoo_page_view');
+    expect(second.deliveredPayloads()).toHaveLength(1);
+    expect(first.deliveredPayloads()).toEqual([]);
+  });
+});
+
+/**
  * The binding itself — the single link `04.1-VERIFICATION.md` recorded as NOT WIRED.
  *
  * Gap `G-04.1-1` / deferred item D4: until plan `04.1-09` the only reference to the vendor
@@ -1507,6 +1678,29 @@ describe('fail-closed provider initialization in the full journey', () => {
         },
         reason: POSTHOG_REFUSAL.absentCapture,
       }),
+    ],
+    [
+      // Added with the re-entry gate (code-review WR-01). The cause is a client this
+      // module already established under a DIFFERENT configuration, which the row builds
+      // by initializing it first — the shape a second product page would produce against
+      // the module singleton. The journey claim is the same one every other row makes: a
+      // refusal is a privacy decision, never a degradation of the visitor's journey.
+      'the client is already established under a different configuration',
+      () => {
+        const client = createLoadedOncePostHogVendorClient();
+
+        expect(
+          createPostHogEventSink(
+            {
+              ...CONFIGURED_MEASUREMENT,
+              providerConfig: { token: 'phc_tracerFixtureTokenFirstPage', apiHost: APPROVED_HOST },
+            },
+            { client },
+          ),
+        ).toBeTypeOf('function');
+
+        return { adapters: { client }, reason: POSTHOG_REFUSAL.reconfiguration };
+      },
     ],
   ];
 
