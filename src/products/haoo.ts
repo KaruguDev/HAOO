@@ -185,8 +185,36 @@ export function resolvePostHogApiHost(
 
 export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
   productKey: 'haoo',
-  storageKey: 'zph.haoo.ctx.v1',
-  schemaVersion: 1,
+  /**
+   * Renamed off the parent-company prefix, which is a misnomer now that HAOO is published
+   * on its own domain, and the schema version bumped in the same edit. The old key is
+   * named in full exactly once, in the reset case in `measurement.test.ts`, where it is
+   * the thing being proven unreachable rather than a value this file still carries. These
+   * are mechanically two different operations and both are wanted:
+   *
+   * - The RENAME does not find the old record at all, so it is left ORPHANED. Browser
+   *   storage is origin-scoped, so every record written at the parent origin is already
+   *   unreachable from this one; the rename changes nothing for those and only stops this
+   *   origin from writing a parent-prefixed name. A returning visitor reads as a first
+   *   visit with no interaction flags, which Phase 3 defines as a legitimate coarse
+   *   answer, so this is a reset by construction and there is NO migration to write.
+   * - The VERSION BUMP does find a record under the new key carrying the old version and
+   *   REMOVES it, rather than merely ignoring it. That is the half that makes "handled as
+   *   a schema-version event" literally true rather than approximately true.
+   *
+   * Orphaned-record disposition (plan 04.2-04 task 1, owner, 2026-09-06): ACCEPT AND
+   * RECORD. The records left at the parent origin are never removed. They are bounded,
+   * carry no identity and expire after about 180 days, but the disclosure's "Clear what
+   * this page remembers" control is unreachable at that origin from the moment the domain
+   * changed. The recovery document at the retired path stays static per D-12 and is NOT
+   * widened to clear them. Recorded in 04.2-DEFERRED-ITEMS.md.
+   *
+   * No cross-origin handover is to be built for this. It was considered and rejected on a
+   * recorded cost: an iframe-and-message handover is mechanically indistinguishable from
+   * the cross-site identity technique this product's own disclosure denies.
+   */
+  storageKey: 'haoo.ctx.v2',
+  schemaVersion: 2,
   events: HAOO_MEASUREMENT_EVENTS,
   pageViewEvent: 'haoo_page_view',
   interactionEvents: {

@@ -37,7 +37,14 @@ import {
   type VendorCaptureResult,
 } from './fixtures/posthog-capture-contract';
 
-const CONTEXT_KEY = 'zph.haoo.ctx.v1';
+/**
+ * Read through configuration, never retyped. The key and the schema version are product
+ * DATA — plan 04.2-04 task 3 renamed one and bumped the other with no code change — so a
+ * suite that hand-typed either would fail on a data edit it is not testing, and would
+ * stop proving that the reader reaches both through configuration.
+ */
+const CONTEXT_KEY = HAOO_MEASUREMENT.storageKey;
+const SCHEMA_VERSION = HAOO_MEASUREMENT.schemaVersion;
 const TODAY = new Date('2026-08-31T12:00:00.000Z');
 const STORED_KEYS = [
   'version',
@@ -67,7 +74,7 @@ class MemoryStorage implements Storage {
 
 function storedContext(overrides: Record<string, unknown> = {}) {
   return {
-    version: 1,
+    version: SCHEMA_VERSION,
     visitBand: 'first',
     lastSeenBand: 'today',
     flags: Object.fromEntries(FLAG_KEYS.map((key) => [key, false])),
@@ -218,7 +225,7 @@ describe('exact stored schema', () => {
   const invalidRecords: readonly [string, string | null][] = [
     ['malformed JSON', '{'],
     ['array', '[]'],
-    ['unknown version', JSON.stringify(storedContext({ version: 2 }))],
+    ['unknown version', JSON.stringify(storedContext({ version: SCHEMA_VERSION + 1 }))],
     ['missing key', JSON.stringify(Object.fromEntries(
       Object.entries(storedContext()).filter(([key]) => key !== 'lastSeenDay'),
     ))],
@@ -254,6 +261,65 @@ describe('exact stored schema', () => {
     expect(Object.keys(context)).toEqual(STORED_KEYS);
     expect(Object.keys(context.flags)).toEqual(FLAG_KEYS);
     expect(JSON.parse(storage.getItem(CONTEXT_KEY) ?? 'null')).toEqual(context);
+  });
+
+  /**
+   * Plan 04.2-04 task 3 — the move to a standalone domain, asserted as the two mechanically
+   * different operations it is. Browser storage is origin-scoped, so nothing written at the
+   * parent origin is reachable here at all; this case proves the CONFIGURATION half, which
+   * is what a suite can observe.
+   *
+   * There is deliberately no migration path to assert. D-10 accepts the reset, and the
+   * orphaned records at the old origin are accepted and recorded rather than recovered — a
+   * cross-origin handover is indistinguishable from the cross-site identity technique the
+   * disclosure denies.
+   */
+  it('resets to a first visit under the renamed key and bumped schema version', () => {
+    const OLD_KEY = 'zph.haoo.ctx.v1';
+    const OLD_VERSION = 1;
+
+    expect(CONTEXT_KEY).not.toBe(OLD_KEY);
+    expect(CONTEXT_KEY).not.toContain('zph.');
+    expect(SCHEMA_VERSION).toBeGreaterThan(OLD_VERSION);
+
+    // Half one — the RENAME. A fully valid record under the OLD key is simply not found.
+    // The visitor reads as a first visit with no flags, nothing throws, and the old record
+    // is left ORPHANED rather than removed: the reader only ever touches the configured key.
+    const renamed = new MemoryStorage();
+    const orphan = JSON.stringify(storedContext({
+      version: OLD_VERSION,
+      visitBand: 'frequent',
+      visitOrdinal: 4,
+      flags: Object.fromEntries(FLAG_KEYS.map((key) => [key, true])),
+    }));
+    renamed.setItem(OLD_KEY, orphan);
+
+    const afterRename = measurementWithStorage(renamed);
+    expect(() => afterRename.initialize()).not.toThrow();
+
+    const freshContext = afterRename.readContext();
+    expect(freshContext.visitBand).toBe('first');
+    expect(freshContext.visitOrdinal).toBe(1);
+    expect(freshContext.version).toBe(SCHEMA_VERSION);
+    expect(Object.values(freshContext.flags)).toEqual(FLAG_KEYS.map(() => false));
+    expect(renamed.getItem(OLD_KEY)).toBe(orphan);
+    expect(JSON.parse(renamed.getItem(CONTEXT_KEY) ?? 'null')).toEqual(freshContext);
+
+    // Half two — the VERSION BUMP. A record found under the NEW key carrying the OLD
+    // version is rejected on the version check and REMOVED, not merely ignored. This is
+    // what the bump buys over the rename alone.
+    const bumped = new MemoryStorage();
+    bumped.setItem(CONTEXT_KEY, JSON.stringify(storedContext({ version: OLD_VERSION })));
+
+    const afterBump = measurementWithStorage(bumped);
+    expect(() => afterBump.initialize()).not.toThrow();
+
+    const rebuilt = afterBump.readContext();
+    expect(rebuilt.visitBand).toBe('first');
+    expect(rebuilt.visitOrdinal).toBe(1);
+    expect(Object.values(rebuilt.flags)).toEqual(FLAG_KEYS.map(() => false));
+    expect(JSON.parse(bumped.getItem(CONTEXT_KEY) ?? 'null')).toEqual(rebuilt);
+    expect(JSON.parse(bumped.getItem(CONTEXT_KEY) ?? 'null').version).toBe(SCHEMA_VERSION);
   });
 
   it('kills a partial-defaulting schema mutant with the invalid-record table', () => {

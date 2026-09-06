@@ -25,7 +25,13 @@ import {
   type VendorCaptureResult,
 } from './fixtures/posthog-capture-contract';
 
-const CONTEXT_KEY = 'zph.haoo.ctx.v1';
+/**
+ * Read through configuration, never retyped — see the note in `measurement.test.ts`. The
+ * eight assertions below that read real browser storage all resolve the key from product
+ * data, so plan 04.2-04's rename is the one-line data edit it is meant to be.
+ */
+const CONTEXT_KEY = HAOO_MEASUREMENT.storageKey;
+const SCHEMA_VERSION = HAOO_MEASUREMENT.schemaVersion;
 /**
  * The owner-approved collection notice, byte-exact, hand-typed exactly once in the
  * repository. Its final clause is the Phase 4 checkpoint C-1 approval. Every other
@@ -275,7 +281,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
 
     const context = JSON.parse(window.localStorage.getItem(CONTEXT_KEY) ?? 'null');
     expect(context).toEqual({
-      version: 1,
+      version: SCHEMA_VERSION,
       visitBand: 'first',
       lastSeenBand: 'today',
       flags: {
@@ -781,7 +787,7 @@ describe('Phase 3 HAOO measurement disclosure', () => {
 
   it('clears only bounded page context and keeps truthful status through failure', () => {
     const stored = {
-      version: 1,
+      version: SCHEMA_VERSION,
       visitBand: 'returning',
       lastSeenBand: 'this-week',
       flags: {
@@ -890,7 +896,7 @@ describe('Phase 3 HAOO measurement disclosure', () => {
 
     /** A maximally populated record: every flag set, the highest bands, both raw values. */
     const FULL_CONTEXT = {
-      version: 1,
+      version: SCHEMA_VERSION,
       visitBand: 'frequent',
       lastSeenBand: 'today',
       flags: {
@@ -1207,7 +1213,7 @@ describe('Phase 4 disclosure of the attached engagement summary', () => {
     );
 
     const stored = {
-      version: 1,
+      version: SCHEMA_VERSION,
       visitBand: 'frequent',
       lastSeenBand: 'today',
       flags: {
@@ -1250,7 +1256,7 @@ describe('Phase 4 disclosure of the attached engagement summary', () => {
   it('renders identical group markup whether or not browser storage is available', () => {
     const readable = {
       getItem: vi.fn(() => JSON.stringify({
-        version: 1,
+        version: SCHEMA_VERSION,
         visitBand: 'returning',
         lastSeenBand: 'this-week',
         flags: {
