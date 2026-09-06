@@ -1,0 +1,73 @@
+# shared-scaffold.txt — the closed list of paths that legitimately exist in BOTH
+# `KaruguDev/ZERO-PAPERHUB` and `KaruguDev/HAOO`.
+#
+# WHY THIS FILE EXISTS
+# SPLT-01 says HAOO builds, tests and deploys from a repository containing no
+# ZERO-PAPER HUB source, and ZERO-PAPER HUB from one containing no HAOO source, with
+# neither suite reading a file the other owns. Taken literally that is UNSATISFIABLE:
+# both repositories legitimately need two package manifests, three type
+# configurations, four tool configurations, two build and test configurations, an
+# ignore file, two repository documents, a deploy workflow, an application entry, a
+# global stylesheet, ambient declarations, a test setup file and a domain file.
+#
+# Toolchain scaffolding is owned by NEITHER half — it is owned by the repository. A
+# check that treats these nineteen paths as violations fails for the WRONG REASON, and
+# a check that fails for the wrong reason gets disabled. So this list is not a
+# loophole; it is the thing that makes the requirement mean something.
+#
+# THE RULE FOR ADDING AN ENTRY — THIS LIST IS CLOSED
+# An entry is added by DECLARING TOOLCHAIN OWNERSHIP: a file the repository owns
+# rather than either product half. An entry is NEVER added because "both halves need
+# it" — a product file the other half also needs is precisely the coupling SPLT-01
+# exists to forbid, and it is a VIOLATION, not an allowlist candidate. Never add a
+# path here to make a failing run pass.
+#
+# (Modelled on the closed-list discipline documented at
+# `src/test/focus-contrast.test.ts`, where the list is kept closed by registering each
+# new component rather than by widening the token set, so a style that is never
+# measured cannot ship.)
+#
+# EVERY ENTRY SUBTRACTED IS A PATH THE CHECK STOPS GUARDING.
+# `scripts/verify-tree-disjointness.mjs` prints how many entries it subtracted on every
+# run, so growth in this list is visible in the recorded output rather than silent.
+#
+# BYTE-IDENTICAL IN BOTH REPOSITORIES. A private definition of "shared" in one
+# repository is the first step to the two trees disagreeing about what separation
+# means, so a unilateral widening shows up as a `diff`.
+#
+# `CNAME` is listed as a PATH, not as a value. Both repositories have the file and the
+# two hold different hostnames (`www.haoo.online` and `www.zero-paperhub.com`); the
+# per-side literal is pinned separately by `build-output.test.ts`.
+#
+# NO ASSET DUPLICATION IS RECORDED HERE. Phase 04.2 decision (d) let the retired
+# ZERO-PAPER HUB asset URLs 404 rather than copying the four brochure files, so there
+# is no asset exception for the disjointness check to forgive. Measured by plan
+# 04.2-07: the four assets exist only in `KaruguDev/HAOO`, under `public/brochure/`.
+#
+# Source of truth: `.planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/
+# 04.2-SPLIT-CONTRACT.md` § "Shared scaffold". Change them there and here together.
+#
+# Blank lines and lines beginning with `#` are ignored by the reader. Everything else
+# is one bare repository-relative path, matched by EXACT WHOLE-LINE comparison — never
+# as a glob, a prefix or a substring. A path fragment match would forgive an unrelated
+# file that merely contains an allowlisted name.
+
+package.json
+package-lock.json
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+eslint.config.js
+postcss.config.js
+tailwind.config.js
+vite.config.ts
+vitest.config.ts
+.gitignore
+AGENTS.md
+README.md
+.github/workflows/deploy.yml
+src/main.tsx
+src/index.css
+src/vite-env.d.ts
+src/test/setup.ts
+CNAME
