@@ -39,6 +39,7 @@ import {
 } from '../reporting/render';
 import {
   generateHaooReport,
+  HAOO_DOMAIN_CUTOVER_DAY,
   type ReportFetch,
   type ReportFs,
 } from '../reporting/generate';
@@ -208,7 +209,7 @@ const INDEPENDENT_GOAL_FILTER = [
   'haoo_self_onboarding',
 ] as const;
 
-/** One submitted query: a bounded range, the unbounded all-time aggregate, or the first day. */
+/** One submitted query: a bounded range, the all-time aggregate, or the first day. */
 type SubmittedQuery =
   | { readonly start: string; readonly end: string }
   | 'all'
@@ -228,6 +229,37 @@ const INDEPENDENT_TIMEZONE = 'Africa/Nairobi';
  */
 const INDEPENDENT_ROW_LIMIT = 100;
 
+/**
+ * The domain cutover day as the SQL carries it, authored here rather than imported, in
+ * the same spirit as the timezone and the row limit above.
+ *
+ * The analytics project is shared across the domain move (D-11), and the transport
+ * reducer strips every URL-bearing property before the wire, so the timestamp is the only
+ * dimension that can separate the two hostnames. This literal is compared against the
+ * source constant in its own case below: the independent copy is what proves the
+ * submitted text, and the equality is what proves the two have not drifted apart.
+ */
+const INDEPENDENT_CUTOVER_DAY = '2026-09-06';
+
+/** The lower-bound clause every submitted query carries, in the shape the source emits. */
+function independentCutoverBound(): string {
+  return `\n  AND toDate(toTimeZone(timestamp, '${INDEPENDENT_TIMEZONE}')) `
+    + `>= toDate('${INDEPENDENT_CUTOVER_DAY}')`;
+}
+
+/**
+ * The comparison shape both bound kinds share, counted rather than pattern-matched.
+ *
+ * A range bound and the cutover bound are indistinguishable except by their operand, so
+ * counting this prefix counts date comparisons: three in a bounded aggregate, exactly one
+ * in the all-time aggregate, and one in the first-day query.
+ */
+const DATE_COMPARISON_PREFIX = `toDate(toTimeZone(timestamp, '${INDEPENDENT_TIMEZONE}'))`;
+
+function dateComparisonCount(sql: string): number {
+  return sql.split(DATE_COMPARISON_PREFIX).length - 1;
+}
+
 function independentEventLiterals(): string {
   return INDEPENDENT_GOAL_FILTER.map((event) => `'${event}'`).join(', ');
 }
@@ -244,7 +276,7 @@ function independentSql(submitted: SubmittedQuery): string {
   if (submitted === 'first-day') {
     return `SELECT toString(toDate(toTimeZone(min(timestamp), '${INDEPENDENT_TIMEZONE}'))) AS first_day\n`
       + 'FROM events\n'
-      + `WHERE event IN (${independentEventLiterals()})\n`
+      + `WHERE event IN (${independentEventLiterals()})${independentCutoverBound()}\n`
       + 'LIMIT 1';
   }
 
@@ -255,7 +287,7 @@ function independentSql(submitted: SubmittedQuery): string {
 
   return 'SELECT event, count() AS occurrences\n'
     + 'FROM events\n'
-    + `WHERE event IN (${independentEventLiterals()})${bounds}\n`
+    + `WHERE event IN (${independentEventLiterals()})${bounds}${independentCutoverBound()}\n`
     + 'GROUP BY event\n'
     + 'ORDER BY event\n'
     + `LIMIT ${INDEPENDENT_ROW_LIMIT}`;
@@ -263,8 +295,13 @@ function independentSql(submitted: SubmittedQuery): string {
 
 /**
  * The eight queries one run submits, in order: current and previous for 7, 30 and 90
- * days, the unbounded all-time aggregate, and the single-value first-recorded-day query
- * that replaces the range echo the previous provider supplied.
+ * days, the all-time aggregate, and the single-value first-recorded-day query that
+ * replaces the range echo the previous provider supplied.
+ *
+ * Every one of the eight carries the domain cutover lower bound. The all-time entry is
+ * the one that matters: it carried no bound at all until plan `04.2-05`, which is exactly
+ * where a count mixed across two hostnames would have been printed under a single-site
+ * heading.
  */
 const DEFAULT_SUBMITTED_QUERIES: readonly SubmittedQuery[] = [
   { start: '2026-02-23', end: '2026-03-01' },
@@ -1751,7 +1788,23 @@ describe('all four reporting periods', () => {
     }
   });
 
-  it('bounds the six calendar aggregates in SQL, leaves all time unbounded, and asks the first day once', async () => {
+  /**
+   * RETITLED by plan `04.2-05`. Predecessor title: `bounds the six calendar aggregates in
+   * SQL, leaves all time unbounded, and asks the first day once`.
+   *
+   * The predecessor asserted `expect(submitted[6]).not.toContain('toDate(')` -- that the
+   * all-time aggregate carried no date comparison at all, "rather than a very old one it
+   * cannot justify". That was true while one analytics project served one hostname. It
+   * stopped being true when the same project began serving two: an unbounded all-time
+   * count is now a count across both addresses printed under a single-site heading. The
+   * bound is no longer one the report cannot justify -- the cutover day is a recorded
+   * deployment date this repository owns.
+   *
+   * Retitled rather than deleted, and the inverted assertion replaced rather than dropped:
+   * the successor below asserts the all-time query carries EXACTLY ONE date comparison, so
+   * neither an absent bound nor a smuggled second one passes.
+   */
+  it('bounds the six calendar aggregates, the all-time aggregate and the first-day query in SQL', async () => {
     const { calls } = await generateEveryPeriod();
     const submitted = calls.map((call) => submittedSqlOf(call));
 
@@ -1765,9 +1818,67 @@ describe('all four reporting periods', () => {
       independentSql('all'),
       independentSql('first-day'),
     ]);
-    // All time carries no bound at all rather than a very old one it cannot justify.
-    expect(submitted[6]).not.toContain('toDate(');
     expect(submitted[7]).toContain('min(timestamp)');
+  });
+
+  /**
+   * The bound the whole plan exists for, asserted per range and by count.
+   *
+   * Counting the comparison prefix is what makes the all-time case load-bearing. An
+   * assertion that merely looked for the cutover literal would pass on a bounded range
+   * while the all-time branch stayed open, because the literal would be present in six of
+   * the eight queries either way. Exactly one comparison in the all-time query is a claim
+   * only a bounded all-time branch can satisfy.
+   *
+   * The independent day is compared against the source constant rather than restated
+   * silently, so a change to one without the other fails here.
+   */
+  it('bounds every range including all-time at the domain cutover day', async () => {
+    expect(INDEPENDENT_CUTOVER_DAY).toBe(HAOO_DOMAIN_CUTOVER_DAY);
+
+    const { calls } = await generateEveryPeriod();
+    const submitted = calls.map((call) => submittedSqlOf(call));
+    const cutoverComparison = `>= toDate('${INDEPENDENT_CUTOVER_DAY}')`;
+
+    // The six bounded aggregates: range start, range end, and the cutover bound.
+    for (const [index, sql] of submitted.slice(0, 6).entries()) {
+      expect(dateComparisonCount(sql), `bounded aggregate ${index}`).toBe(3);
+      expect(sql, `bounded aggregate ${index}`).toContain(cutoverComparison);
+    }
+
+    // The all-time aggregate: exactly one date comparison, and it is the cutover bound.
+    const allTime = submitted[6] ?? '';
+    expect(dateComparisonCount(allTime)).toBe(1);
+    expect(allTime).toContain(cutoverComparison);
+    expect(allTime).not.toContain('<= toDate(');
+
+    // The first recorded day is HAOO-domain history, not the parent site's deploy date.
+    const firstDay = submitted[7] ?? '';
+    expect(dateComparisonCount(firstDay)).toBe(1);
+    expect(firstDay).toContain(cutoverComparison);
+  });
+
+  /**
+   * The filter that does not exist, pinned so a future contributor fails here.
+   *
+   * The transport reducer copies exactly three named keys into a fresh literal and the
+   * vendor's page-URL, host, path and referrer properties are all set client-side before
+   * it runs, so none of them is on the wire and none is in the query language. A filter
+   * written on one would match zero rows on every event this project has ever sent -- a
+   * report of zeros rather than a visible failure. The cutover timestamp is the only
+   * discriminator that exists.
+   */
+  it('writes no reporting query filter on a host, page-URL, path or referrer property', () => {
+    const reportingDir = resolve(ROOT, 'src/reporting');
+    const modules = readdirSync(reportingDir).filter((name) => name.endsWith('.ts'));
+    expect(modules.length).toBeGreaterThan(0);
+
+    for (const name of modules) {
+      const source = readFileSync(resolve(reportingDir, name), 'utf8');
+      for (const property of ['$host', '$current_url', '$pathname', '$referrer']) {
+        expect(source, `${name} references ${property}`).not.toContain(property);
+      }
+    }
   });
 
   it('renders all four period sections with their exact inclusive boundaries', async () => {
