@@ -62,7 +62,17 @@ const REQUIRED_TABLES = {
     ["`toTimeZone(timestamp, 'Africa/Nairobi')` pinned inside the SQL", 'INTEGRATE'],
     ['explicit inclusive date bounds', 'INTEGRATE'],
     ['an explicit `LIMIT` above the allowlist size', 'INTEGRATE'],
-    ['echoed `query` / `hogql` provenance', 'INTEGRATE'],
+    // NARROWED 2026-09-06 by UAT gap G-04.2-9, in the same commit as the COVERAGE.md rows
+    // it pins. The single entry here was ['echoed `query` / `hogql` provenance',
+    // 'INTEGRATE'] — one row asserting both halves as integrated. Measured against the
+    // live API, the two halves have opposite answers: `hogql` is returned and integrated,
+    // `query` is null and therefore an OPT-OUT the provider forces rather than one this
+    // project chose. Splitting them is what lets each carry its own decision; keeping one
+    // row would have required calling the pair INTEGRATE and re-stating a measured
+    // falsehood, or calling it OPT-OUT and losing the `hogql` capability the report does
+    // use.
+    ['resolved `hogql` provenance', 'INTEGRATE'],
+    ['echoed `query` provenance', 'OPT-OUT'],
     ['response `results` rows', 'INTEGRATE'],
     ['response `columns` equality assertion', 'INTEGRATE'],
     ['bulk or recurring event export', 'OPT-OUT'],

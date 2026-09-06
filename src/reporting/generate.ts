@@ -7,7 +7,7 @@ import {
   REPORT_PERIOD_LABELS,
 } from './haoo-report.ts';
 import { parseGoalCounts } from './stats-response.ts';
-import { HOGQL_QUERY_KIND, validateEchoedQuery } from './query-provenance.ts';
+import { HOGQL_QUERY_KIND, resolveQueryProvenance } from './query-provenance.ts';
 import type { EchoedQueryRejection } from './query-provenance.ts';
 import { isPlainObject } from './untrusted.ts';
 import { renderReport } from './render.ts';
@@ -314,9 +314,12 @@ type SubmissionOutcome =
  * Submits one query and proves the response answered that exact query.
  *
  * The key is passed only in the `Authorization` header — never in the request body, never
- * logged, and never returned. The submitted SQL is handed to the echo validator so a
- * response can be bound to the question it answered; the project it ran against cannot be
- * bound, which is stated in the report's own caveat block rather than left implicit.
+ * logged, and never returned. The submitted SQL is handed to `resolveQueryProvenance`,
+ * which binds the response to the question it answered WHEN the provider echoes that
+ * question and records that it could not when the provider does not. Measured 2026-09-06:
+ * PostHog does not, so every live run takes the unconfirmed route. Neither the project the
+ * query ran against nor the query itself is provider-confirmed, and both limits are stated
+ * in the report's own caveat block rather than left implicit.
  */
 async function submitQuery(
   options: GenerateHaooReportOptions,
@@ -349,7 +352,7 @@ async function submitQuery(
     clearTimeout(timeout);
   }
 
-  const echoed = validateEchoedQuery(body, { sql });
+  const echoed = resolveQueryProvenance(body, { sql });
   if (!echoed.ok) return { ok: false, reason: echoed.reason };
 
   return { ok: true, body };

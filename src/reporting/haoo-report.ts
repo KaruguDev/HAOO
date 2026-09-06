@@ -314,9 +314,27 @@ export const REPORT_CAVEATS: readonly string[] = [
   'All-time counts begin on the day named in the report header, when these pages moved '
   + 'to their own web address; earlier activity in the same measurement project was '
   + 'recorded at the previous address and is not included here.',
-  'The provider echoes the query this report submitted but not the project that answered '
-  + 'it, so the report proves which query produced its numbers and not which project '
-  + 'produced them; the project named above is the one the command was configured with.',
+  // WITHDRAWN 2026-09-06 and replaced in place, because the sentence was measured FALSE
+  // rather than merely imprecise. It read: "The provider echoes the query this report
+  // submitted but not the project that answered it, so the report proves which query
+  // produced its numbers and not which project produced them; the project named above is
+  // the one the command was configured with." The first clause is the false one --
+  // PostHog returns `query: null`, so it echoes NEITHER. Had the report ever rendered, it
+  // would have printed a claim about the provider that the provider's own response
+  // contradicts. It never rendered only because the same missing echo made every run fail
+  // closed, which is luck rather than a safeguard, and is why the successor below is
+  // written to understate rather than to track the provider.
+  //
+  // The successor claims only what this repository can prove on its own: the report states
+  // the query it sent. If PostHog later begins populating `query`, this sentence becomes
+  // conservative rather than false -- `resolveQueryProvenance` would then verify the echo
+  // byte-for-byte and the report would simply be under-claiming a confirmation it holds.
+  // That direction is safe; the direction this sentence was pointing was not.
+  'The query that produced these numbers is the one this report submitted, stated here on '
+  + 'the report\'s own authority: the provider returns no echo of the query it answered, '
+  + 'and does not identify the project that answered it. So neither the query nor the '
+  + 'project is confirmed by the provider, and the project named above is the one the '
+  + 'command was configured with.',
 ];
 
 /**

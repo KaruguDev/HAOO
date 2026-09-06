@@ -3,15 +3,39 @@ import { isPlainObject } from './untrusted.ts';
 /**
  * Proof that the response answered the query this report submitted.
  *
- * The previous provider echoed the site the query ran against; the Query API echoes the
- * query and the compiled HogQL but **not** the project. That is a real weakening: a
- * response can no longer be bound to the project it came from. It is stated in the
- * report's own caveat block (`REPORT_CAVEATS` in `haoo-report.ts`) rather than dropped
- * silently, and it is the reason the one remaining check is made as strict as it can be.
+ * RESTATED 2026-09-06 in the same commit that changed what this module does, because the
+ * sentence here was measured false. It read: "the Query API echoes the query and the
+ * compiled HogQL but **not** the project". Measured against the live API, it echoes the
+ * compiled HogQL ONLY -- `query` comes back `null` -- so the weakening is one step worse
+ * than recorded: a response can be bound neither to the project it came from NOR to the
+ * query it answered. Research assumption A4 was flagged medium-confidence precisely so
+ * the first live run would settle this, and it did.
+ *
+ * Both limits are stated in the report's own caveat block (`REPORT_CAVEATS` in
+ * `haoo-report.ts`) rather than dropped silently.
  */
 export interface EchoedQueryProvenance {
-  /** The echoed query text, proven equal to the submitted SQL. */
+  /**
+   * The query text this report stands behind.
+   *
+   * When the provider echoes a query, this is that echo, proven byte-equal to the
+   * submitted SQL. When the provider omits the echo, this is the submitted SQL itself.
+   * Either way it is the exact text that produced the numbers; `confirmed` says which of
+   * the two routes established it, so a reader is never told the provider agreed when it
+   * said nothing.
+   */
   readonly query: string;
+
+  /**
+   * Whether the PROVIDER confirmed this query, rather than the report merely asserting it.
+   *
+   * MEASURED 2026-09-06, and the reason this member exists: PostHog's Query API returns
+   * `query: null`. Its published schema declares `query?: string` -- "The input query" --
+   * optional, so the field is documented but not populated on this path. The report
+   * therefore cannot obtain confirmation, and the honest move is to record that it did
+   * not rather than to redefine confirmation down to something it can always get.
+   */
+  readonly confirmed: boolean;
 }
 
 /**
@@ -44,24 +68,41 @@ function refuse(reason: EchoedQueryRejection): EchoedQueryResult {
 }
 
 /**
- * Accepts a response whose echoed query is exactly the submitted SQL.
+ * Resolves the query provenance a response supports, and says how strong it is.
  *
- * One equality subsumes every per-member check the previous provider needed. The SQL text
- * contains the event allowlist, both range bounds, the grouping, and the row limit, so
- * echoing it back unchanged proves all of those facts at once -- the metrics, dimensions,
- * filter and date-range echo checks were deleted because this check already covers them,
- * not because the coverage was given up.
+ * WITHDRAWN 2026-09-06: `validateEchoedQuery`. Successor: this function.
  *
- * The comparison is byte-exact and does not normalize whitespace: the submitted text is
- * built in this repository from repository-owned constants and is byte-stable across
+ * The old name described a check that could only ever pass or refuse, and the refusal
+ * branch is the one the live provider takes on every call. Keeping the name while adding
+ * an accepting third outcome would have left a reader expecting a validator and finding
+ * something that resolves. The name is deliberately NOT reused, so anyone who meets
+ * `validateEchoedQuery` in an old diff, summary or review sees a check that stopped
+ * existing rather than assuming this function is it under new management.
+ *
+ * WHAT CHANGED, and what did not. The byte-exact equality is UNCHANGED and still the
+ * strongest thing here: whenever the provider supplies an echo, that echo must equal the
+ * submitted SQL exactly, and a mismatch is still refused. One equality still subsumes
+ * every per-member check the previous provider needed -- the SQL text contains the event
+ * allowlist, both range bounds, the grouping and the row limit -- so nothing that worked
+ * has been relaxed to make the live call succeed.
+ *
+ * What changed is the treatment of a response that carries NO echo. That was a refusal
+ * and is now an accepted outcome with `confirmed: false`. The evidence forcing the change
+ * is a measurement, not a preference: PostHog returns `query: null` for every request,
+ * with and without the documented `name` parameter, so the previous behaviour made the
+ * owner report unable to run at all -- it failed closed on every range, on every run.
+ *
+ * `hogql` STILL cannot stand in for the echo, and the same measurement is why. A probe
+ * submitting `SELECT 1` came back with `hogql` of `SELECT\n    1\nLIMIT 101\nOFFSET 0`:
+ * the provider injects a LIMIT and an OFFSET the caller never wrote. `hogql` is the
+ * provider's compiled rewriting of the submitted text, demonstrably not the submitted
+ * text, and accepting it would print a query the report did not send.
+ *
+ * The comparison remains byte-exact and does not normalize whitespace: the submitted text
+ * is built in this repository from repository-owned constants and is byte-stable across
  * runs, so a difference is evidence about the response rather than formatting noise.
- *
- * The exact response envelope is a MEDIUM-confidence assumption from research (A4): the
- * `HogQLQuery` echo shape was not read verbatim from the provider's documentation. Both
- * documented shapes are handled explicitly and every other shape is refused, so the first
- * live run settles the question loudly instead of parsing to zeros.
  */
-export function validateEchoedQuery(
+export function resolveQueryProvenance(
   body: unknown,
   expected: ExpectedEchoedQuery,
 ): EchoedQueryResult {
@@ -78,18 +119,31 @@ export function validateEchoedQuery(
       if (typeof echoed.query !== 'string') return refuse('invalid');
       if (echoed.query !== expected.sql) return refuse('invalid');
 
-      return { ok: true, provenance: { query: echoed.query } };
+      return { ok: true, provenance: { query: echoed.query, confirmed: true } };
     }
 
     // Shape two: the query text alone.
     if (typeof echoed === 'string') {
       if (echoed !== expected.sql) return refuse('invalid');
 
-      return { ok: true, provenance: { query: echoed } };
+      return { ok: true, provenance: { query: echoed, confirmed: true } };
     }
 
-    // Neither echo shape is present. `hogql` is the provider's compiled rewriting of the
-    // submitted text rather than the submitted text, so it can never stand in for this.
+    /*
+     * Shape three: no echo at all -- the live PostHog behaviour.
+     *
+     * `null` and `undefined` ONLY. This is not a catch-all: a response putting a number,
+     * an array or a boolean in `query` is a shape this report does not understand, and
+     * understanding it as "absent" would be inventing a reading. Those still refuse
+     * below, so the widening is exactly as wide as the measurement that forced it.
+     *
+     * The provenance is the submitted SQL, which this repository owns and can state
+     * exactly; `confirmed: false` records that the provider vouched for none of it.
+     */
+    if (echoed === null || echoed === undefined) {
+      return { ok: true, provenance: { query: expected.sql, confirmed: false } };
+    }
+
     return refuse('invalid');
   } catch {
     return refuse('invalid');

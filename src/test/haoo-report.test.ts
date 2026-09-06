@@ -30,7 +30,7 @@ import {
   type ReportStageId,
 } from '../reporting/haoo-report';
 import { parseGoalCounts } from '../reporting/stats-response';
-import { validateEchoedQuery } from '../reporting/query-provenance';
+import { resolveQueryProvenance } from '../reporting/query-provenance';
 import {
   escapeHtml,
   renderReport,
@@ -404,57 +404,81 @@ function submittedSqlOf(call: StubCall | undefined): string {
 }
 
 /**
- * The provider echoes the query it answered, so the whole provenance question becomes one
- * exact-equality check against the SQL this repository submitted. The submitted text is
- * repository-owned and byte-stable, so a whitespace difference is evidence rather than
- * formatting — and because the SQL carries the event allowlist and both range bounds, one
- * equality subsumes every per-member echo check the previous provider needed.
+ * RESTATED 2026-09-06: the provider does NOT echo the query it answered. `query` comes
+ * back `null` on every call, measured against the live API, so the exact-equality check
+ * below is the branch that never fires in production rather than the whole of the
+ * provenance question. It is kept, and kept strict, because it is the branch that would
+ * fire if PostHog ever populated the field — and an echo that disagreed with the
+ * submitted SQL must still be refused.
+ *
+ * When the echo is absent the provenance is the submitted SQL itself, carried with
+ * `confirmed: false`. The submitted text is repository-owned and byte-stable, so a
+ * whitespace difference is evidence rather than formatting — and because the SQL carries
+ * the event allowlist and both range bounds, one equality subsumes every per-member echo
+ * check the previous provider needed.
  *
  * The query kind is authored here rather than imported, so a rename in the source fails
  * this suite instead of passing by construction.
  */
 const INDEPENDENT_QUERY_KIND = 'HogQLQuery';
 
-describe('validateEchoedQuery', () => {
+describe('resolveQueryProvenance', () => {
   const submitted = "SELECT event, count() AS occurrences\nFROM events\n"
     + "WHERE event IN ('haoo_page_view')\nGROUP BY event\nORDER BY event\nLIMIT 100";
   const expected = { sql: submitted } as const;
 
   it('accepts an echoed object carrying the query kind and the exact submitted text', () => {
-    expect(validateEchoedQuery(
+    expect(resolveQueryProvenance(
       { query: { kind: INDEPENDENT_QUERY_KIND, query: submitted } },
       expected,
-    )).toEqual({ ok: true, provenance: { query: submitted } });
+    )).toEqual({ ok: true, provenance: { query: submitted, confirmed: true } });
   });
 
   it('accepts a bare echoed query string equal to the exact submitted text', () => {
-    expect(validateEchoedQuery({ query: submitted }, expected)).toEqual({
+    expect(resolveQueryProvenance({ query: submitted }, expected)).toEqual({
       ok: true,
-      provenance: { query: submitted },
+      provenance: { query: submitted, confirmed: true },
     });
   });
 
   it('tolerates provider-owned extra members beside the echoed query', () => {
-    expect(validateEchoedQuery(
+    expect(resolveQueryProvenance(
       {
         hogql: 'SELECT event, count() FROM events',
         query: { kind: INDEPENDENT_QUERY_KIND, query: submitted, name: 'haoo-funnel' },
         results: [],
       },
       expected,
-    )).toEqual({ ok: true, provenance: { query: submitted } });
+    )).toEqual({ ok: true, provenance: { query: submitted, confirmed: true } });
+  });
+
+  /*
+   * The live PostHog shape, and the case that turns this suite into a regression gate for
+   * G-04.2-9. Measured 2026-09-06: the Query API answers with `query: null`, so before
+   * this change every owner-report run refused here and no report could be produced.
+   *
+   * `confirmed: false` is the whole point of accepting it. The report gets its provenance
+   * from the SQL this repository built and can state exactly; what it must never do is
+   * report that as though the provider had agreed to it.
+   */
+  it.each([
+    ['a null echo, as the live provider sends', { query: null, hogql: 'SELECT 1 LIMIT 101' } as unknown],
+    ['an absent echo', { hogql: 'SELECT 1 LIMIT 101', results: [] } as unknown],
+    ['an undefined echo', { query: undefined } as unknown],
+  ])('accepts %s as unconfirmed provenance carrying the submitted SQL', (_label, body) => {
+    expect(resolveQueryProvenance(body, expected)).toEqual({
+      ok: true,
+      provenance: { query: submitted, confirmed: false },
+    });
   });
 
   it.each([
     ['a non-object body', 'not-an-object' as unknown],
     ['a null body', null as unknown],
     ['an array body', [] as unknown],
-    ['a body carrying neither echo shape', {} as unknown],
-    // `hogql` is the provider's compiled rewriting of the submitted text, not the
-    // submitted text, so it can never stand in for the echo this report checks.
-    ['a body echoing only the compiled hogql', { hogql: submitted } as unknown],
-    ['a null echo', { query: null } as unknown],
     ['a numeric echo', { query: 7 } as unknown],
+    ['a boolean echo', { query: false } as unknown],
+    ['an array echo', { query: [submitted] } as unknown],
     ['an echoed object with no query text', { query: { kind: INDEPENDENT_QUERY_KIND } } as unknown],
     [
       'an echoed object with a non-string query text',
@@ -476,7 +500,25 @@ describe('validateEchoedQuery', () => {
       { query: submitted.replace('\n', ' ') } as unknown,
     ],
   ])('rejects %s', (_label, body) => {
-    expect(validateEchoedQuery(body, expected)).toEqual({ ok: false, reason: 'invalid' });
+    expect(resolveQueryProvenance(body, expected)).toEqual({ ok: false, reason: 'invalid' });
+  });
+
+  /*
+   * `hogql` still cannot stand in for the echo, asserted with the provider's OWN measured
+   * rewriting rather than with a hand-written stand-in.
+   *
+   * Submitting `SELECT 1` returned `hogql` of "SELECT\n    1\nLIMIT 101\nOFFSET 0" on
+   * 2026-09-06 -- PostHog injects a LIMIT and an OFFSET the caller never wrote. A body
+   * carrying only that must resolve to UNCONFIRMED provenance holding the submitted SQL,
+   * never to the hogql text, or the report would print a query it did not send.
+   */
+  it('never lets the provider-rewritten hogql become the provenance', () => {
+    const rewritten = `${submitted}\nLIMIT 101\nOFFSET 0`;
+
+    expect(resolveQueryProvenance({ query: null, hogql: rewritten }, expected)).toEqual({
+      ok: true,
+      provenance: { query: submitted, confirmed: false },
+    });
   });
 });
 
@@ -2052,9 +2094,14 @@ const CAVEAT_BLOCK = [
   'All-time counts begin on the day named in the report header, when these pages moved '
   + 'to their own web address; earlier activity in the same measurement project was '
   + 'recorded at the previous address and is not included here.',
-  'The provider echoes the query this report submitted but not the project that answered '
-  + 'it, so the report proves which query produced its numbers and not which project '
-  + 'produced them; the project named above is the one the command was configured with.',
+  // Restated 2026-09-06 in the same commit as the source sentence it mirrors. This copy is
+  // authored independently ON PURPOSE -- it is what makes a drift in either half fail --
+  // so it must be edited deliberately rather than regenerated from the source.
+  'The query that produced these numbers is the one this report submitted, stated here on '
+  + 'the report\'s own authority: the provider returns no echo of the query it answered, '
+  + 'and does not identify the project that answered it. So neither the query nor the '
+  + 'project is confirmed by the provider, and the project named above is the one the '
+  + 'command was configured with.',
 ] as const;
 
 /**
