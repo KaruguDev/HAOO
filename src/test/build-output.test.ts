@@ -1,7 +1,18 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   CONTEXT_RECORD_KEYS,
@@ -1705,4 +1716,148 @@ describe('approved analytics ingestion host boundary', () => {
       rmSync(probeDir, { recursive: true, force: true });
     }
   }, 180_000);
+});
+
+/**
+ * Added by plan `04.2-08`, in both `KaruguDev/ZERO-PAPERHUB` and `KaruguDev/HAOO`.
+ *
+ * `scripts/verify-tree-disjointness.mjs` is the command form of SPLT-01. Its entire
+ * value rests on ONE property: it must REFUSE to compare two trees when either side is
+ * empty. An intersection of two empty file lists IS empty, so a naive implementation
+ * reports success on a subject it never read — and every other assertion in the auditor
+ * would then start passing on nothing. That is the failure this case exists to catch,
+ * and it is why the guard is the auditor's first check rather than one of many.
+ *
+ * Same property as `scans a non-empty set of production build inputs` above, and as the
+ * provider-unset probe's `expect(probeBundle.length).toBeGreaterThan(0)`: assert the
+ * subject exists before asserting anything about it.
+ *
+ * The auditor is imported as a MODULE, not shelled out to — its `import.meta.url` guard
+ * exists precisely so the checking functions are reachable without running `main()`.
+ */
+describe('Phase 04.2 tree disjointness auditor', () => {
+  const AUDITOR_PATH = resolve(ROOT, 'scripts/verify-tree-disjointness.mjs');
+
+  /**
+   * A COMPUTED specifier, deliberately. `tsconfig.app.json` includes only `src`, so a
+   * literal `../../scripts/*.mjs` specifier would be an unresolved module to
+   * `tsc --noEmit`. The computed form resolves at run time and still imports the real
+   * module — this is a direct import of the checking functions, not a CLI round-trip.
+   */
+  const loadAuditor = async () => await import(pathToFileURL(AUDITOR_PATH).href);
+
+  it('verify-tree-disjointness reports both trees non-empty before comparing them', async () => {
+    const { auditSharedPaths, parseAllowlist, trackedFiles } = await loadAuditor();
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'tree-disjointness-'));
+
+    try {
+      // 1. THE GUARD, both directions, with the empty side NAMED in the message.
+      expect(
+        () =>
+          auditSharedPaths({
+            leftLabel: 'left tree',
+            leftFiles: [],
+            rightLabel: 'right tree',
+            rightFiles: ['package.json'],
+            allowlist: ['package.json'],
+          }),
+        'an empty LEFT tree must be refused',
+      ).toThrow(/left tree/u);
+
+      expect(
+        () =>
+          auditSharedPaths({
+            leftLabel: 'left tree',
+            leftFiles: ['package.json'],
+            rightLabel: 'right tree',
+            rightFiles: [],
+            allowlist: ['package.json'],
+          }),
+        'an empty RIGHT tree must be refused',
+      ).toThrow(/right tree/u);
+
+      // 2. THE SAME GUARD AFTER EXCLUSION. A tree holding nothing but `.planning/`
+      //    files is non-empty by `length` and empty by SUBJECT: every path is excluded
+      //    before the comparison. Checking the raw list alone would let that tree
+      //    through and compare nothing, which is the hole this assertion closes.
+      expect(
+        () =>
+          auditSharedPaths({
+            leftLabel: 'planning-only tree',
+            leftFiles: ['.planning/STATE.md', '.planning/ROADMAP.md'],
+            rightLabel: 'right tree',
+            rightFiles: ['package.json'],
+            allowlist: ['package.json'],
+          }),
+        'a tree whose every path is excluded must be refused',
+      ).toThrow(/planning-only tree/u);
+
+      // 3. END TO END over a real empty checkout: an initialised repository with
+      //    nothing tracked yields an empty list, and the guard refuses by name.
+      const emptyCheckout = join(fixtureRoot, 'empty-checkout');
+      mkdirSync(emptyCheckout, { recursive: true });
+      const init = spawnSync('git', ['-C', emptyCheckout, 'init', '--quiet'], { encoding: 'utf8' });
+      expect(init.status, init.stderr ?? '').toBe(0);
+      expect(trackedFiles(emptyCheckout).files, 'an initialised repository tracks nothing').toEqual([]);
+      expect(() =>
+        auditSharedPaths({
+          leftLabel: emptyCheckout,
+          leftFiles: trackedFiles(emptyCheckout).files,
+          rightLabel: 'right tree',
+          rightFiles: ['package.json'],
+          allowlist: ['package.json'],
+        }),
+      ).toThrow(/compared nothing/u);
+
+      // 4. ALLOWLIST BEHAVIOUR, both directions, read from a fixture file rather than a
+      //    literal so `parseAllowlist` is exercised too: `#` comments and blank lines
+      //    are prose, not entries.
+      const allowlistPath = join(fixtureRoot, 'shared-scaffold.txt');
+      writeFileSync(allowlistPath, '# the rule lives here\n\npackage.json\n', 'utf8');
+      const allowlist = parseAllowlist(readFileSync(allowlistPath, 'utf8'));
+      expect(allowlist, 'comments and blank lines are not entries').toEqual(['package.json']);
+
+      const reported = auditSharedPaths({
+        leftLabel: 'left tree',
+        leftFiles: ['package.json', 'src/App.tsx'],
+        rightLabel: 'right tree',
+        rightFiles: ['package.json', 'src/App.tsx'],
+        allowlist,
+      });
+      expect(reported.violations, 'a shared path absent from the allowlist is reported').toEqual([
+        'src/App.tsx',
+      ]);
+      expect(reported.counts.allowlistSubtracted, 'the allowlisted shared path is subtracted').toBe(1);
+      expect(reported.counts.shared).toBe(2);
+      expect(reported.errors.join('\n')).toMatch(/src\/App\.tsx/u);
+
+      const forgiven = auditSharedPaths({
+        leftLabel: 'left tree',
+        leftFiles: ['package.json'],
+        rightLabel: 'right tree',
+        rightFiles: ['package.json'],
+        allowlist,
+      });
+      expect(forgiven.violations, 'a shared path present in the allowlist is not reported').toEqual(
+        [],
+      );
+
+      // 5. EXACT WHOLE PATHS, never fragments — the trap plan `04.2-07` named.
+      //    `public/products/haoo/index.html` exists in ZERO-PAPER HUB only (the HAOO
+      //    repository's document is its ROOT `index.html`), so it is not shared and must
+      //    not be flagged; a check matching the fragment `products/haoo` would flag it.
+      //    `package.json.bak` shares a PREFIX with an allowlist entry and must still be
+      //    reported; a check subtracting the allowlist by prefix would forgive it.
+      const exact = auditSharedPaths({
+        leftLabel: 'left tree',
+        leftFiles: ['public/products/haoo/index.html', 'index.html', 'package.json.bak'],
+        rightLabel: 'right tree',
+        rightFiles: ['index.html', 'package.json.bak'],
+        allowlist,
+      });
+      expect(exact.violations).toEqual(['index.html', 'package.json.bak']);
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  }, 60_000);
 });

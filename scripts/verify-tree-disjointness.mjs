@@ -108,10 +108,10 @@ export function assertTreesNonEmpty({ leftLabel, leftFiles, rightLabel, rightFil
 
   if (empty.length > 0) {
     throw new Error(
-      `Tree disjointness audit refused to run: empty tracked-file list for ${empty.join(' and ')}. ` +
+      `Tree disjointness audit refused to run: empty comparable file list for ${empty.join(' and ')}. ` +
         'A check that compared nothing cannot pass by comparing nothing — an intersection of ' +
         'empty lists is empty, which would read as success. Point the auditor at a checkout ' +
-        'whose `git ls-files` is non-empty.',
+        `whose \`git ls-files\` is non-empty outside ${EXCLUDED_PREFIXES.join(', ')}.`,
     );
   }
 }
@@ -129,10 +129,16 @@ export function assertTreesNonEmpty({ leftLabel, leftFiles, rightLabel, rightFil
  * story rather than revealing violations one commit at a time.
  */
 export function auditSharedPaths({ leftLabel, leftFiles, rightLabel, rightFiles, allowlist }) {
-  assertTreesNonEmpty({ leftLabel, leftFiles, rightLabel, rightFiles });
-
   const left = [...new Set(leftFiles.filter((path) => !isExcluded(path)))].sort();
   const right = [...new Set(rightFiles.filter((path) => !isExcluded(path)))].sort();
+
+  // The guard runs on the POST-EXCLUSION lists, not the raw ones. A checkout holding
+  // nothing but `.planning/` files is non-empty by `length` and empty by SUBJECT: every
+  // path is dropped before the comparison, so the run would compare nothing and report
+  // success. Guarding the raw list alone leaves exactly that hole open, which is why the
+  // pinning case in `build-output.test.ts` asserts BOTH forms.
+  assertTreesNonEmpty({ leftLabel, leftFiles: left, rightLabel, rightFiles: right });
+
   const allowed = new Set(allowlist);
   const rightSet = new Set(right);
 
