@@ -130,9 +130,14 @@ Analytics data is processed in the United States (D-08). The project lives on Po
 PostHog does not migrate a project between Cloud regions, so this is a one-way choice rather than a
 deployment detail.
 
-The all-time range begins at first PostHog ingestion because no prior provider data exists. No
-Plausible history is imported, so an all-time count is a count since this project started receiving
-events — not a count since the site launched — and the report says so rather than implying otherwise.
+The all-time range begins at the HAOO domain cutover, 2026-09-06 — restated by plan 04.2-05, which
+split HAOO onto its own web address. The original wording tied that lower bound to first PostHog
+ingestion, on the grounds that the project held nothing from an earlier provider; half of that
+reasoning is still true and half is not. No Plausible history was imported, and none has been since. But the measurement project now answers for
+two properties (D-11 keeps them in one project), so it does hold earlier events — recorded at the
+previous address, before the move. An all-time count is therefore a count since this domain began
+receiving events, not a count since the project did and not a count since the site launched, and
+every query in the report is bounded at that day so the figure matches the heading above it.
 
 "Discard client IP data" is an owner-performed project setting the code cannot assert. Server-side
 GeoIP enrichment has no client-side lever that keeps events bare: the `ip` option is deprecated and
