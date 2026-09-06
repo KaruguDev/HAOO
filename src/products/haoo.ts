@@ -256,6 +256,29 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     campaignDescription:
       'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, and removed from the address bar after being read.',
     /**
+     * Owner-approved copy, byte-exact, resolved by plan 04.2-04's blocking-human
+     * checkpoint (task 1, gate `blocking-human`, approved 2026-09-06) under D-09.
+     *
+     * It exists because the product moved to its own domain. On the parent company's
+     * hostname the controller was implicit in the address bar; at `www.haoo.online` no
+     * sentence on the page named who operates HAOO or who receives the data. Nothing
+     * about controllership actually moved — HAOO is a product of a sole proprietorship,
+     * not a separate legal person — so the second sentence says exactly that.
+     *
+     * The third sentence names FormSubmit rather than claiming the details go straight
+     * to ZERO-PAPER HUB, because FormSubmit receives the whole payload first and the
+     * collection notice already names it at the point of collection. It says FormSubmit
+     * PASSES the details on; it deliberately does NOT claim they arrive in an inbox.
+     * `haoo.online` has no MX records, and that DNS change is out of this phase's scope.
+     *
+     * The owner's approval covers visitor-facing wording ONLY. It does NOT close the
+     * Kenya Data Protection Act 2019 sign-off recorded at `02-VALIDATION.md:91`, which
+     * remains separately owed.
+     */
+    controllerHeading: 'Who operates HAOO and receives this information',
+    controllerNote:
+      'HAOO is a product of ZERO-PAPER HUB, and ZERO-PAPER HUB decides how the information on this site is collected and used. Moving HAOO to its own web address does not change who operates it or who receives what you send. If you submit the qualification form, your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to ZERO-PAPER HUB.',
+    /**
      * Owner-approved copy, byte-exact, resolved by this plan's blocking checkpoint
      * (04.1-06 Task 1) as the resolution of the D-10 deferral. D-08 moved measurement to
      * a different processor in a different country, so the visitor is told which

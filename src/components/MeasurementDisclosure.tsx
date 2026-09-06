@@ -67,6 +67,13 @@ export default function MeasurementDisclosure<EventName extends string>({
           </p>
         </section>
 
+        <section aria-label={disclosure.controllerHeading}>
+          <p className="text-base font-semibold leading-6">{disclosure.controllerHeading}</p>
+          <p className="mt-2 text-sm font-normal leading-[1.4]">
+            {disclosure.controllerNote}
+          </p>
+        </section>
+
         <section aria-label={disclosure.processorHeading}>
           <p className="text-base font-semibold leading-6">{disclosure.processorHeading}</p>
           <p className="mt-2 text-sm font-normal leading-[1.4]">

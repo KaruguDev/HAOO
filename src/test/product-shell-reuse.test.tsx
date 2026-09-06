@@ -163,6 +163,12 @@ function syntheticProduct(
         browserBoundary: 'Derivation values never enter submissions.',
         campaignHeading: 'Campaign information',
         campaignDescription: 'Allowlisted campaign values last for one page lifetime.',
+        // The synthetic product supplies its OWN controller statement, naming the
+        // synthetic operator and never ZERO-PAPER HUB or HAOO — the case asserting the
+        // rendered synthetic product carries no HAOO name depends on that.
+        controllerHeading: 'Who operates ZENITH and receives this information',
+        controllerNote:
+          'ZENITH is a product of a synthetic operator, which decides how the information on this page is collected and used.',
         processorHeading: 'Where this measurement is processed',
         processorNote: 'This synthetic page sends no signals to an external processor.',
         neverCollectedHeading: 'What we never collect for measurement',

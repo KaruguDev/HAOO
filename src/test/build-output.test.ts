@@ -1354,6 +1354,10 @@ describe('Phase 1 static build contracts', () => {
     // wording change that lands in product data but not in the shipped bundle fails here.
     expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.processorHeading);
     expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.processorNote);
+    // The controller statement is owner-approved copy on the same terms, so it is derived
+    // the same way. Restating it here would put the approved words in a third place.
+    expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.controllerHeading);
+    expect(bundle).toContain(HAOO_PRODUCT.measurement.disclosure.controllerNote);
     expect(APPROVED_NOTICE_BUNDLE_SEGMENTS.length).toBeGreaterThan(1);
     for (const segment of APPROVED_NOTICE_BUNDLE_SEGMENTS) {
       expect(bundle, segment).toContain(segment);

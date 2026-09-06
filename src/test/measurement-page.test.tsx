@@ -38,6 +38,21 @@ const APPROVED_COLLECTION_NOTICE =
   'This page remembers only coarse HAOO engagement signals — whether you visited before, roughly when you last visited, and whether you viewed or downloaded the brochure, started this form, contacted HAOO, or opened self-onboarding. These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them and of any campaign values seen on arrival — never a score, an identifier, or your form answers.';
 
 /**
+ * The owner-approved data-controller statement, byte-exact, hand-typed exactly once in
+ * the repository. Approved 2026-09-06 at plan 04.2-04's `blocking-human` checkpoint under
+ * D-09, as "as drafted with the FormSubmit amendment". Product data is asserted against
+ * these bytes below; every other surface derives the strings from the product definition.
+ * Change this literal only with a fresh owner approval.
+ *
+ * The third sentence names FormSubmit and stops at "passes them to ZERO-PAPER HUB". It
+ * does not say the details arrive: `haoo.online` has no MX records and that DNS change is
+ * out of this phase's scope. Do not add an arrival claim here without a new approval.
+ */
+const CONTROLLER_HEADING = 'Who operates HAOO and receives this information';
+const CONTROLLER_NOTE =
+  'HAOO is a product of ZERO-PAPER HUB, and ZERO-PAPER HUB decides how the information on this site is collected and used. Moving HAOO to its own web address does not change who operates it or who receives what you send. If you submit the qualification form, your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to ZERO-PAPER HUB.';
+
+/**
  * UI-SPEC "Surface B — disclosure copy change", byte-exact. Contents item 4 is present
  * because blocking checkpoint C-2 resolved `include` (recorded in `04-02-SUMMARY.md`):
  * normalized campaign values do travel with the enquiry, so the list that describes what
@@ -740,6 +755,8 @@ describe('Phase 3 HAOO measurement disclosure', () => {
       'Whether this visit is first, returning, or frequent.',
       'Campaign information',
       'utm_source',
+      CONTROLLER_HEADING,
+      CONTROLLER_NOTE,
       'What we never collect for measurement',
       'Name, email address, phone number, or organization.',
       ATTACHED_SUMMARY_HEADING,
@@ -925,19 +942,44 @@ describe('Phase 3 HAOO measurement disclosure', () => {
      * document order — rather than by matching markup, so a Tailwind class change
      * cannot break it and a reordering cannot survive it.
      */
-    it('positions the group after the campaign group and before the never-collected group', () => {
+    it('positions the controller group after campaign, then the processor group, then never-collected', () => {
       render(<ProductPage product={HAOO_PRODUCT} />);
 
       const labels = within(disclosureElement())
         .getAllByRole('region')
         .map((section) => section.getAttribute('aria-label'));
       const campaign = labels.indexOf(disclosure.campaignHeading);
+      const controller = labels.indexOf(disclosure.controllerHeading);
       const processor = labels.indexOf(disclosure.processorHeading);
       const neverCollected = labels.indexOf(disclosure.neverCollectedHeading);
 
       expect(campaign).toBeGreaterThanOrEqual(0);
-      expect(campaign).toBeLessThan(processor);
+      expect(campaign).toBeLessThan(controller);
+      expect(controller).toBeLessThan(processor);
       expect(processor).toBeLessThan(neverCollected);
+    });
+
+    /**
+     * Controller before processor is the approved order, not an incidental one: a visitor
+     * asks who has my data before who handles it for them, and the jurisdiction sentence
+     * stays attached to the processor where it belongs. Asserted structurally by document
+     * order of the labelled regions, so a transposition fails and a class change cannot.
+     */
+    it('names ZERO-PAPER HUB as the operator and recipient of measurement data', () => {
+      expect(disclosure.controllerHeading).toBe(CONTROLLER_HEADING);
+      expect(disclosure.controllerNote).toBe(CONTROLLER_NOTE);
+
+      render(<ProductPage product={HAOO_PRODUCT} />);
+
+      const group = within(disclosureElement())
+        .getByRole('region', { name: disclosure.controllerHeading });
+      const groupText = group.textContent ?? '';
+
+      expect(within(group).getByText(disclosure.controllerHeading)).toBeTruthy();
+      expect(within(group).getByText(disclosure.controllerNote)).toBeTruthy();
+      expect(groupText.indexOf(disclosure.controllerHeading))
+        .toBeLessThan(groupText.indexOf(disclosure.controllerNote));
+      expect(groupText).toBe(`${disclosure.controllerHeading}${disclosure.controllerNote}`);
     });
 
     /**

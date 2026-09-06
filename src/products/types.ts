@@ -179,6 +179,23 @@ export interface ProductMeasurementDisclosure<EventName extends string> {
   readonly campaignHeading: string;
   readonly campaignDescription: string;
   /**
+   * The two parts of the group that names who operates the product and who receives the
+   * information the site collects. They are required members, so a product configuration
+   * that forgets the controller statement is a typecheck failure rather than a disclosure
+   * that silently renders a blank where a promise about the visitor's data should be.
+   *
+   * They are product data rather than component literals because who operates the product
+   * and who receives the data are facts about the product, not about the page shell, and a
+   * literal in the component would put a claim about the visitor's own information outside
+   * the product data every other disclosure line comes from.
+   *
+   * They exist at all because the product moved to its own domain. On the parent company's
+   * hostname the controller was implicit in the address bar; on a standalone domain it is
+   * stated nowhere unless the disclosure states it.
+   */
+  readonly controllerHeading: string;
+  readonly controllerNote: string;
+  /**
    * The two parts of the group that names the analytics processor and the jurisdiction
    * its data is processed in. They are required members, so a product configuration that
    * forgets the processor statement is a typecheck failure rather than a disclosure that
