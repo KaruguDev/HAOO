@@ -51,6 +51,38 @@ import type { ReportModel, ReportPeriodModel } from './render.ts';
 const REPORT_TIMEZONE = 'Africa/Nairobi';
 
 /**
+ * The first day of this project's history on the HAOO domain, in the reporting timezone.
+ *
+ * Four facts make this constant necessary and correct:
+ *
+ * 1. The analytics project is SHARED across the domain move (decision D-11): the same
+ *    project holds the events recorded while these pages were served from the parent
+ *    site's address and the events recorded since. The alternative -- a fresh project per
+ *    domain -- was considered and declined.
+ * 2. There is no host dimension to filter on. The transport reducer in
+ *    `src/measurement/posthog-lockdown.ts` copies exactly three named property keys into
+ *    a fresh literal and drops everything else, and the vendor's page-URL, host, path and
+ *    referrer properties are all set client-side before that reducer runs. None of them
+ *    is on the wire and none is in the query language, so the event TIMESTAMP is the only
+ *    dimension that can separate the two hostnames.
+ * 3. Without this bound the report contradicts its own headings. The all-time aggregate
+ *    carried no lower bound at all, so it silently counted parent-hostname activity under
+ *    a single-site heading; and the first-recorded-day query would name the parent site's
+ *    capturing-deploy date as this domain's own first day of history.
+ * 4. It is version-controlled repository configuration rather than a provider setting,
+ *    for exactly the reason the reporting timezone above is: it is pinned INSIDE the
+ *    submitted query text, so there is no remote setting left to disagree with it and the
+ *    echoed-query check proves the bound the response answered.
+ *
+ * The value is the recorded first deployment of the HAOO repository to its own domain
+ * (plan `04.2-02`, Pages run 33992906196, 2026-09-05T21:23:23Z), converted into the
+ * reporting timezone -- 2026-09-06 in Africa/Nairobi. It is a recorded date, not an
+ * inference, and it is stated in the timezone the comparison is made in because the query
+ * converts each timestamp into that zone before comparing whole days.
+ */
+export const HAOO_DOMAIN_CUTOVER_DAY = '2026-09-06';
+
+/**
  * The failure reason carrying the temporary sibling that could not be reserved.
  *
  * The sibling is a fixed name reserved exclusively, so it is also a cross-invocation
@@ -187,6 +219,24 @@ function eventNameLiterals(): string {
 }
 
 /**
+ * The domain cutover clause, rendered once and appended to every query this report sends.
+ *
+ * Written in the same shape as the range comparisons above -- whole days after converting
+ * the event timestamp into the reporting timezone, inclusive of the cutover day itself --
+ * so a reader sees one comparison vocabulary rather than two. Rendered once rather than
+ * inlined per call site: three copies of a lower bound is three places for one of them to
+ * be forgotten, and the branch most likely to be forgotten is the one that carried no
+ * bound at all.
+ *
+ * The day is a parameter rather than a closed-over constant so both call sites name
+ * `HAOO_DOMAIN_CUTOVER_DAY` in the query builder that uses it, and the clause itself stays
+ * a pure renderer.
+ */
+function cutoverBound(day: string): string {
+  return `\n  AND toDate(toTimeZone(timestamp, '${REPORT_TIMEZONE}')) >= toDate('${day}')`;
+}
+
+/**
  * One aggregate over the allowlisted names, optionally bounded to an inclusive calendar
  * range in the reporting timezone.
  *
@@ -199,6 +249,13 @@ function eventNameLiterals(): string {
  * start day and one at any moment of the end day are both inside the window. Bounded
  * periods carry explicit calendar dates rather than a relative preset because the nearest
  * preset is 91 days and D-03 locks 90.
+ *
+ * EVERY range also carries the domain cutover lower bound, the all-time range included.
+ * A bounded range and an unbounded one are not the same case here: the all-time branch is
+ * the only one whose result could otherwise span both hostnames, so it is the branch the
+ * bound exists for. A bounded range in this project's own past is left carrying three
+ * comparisons rather than two, which is correct -- a window entirely before the cutover
+ * describes no HAOO-domain activity and must return zero, not the parent site's counts.
  */
 function haooFunnelSql(range: PeriodWindow | 'all'): string {
   const bounds = range === 'all'
@@ -208,7 +265,7 @@ function haooFunnelSql(range: PeriodWindow | 'all'): string {
 
   return 'SELECT event, count() AS occurrences\n'
     + 'FROM events\n'
-    + `WHERE event IN (${eventNameLiterals()})${bounds}\n`
+    + `WHERE event IN (${eventNameLiterals()})${bounds}${cutoverBound(HAOO_DOMAIN_CUTOVER_DAY)}\n`
     + 'GROUP BY event\n'
     + 'ORDER BY event\n'
     + `LIMIT ${REPORT_ROW_LIMIT}`;
@@ -231,11 +288,17 @@ const HOGQL_FIRST_DAY_COLUMNS = [FIRST_DAY_COLUMN] as const;
  * all-time heading could name a first recorded day from the echo alone. This provider
  * echoes the query but not the window it resolved, so the day is asked for in its own
  * single-value query rather than inferred.
+ *
+ * It carries the domain cutover bound for the same reason the aggregates do, and the
+ * consequence of omitting it is sharper here than anywhere else: `min(timestamp)` over an
+ * unbounded set returns the first event this shared project ever recorded, which is the
+ * parent site's capturing-deploy date. The report would then print that date under a
+ * heading claiming it as this domain's own first day of history.
  */
 function firstRecordedDaySql(): string {
   return `SELECT toString(toDate(toTimeZone(min(timestamp), '${REPORT_TIMEZONE}'))) AS ${FIRST_DAY_COLUMN}\n`
     + 'FROM events\n'
-    + `WHERE event IN (${eventNameLiterals()})\n`
+    + `WHERE event IN (${eventNameLiterals()})${cutoverBound(HAOO_DOMAIN_CUTOVER_DAY)}\n`
     + 'LIMIT 1';
 }
 

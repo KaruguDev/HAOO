@@ -16,6 +16,13 @@ const EXPECTED_ORIGIN = 'https://us.posthog.com';
 const EXPECTED_QUERY_KIND = 'HogQLQuery';
 const EXPECTED_TIMEZONE = 'Africa/Nairobi';
 const EXPECTED_ROW_LIMIT = 100;
+/**
+ * The domain cutover lower bound every query carries, re-derived here like everything else
+ * in this fixture. Plan `04.2-05` added it; without a third independent copy the CLI's
+ * submitted text would differ from what this fixture echoes and the run would abort at the
+ * provenance check rather than write a report.
+ */
+const EXPECTED_CUTOVER_DAY = '2026-09-06';
 const EXPECTED_EVENTS = [
   'haoo_page_view',
   'haoo_brochure_preview',
@@ -65,11 +72,16 @@ function eventLiterals() {
   return EXPECTED_EVENTS.map((event) => `'${event}'`).join(', ');
 }
 
+function cutoverBound() {
+  return `\n  AND toDate(toTimeZone(timestamp, '${EXPECTED_TIMEZONE}')) `
+    + `>= toDate('${EXPECTED_CUTOVER_DAY}')`;
+}
+
 function expectedSql(query) {
   if (query === 'first-day') {
     return `SELECT toString(toDate(toTimeZone(min(timestamp), '${EXPECTED_TIMEZONE}'))) AS first_day\n`
       + 'FROM events\n'
-      + `WHERE event IN (${eventLiterals()})\n`
+      + `WHERE event IN (${eventLiterals()})${cutoverBound()}\n`
       + 'LIMIT 1';
   }
 
@@ -80,7 +92,7 @@ function expectedSql(query) {
 
   return 'SELECT event, count() AS occurrences\n'
     + 'FROM events\n'
-    + `WHERE event IN (${eventLiterals()})${bounds}\n`
+    + `WHERE event IN (${eventLiterals()})${bounds}${cutoverBound()}\n`
     + 'GROUP BY event\n'
     + 'ORDER BY event\n'
     + `LIMIT ${EXPECTED_ROW_LIMIT}`;
