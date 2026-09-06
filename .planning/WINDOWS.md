@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 19
+open_count: 22
 waived_count: 0
 fixed_count: 5
-total_count: 24
-last_updated: 2026-09-05T20:59:37.216Z
+total_count: 27
+last_updated: 2026-09-06T08:44:48.476Z
 ---
 
 # Broken Windows Ledger
@@ -39,6 +39,9 @@ last_updated: 2026-09-05T20:59:37.216Z
 | 22 | 04.1 | deviation | .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-10-PLAN.md |  | 04.1-10 Task 2: the plan's call-site criterion is self-contradictory (all 16 sites use the non-occupying shape AND grep installPostHogVendorClient( still reports 15/1). Intent met: 0/0 for the occupying installer, 19/1 for createPostHogVendorClient, no call site deleted. | open |  | 2026-09-04T22:02:48.872Z |  |
 | 23 | 04.1 | unmet-truth | .github/workflows/deploy.yml |  | Deploy workflow reads VITE_HAOO_MEASUREMENT_PROVIDER/TOKEN/API_HOST, but the three GitHub Actions repository variables are NOT confirmed created — an absent variable fails the selector closed to none and the deploy captures nothing while every gate passes | open |  | 2026-09-04T22:24:21.297Z |  |
 | 24 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md |  | Q3: recorded root-level asset directory 'assets/' collides with Vite's default build.assetsDir; build-output.test.ts scans every file under dist/assets as a build output. Owner must amend or confirm before plan 04.2-02 moves any file. | fixed |  | 2026-09-05T20:53:06.945Z | 2026-09-05T20:59:37.216Z |
+| 25 | 04.2 | deviation | src/test/measurement-page.test.tsx | 258 | Twelve bare /products/haoo/ jsdom paths remain in the HAOO suite; :258's pathname assertion cannot move to the root without becoming jsdom's default (04.2-DEFERRED-ITEMS D7) | open |  | 2026-09-05T22:04:08.271Z |  |
+| 26 | 04.2 | deviation | AGENTS.md | 60 | HAOO repository's AGENTS.md still describes ZERO-PAPER HUB files that no longer exist in its tree (04.2-DEFERRED-ITEMS D8) | open |  | 2026-09-05T22:04:08.418Z |  |
+| 27 | 04.2 | deviation | README.md |  | 04.2-06 left README claiming the retired /products/haoo/ path returns 404; false once 04.2-07 shipped the recovery document. Corrected and gated (D29). | open |  | 2026-09-06T08:44:48.476Z |  |
 
 ````json
 [
@@ -329,6 +332,42 @@ last_updated: 2026-09-05T20:59:37.216Z
     "reason": "",
     "recorded_at": "2026-09-05T20:53:06.945Z",
     "resolved_at": "2026-09-05T20:59:37.216Z"
+  },
+  {
+    "id": 25,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": "src/test/measurement-page.test.tsx",
+    "line": 258,
+    "description": "Twelve bare /products/haoo/ jsdom paths remain in the HAOO suite; :258's pathname assertion cannot move to the root without becoming jsdom's default (04.2-DEFERRED-ITEMS D7)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-05T22:04:08.271Z",
+    "resolved_at": null
+  },
+  {
+    "id": 26,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": "AGENTS.md",
+    "line": 60,
+    "description": "HAOO repository's AGENTS.md still describes ZERO-PAPER HUB files that no longer exist in its tree (04.2-DEFERRED-ITEMS D8)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-05T22:04:08.418Z",
+    "resolved_at": null
+  },
+  {
+    "id": 27,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": "README.md",
+    "line": null,
+    "description": "04.2-06 left README claiming the retired /products/haoo/ path returns 404; false once 04.2-07 shipped the recovery document. Corrected and gated (D29).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T08:44:48.476Z",
+    "resolved_at": null
   }
 ]
 ````

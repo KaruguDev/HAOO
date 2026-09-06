@@ -265,7 +265,7 @@ QUAL-04 (amend), SPLT-01, SPLT-02, SPLT-03, SPLT-04
    repository's own suite at the same strength, and any case that cannot survive the move is
    withdrawn with a named successor in the same commit — never silently dropped.
 
-**Plans**: 1/9 plans executed
+**Plans**: 9/9 plans executed
 
 Plans:
 
@@ -280,29 +280,46 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
 
 **Wave 2** *(tracer — blocked on Wave 1; no expansion plan starts until this is live)*
 
-- [ ] 04.2-02-PLAN.md — Tracer: clone without rewriting, prune the ZERO-PAPER HUB half and narrow every inventory in one commit, then publish the HAOO document on its own domain.
+- [x] 04.2-02-PLAN.md — Tracer: clone without rewriting, prune the ZERO-PAPER HUB half and narrow every inventory in one commit, then publish the HAOO document on its own domain.
 
 **Wave 3** *(04.2-03 in the HAOO checkout, 04.2-06 in the ZERO-PAPER HUB checkout — different repositories, so they run in parallel)*
 
-- [ ] 04.2-03-PLAN.md — Re-point the form source line, its two mirrors and every simulated page origin; reduce the README to its own repository.
-- [ ] 04.2-06-PLAN.md — Reduce ZERO-PAPER HUB in one atomic commit: delete the HAOO half, sever the build-time coupling with an inline card record, narrow every inventory.
+- [x] 04.2-03-PLAN.md — Re-point the form source line, its two mirrors and every simulated page origin; reduce the README to its own repository.
+- [x] 04.2-06-PLAN.md — Reduce ZERO-PAPER HUB in one atomic commit: delete the HAOO half, sever the build-time coupling with an inline card record, narrow every inventory.
 
 **Wave 4** *(04.2-04 in the HAOO checkout, 04.2-07 in the ZERO-PAPER HUB checkout — parallel)*
 
-- [ ] 04.2-04-PLAN.md — Add the approved data-controller statement as a required disclosure member, and rename the storage key with a bumped schema version.
-- [ ] 04.2-07-PLAN.md — Publish a scriptless recovery document at the retired path with its retained assets, and prove the reduced artifact carries no measurement.
+- [x] 04.2-04-PLAN.md — Add the approved data-controller statement as a required disclosure member, and rename the storage key with a bumped schema version.
+- [x] 04.2-07-PLAN.md — Publish a scriptless recovery document at the retired path with its retained assets, and prove the reduced artifact carries no measurement.
 
 **Wave 5** *(HAOO checkout, sole occupant — it shares `dist/` and the working tree with 04.2-03 and 04.2-04, so it cannot run beside them)*
 
-- [ ] 04.2-05-PLAN.md — Bound every report query at the domain cutover day and withdraw the superseded all-time caveat with a named successor.
+- [x] 04.2-05-PLAN.md — Bound every report query at the domain cutover day and withdraw the superseded all-time caveat with a named successor.
 
 **Wave 6** *(both checkouts, sole occupant — it asserts a clean tree in each)*
 
-- [ ] 04.2-08-PLAN.md — Write the closed scaffold allowlist and the disjointness auditor, in both repositories, and pin its empty-tree refusal by test.
+- [x] 04.2-08-PLAN.md — Write the closed scaffold allowlist and the disjointness auditor, in both repositories, and pin its empty-tree refusal by test.
 
 **Wave 7** *(both checkouts)*
 
-- [ ] 04.2-09-PLAN.md — Move the three build variables to the HAOO repository, enforce HTTPS, re-take the prior phase's capturing evidence on the final hostname, and set every requirement status truthfully.
+- [x] 04.2-09-PLAN.md — Move the three build variables to the HAOO repository, enforce HTTPS, re-take the prior phase's capturing evidence on the final hostname, and set every requirement status truthfully.
+
+**Post-verification follow-up** *(scheduled, not owed by any plan in this phase)*
+
+- [ ] **Remove the ZERO-PAPER HUB planning directory (D-03, second half).**
+  **Owner:** the repository owner, as a `/gsd-quick` task against `KaruguDev/ZERO-PAPERHUB`.
+  **Trigger:** sign-off of `/gsd-verify-work` for phase 04.2 — not before, because the verifier
+  reads this phase's plans, summaries and deferred-items record out of that very directory.
+  **Command and commit message:** `04.2-DEFERRED-ITEMS.md` → `## D37`, which also records the
+  measured proof that `KaruguDev/HAOO` is a byte-for-byte superset over all 239 planning files
+  (0 mismatches, 2026-09-06T14:23:23Z) — the precondition without which this item is NOT scheduled.
+  **This duplication is not a separation violation and cannot hide one.**
+  `scripts/verify-tree-disjointness.mjs` excludes `.planning/` from the intersection and from both
+  positive halves (`EXCLUDED_PREFIXES = ['.planning/']`, line 49) and states why in its own header:
+  *"SPLT-01 is a claim about what each repository BUILDS AND SHIPS. The planning record is neither
+  built nor shipped... The planning record's single-home rule is a DIFFERENT decision and is
+  verified separately, by plan 04.2-09."* SPLT-01 is closed on `npm run verify:disjoint` exiting 0
+  in both repositories; D-03's single-home rule is closed by this item.
 
 **UI hint**: no
 
@@ -334,5 +351,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
-| 04.2. Split HAOO into its Own Repository and Domain | 1/9 | In Progress|  |
+| 04.2. Split HAOO into its Own Repository and Domain | 8/9 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

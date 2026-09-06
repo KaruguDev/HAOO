@@ -8,7 +8,7 @@
 ### Product Discovery
 
 - [x] **PROD-01**: Visitor can discover HAOO from a Products section on the ZERO-PAPER HUB home page
-- [ ] **PROD-02**: Visitor can open the stable HAOO product URL on the HAOO production domain (`https://haoo.online/`) directly or from the ZERO-PAPER HUB Products section, and a visitor arriving at the retired `https://www.zero-paperhub.com/products/haoo/` path is still carried to it by the published recovery document. *Mechanism named honestly: a client-side zero-second meta refresh plus `rel="canonical"`, because GitHub Pages emits no per-path server redirect — the only real 301 option, a CDN in front of Pages, was considered and scoped out (D-12, RESEARCH Pitfall 3). Amended by Phase 04.2; supersedes the `/products/haoo/` wording. The four brochure assets under the retired path are NOT retained — see QUAL-04 — so no retention period is claimed for them.*
+- [ ] **PROD-02**: Visitor can open the stable HAOO product URL on the HAOO production domain (`https://www.haoo.online/`) directly or from the ZERO-PAPER HUB Products section, and a visitor arriving at the retired `https://www.zero-paperhub.com/products/haoo/` path is still carried to it by the published recovery document. *Mechanism named honestly: a client-side zero-second meta refresh plus `rel="canonical"`, because GitHub Pages emits no per-path server redirect — the only real 301 option, a CDN in front of Pages, was considered and scoped out (D-12, RESEARCH Pitfall 3). Amended by Phase 04.2; supersedes the `/products/haoo/` wording. The four brochure assets under the retired path are NOT retained — see QUAL-04 — so no retention period is claimed for them.*
 - [x] **PROD-03**: Visitor can understand HAOO's audiences, benefits, capabilities, and rental journey through responsive semantic web content derived from the supplied brochure
 - [x] **PROD-04**: Visitor can preview the original HAOO PDF brochure and can always open or download it through explicit controls
 - [ ] **PROD-05**: Visitor sees HAOO-specific page title, description, canonical URL, and social-sharing metadata on the HAOO site's own published document. *Amended by Phase 04.2 so the claim attaches to whatever document path the split settles (recorded in `04.2-SPLIT-CONTRACT.md` § Published document path) rather than to the retired `/products/haoo/` page. Strength unchanged.*
@@ -120,13 +120,13 @@ deploy. MEAS-01 and MEAS-08 stay unchecked and `Gaps Found`.*
 - [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
 - [ ] **QUAL-02**: Visitor can navigate product content, brochure controls, form fields, validation messages, and onboarding links by keyboard with visible focus
 - [ ] **QUAL-03**: HAOO page preserves semantic heading order, descriptive link and control names, zoom support, reduced-motion behavior, and an HTML equivalent for brochure information
-- [ ] **QUAL-04**: Direct navigation and browser refresh work for the HAOO document and the published brochure asset on the HAOO production host `haoo.online`, both served as physical files. **Retired-path asset disposition, stated explicitly (RESEARCH Pitfall 6 gap, closed by Phase 04.2):** the four assets formerly published under `https://www.zero-paperhub.com/products/haoo/` — `HAOO-Marketing-Brochure.pdf`, `brochure-preview.png`, `haoo-hero.png`, `haoo-logo.png` — are **not copied into and not retained by ZERO-PAPER HUB; those URLs 404 after cutover.** This is an accepted, recorded cost, not an oversight: a static host emits no per-path redirect, so an already-published brochure URL either resolves or 404s. Only the retired *page* keeps a recovery document (D-12); the retired *asset files* do not. *Amended by Phase 04.2.*
+- [ ] **QUAL-04**: Direct navigation and browser refresh work for the HAOO document and the published brochure asset on the HAOO production host `www.haoo.online`, both served as physical files. **Retired-path asset disposition, stated explicitly (RESEARCH Pitfall 6 gap, closed by Phase 04.2):** the four assets formerly published under `https://www.zero-paperhub.com/products/haoo/` — `HAOO-Marketing-Brochure.pdf`, `brochure-preview.png`, `haoo-hero.png`, `haoo-logo.png` — are **not copied into and not retained by ZERO-PAPER HUB; those URLs 404 after cutover.** This is an accepted, recorded cost, not an oversight: a static host emits no per-path redirect, so an already-published brochure URL either resolves or 404s. Only the retired *page* keeps a recovery document (D-12); the retired *asset files* do not. *Amended by Phase 04.2; host re-pointed to the `www` leg 2026-09-06 when the owner reversed decision (a).*
 - [ ] **QUAL-05**: Build, typecheck, lint, automated contract/component tests, and required deployed manual checks pass before launch
 - [x] **QUAL-06**: Published HAOO claims, phone number, email address, and onboarding URL match the supplied brochure source material
 
 ### Repository and Domain Separation
 
-- [ ] **SPLT-01**: HAOO builds, tests, and deploys from a repository containing no ZERO-PAPER HUB source, and ZERO-PAPER HUB builds and deploys containing no HAOO source, with neither suite reading a file the other owns
+- [x] **SPLT-01**: HAOO builds, tests, and deploys from a repository that ships no ZERO-PAPER HUB product source, and ZERO-PAPER HUB from one that ships no HAOO product source, with neither suite reading a file the other owns — measured as CONTENT OWNERSHIP, not string occurrence: no tracked path is shared outside the ratified 26-entry scaffold allowlist, no ratified divergent-content collision has converged, no ZERO-PAPER HUB product source carries HAOO product source, and no HAOO source names a home-page symbol
 - [ ] **SPLT-02**: Every published HAOO URL and asset path — canonical, social metadata, brochure PDF and preview, and `noscript` recovery links — resolves on the HAOO production domain, and a visitor arriving at the retired `/products/haoo/` path still reaches the HAOO page
 - [ ] **SPLT-03**: Measurement build variables, the approved ingestion origin, and the report credentials are configured in the HAOO repository only, and a ZERO-PAPER HUB build carries no measurement code, ingestion origin, or credential shape
 - [ ] **SPLT-04**: Visitor-facing relationship, data-controller, and measurement-disclosure statements are true of HAOO as a standalone domain
@@ -194,13 +194,23 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | MEAS-06 | Phase 3 | Complete |
 | MEAS-07 | Phase 3 | Complete |
 | MEAS-08 | Phase 4 | Gaps Found |
+
+*Amended 2026-09-06 (plan 04.2-05, the repository and domain split): MEAS-08's intent is
+unchanged — reports still describe browser-observable events as views, attempts and outbound clicks
+rather than confirmed delivery, customers or completed onboarding. What is qualified is an adjacent
+claim. An all-time figure is no longer "every event this project ever recorded"; the measurement
+project now spans two properties, so it is every event recorded **on this domain**, bounded at the
+2026-09-06 cutover, and it does not include earlier events recorded in the same project from the
+previous address. "Truthfully" is thereby anchored to what the numbers now prove rather than to what
+they proved before the move.*
+
 | QUAL-01 | Phase 5 | Pending |
 | QUAL-02 | Phase 5 | Pending |
 | QUAL-03 | Phase 5 | Pending |
 | QUAL-04 | Phase 04.2 | Pending |
 | QUAL-05 | Phase 5 | Pending |
 | QUAL-06 | Phase 1 | Complete |
-| SPLT-01 | Phase 04.2 | Pending |
+| SPLT-01 | Phase 04.2 | Complete |
 | SPLT-02 | Phase 04.2 | Pending |
 | SPLT-03 | Phase 04.2 | Pending |
 | SPLT-04 | Phase 04.2 | Pending |
@@ -221,3 +231,8 @@ deleted — see the requirement.*
 ---
 *Requirements defined: 2026-08-29*
 *Last updated: 2026-09-05 — Phase 04.2 plan 01 amended PROD-02, PROD-05, PROD-06, QUAL-04 and mapped SPLT-01..04*
+*Amended: 2026-09-06 — plan 04.2-08 restated SPLT-01 as content ownership rather than string occurrence, per the
+owner decision recorded in 04.2-SPLIT-CONTRACT.md § Shared scaffold. The predecessor wording was unsatisfiable as
+literally written (both repositories legitimately carry the same toolchain) and self-defeating on its positive half
+(it forbade the guards from naming what they guard against). Marked Complete on a green `npm run verify:disjoint`
+in both repositories, not on prose.*

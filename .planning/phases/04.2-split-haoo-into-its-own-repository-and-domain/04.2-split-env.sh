@@ -37,5 +37,11 @@ export HAOO_CHECKOUT="/home/paul/Documents/Vibe Coding Projects/HAOO"
 # Task 2 answer (c): a fresh repository. `KaruguDev/Lipa-Nyumba` is explicitly not reused.
 export HAOO_REPO="KaruguDev/HAOO"
 
-# Task 2 answer (a): the apex leg. GitHub Pages supplies the `www` counterpart redirect.
-export HAOO_HOST="haoo.online"
+# Task 2 answer (a), REVERSED by the owner 2026-09-06: the `www` leg is canonical and the apex
+# `haoo.online` is the counterpart GitHub Pages redirects FROM — the mirror image of the
+# arrangement plan 04.2-02 shipped on 2026-09-05. The redirect still costs us nothing: the apex
+# already carries the four A and four AAAA Pages records, so Pages emits it automatically.
+#
+# This is the SITE host only. `info@haoo.online` (mailbox) and `manage.haoo.online` (a separate
+# host) keep the apex domain and are NOT derived from this value.
+export HAOO_HOST="www.haoo.online"
