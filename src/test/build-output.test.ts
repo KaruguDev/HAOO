@@ -1860,4 +1860,113 @@ describe('Phase 04.2 tree disjointness auditor', () => {
       rmSync(fixtureRoot, { recursive: true, force: true });
     }
   }, 60_000);
+
+  /**
+   * Added with the owner's 2026-09-06 corrections to SPLT-01. Pins the two properties
+   * those corrections rest on, both of which are ways a ratified allowlist could go
+   * quietly vacuous:
+   *
+   *   1. The positive half's exempt class is STRUCTURAL, derived from what a file IS. An
+   *      exemption enumerating today's offenders would go stale silently — a new file
+   *      shipping HAOO product source must still fail, at a path no list has ever seen.
+   *   2. A Ground B entry is forgiven only while its two copies stay DIVERGENT. If they
+   *      converge, the path allowlist is blind to it and a real violation walks through,
+   *      so convergence is asserted rather than trusted.
+   */
+  it('verify-tree-disjointness narrows its subject to product source and reports a converged collision', async () => {
+    const { auditPositiveHalves, auditCollisionDivergence, isProductSource, parseAllowlistGrounds, stripComments } =
+      await loadAuditor();
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'tree-disjointness-subject-'));
+
+    try {
+      // 1. THE GROUNDS ARE PARSED, NOT FLATTENED. The real allowlist beside this
+      //    repository must carry both, or the convergence check silently ranges over
+      //    nothing — the same empty-subject failure the guard case above exists to catch.
+      const grounds = parseAllowlistGrounds(readFileSync(resolve(ROOT, 'shared-scaffold.txt'), 'utf8'));
+      expect(grounds.entries.length, 'the ratified allowlist is 26 entries').toBe(26);
+      expect(grounds.byGround.collision.length, 'Ground B is non-empty').toBeGreaterThan(0);
+      expect(
+        grounds.byGround.scaffold.length + grounds.byGround.collision.length,
+        'every entry belongs to exactly one ground',
+      ).toBe(grounds.entries.length);
+
+      // 2. THE EXEMPT CLASS IS STRUCTURAL. None of these paths appears in any list in the
+      //    auditor; each is classified by what it IS.
+      for (const productSource of [
+        'src/products/haoo-copy.ts',
+        'src/components/SomethingNeverSeenBefore.tsx',
+        'public/a-brand-new-brochure.html',
+        'index.html',
+      ]) {
+        expect(isProductSource(productSource), `${productSource} is product source`).toBe(true);
+      }
+      for (const exempt of [
+        'scripts/a-new-tool.mjs',
+        '.github/workflows/deploy.yml',
+        'package.json',
+        'shared-scaffold.txt',
+        'src/test/a-new-suite.test.ts',
+        'src/components/Thing.test.tsx',
+        'src/vite-env.d.ts',
+        'README.md',
+        'src/products/registry.ts',
+        'public/products/haoo/index.html',
+        '.planning/STATE.md',
+      ]) {
+        expect(isProductSource(exempt), `${exempt} is exempt`).toBe(false);
+      }
+
+      // 3. A COMMENT IS NOT PRODUCT SOURCE. Recording that the product left must stay
+      //    legal, or the repository cannot explain its own history. A URL is not a comment.
+      expect(stripComments('/** the HAOO product left here */\nexport const A = 1;')).not.toMatch(
+        /haoo/iu,
+      );
+      expect(stripComments("const u = 'https://www.haoo.online/';"), 'a URL survives').toMatch(
+        /haoo/iu,
+      );
+
+      // 4. THE POSITIVE HALF REPORTS A LEAK, AND A MISSING CARRIER.
+      const leaked = auditPositiveHalves({
+        productSourceLeaks: ['src/products/haoo-copy.ts'],
+        carriersNamingProduct: ['public/products/haoo/index.html', 'src/products/registry.ts'],
+        homePageSymbolFiles: [],
+      });
+      expect(leaked.errors.join('\n')).toMatch(/src\/products\/haoo-copy\.ts/u);
+      expect(leaked.counts.productSourceLeaks).toBe(1);
+
+      const carrierGone = auditPositiveHalves({
+        productSourceLeaks: [],
+        carriersNamingProduct: ['src/products/registry.ts'],
+        homePageSymbolFiles: [],
+      });
+      expect(carrierGone.errors.join('\n'), 'a vanished carrier is a finding').toMatch(
+        /has gone missing/u,
+      );
+
+      const clean = auditPositiveHalves({
+        productSourceLeaks: [],
+        carriersNamingProduct: ['public/products/haoo/index.html', 'src/products/registry.ts'],
+        homePageSymbolFiles: [],
+      });
+      expect(clean.errors).toEqual([]);
+
+      // 5. CONVERGENCE IS REPORTED. The allowlist forgives the path either way, so this
+      //    is the only thing standing between a ratified collision and a real violation.
+      const converged = auditCollisionDivergence({
+        collisionEntries: ['src/App.tsx'],
+        identicalPaths: ['src/App.tsx'],
+      });
+      expect(converged.errors.join('\n')).toMatch(/CONVERGED/u);
+      expect(converged.counts.converged).toBe(1);
+      expect(
+        auditCollisionDivergence({ collisionEntries: ['src/App.tsx'], identicalPaths: [] }).errors,
+      ).toEqual([]);
+
+      // The fixture directory is created and removed even though these cases are pure, so
+      // the `finally` discipline holds if a filesystem assertion is ever added here.
+      writeFileSync(join(fixtureRoot, 'touch'), '', 'utf8');
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  }, 60_000);
 });

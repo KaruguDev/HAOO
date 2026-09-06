@@ -1,73 +1,146 @@
 # shared-scaffold.txt — the closed list of paths that legitimately exist in BOTH
 # `KaruguDev/ZERO-PAPERHUB` and `KaruguDev/HAOO`.
 #
-# WHY THIS FILE EXISTS
-# SPLT-01 says HAOO builds, tests and deploys from a repository containing no
-# ZERO-PAPER HUB source, and ZERO-PAPER HUB from one containing no HAOO source, with
-# neither suite reading a file the other owns. Taken literally that is UNSATISFIABLE:
-# both repositories legitimately need two package manifests, three type
-# configurations, four tool configurations, two build and test configurations, an
-# ignore file, two repository documents, a deploy workflow, an application entry, a
-# global stylesheet, ambient declarations, a test setup file and a domain file.
+# TWENTY-SIX ENTRIES, ON TWO DIFFERENT GROUNDS. The distinction is load-bearing and is
+# marked machine-readably by the `# @ground:` directives below. Do not collapse it.
 #
-# Toolchain scaffolding is owned by NEITHER half — it is owned by the repository. A
-# check that treats these nineteen paths as violations fails for the WRONG REASON, and
-# a check that fails for the wrong reason gets disabled. So this list is not a
+# WHY THIS FILE EXISTS
+# SPLT-01 says HAOO builds, tests and deploys from a repository containing no ZERO-PAPER
+# HUB source, and ZERO-PAPER HUB from one containing no HAOO source, with neither suite
+# reading a file the other owns. Taken as a claim about PATHS that is unsatisfiable: both
+# repositories legitimately carry the same toolchain, and both descend from the same Vite
+# React scaffold. Toolchain scaffolding is owned by NEITHER half — it is owned by the
+# repository. A check that treats these paths as violations fails for the WRONG REASON,
+# and a check that fails for the wrong reason gets disabled. So this list is not a
 # loophole; it is the thing that makes the requirement mean something.
 #
 # THE RULE FOR ADDING AN ENTRY — THIS LIST IS CLOSED
-# An entry is added by DECLARING TOOLCHAIN OWNERSHIP: a file the repository owns
-# rather than either product half. An entry is NEVER added because "both halves need
-# it" — a product file the other half also needs is precisely the coupling SPLT-01
-# exists to forbid, and it is a VIOLATION, not an allowlist candidate. Never add a
+# An entry is added on exactly one of the two grounds below, and NEVER because "both
+# halves need it". A product file the other half also needs is precisely the coupling
+# SPLT-01 exists to forbid: it is a VIOLATION, not an allowlist candidate. Never add a
 # path here to make a failing run pass.
 #
 # (Modelled on the closed-list discipline documented at
 # `src/test/focus-contrast.test.ts`, where the list is kept closed by registering each
-# new component rather than by widening the token set, so a style that is never
-# measured cannot ship.)
+# new component rather than by widening the token set, so a style that is never measured
+# cannot ship.)
 #
 # EVERY ENTRY SUBTRACTED IS A PATH THE CHECK STOPS GUARDING.
 # `scripts/verify-tree-disjointness.mjs` prints how many entries it subtracted on every
 # run, so growth in this list is visible in the recorded output rather than silent.
 #
-# BYTE-IDENTICAL IN BOTH REPOSITORIES. A private definition of "shared" in one
-# repository is the first step to the two trees disagreeing about what separation
-# means, so a unilateral widening shows up as a `diff`.
-#
-# `CNAME` is listed as a PATH, not as a value. Both repositories have the file and the
-# two hold different hostnames (`www.haoo.online` and `www.zero-paperhub.com`); the
-# per-side literal is pinned separately by `build-output.test.ts`.
-#
-# NO ASSET DUPLICATION IS RECORDED HERE. Phase 04.2 decision (d) let the retired
-# ZERO-PAPER HUB asset URLs 404 rather than copying the four brochure files, so there
-# is no asset exception for the disjointness check to forgive. Measured by plan
-# 04.2-07: the four assets exist only in `KaruguDev/HAOO`, under `public/brochure/`.
+# BYTE-IDENTICAL IN BOTH REPOSITORIES. A private definition of "shared" in one repository
+# is the first step to the two trees disagreeing about what separation means, so a
+# unilateral widening shows up as a `cmp`. (T-04.2-40.)
 #
 # Source of truth: `.planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/
 # 04.2-SPLIT-CONTRACT.md` § "Shared scaffold". Change them there and here together.
 #
-# Blank lines and lines beginning with `#` are ignored by the reader. Everything else
-# is one bare repository-relative path, matched by EXACT WHOLE-LINE comparison — never
-# as a glob, a prefix or a substring. A path fragment match would forgive an unrelated
-# file that merely contains an allowlisted name.
+# Blank lines and lines beginning with `#` are ignored by the reader. Everything else is
+# one bare repository-relative path, matched by EXACT WHOLE-LINE comparison — never as a
+# glob, a prefix or a substring. A path fragment match would forgive an unrelated file
+# that merely contains an allowlisted name, and would flag
+# `public/products/haoo/index.html`, which exists in ZERO-PAPER HUB only.
 
+# ─────────────────────────────────────────────────────────────────────────────────────
+# @ground: scaffold
+#
+# GROUND A — SHARED TOOLCHAIN SCAFFOLDING (23 entries)
+#
+# Files the REPOSITORY owns rather than either product half. Each is genuinely the same
+# kind of file doing the same job on both sides; several are deliberately identical in
+# content. Recorded as a decision by plan 04.2-01 (nineteen entries) and extended to
+# twenty-three by the owner on 2026-09-06 after plan 04.2-08's check measured four the
+# original enumeration had missed. All four qualify under the rule as it already stood.
+# ─────────────────────────────────────────────────────────────────────────────────────
+
+# the manifest — scripts, dependencies and engines, per repository
 package.json
+# the resolved dependency graph the manifest pins
 package-lock.json
+# the project-wide TypeScript settings both builds compile under
 tsconfig.json
+# the browser-target compiler project, scoped to `src`
 tsconfig.app.json
+# the Node-target compiler project, scoped to the build config
 tsconfig.node.json
+# the lint ruleset, including the Node-globals block for `.mjs` tooling
 eslint.config.js
+# the PostCSS pipeline Tailwind runs through
 postcss.config.js
+# the Tailwind design-token and content configuration
 tailwind.config.js
+# the Vite build configuration
 vite.config.ts
+# the Vitest runner configuration
 vitest.config.ts
+# the ignore rules for build output and local artifacts
 .gitignore
+# the agent-facing repository guide
 AGENTS.md
+# the human-facing repository document
 README.md
+# the GitHub Pages build-and-deploy workflow
 .github/workflows/deploy.yml
+# the application bootstrap that mounts React
 src/main.tsx
+# the global stylesheet and Tailwind entry
 src/index.css
+# the ambient declarations for the build-time environment
 src/vite-env.d.ts
+# the Vitest setup file loaded before every suite
 src/test/setup.ts
+# the custom-domain file — listed as a PATH, not a value: the two copies hold
+# `www.zero-paperhub.com` and `www.haoo.online`, and the per-side literal is pinned
+# separately by `build-output.test.ts`. That per-side pin is the guard against Pitfall 2.
 CNAME
+# RATIFIED 2026-09-06 — Vite's application entry document, which the bundler rewrites at
+# build time; the app shell, not either product's source
+index.html
+# RATIFIED 2026-09-06 — the expected-red gate (D6/D12), narrowed per side to its own
+# suites and markers; tooling that polices the suites rather than a product file
+scripts/assert-phase1-red.mjs
+# RATIFIED 2026-09-06 — this list itself, which MUST be byte-identical on both sides
+shared-scaffold.txt
+# RATIFIED 2026-09-06 — the disjointness auditor, which MUST be byte-identical on both
+# sides so neither repository can drift into a private definition of separation
+scripts/verify-tree-disjointness.mjs
+
+# ─────────────────────────────────────────────────────────────────────────────────────
+# @ground: collision
+#
+# GROUND B — RATIFIED PATH COLLISIONS WITH DIVERGENT CONTENT (3 entries)
+#
+# These are NOT shared files. They are the same PATH holding entirely different content,
+# because both repositories descend from the same Vite React scaffold. ZERO-PAPER HUB's
+# `src/App.tsx` contains ZERO-PAPER HUB source; HAOO's contains HAOO source. Neither tree
+# contains the other's source, so SPLT-01's actual claim — which is about CONTENT
+# OWNERSHIP, not path occupancy — is satisfied. Ratified by the owner on 2026-09-06 on
+# that ground, which is DIFFERENT from Ground A's.
+#
+# ⚠ HOW THIS GROUND DECAYS, AND WHAT IS DONE ABOUT IT
+# A Ground A entry is safe indefinitely: the two copies being identical is the point. A
+# Ground B entry is safe only while the two copies stay DIVERGENT. If the content of one
+# of these three ever CONVERGES — one repository's copy edited to match the other's —
+# that is a genuine SPLT-01 violation, and a plain path allowlist would be blind to it,
+# because the path is on the list either way.
+#
+# So the auditor does not merely subtract these three: it asserts, per entry, that the
+# two copies are NOT byte-identical, and reports convergence as a violation. That turns
+# the decay risk into a checked property rather than a comment nobody re-reads. A Ground
+# B entry that becomes identical across the two repositories FAILS the run.
+#
+# Consequently: never move an entry between the two grounds to silence a finding. Moving
+# a converged file from Ground B to Ground A would declare a genuine violation to be
+# scaffolding, which is the one thing this file's rule forbids.
+# ─────────────────────────────────────────────────────────────────────────────────────
+
+# the application root component — ZERO-PAPER HUB's home page vs HAOO's product page;
+# wholly different components sharing only the scaffold's filename
+src/App.tsx
+# the build-output suite — 17 ZERO-PAPER HUB cases vs 40 HAOO cases, no shared assertion;
+# each side asserts its own build, and each retired the other's subjects by name
+src/test/build-output.test.ts
+# the focus-contrast suite — one registered ZERO-PAPER HUB source vs six in HAOO; the
+# union of the two closed lists is the pre-split list, split rather than duplicated
+src/test/focus-contrast.test.ts

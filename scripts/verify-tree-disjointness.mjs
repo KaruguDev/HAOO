@@ -49,8 +49,8 @@ export const DEFAULT_ALLOWLIST_PATH = resolve(SCRIPT_REPO_ROOT, 'shared-scaffold
 export const EXCLUDED_PREFIXES = ['.planning/'];
 
 /**
- * The product name, as a case-insensitive content probe for the ZERO-PAPER HUB half.
- * Documentation and the lockfile are excluded from that half — see `isDocumentation`.
+ * The product name, as a case-insensitive content probe. Applied to COMMENT-STRIPPED
+ * content — see `stripComments`.
  */
 export const PRODUCT_NAME_PATTERN = /haoo/iu;
 
@@ -61,21 +61,93 @@ export const PRODUCT_NAME_PATTERN = /haoo/iu;
 export const HOME_PAGE_SYMBOLS = ['HomePage', 'downloadCompanyProfile', 'NAV_LINKS'];
 
 /**
- * The only two ZERO-PAPER HUB files permitted to name the product: the card registry
- * (the home page's link out to the HAOO site) and the recovery document served at the
- * retired `/products/haoo/` path.
+ * The mirror of `HOME_PAGE_SYMBOLS`, on the ZERO-PAPER HUB side. Symbols that identify a
+ * file as HAOO PRODUCT SOURCE regardless of whether it happens to spell the product's
+ * name — the HAOO product definition, its page, its five product components and their
+ * types, its qualification helpers, and its measurement SDK.
+ *
+ * WHY THE NAME PROBE ALONE IS NOT ENOUGH. `src/components/BrochurePanel.tsx` in the HAOO
+ * repository contains ZERO occurrences of "haoo": it is parameterised by `productName`,
+ * which was the point of the Phase 1 shell-reuse pattern. Copied into this tree it would
+ * pass a name-only probe while plainly being HAOO product source. Measured, not assumed.
+ *
+ * CLOSED LIST, SAME DISCIPLINE AS `HOME_PAGE_SYMBOLS` AND THE FOCUS-SOURCE LIST. An entry
+ * is added by registering a new HAOO product symbol, never by removing one to make a run
+ * pass. Every entry below is measured ABSENT from ZERO-PAPER HUB product source and
+ * PRESENT across HAOO's `src/` (2026-09-06), so each one discriminates rather than
+ * decorates.
+ *
+ * RESIDUAL LIMIT, STATED RATHER THAN HIDDEN: a HAOO source file that neither names the
+ * product nor uses any registered symbol would not be caught here. Such a file is
+ * product-AGNOSTIC by construction — it is the reusable shell, not the product — and it
+ * is caught by the other gate anyway, since its imports do not resolve in this tree and
+ * `npm run typecheck` fails.
  */
-export const EXPECTED_PRODUCT_NAMED_FILES = [
+export const HAOO_PRODUCT_SYMBOLS = [
+  'HAOO_PRODUCT',
+  'ProductPage',
+  'ProductHeader',
+  'QualifyForm',
+  'QualifyFallback',
+  'BrochurePanel',
+  'OnboardingChoices',
+  'MeasurementDisclosure',
+  'ProductDefinition',
+  'ProductBrochure',
+  'qualifyCollectionNotePageContext',
+  'buildSubmissionBody',
+  'posthog',
+];
+
+/**
+ * The two named legitimate carriers: the card registry (the home page's link out to the
+ * HAOO site) and the recovery document served at the retired `/products/haoo/` path.
+ * These two are EXPECTED to name the product; the auditor asserts they still do, so a
+ * card or a recovery document that quietly went missing is a finding.
+ */
+export const NAMED_PRODUCT_CARRIERS = [
   'public/products/haoo/index.html',
   'src/products/registry.ts',
 ];
 
 /** Reads the closed scaffold allowlist. Blank lines and `#` comments are not entries. */
 export function parseAllowlist(text) {
-  return text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith('#'));
+  return parseAllowlistGrounds(text).entries;
+}
+
+/**
+ * The allowlist carries entries on TWO grounds, marked by `# @ground:` directives, and
+ * the difference is load-bearing.
+ *
+ *   `scaffold`  — shared toolchain the REPOSITORY owns. Safe indefinitely; several of
+ *                 these are deliberately byte-identical across the two repositories.
+ *   `collision` — the same PATH holding entirely different content, because both
+ *                 repositories descend from the same Vite React scaffold. Safe ONLY
+ *                 while the two copies stay divergent.
+ *
+ * A plain path allowlist is blind to a `collision` entry whose copies later CONVERGE —
+ * the path is forgiven either way — and a converged copy IS a genuine SPLT-01 violation.
+ * `auditCollisionDivergence` closes that hole, which is why the grounds are parsed rather
+ * than flattened. See the allowlist file's own Ground B header.
+ */
+export function parseAllowlistGrounds(text) {
+  const entries = [];
+  const byGround = { scaffold: [], collision: [] };
+  let ground = 'scaffold';
+
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    const directive = /^#\s*@ground:\s*(\S+)\s*$/u.exec(line);
+    if (directive) {
+      ground = directive[1];
+      continue;
+    }
+    if (line.length === 0 || line.startsWith('#')) continue;
+    entries.push(line);
+    (byGround[ground] ??= []).push(line);
+  }
+
+  return { entries, byGround };
 }
 
 /** True for a path this auditor does not compare at all. */
@@ -83,9 +155,65 @@ export function isExcluded(path) {
   return EXCLUDED_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
-/** Documentation and the lockfile, excluded from the ZERO-PAPER HUB positive half. */
-export function isDocumentation(path) {
-  return path.endsWith('.md') || path === 'package-lock.json';
+/**
+ * Removes comments before the product-name probe runs.
+ *
+ * A historical comment recording that the HAOO product LEFT this repository is not HAOO
+ * product source, and the ZERO-PAPER HUB tree is full of them by design — `.gitignore`,
+ * `src/App.tsx`, `src/vite-env.d.ts` and the deploy workflow each carry one, deliberately,
+ * so a later reader finds a recorded reduction rather than an unexplained absence. A probe
+ * that counted them would forbid the repository from EXPLAINING the split.
+ *
+ * The `[^:]` guard on the line-comment rule keeps `https://www.haoo.online/` intact — the
+ * `//` in a URL is not a comment, and that URL is exactly the kind of hit that must count.
+ *
+ * Known imprecision, stated rather than hidden: a `/*` inside a string literal or a regex
+ * would over-strip. That direction is the permissive one, so it is covered by the
+ * structural class below rather than by this function — a file that ships product source
+ * fails on its identifiers, not only on a URL.
+ */
+export function stripComments(text) {
+  return text
+    .replace(/<!--[\s\S]*?-->/gu, ' ')
+    .replace(/\/\*[\s\S]*?\*\//gu, ' ')
+    .replace(/(^|[^:])\/\/.*$/gmu, '$1');
+}
+
+/**
+ * THE NARROWED SUBJECT OF THE ZERO-PAPER HUB POSITIVE HALF (owner decision, 2026-09-06).
+ *
+ * The assertion is that the ZERO-PAPER HUB tree ships no HAOO PRODUCT SOURCE — not that
+ * no file may NAME the product. The predecessor made the second claim and was
+ * self-defeating: it flagged this auditor and its own allowlist for naming what they
+ * exist to guard against, and it flagged the two suites whose entire purpose is proving
+ * HAOO is gone. Eleven files, of which nine were the guards.
+ *
+ * The exempt class is DERIVED FROM WHAT A FILE IS, never enumerated. There is no skip
+ * list of today's offenders — an exemption naming today's failures goes stale silently,
+ * which is the vacuous pass this check exists to refuse.
+ *
+ * Product source is: a file under `src/` or `public/`, or a root-level `*.html`, that is
+ * not one of the two named carriers, not a test, not an ambient declaration, and not
+ * documentation. Everything else is exempt BY CONSTRUCTION rather than by name —
+ * tooling (`scripts/`), CI (`.github/`), the root manifests and tool configs and the
+ * lockfile all fall outside `src/`, `public/` and root `*.html` without being listed.
+ *
+ * So a NEW file shipping HAOO product source into this tree — `src/products/haoo.ts`,
+ * `src/components/HaooPanel.tsx`, `public/haoo-brochure.html` — still fails, which is the
+ * property `build-output.test.ts` pins and the plan summary demonstrates by injection.
+ */
+export function isProductSource(path) {
+  if (isExcluded(path)) return false;
+  if (NAMED_PRODUCT_CARRIERS.includes(path)) return false;
+  if (path.endsWith('.md')) return false;
+  if (path.endsWith('.d.ts')) return false;
+  if (path.startsWith('src/test/')) return false;
+  if (/\.(test|spec)\.[cm]?[jt]sx?$/u.test(path)) return false;
+
+  const underSource = path.startsWith('src/');
+  const underPublic = path.startsWith('public/');
+  const rootDocument = !path.includes('/') && path.endsWith('.html');
+  return underSource || underPublic || rootDocument;
 }
 
 /**
@@ -173,26 +301,28 @@ export function auditSharedPaths({ leftLabel, leftFiles, rightLabel, rightFiles,
  * above is the negative half: it proves the trees do not overlap. These prove each tree
  * holds only its own half.
  */
-export function auditPositiveHalves({ productNamedFiles, homePageSymbolFiles }) {
+export function auditPositiveHalves({ productSourceLeaks, carriersNamingProduct, homePageSymbolFiles }) {
   const errors = [];
 
-  const expected = [...EXPECTED_PRODUCT_NAMED_FILES].sort();
-  const actual = [...productNamedFiles].sort();
-
-  for (const path of actual) {
-    if (!expected.includes(path)) {
-      errors.push(
-        `ZERO-PAPER HUB half: ${path} names the product but is neither the card registry nor the recovery document`,
-      );
-    }
+  // (a) No ZERO-PAPER HUB PRODUCT SOURCE file carries HAOO product source.
+  for (const path of [...productSourceLeaks].sort()) {
+    errors.push(
+      `ZERO-PAPER HUB half: ${path} is product source and ships HAOO product source — the product left this repository`,
+    );
   }
-  for (const path of expected) {
-    if (!actual.includes(path)) {
+
+  // (b) The two named carriers must STILL name the product. Narrowing the subject in (a)
+  //     must not quietly retire the assertion that the card and the recovery document are
+  //     still there; a missing carrier is a regression, not a clean tree.
+  for (const path of NAMED_PRODUCT_CARRIERS) {
+    if (!carriersNamingProduct.includes(path)) {
       errors.push(
         `ZERO-PAPER HUB half: ${path} is expected to name the product and does not — the card or the recovery document has gone missing`,
       );
     }
   }
+
+  // (c) No HAOO source names a home-page symbol.
   for (const path of [...homePageSymbolFiles].sort()) {
     errors.push(
       `HAOO half: ${path} names a home-page symbol (${HOME_PAGE_SYMBOLS.join(', ')}) — the home page does not belong in this repository`,
@@ -201,11 +331,33 @@ export function auditPositiveHalves({ productNamedFiles, homePageSymbolFiles }) 
 
   return {
     counts: {
-      productNamed: actual.length,
-      productNamedExpected: expected.length,
+      productSourceLeaks: productSourceLeaks.length,
+      carriersPresent: carriersNamingProduct.length,
+      carriersExpected: NAMED_PRODUCT_CARRIERS.length,
       homePageSymbolHits: homePageSymbolFiles.length,
     },
     errors,
+  };
+}
+
+/**
+ * Ground B entries are forgiven only while their two copies stay DIVERGENT. A converged
+ * copy is a genuine SPLT-01 violation that a plain path allowlist cannot see, because the
+ * path is on the list either way. Asserting divergence per entry turns the allowlist's one
+ * blind spot into a reported finding.
+ *
+ * `collisionEntries` that are absent from one tree are skipped: a path that is not shared
+ * cannot have converged, and the intersection half already owns the shared-path question.
+ */
+export function auditCollisionDivergence({ collisionEntries, identicalPaths }) {
+  return {
+    counts: { collisionEntries: collisionEntries.length, converged: identicalPaths.length },
+    errors: [...identicalPaths].sort().map(
+      (path) =>
+        `Ratified collision CONVERGED: ${path} is now byte-identical in both repositories — ` +
+        'it was allowlisted on the ground that its two copies hold different content, and that ground no longer holds. ' +
+        'Do not move it to the scaffold ground; that would declare a genuine violation to be scaffolding.',
+    ),
   };
 }
 
@@ -216,7 +368,8 @@ export function auditPositiveHalves({ productNamedFiles, homePageSymbolFiles }) 
 export function auditTreeDisjointness(input) {
   const paths = auditSharedPaths(input);
   const positive = auditPositiveHalves(input);
-  const errors = [...paths.errors, ...positive.errors];
+  const divergence = auditCollisionDivergence(input);
+  const errors = [...paths.errors, ...divergence.errors, ...positive.errors];
 
   if (errors.length > 0) {
     throw new Error(
@@ -224,7 +377,7 @@ export function auditTreeDisjointness(input) {
     );
   }
 
-  return { counts: { ...paths.counts, ...positive.counts } };
+  return { counts: { ...paths.counts, ...divergence.counts, ...positive.counts } };
 }
 
 /** `git ls-files` for a checkout. A non-repository or a bare tree yields an empty list, */
@@ -265,11 +418,33 @@ export function identifyCheckout(checkout) {
   return { side: null, host: cname };
 }
 
-/** The ZERO-PAPER HUB positive half's subject: tracked files whose content names the product. */
-export function productNamedFilesIn(checkout, files) {
-  return files
-    .filter((path) => !isExcluded(path) && !isDocumentation(path))
-    .filter((path) => PRODUCT_NAME_PATTERN.test(readTextFile(checkout, path) ?? ''));
+/** The ZERO-PAPER HUB positive half's subject: PRODUCT SOURCE that ships HAOO source. */
+export function productSourceLeaksIn(checkout, files) {
+  const symbols = new RegExp(`\\b(${HAOO_PRODUCT_SYMBOLS.join('|')})\\b`, 'u');
+  return files.filter((path) => {
+    if (!isProductSource(path)) return false;
+    const body = stripComments(readTextFile(checkout, path) ?? '');
+    return PRODUCT_NAME_PATTERN.test(body) || symbols.test(body);
+  });
+}
+
+/** The named carriers that still name the product, for the presence assertion. */
+export function carriersNamingProductIn(checkout, files) {
+  return NAMED_PRODUCT_CARRIERS.filter(
+    (path) =>
+      files.includes(path) &&
+      PRODUCT_NAME_PATTERN.test(stripComments(readTextFile(checkout, path) ?? '')),
+  );
+}
+
+/** Ground B entries whose two copies have converged to byte-identical content. */
+export function convergedCollisionsIn(leftCheckout, leftFiles, rightCheckout, rightFiles, collisionEntries) {
+  return collisionEntries.filter((path) => {
+    if (!leftFiles.includes(path) || !rightFiles.includes(path)) return false;
+    const left = readFileSync(resolve(leftCheckout, path));
+    const right = readFileSync(resolve(rightCheckout, path));
+    return left.equals(right);
+  });
 }
 
 /** The HAOO positive half's subject: sources naming a home-page symbol. */
@@ -297,7 +472,8 @@ function main() {
   const first = resolve(SCRIPT_REPO_ROOT, firstArg);
   const second = resolve(SCRIPT_REPO_ROOT, secondArg);
   const allowlistPath = allowlistArg ? resolve(SCRIPT_REPO_ROOT, allowlistArg) : DEFAULT_ALLOWLIST_PATH;
-  const allowlist = parseAllowlist(readFileSync(allowlistPath, 'utf8'));
+  const { entries: allowlist, byGround } = parseAllowlistGrounds(readFileSync(allowlistPath, 'utf8'));
+  const collisionEntries = byGround.collision ?? [];
 
   const firstTracked = trackedFiles(first);
   const secondTracked = trackedFiles(second);
@@ -326,7 +502,10 @@ function main() {
     rightLabel: `HAOO (${haoo.path})`,
     rightFiles: haoo.files,
     allowlist,
-    productNamedFiles: productNamedFilesIn(zph.path, zph.files),
+    collisionEntries,
+    identicalPaths: convergedCollisionsIn(zph.path, zph.files, haoo.path, haoo.files, collisionEntries),
+    productSourceLeaks: productSourceLeaksIn(zph.path, zph.files),
+    carriersNamingProduct: carriersNamingProductIn(zph.path, zph.files),
     homePageSymbolFiles: homePageSymbolFilesIn(haoo.path, haoo.files),
   });
 
@@ -340,7 +519,9 @@ function main() {
       `  allowlist entries:      ${c.allowlistEntries}\n` +
       `  allowlist subtracted:   ${c.allowlistSubtracted}\n` +
       `  violations:             ${c.violations}\n` +
-      `  ZPH files naming the product: ${c.productNamed} (expected ${c.productNamedExpected})\n` +
+      `  ratified collisions:    ${c.collisionEntries} (converged: ${c.converged})\n` +
+      `  ZPH product source shipping HAOO source: ${c.productSourceLeaks}\n` +
+      `  ZPH named carriers present: ${c.carriersPresent} of ${c.carriersExpected}\n` +
       `  HAOO files naming a home-page symbol: ${c.homePageSymbolHits}`,
   );
 }
