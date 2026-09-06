@@ -312,8 +312,14 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
   **Trigger:** sign-off of `/gsd-verify-work` for phase 04.2 — not before, because the verifier
   reads this phase's plans, summaries and deferred-items record out of that very directory.
   **Command and commit message:** `04.2-DEFERRED-ITEMS.md` → `## D37`, which also records the
-  measured proof that `KaruguDev/HAOO` is a byte-for-byte superset over all 239 planning files
-  (0 mismatches, 2026-09-06T14:23:23Z) — the precondition without which this item is NOT scheduled.
+  measured proof that `KaruguDev/HAOO` is a byte-for-byte superset of the planning tree — the
+  precondition without which this item is NOT scheduled. **AMENDED 2026-09-06 by phase verification
+  (W-1): the precondition is the WALK re-run at execution time, never a recorded number.** This line
+  previously cited "all 239 planning files (0 mismatches, 2026-09-06T14:23:23Z)" as the precondition
+  itself. That figure is stale by construction — the trigger for this item is verify-work sign-off,
+  which is the event that writes new ZPH-only planning files. Re-measured right after sign-off: 243
+  files, 3 ZPH-only, 0 differing. See `04.2-DEFERRED-ITEMS.md` D37 for the walk and the required
+  step 0.
   **This duplication is not a separation violation and cannot hide one.**
   `scripts/verify-tree-disjointness.mjs` excludes `.planning/` from the intersection and from both
   positive halves (`EXCLUDED_PREFIXES = ['.planning/']`, line 49) and states why in its own header:
