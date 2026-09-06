@@ -12,6 +12,7 @@ import {
   REPORT_PERIOD_LEGEND,
   REPORT_STAGE_ORDER,
   REPORT_STAGES,
+  reportCutoverSentence,
   reportLabel,
   stageTotals,
 } from './haoo-report.ts';
@@ -58,6 +59,15 @@ export interface ReportModel {
   readonly generatedAt: string;
   readonly timezone: string;
   readonly projectScope: string;
+  /**
+   * The day HAOO began serving from its own web address, as `YYYY-MM-DD`.
+   *
+   * Required, not optional. The measurement project spans two properties, so every count
+   * in this report is bounded at this day; a model that omitted it would render a report
+   * whose headings claim a scope its numbers do not have. Making it required means that
+   * omission is a typecheck failure rather than a quietly wrong document.
+   */
+  readonly cutoverDay: string;
   readonly periods: readonly ReportPeriodModel[];
 }
 
@@ -507,6 +517,7 @@ export function renderReport(model: ReportModel): string {
     '<header class="report-header">',
     `<h1>${escapeHtml(model.title)}</h1>`,
     `<p class="report-meta">${escapeHtml(metadataLine(model))}</p>`,
+    `<p class="report-provenance">${escapeHtml(reportCutoverSentence(model.cutoverDay))}</p>`,
     '</header>',
     periodControl(model),
     '<div class="period-sections">',

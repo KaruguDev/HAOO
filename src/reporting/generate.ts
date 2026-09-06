@@ -536,6 +536,7 @@ export async function generateHaooReport(
       generatedAt: generatedAt.toISOString(),
       timezone: REPORT_TIMEZONE,
       projectScope: options.query.projectId,
+      cutoverDay: HAOO_DOMAIN_CUTOVER_DAY,
       periods,
     };
 

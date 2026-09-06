@@ -727,6 +727,7 @@ describe('renderReport', () => {
     generatedAt: '2026-03-01T09:30:00.000Z',
     timezone: 'Africa/Nairobi',
     projectScope: FIXTURE_PROJECT_ID,
+    cutoverDay: INDEPENDENT_CUTOVER_DAY,
     periods: [
       {
         id: 'last-30-days',
@@ -2048,12 +2049,38 @@ const CAVEAT_BLOCK = [
   + 'registration, a customer, or completed onboarding.',
   'Browser privacy settings and content blockers can prevent an action from being '
   + 'recorded, so real activity can be higher than the counts shown.',
-  'All-time counts begin at the first action recorded for this project; there is no '
-  + 'earlier provider history to include.',
+  'All-time counts begin on the day named in the report header, when these pages moved '
+  + 'to their own web address; earlier activity in the same measurement project was '
+  + 'recorded at the previous address and is not included here.',
   'The provider echoes the query this report submitted but not the project that answered '
   + 'it, so the report proves which query produced its numbers and not which project '
   + 'produced them; the project named above is the one the command was configured with.',
 ] as const;
+
+/**
+ * The sentence the withdrawn caveat used to say, authored here so its ABSENCE from the
+ * rendered document is asserted against a real string rather than a paraphrase.
+ *
+ * It is deliberately retained in `src/reporting/haoo-report.ts` inside the withdrawal
+ * comment, so a source grep would find it and prove nothing. Only the rendered output can
+ * show it is no longer a claim this report makes.
+ */
+const WITHDRAWN_ALL_TIME_CAVEAT =
+  'All-time counts begin at the first action recorded for this project; there is no '
+  + 'earlier provider history to include.';
+
+/**
+ * The header provenance sentence, re-derived here from the independent day.
+ *
+ * Authored as a second copy for the same reason the SQL is: the assertion has to be able
+ * to fail. The day inside it is compared against `HAOO_DOMAIN_CUTOVER_DAY` in the case
+ * below, so a drifted literal in either copy is a failure rather than a silent agreement.
+ */
+function independentCutoverSentence(): string {
+  return `Counts begin on ${INDEPENDENT_CUTOVER_DAY}, the day HAOO moved to its own web `
+    + 'address; earlier activity recorded in the same measurement project belongs to the '
+    + 'previous address and is not included.';
+}
 
 /** UI-SPEC "Empty state heading" and "Empty state body". */
 const EMPTY_STATE_HEADING = 'No recorded actions in this period';
@@ -2409,6 +2436,33 @@ describe('Surface A semantic integrity', () => {
       expect(caveat, sentence).toContain(normalise(sentence));
     }
     expect(caveat).toBe(normalise(CAVEAT_BLOCK.join(' ')));
+  });
+
+  it('states the cutover day in the header, and the day it states is the one the queries are bound at', async () => {
+    const { html } = await generateSurfaceA();
+    const doc = parseReport(html);
+    const provenance = doc.querySelector('.report-provenance')?.textContent ?? '';
+
+    // The sentence is re-derived in this file from an independently authored day, so a
+    // drift in either copy fails here rather than agreeing with itself.
+    expect(normalise(provenance)).toBe(normalise(independentCutoverSentence()));
+
+    // And the day it names is the same day every query is bounded at. A header that
+    // announced one cutover while the SQL used another would be the exact failure this
+    // plan exists to prevent, and it would otherwise be invisible in the rendered page.
+    expect(INDEPENDENT_CUTOVER_DAY).toBe(HAOO_DOMAIN_CUTOVER_DAY);
+    expect(provenance).toContain(HAOO_DOMAIN_CUTOVER_DAY);
+  });
+
+  it('no longer makes the withdrawn all-time claim anywhere in the rendered document', async () => {
+    const { html } = await generateSurfaceA();
+
+    // Asserted against the rendered document, not the source. The withdrawn sentence is
+    // deliberately retained inside the withdrawal comment in `haoo-report.ts`, so a source
+    // grep would find it and prove nothing; only the output shows it is no longer claimed.
+    expect(normalise(parseReport(html).body.textContent ?? '')).not.toContain(
+      normalise(WITHDRAWN_ALL_TIME_CAVEAT),
+    );
   });
 
   it('loads nothing from anywhere: no script, stylesheet, image, frame or absolute URL', async () => {

@@ -311,12 +311,39 @@ export const REPORT_CAVEATS: readonly string[] = [
   + 'registration, a customer, or completed onboarding.',
   'Browser privacy settings and content blockers can prevent an action from being '
   + 'recorded, so real activity can be higher than the counts shown.',
-  'All-time counts begin at the first action recorded for this project; there is no '
-  + 'earlier provider history to include.',
+  'All-time counts begin on the day named in the report header, when these pages moved '
+  + 'to their own web address; earlier activity in the same measurement project was '
+  + 'recorded at the previous address and is not included here.',
   'The provider echoes the query this report submitted but not the project that answered '
   + 'it, so the report proves which query produced its numbers and not which project '
   + 'produced them; the project named above is the one the command was configured with.',
 ];
+
+/**
+ * WITHDRAWN 2026-09-06 (plan 04.2-05), with a named successor.
+ *
+ * The superseded sentence read:
+ *
+ *   "All-time counts begin at the first action recorded for this project; there is no
+ *    earlier provider history to include."
+ *
+ * It was true while one property answered for the whole measurement project. It stopped
+ * being true when HAOO moved to its own web address: the project now spans two properties,
+ * so "the first action recorded for this project" is an action recorded at the PREVIOUS
+ * address, and an all-time figure that began there would sum across both while a heading
+ * naming HAOO promised only one.
+ *
+ * Its successor is the replacement sentence in `REPORT_CAVEATS` above, which names the
+ * header's cutover day, plus `reportCutoverSentence` below, which states that day in the
+ * header itself. The old sentence is retained HERE, inside this comment, so the withdrawal
+ * is legible to a later reader — which means a source grep for it succeeds and proves
+ * nothing. Only the rendered document can show it is no longer a claim this report makes.
+ */
+export function reportCutoverSentence(cutoverDay: string): string {
+  return `Counts begin on ${cutoverDay}, the day HAOO moved to its own web address; `
+    + 'earlier activity recorded in the same measurement project belongs to the previous '
+    + 'address and is not included.';
+}
 
 /**
  * UI-SPEC "Stage total". The unit noun is always present so a bare integer can never be
