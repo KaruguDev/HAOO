@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 22
+open_count: 28
 waived_count: 0
 fixed_count: 5
-total_count: 27
-last_updated: 2026-09-06T08:44:48.476Z
+total_count: 33
+last_updated: 2026-09-06T14:46:56.586Z
 ---
 
 # Broken Windows Ledger
@@ -42,6 +42,12 @@ last_updated: 2026-09-06T08:44:48.476Z
 | 25 | 04.2 | deviation | src/test/measurement-page.test.tsx | 258 | Twelve bare /products/haoo/ jsdom paths remain in the HAOO suite; :258's pathname assertion cannot move to the root without becoming jsdom's default (04.2-DEFERRED-ITEMS D7) | open |  | 2026-09-05T22:04:08.271Z |  |
 | 26 | 04.2 | deviation | AGENTS.md | 60 | HAOO repository's AGENTS.md still describes ZERO-PAPER HUB files that no longer exist in its tree (04.2-DEFERRED-ITEMS D8) | open |  | 2026-09-05T22:04:08.418Z |  |
 | 27 | 04.2 | deviation | README.md |  | 04.2-06 left README claiming the retired /products/haoo/ path returns 404; false once 04.2-07 shipped the recovery document. Corrected and gated (D29). | open |  | 2026-09-06T08:44:48.476Z |  |
+| 28 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-09-PLAN.md | 174 | Task 1 project-bundle verify greps a concatenation including the vendor SDK chunk and cannot fail (D35); replaced with a per-chunk measurement | open |  | 2026-09-06T14:46:55.648Z |  |
+| 29 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-09-PLAN.md | 369 | Phase 1 Complete ceiling of 8 is unsatisfiable: 9 genuine rows remain plus 1 prose hit (D38) | open |  | 2026-09-06T14:46:55.838Z |  |
+| 30 | 04.2 | unmet-truth | .planning/phases/02-submit-a-qualified-haoo-enquiry/02-VALIDATION.md | 91 | Kenya Data Protection Act 2019 sign-off OPEN; explicitly NOT closed by owner copy approval (D26) | open |  | 2026-09-06T14:46:56.026Z |  |
+| 31 | 04.2 | unmet-truth | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md |  | haoo.online has no MX records so info@haoo.online very likely does not receive mail; decided 2026-09-05, DNS change not executed | open |  | 2026-09-06T14:46:56.216Z |  |
+| 32 | 04.2 | unmet-truth | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-DEFERRED-ITEMS.md |  | D34: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim | open |  | 2026-09-06T14:46:56.403Z |  |
+| 33 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-VALIDATION.md |  | PROD-02 has no row in the per-task verification map (D39) | open |  | 2026-09-06T14:46:56.586Z |  |
 
 ````json
 [
@@ -367,6 +373,78 @@ last_updated: 2026-09-06T08:44:48.476Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-06T08:44:48.476Z",
+    "resolved_at": null
+  },
+  {
+    "id": 28,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-09-PLAN.md",
+    "line": 174,
+    "description": "Task 1 project-bundle verify greps a concatenation including the vendor SDK chunk and cannot fail (D35); replaced with a per-chunk measurement",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:55.648Z",
+    "resolved_at": null
+  },
+  {
+    "id": 29,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-09-PLAN.md",
+    "line": 369,
+    "description": "Phase 1 Complete ceiling of 8 is unsatisfiable: 9 genuine rows remain plus 1 prose hit (D38)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:55.838Z",
+    "resolved_at": null
+  },
+  {
+    "id": 30,
+    "kind": "unmet-truth",
+    "phase": "04.2",
+    "file": ".planning/phases/02-submit-a-qualified-haoo-enquiry/02-VALIDATION.md",
+    "line": 91,
+    "description": "Kenya Data Protection Act 2019 sign-off OPEN; explicitly NOT closed by owner copy approval (D26)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:56.026Z",
+    "resolved_at": null
+  },
+  {
+    "id": 31,
+    "kind": "unmet-truth",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md",
+    "line": null,
+    "description": "haoo.online has no MX records so info@haoo.online very likely does not receive mail; decided 2026-09-05, DNS change not executed",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:56.216Z",
+    "resolved_at": null
+  },
+  {
+    "id": 32,
+    "kind": "unmet-truth",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-DEFERRED-ITEMS.md",
+    "line": null,
+    "description": "D34: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:56.403Z",
+    "resolved_at": null
+  },
+  {
+    "id": 33,
+    "kind": "deviation",
+    "phase": "04.2",
+    "file": ".planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-VALIDATION.md",
+    "line": null,
+    "description": "PROD-02 has no row in the per-task verification map (D39)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-06T14:46:56.586Z",
     "resolved_at": null
   }
 ]
