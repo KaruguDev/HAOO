@@ -16,7 +16,7 @@ This milestone turns the existing company landing page into a product-led site b
 - [ ] **Phase 3: Build Privacy-Bounded Engagement Context** - Measure and retain only the disclosed, coarse engagement signals needed for privacy-first product learning.
 - [ ] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring.
 - [ ] **Phase 04.1: Migrate Measurement from Plausible to PostHog (INSERTED)** - Replace Plausible with PostHog while preserving and proving every Phase 3 and Phase 4 privacy contract.
-- [ ] **Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)** - Move HAOO to its own repository at `haoo.online` so Phase 5 proves the arrangement that ships permanently.
+- [ ] **Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)** - Move HAOO to its own repository at `www.haoo.online` so Phase 5 proves the arrangement that ships permanently. *(Host corrected 2026-09-06 by plan 04.2-09 task 3: the owner reversed decision (a) after 04.2-02 shipped the apex, and `haoo.online` now 301-redirects to the canonical `www` leg. See 04.2-SPLIT-CONTRACT.md § Domain → Decision (a) reversal.)*
 - [ ] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts.
 
 ## Phase Details
@@ -233,7 +233,8 @@ Plans:
 ### Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)
 
 **Goal**: As the HAOO product owner, I want HAOO to build, deploy, and be measured from its own
-repository at `haoo.online`, so that the deployed journey Phase 5 proves is the one that ships
+repository at `www.haoo.online` (the apex `haoo.online` 301-redirects to it; decision (a) reversed
+2026-09-06), so that the deployed journey Phase 5 proves is the one that ships
 permanently rather than an arrangement that is about to change.
 **Depends on**: Phase 04.1
 **Requirements**: PROD-02 (amend), PROD-05 (amend), PROD-06 (amend or retire with named successor),
@@ -351,5 +352,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 3. Build Privacy-Bounded Engagement Context | 4/4 | In Progress|  |
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
-| 04.2. Split HAOO into its Own Repository and Domain | 8/9 | In Progress|  |
+| 04.2. Split HAOO into its Own Repository and Domain | 9/9 | In Progress|  |
 | 5. Prove the Deployed Journey | 0/TBD | Not started | - |

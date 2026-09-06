@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04.2
 current_phase_name: Split HAOO into its Own Repository and Domain (INSERTED)
 status: executing
-stopped_at: Completed 04.2-08-PLAN.md
-last_updated: "2026-09-06T13:52:29.838Z"
+stopped_at: Completed 04.2-09-PLAN.md
+last_updated: "2026-09-06T14:42:38.148Z"
 last_activity: 2026-09-05
 last_activity_desc: Phase 04.2 execution started
-state_head: 86157cc8758ae8f27bfd6fa052506c868c1d0997
+state_head: 9b50080237b35295b0ff3d38eb2f2d9c488517cf
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 55
-  completed_plans: 52
+  completed_plans: 53
   percent: 29
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 04.2 (Split HAOO into its Own Repository and Domain (INSERTED)) — EXECUTING
-Plan: 7 of 9
+Phase: 04.2 (Split HAOO into its Own Repository and Domain (INSERTED)) — ALL PLANS EXECUTED, AWAITING VERIFICATION
+Plan: 9 of 9
 Total Plans in Phase: 9
-Status: Ready to execute
+Status: Ready for /gsd-verify-work 04.2
 Last activity: 2026-09-05 — Phase 04.2 execution started
 
 Progress: 43/46 plans ([███░░░░░░░] 29%)
@@ -95,6 +95,7 @@ Progress: 43/46 plans ([███░░░░░░░] 29%)
 | Phase 04.2 P04 | 20 min | 3 tasks | 7 files |
 | Phase 04.2 P07 | 12 min | 3 tasks | 6 files |
 | Phase 04.2 P08 | 21 min | 2 tasks | 9 files |
+| Phase 04.2 P09 | 28 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -214,6 +215,10 @@ Recent decisions affecting current work:
 - [Phase 04.2]: PROD-06's reuse-across-products half is withdrawn under a named successor rather than deleted; the in-code withdrawal lands in plan 04.2-02
 - [Phase 04.2]: HAOO split by full clone plus one deleting commit — 431 commits preserved, every cited SHA still resolves — D-01/D-02: a filter-repo rewrite would have force-pushed over every clone and broken the SHA citations across .planning/
 - [Phase 04.2]: The four product assets moved to /brochure/ in plan 04.2-02, not 04.2-03 — Owner decision (b) makes the seven path constants, PRODUCT_ASSETS, the alternate link and the noscript href edits; they must land in the same commit as the moved files or the suite is red
+- [Phase 04.2]: All eight Phase 04.2 requirement statuses set from measured evidence; PROD-06 Complete at successor strength only, its reuse half recorded WITHDRAWN with three named successors
+- [Phase 04.2]: The Kenya DPA 2019 sign-off (D26) is carried forward OPEN and is explicitly NOT closed by the owner's approval of the visitor-facing copy
+- [Phase 04.2]: The three PostHog build variables were copied through stdin and cmp-compared byte-identical BEFORE the originals were deleted, never retyped
+- [Phase 04.2]: The plan's own project-bundle check was replaced with a per-chunk measurement: as written it greps a concatenation including the vendor SDK chunk and cannot fail
 
 ### Pending Todos
 
@@ -240,6 +245,9 @@ None yet.
 - npm run test:phase1:red exits 1 in BOTH repositories (pre-existing: it is a RED gate asserting the Phase 1 suites fail, and they pass). Owner decision owed — see 04.2-DEFERRED-ITEMS.md D6.
 - Phase 04.2 plan 04 is HALTED at its first task — a blocking-human checkpoint:decision on the measurement-disclosure data-controller copy (D-09). No source work is possible: tasks 2 and 3 both carry preconditions on that approval. Owner must return the approved controller heading and note verbatim, the placement, and the orphaned-record disposition. The unresolved Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) feeds into this gate.
 - [Phase 04.2] RESOLVED by plan 04.2-08: the owner ratified the 26-entry scaffold allowlist on two grounds and narrowed SPLT-01's positive half to product source. `npm run verify:disjoint` now exits 0 in BOTH repositories (26 shared paths, 26 subtracted, 0 violations, 0 converged collisions, 0 product-source leaks). SPLT-01 is Complete.
+- OPEN: Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) — NOT closed by the owner's copy approval; needs someone with legal standing
+- DECIDED NOT EXECUTED: haoo.online has no MX records, so info@haoo.online very likely does not receive mail; Phase 5 / LEAD-07 blocks on the DNS change
+- OPEN: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim (D34)
 
 ### Quick Tasks Completed
 
@@ -262,6 +270,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-06T13:52:29.054Z
-Stopped at: Completed 04.2-08-PLAN.md
+Last session: 2026-09-06T14:42:13.627Z
+Stopped at: Completed 04.2-09-PLAN.md
 Resume file: None
