@@ -847,22 +847,69 @@ composed solely of icon content. No alt text is rewritten here.
 Shape-rooted UI *state* coverage. Copy for each state lives in § Copywriting Contract above and is
 referenced, not restated. Every row is an **existing** state being proven, never a new one.
 
-Applicable state considerations resolved: **7 covered, 2 backstop, 3 unresolved**
+The probe ran against seven surfaces — **E1** HAOO page, **E2** qualification form, **E3** brochure
+panel, **E4** onboarding links, **E5** ZPH Products section, **E6** retired-path document, **E7**
+`noscript` DOM.
+
+Applicable state considerations resolved: **11 covered, 3 backstop, 3 unresolved**
+
+That is 17 of the 41 the probe surfaced (40 applicable + 1 unclassified). The remaining **24 are
+dismissed with a per-row reason** in § Dismissed by probe review — dismissed, not omitted. The
+**1 unclassified** row is resolved at the E7 entry below.
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| empty | qualification form (idle) | ✅ covered | Idle renders every control enabled, the `All fields are required unless marked optional.` lead, and an empty `role="status"` region with reserved height so its first message causes no reflow (FS-1 empty row) |
-| loading | qualification form (in-flight) | ✅ covered | Submit disabled and relabelled `Sending…`, every field control disabled, status region announces, a second submit issues no second request (FS-1 in-flight row). Exercised on S5 only (FS-0) |
-| error | qualification form (invalid) | ✅ covered | Error summary in a `role="alert"`, one link per invalid field targeting that field's id, `aria-invalid` and `aria-describedby` resolve, focus moves to the summary and re-announces on repeat (FS-1 invalid row, KF-5) |
-| error | qualification form (transport failure, blocked) | ✅ covered | `QualifyFallback` with focused heading and three direct-contact links; retry present on failure, **absent** on blocked; form stays mounted with values retained (FS-1 failed/blocked rows) |
-| error | brochure preview (embed unsupported, image failed) | ✅ covered | Both recovery states render their own copy and **neither removes P1 or P2**; proven with the PDF route aborted (SS-4 assertions 3 and 4) |
-| populated | brochure HTML equivalent | ✅ covered | 10 of 10 capability titles and every journey step present as real text, in order, at the right heading level, and still present with the PDF unavailable (SS-4 assertions 1–3) |
-| partial | product media absent (logo, hero, preview) | ✅ covered | Each media block is conditionally rendered from product data; with `previewImageHref` empty the compact panel renders the recovery copy and the controls survive. Layout must not collapse — VC-1b holds in the partial state |
-| overflow | long option labels in the qualification selects at 360 px | 🧪 backstop | The five closed option lists include long Kenyan county and banded-portfolio labels with en dashes. A native `<select>` clips rather than reflows; VC-1b cannot see inside the popup. Held out as a visual UI-state check at 360 px |
-| long-text | product copy blocks at 200% zoom | 🧪 backstop | ZM-1d asserts no per-box truncation for headings and primary actions, but paragraph reflow inside `max-w-[680px]` columns at a 640 px effective viewport is a visual judgement no assertion settles cleanly |
-| zero-one-many | ZPH Products collection | ⚠ unresolved | `ProductsSection` renders a featured single-card layout at length 1, a two-column grid at length ≥ 2, and `null` at 0. Only length 1 is live and therefore only length 1 is provable on S3. The other two branches stay jsdom-only; the planner treats live coverage of them as an assumption |
-| error | ZPH home contact form (outside S3) | ⚠ unresolved | Has its own submit, status region and honeypot, and a `focus:ring-green-400` indicator computing ≈1.74:1 (F4). **Out of scope by decision (D-OQ-3), deferred, not covered by this phase's evidence** — the planner carries "the ZPH contact form is unproven and does not affect the Products journey" as an explicit assumption. See § Deferred |
-| loading | S1 under a slow or failed PostHog load | ⚠ unresolved | The measurement facade fails closed to a no-op, so the journey should be unaffected — but no assertion currently proves the page renders and P1–P8 stay operable with the analytics origin blocked. Cheap to add; the planner decides |
+| empty | qualification form (idle) — E2 | ✅ covered | Idle renders every control enabled, the `All fields are required unless marked optional.` lead, and an empty `role="status"` region with reserved height so its first message causes no reflow (FS-1 empty row) |
+| loading | qualification form (in-flight) — E2 | ✅ covered | Submit disabled and relabelled `Sending…`, every field control disabled, status region announces, a second submit issues no second request (FS-1 in-flight row). Exercised on S5 only (FS-0) |
+| error | qualification form (invalid) — E2 | ✅ covered | Error summary in a `role="alert"`, one link per invalid field targeting that field's id, `aria-invalid` and `aria-describedby` resolve, focus moves to the summary and re-announces on repeat (FS-1 invalid row, KF-5) |
+| error | qualification form (transport failure, blocked) — E2 | ✅ covered | `QualifyFallback` with focused heading and three direct-contact links; retry present on failure, **absent** on blocked; form stays mounted with values retained (FS-1 failed/blocked rows) |
+| error | brochure preview (embed unsupported, image failed) — E3 | ✅ covered | Both recovery states render their own copy and **neither removes P1 or P2**; proven with the PDF route aborted (SS-4 assertions 3 and 4) |
+| populated | brochure HTML equivalent — E3 | ✅ covered | 10 of 10 capability titles and every journey step present as real text, in order, at the right heading level, and still present with the PDF unavailable (SS-4 assertions 1–3) |
+| partial | product media absent (logo, hero, preview) — E1 | ✅ covered | Each media block is conditionally rendered from product data; with `previewImageHref` empty the compact panel renders the recovery copy and the controls survive. Layout must not collapse — VC-1b holds in the partial state |
+| **error / partial** | **ZPH Products card with its preview image unavailable — E5** | ✅ covered | **New.** The card's `previewImageHref` is an **absolute cross-origin URL** (`https://www.haoo.online/brochure/brochure-preview.png`), so a failure here is a live cross-domain dependency, not a hypothetical. Abort that image route and assert the card still renders `name`, `relationship`, `outcome` and `audienceLead` as text, that **P9 is still present with its correct `https://www.haoo.online/` href**, and that VC-1b still holds so the featured `lg:grid-cols-12` layout does not collapse. This is the S3 counterpart of SS-4 assertions 3–4, which the HAOO page has and the card did not. **Inside S3, so D-OQ-3 does not defer it** |
+| **error** | **onboarding target unreachable when the run executes — E4** | ✅ covered | **New.** Pins the outcome the reachability row left open. A `status >= 400`, a connection failure, or a timeout against `https://manage.haoo.online/` is **RECORDED as an observation** — the status code, any `Location` header, and the wall-clock time of the attempt — and does **not** fail the run: a third-party host being down is not a defect in this project's markup. A **missing, malformed or wrong-target link is a contract FAILURE** and does fail. The two must be distinguishable in the evidence file, never collapsed into one verdict. Same discipline as KF-4: recorded is not passed, and not failed either |
+| **error** | **retired-path document with meta-refresh suppressed — E6** | ✅ covered | **New.** R1–R5 specify the visible fallback for exactly this case; this row makes it an **assertion rather than an inference from the markup being present**. Load S4 with the refresh neutralised **and** JavaScript disabled, then assert R1–R5 are all present as rendered visible text and that activating R2 actually lands on `https://www.haoo.online/` with S1's `<h1>` present. The refresh not running is the case the document exists for, so it is the case that must be proven |
+| **populated** | **`noscript` recovery DOM — E7** | ✅ covered | **New — this is the probe's 1 unclassified row, and the `unclassified` result was reviewed and found CORRECT rather than a classification miss.** E7 is a **static authored link set**: a fixed block of recovery markup with no data source, no runtime branch and no state machine, so it has no loading, empty or error state of its own to classify. It is fully covered by the onboarding-resolution contract (D-14) and § S2 — all five links validated for form, the two `<section aria-label>` values present, heading order held. Recorded here so a later reader can see the row was considered and resolved, not skipped |
+| overflow | long option labels in the qualification selects at 360 px — E2 | 🧪 backstop | The five closed option lists include long Kenyan county and banded-portfolio labels with en dashes. A native `<select>` clips rather than reflows; VC-1b cannot see inside the popup. Held out as a visual UI-state check at 360 px |
+| long-text | product copy blocks at 200% zoom — E1 | 🧪 backstop | ZM-1d asserts no per-box truncation for headings and primary actions, but paragraph reflow inside `max-w-[680px]` columns at a 640 px effective viewport is a visual judgement no assertion settles cleanly |
+| **long-text / overflow** | **brochure HTML equivalent at 360 px and 200% zoom — E3** | 🧪 backstop | **New.** This is the densest text block on the page — 10 capability titles with descriptions plus every journey step as real text — and it is the block **QUAL-03's brochure-equivalent claim depends on**. Mechanically covered already: VC-1b proves no box escapes the viewport at 360 px, and ZM-1d proves the capability and journey `<h3>`s are not truncated at 200%. **Not** mechanically covered: whether the equivalent remains *readable and complete* once 10 grid cards collapse to one column at 360 px and reflow again at a 640 px effective viewport. That is a reflow and line-length judgement, so it is held out rather than faked with an assertion that would pass on unreadable output |
+| zero-one-many | ZPH Products collection — E5 | ⚠ unresolved | `ProductsSection` renders a featured single-card layout at length 1, a two-column grid at length ≥ 2, and `null` at 0. Only length 1 is live and therefore only length 1 is provable on S3. The other two branches stay jsdom-only; the planner treats live coverage of them as an assumption |
+| error | ZPH home contact form (outside S3) — E5 | ⚠ unresolved | Has its own submit, status region and honeypot, and a `focus:ring-green-400` indicator computing ≈1.74:1 (F4). **Out of scope by decision (D-OQ-3), deferred, not covered by this phase's evidence** — the planner carries "the ZPH contact form is unproven and does not affect the Products journey" as an explicit assumption. See § Deferred |
+| loading | S1 under a slow or failed PostHog load — E1 | ⚠ unresolved | The measurement facade fails closed to a no-op, so the journey should be unaffected — but no assertion currently proves the page renders and P1–P8 stay operable with the analytics origin blocked. Cheap to add; the planner decides |
+
+### Dismissed by probe review
+
+24 considerations the probe surfaced that cannot occur on the surface they were raised against.
+Recorded per row with the reason that specific state is impossible **there** — not one boilerplate
+reason reused. A dismissal that could not be defended was promoted into the table above instead
+(that is where the E5 preview-image and E4 unreachable-target rows came from).
+
+| Surface | Category | Why it cannot occur here |
+|---------|----------|--------------------------|
+| E1 HAOO page | empty | Every string is compile-time product data bundled into the document; there is no data source that can return nothing |
+| E1 | loading | The document is statically served and hydrated from bundled data — no fetch gates first paint. The one async dependency, PostHog, is its own row above |
+| E1 | zero-one-many | `ProductPage` takes a single `product` prop and renders one product by construction; there is no collection whose cardinality can vary |
+| E1 | partial | Beyond media (covered above), every remaining `ProductDefinition` member is required, so a partially-populated product fails `npm run typecheck` rather than reaching a runtime state |
+| E2 qualification form | zero-one-many | Field groups and the five option lists are fixed closed lists in product data; the form cannot render a variable number of either |
+| E2 | populated | A filled form has no distinct rendering — values are control state only. The states that do change the DOM (invalid, in-flight, success, failed, blocked) are all rows above |
+| E2 | long-text | Every free-text control carries a `maxLength` from product data, so unbounded text cannot reach the layout |
+| E3 brochure panel | empty | The panel always renders both controls and its expectation label; `previewImageHref: ''` selects the recovery copy, which is an error row above, not an empty state |
+| E3 | loading | The preview `<img>` is `loading="lazy"` and the `<object>` embeds natively; neither has an author-rendered pending state, and failure of either is an error row above |
+| E3 | zero-one-many | The brochure is exactly one artifact at one `pdfHref`; there is no collection |
+| E4 onboarding links | empty | The link set is authored markup driven by required `ProductContacts` members; there is no data source that can yield none |
+| E4 | loading | They are plain anchors — nothing is fetched in order to render them |
+| E4 | zero-one-many | The four channels are fixed in `OnboardingChoices`' markup, not iterated from a collection |
+| E5 ZPH Products section | empty | `ProductsSection` returns `null` for an empty collection, so there is no empty *rendering* to specify; the zero branch is the zero-one-many row above |
+| E5 | loading | The registry is a compile-time constant inlined into the bundle; the section never waits on anything |
+| E5 | long-text | Card copy is fixed registry strings, not user or remote input, so its length cannot vary at run time |
+| E5 | overflow | No card-specific overflow mode exists that VC-1b's per-element check does not already measure at all five widths; dismissed as not a distinct consideration rather than as a non-risk |
+| E6 retired-path document | empty | Three authored paragraphs with no data source behind them |
+| E6 | loading | A static document with **exactly zero** `<script>` elements and no fetch; nothing can ever be pending |
+| E6 | zero-one-many | Two authored anchors, not an iterated collection |
+| E6 | partial | The document has no optional or conditional content — it renders whole or not at all |
+| E6 | long-text | Fixed authored prose; its length cannot vary at run time |
+| E7 `noscript` DOM | loading | `<noscript>` content is parsed with the document and never waits; it renders only where scripting is already off |
+| E7 | zero-one-many | The five recovery links are authored `<li>` elements, not iterated from data |
 
 <!-- Status vocabulary (locked by probe-core projectTruths):
      ✅ covered   → a plain truth string lifted into must_haves.truths
