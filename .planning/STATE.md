@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-09-07T19:55:57.818Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-09-07T20:14:17.905Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: 0da283fe4f378e5e362316dc44175873ff1a4cd7
+state_head: e36908c2872f5aa24c760e3da4b6261a99564d88
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 56
+  completed_plans: 57
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 3 of 17
+Plan: 4 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -99,6 +99,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 04.2 P09 | 28 min | 3 tasks | 6 files |
 | Phase 05 P03 | 49 min | 3 tasks | 10 files |
 | Phase 05 P04 | 9 min | 3 tasks | 5 files |
+| Phase 05 P05 | 15 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -225,6 +226,9 @@ Recent decisions affecting current work:
 - [Phase 05]: Both halves of the F1 link fix landed in one commit — the two components and the jsdom assertion that had been pinning the wrong destination — 05-UI-SPEC F1 says it twice: a components-only commit leaves a red suite that invites the next reader to revert a correct fix. A guarding assertion is part of the fix, not collateral damage.
 - [Phase 05]: F2 (overflow-x-hidden on both root wrappers) is closed by measurement method with no source change — The utility is not the defect; a single scrollWidth check passing vacuously was. VC-1a/b/c answer it, and the phase boundary forbids changing shipped interactions.
 - [Phase 05]: FOCUS_SOURCES widened 6 to 7 by registering MeasurementDisclosure.tsx, with the ring-colour map and the 3:1 floor byte-unchanged — Owner decision D-OQ-4. A registration, never a relaxation — an unmeasured focus style is an unasked question, and a token the map does not know must still fail loudly.
+- [Phase 05]: The axe factory expresses its whole rule set through ONE options({ runOnly }) call, with the per-URL disables inside that same object rather than via .disableRules() — Both .options() and .disableRules() assign wholesale in @axe-core/playwright 4.13.0, so chaining them makes the result depend on call order - the same last-call-wins hazard 05-03 measured for withTags/withRules, one level down. One object removes the ordering question rather than documenting the right order.
+- [Phase 05]: S3 is scoped by .include('#products') and no bypass entry exists in the axe disable table for any surface — D-OQ-3 expressed mechanically. A disable would suppress a real page-level finding on a live public site and would keep suppressing it after a future ZERO-PAPER HUB phase fixes F5; a scope stays correct across that change.
+- [Phase 05]: The evidence recorder refuses pass marks at the writer, and accepts zero, false and the empty array — A verdict is not a measurement and cannot be re-examined by someone who doubts it. The refused set includes fail/failed/true/yes as well as pass/passed/ok, so the guard does not enforce optimism. Precedent: the 04.2 human verification recorded four zeros beside six non-zero counts.
 
 ### Pending Todos
 
@@ -276,6 +280,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-07T19:55:34.569Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-09-07T20:14:17.737Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None

@@ -343,7 +343,7 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
   3. Direct production navigation and refresh work for the HAOO page and brochure, while build, typecheck, lint, automated contract/component tests, and required deployed checks pass.
   4. A uniquely tagged production qualification submission demonstrates that the activated HAOO endpoint reaches the `info@haoo.online` inbox or spam folder, with direct onboarding recovery paths still available.
 
-**Plans**: 3/18 plans executed
+**Plans**: 4/18 plans executed
 
 - [ ] 05-EVIDENCE-PLANNING-HOME.md
 
@@ -365,7 +365,7 @@ after wave 1 must be run from HAOO.*
 **Wave 3** *(blocked on Wave 2 — every plan here depends on the tracer being verified)*
 
 - [x] 05-04-PLAN.md — Fix the parent-site links and their guarding assertion, and register the unmeasured focus source.
-- [ ] 05-05-PLAN.md — The closed-list fixture layer, the axe factory and the measured-value recorder.
+- [x] 05-05-PLAN.md — The closed-list fixture layer, the axe factory and the measured-value recorder.
 - [ ] 05-06-PLAN.md — Activate the HAOO form endpoint and record the activation as its own claim.
 
 **Wave 4** *(blocked on Wave 3)*
@@ -406,4 +406,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
 | 04.2. Split HAOO into its Own Repository and Domain | 9/9 | Complete    | 2026-09-07 |
-| 5. Prove the Deployed Journey | 3/18 | In Progress|  |
+| 5. Prove the Deployed Journey | 4/18 | In Progress|  |
