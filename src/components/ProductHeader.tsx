@@ -30,7 +30,7 @@ export default function ProductHeader({ product }: ProductHeaderProps) {
     <header className="border-b border-[#DFE4F0] bg-white">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <a
-          href="/"
+          href="https://www.zero-paperhub.com/"
           className={`inline-flex min-h-11 min-w-0 items-center rounded-lg px-2 text-sm font-semibold leading-[1.4] text-green-800 hover:text-green-700 ${focusClasses}`}
         >
           Back to ZERO-PAPER HUB

@@ -305,7 +305,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             >
               How we measure this page
             </a>
-            <a className={`${footerLinkClasses} text-green-800`} href="/">Back to ZERO-PAPER HUB</a>
+            <a className={`${footerLinkClasses} text-green-800`} href="https://www.zero-paperhub.com/">Back to ZERO-PAPER HUB</a>
           </div>
         </div>
       </footer>

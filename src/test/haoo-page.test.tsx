@@ -50,7 +50,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       .filter((label) => expectedSections.includes(label ?? ''));
     expect(sections).toEqual(expectedSections);
     expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })
-      .every((link) => link.getAttribute('href') === '/')).toBe(true);
+      .every((link) => link.getAttribute('href') === 'https://www.zero-paperhub.com/')).toBe(true);
     for (const sectionName of ['Benefits', 'Capabilities', 'Brochure', 'Onboarding']) {
       expect(screen.getByRole('link', { name: sectionName })).toBeTruthy();
     }
