@@ -108,3 +108,44 @@ and the walk was then re-run. The re-run — not the first walk — is what auth
 
 ## Commit SHAs
 
+The removal and the walk that authorised it, as commits in the two repositories:
+
+| Act | Repository | Short SHA | Full SHA |
+|---|---|---|---|
+| The authorising walk, its integers recorded | `KaruguDev/HAOO` | `01b5ba5` | `01b5ba5b900e73e873fdbb4720b966bda03c8311` |
+| The planning directory removed, 249 tracked files, 68784 deletions | `KaruguDev/ZERO-PAPERHUB` | `dfdb2e9` | `dfdb2e944cc18e38ae33a4a9ec7b66f2ee5bcadf` |
+| Phase 5 execution start recorded, ahead of the walk | `KaruguDev/HAOO` | `9eec11e` | `9eec11e13dd22bc7ab9d8ae64468d731df231746` |
+| `STATE.md` synced forward, resolving the one differing path | `KaruguDev/ZERO-PAPERHUB` | `83cb386` | `83cb386e74db0663e74f62ef0c705a9a3b5daa56` |
+
+`git rm -r` staged 249 tracked files, which is more than the 233 the walk compared. The difference is
+`research/.cache/`, gitignored in HAOO but tracked in ZERO-PAPER HUB, and excluded from the walk's
+counts by plan 05-01's own instruction. It was measured separately for exactly that reason — all 34
+of its files are byte-for-byte present in HAOO — so the superset property holds across the wider set
+the removal actually touched, not only across the set the walk counted. Recorded because a reader
+comparing 249 against 233 would otherwise be right to ask.
+
+### Who ran the deletion
+
+The gate, its exit status and the commit body above are the executor's. **The three destructive
+commands themselves were run by the orchestrator**, after Claude Code's auto-mode permission
+classifier denied `git rm -r` in the executor context, and after the repository owner authorised
+them. Recorded literally rather than left to imply the executor performed the removal, in the same
+discipline this file applies to its own numbers: the harness permission denial is a fact about how
+this evidence was produced, and a later reader auditing a one-way act should know which hands were
+on it.
+
+### What remains checkable after the removal, and what does not
+
+Plan 05-01 task 1's automated verification has two halves, and the removal deliberately ends one of
+them:
+
+- The two `cmp` comparisons against `../ZERO-PAPERHUB/.planning/...` are **unrunnable from now on**,
+  by design — their right-hand operand is what task 2 deleted. They were run before the removal and
+  both exited 0. That result is historical from this point forward and is recorded as such.
+- The two `grep` assertions on the authorising integers **remain runnable indefinitely**, because
+  this file lives in HAOO and is unaffected by removing the other tree. Re-run after the removal:
+  both still read `0`. The authorisation for a one-way act stays auditable after the act, which is
+  the property that made it worth writing these two lines in a machine-readable form.
+
+---
+
