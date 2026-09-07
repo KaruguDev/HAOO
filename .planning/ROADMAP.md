@@ -343,7 +343,52 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
   3. Direct production navigation and refresh work for the HAOO page and brochure, while build, typecheck, lint, automated contract/component tests, and required deployed checks pass.
   4. A uniquely tagged production qualification submission demonstrates that the activated HAOO endpoint reaches the `info@haoo.online` inbox or spam folder, with direct onboarding recovery paths still available.
 
-**Plans**: TBD
+**Plans**: 17 plans
+
+*Execution rule (plan 05-01, D-01/D-04): every Phase 5 plan runs with the **HAOO checkout** as the
+working directory and reaches ZERO-PAPER HUB as the sibling `../ZERO-PAPERHUB`. Exactly one checkout
+exists per repository and no git worktree is created. Plan 05-01 makes `KaruguDev/HAOO` the single
+home for the planning record and removes ZERO-PAPER HUB's `.planning/` directory, so every command
+after wave 1 must be run from HAOO.*
+
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Consolidate the Phase 5 planning record into HAOO and retire the ZERO-PAPER HUB planning tree.
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 05-02-PLAN.md — Open the mail chain: the MX records gate, placed early so DNS propagation overlaps the harness build.
+- [ ] 05-03-PLAN.md — Tracer: one live HAOO surface measured end to end, with the harness inside typecheck and outside the unit run.
+- [ ] 05-04-PLAN.md — Fix the parent-site links and their guarding assertion, and register the unmeasured focus source.
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 05-05-PLAN.md — The closed-list fixture layer, the axe factory and the measured-value recorder.
+- [ ] 05-06-PLAN.md — Activate the HAOO form endpoint and record the activation as its own claim.
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 05-07-PLAN.md — Exploratory, non-gating accessibility baseline across every surface and reachable state.
+- [ ] 05-08-PLAN.md — Viewport, primary actions and mobile navigation at six widths, measured three ways.
+- [ ] 05-09-PLAN.md — Keyboard traversal, the skip link, and painted focus indicators.
+- [ ] 05-10-PLAN.md — Semantic structure, truthful destinations, and the brochure HTML equivalent.
+- [ ] 05-11-PLAN.md — Recovery surfaces: the scriptless DOM, the retired-path document, and link resolution.
+- [ ] 05-12-PLAN.md — Qualification form states on the preview target.
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 05-13-PLAN.md — 200% zoom and reduced-motion suppression, each labelled with the criterion it measures.
+- [ ] 05-14-PLAN.md — Triage and close the blocking accessibility findings, and stand up the gate.
+- [ ] 05-15-PLAN.md — Resolve the expected-red Phase 1 gate in both repositories and enforce disjointness in CI.
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 05-16-PLAN.md — The tagged production submission and the owner-recorded delivery evidence.
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 05-17-PLAN.md — The full gate sweep, the standing blockers, and the consolidated phase evidence record.
+
 **UI hint**: yes
 
 ## Progress
@@ -359,4 +404,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
 | 04.2. Split HAOO into its Own Repository and Domain | 9/9 | Complete    | 2026-09-07 |
-| 5. Prove the Deployed Journey | 0/TBD | Not started | - |
+| 5. Prove the Deployed Journey | 0/17 | Planned | - |
