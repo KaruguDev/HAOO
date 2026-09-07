@@ -233,8 +233,12 @@ component. What is asserted instead:
   already proven in jsdom; the live assertion is only that both remain present and enabled after
   activation.)
 - The `<object>` embed does not become a keyboard trap: with the PDF plugin active, Tab must be able
-  to leave it. If Chromium's PDF viewer proves to trap focus, that is recorded as a measured
-  browser-behaviour limit with the exact observation — never normalised to a pass.
+  to leave it. **Defined outcome if it does trap:** the observation is **RECORDED** as a measured
+  browser-behaviour limit, with the exact key sequence and where focus came to rest, and it **does
+  NOT fail the run** — the same treatment SS-2 gives the S3 `main` landmark. Reason: Chromium's
+  built-in PDF viewer is not a surface this project controls, ships or can fix, so failing on it
+  would make the gate un-greenable for a cause nobody can act on. **Recorded is not the same as
+  passed** — the evidence file states the limit in its own words rather than omitting it.
 
 ### KF-5 — Focus movement on qualification-form transitions
 
@@ -437,7 +441,7 @@ through these links. Third-party systems this project does not control are not c
 | Well-formed | `mailto:` | Exactly `mailto:info@haoo.online` — a **mailbox**, and it takes no `www.` prefix |
 | Well-formed | WhatsApp | `https://wa.me/254702188044?text=…` with the starter text decoding byte-exactly to the compile-time constant |
 | Well-formed | Self-onboarding | Exactly `https://manage.haoo.online/` — a **separate host**, and it takes no `www.` prefix |
-| Reachable | `https://manage.haoo.online/` | An HTTP request (HEAD, or GET without following into any flow) returns a non-error status. Record the status verbatim |
+| Reachable | `https://manage.haoo.online/` | An HTTP request (HEAD, or GET **without following redirects**) returns **`status < 400`**. Record the status code verbatim, and if it is a `3xx` record the `Location` header too — an unexpected redirect into a different flow must be visible in the evidence, not silently absorbed by a "non-error" reading |
 | Reachable | brochure PDF | `GET` returns 200 with `content-type: application/pdf`. Record the status |
 | Reachable | `tel:` / `mailto:` / `wa.me` | **Not fetched.** Scheme-only validation. Recorded as *validated, not fetched*, never as *reachable* |
 | JS-disabled | S2 | With JavaScript disabled the five `noscript` links are the rendered document; all five satisfy the well-formed rows above; the two `<section aria-label>` values are present; the `h1`/`h2` order holds |
@@ -500,8 +504,35 @@ All three are `best-practice`-tag rules and would already be excluded by the tag
 here anyway so the exclusion is a recorded decision rather than a side effect of a tag choice, and so
 that adding `best-practice` later is a deliberate act with a visible cost.
 
-**Scope of each axe run.** S1 and S3 are scanned in the default state **and** in each state the
-harness reaches: mobile nav open, `<details>` disclosure open, error-summary present, in-flight,
+**Per-surface analysis scope — this is not a formatting detail, it is how D-OQ-3 is enforced:**
+
+| Surface | axe target | Why |
+|---------|-----------|-----|
+| S1 | The **whole document** | The entire HAOO page is in scope; QUAL-01/02/03 name it |
+| S3 | **`.include()` the Products region container only** (`#products`), **never the document** | See below |
+| S4 | The whole document | It is three paragraphs; there is nothing to scope to |
+
+> **S3's run is scoped to the Products region, and scoping is the mechanism — not a rule disable.**
+>
+> A document-wide scan of the ZPH home page would flag `bypass` (no skip link / no bypass mechanism),
+> which is tag `wcag2a` and impact **`serious`** — so under D-OQ-1 it would **block the run on
+> exactly the F5 defect D-OQ-3 decided not to fix in this phase**. The two decisions would collide
+> and the ZPH gate would be un-greenable.
+>
+> `.include('#products')` is the right fix because **D-OQ-3 decided that ZPH scope stops at the
+> Products section, and scoping the analysis to that section is that decision expressed
+> mechanically.** Disabling `bypass` would instead silently suppress a real, page-level finding —
+> and would keep suppressing it after a future ZPH phase fixes F5, leaving a stale disable row that
+> nobody would notice. Scoping stays correct across that change; a disable would not.
+>
+> `landmark-one-main` and `region` need no handling here: both are `best-practice` and are already
+> excluded by the tag list. **`bypass` is not** — which is precisely why this row exists.
+>
+> A spec author must therefore call `.include()` on the Products region container for S3 and must
+> **not** add a `bypass` entry to the per-URL disable table above.
+
+**State coverage of each axe run.** S1 and S3 are scanned in the default state **and** in each state
+the harness reaches: mobile nav open, `<details>` disclosure open, error-summary present, in-flight,
 success, failure, blocked. A single default-state scan would miss every conditional subtree, which
 is where the error, confirmation and fallback headings live.
 
@@ -570,7 +601,7 @@ yet it declares
 on both a `<summary>` and a `<button>`. The list's own comment says a new interactive component is
 admitted "by registering it here"; this one never was.
 
-The pairing measures **≈6.30:1** on white, so registering it should go green on registration — but
+The pairing measures **≈6.36:1** on white, so registering it should go green on registration — but
 that is a calculation made here, not a test run, so the executor confirms it by running the suite
 rather than by citing this number.
 
