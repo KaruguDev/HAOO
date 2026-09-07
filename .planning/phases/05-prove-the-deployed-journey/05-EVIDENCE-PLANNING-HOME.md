@@ -149,3 +149,105 @@ them:
 
 ---
 
+## SPLT-01 re-proven in `KaruguDev/HAOO` and `KaruguDev/ZERO-PAPERHUB` after the removal
+
+**Run timestamp (ISO-8601 UTC): 2026-09-07T13:24:26Z**, both runs, after commit `dfdb2e9` deleted the
+ZERO-PAPER HUB planning directory. The auditor is byte-identical in both repositories and either copy
+audits the same pair, so the two runs are a check on the claim from each side rather than one run
+repeated.
+
+### `KaruguDev/HAOO` — `npm run verify:disjoint` — **exit code 0**
+
+Invocation: `node scripts/verify-tree-disjointness.mjs . ../ZERO-PAPERHUB`
+
+```
+Tree disjointness audit passed.
+  ZERO-PAPER HUB tracked: 38 (38 after excluding .planning/)
+  HAOO tracked:           315 (64 after excluding .planning/)
+  paths compared:         102
+  shared paths:           26
+  allowlist entries:      26
+  allowlist subtracted:   26
+  violations:             0
+  ratified collisions:    3 (converged: 0)
+  ZPH product source shipping HAOO source: 0
+  ZPH named carriers present: 2 of 2
+  HAOO files naming a home-page symbol: 0
+```
+
+### `KaruguDev/ZERO-PAPERHUB` — `npm run verify:disjoint` — **exit code 0**
+
+Invocation: `node scripts/verify-tree-disjointness.mjs . ../HAOO`
+
+```
+Tree disjointness audit passed.
+  ZERO-PAPER HUB tracked: 38 (38 after excluding .planning/)
+  HAOO tracked:           315 (64 after excluding .planning/)
+  paths compared:         102
+  shared paths:           26
+  allowlist entries:      26
+  allowlist subtracted:   26
+  violations:             0
+  ratified collisions:    3 (converged: 0)
+  ZPH product source shipping HAOO source: 0
+  ZPH named carriers present: 2 of 2
+  HAOO files naming a home-page symbol: 0
+```
+
+The two blocks are the tool's own output, reproduced verbatim including its own summary sentence. The
+counts are what a later reader compares against; 04.2's discipline is that a count with no provenance
+is not evidence, so the invocation and the exit code are recorded beside each block rather than
+summarised.
+
+### The removal did not change what SPLT-01 measures
+
+This is the point of threat T-05-03, and the numbers above answer it directly. `ZERO-PAPER HUB
+tracked` now reads **38**, and `38 after excluding .planning/`. Before the removal that repository
+tracked 249 planning files (measured by `git ls-files .planning | wc -l` at 2026-09-07T13:07Z), so its
+tracked total was **287** — derived from two measured figures, 38 + 249, and labelled as derived
+because no run of the auditor was taken before the deletion in this session.
+
+The figure that feeds the audit was **38 before the removal and 38 after it**. `paths compared`,
+`shared paths`, `allowlist subtracted` and `violations` are therefore unchanged by an act that deleted
+68784 lines. That is exactly what `EXCLUDED_PREFIXES = ['.planning/']` promises, and it is why this
+removal is not a separation fix and cannot be mistaken for one: an act that moved the compared figure
+would have been changing the measurement, not the record.
+
+---
+
+## The working directory for the rest of Phase 5
+
+**Every remaining Phase 5 plan runs with the HAOO checkout,
+`/home/paul/Documents/Vibe Coding Projects/HAOO`, as its working directory.** Every relative path in
+every Phase 5 plan is HAOO-relative, and the ZERO-PAPER HUB checkout is reached as
+`../ZERO-PAPERHUB` — the same relative path `npm run verify:disjoint` already hardcodes in both
+`package.json` files, which is the first of D-04's two reasons. **Exactly one checkout exists per
+repository and no git worktree is created.**
+
+The second reason is an incident rather than a preference. During Phase 4 a leftover agent-tool
+worktree at `.claude/worktrees/rf-03-retry-1788205465/` made Vitest collect every suite twice — 591
+tests instead of roughly 300 — and the doubled collection was recorded in `STATE.md` as a blocker.
+Named here with its cost rather than only as a rule, because Phase 5's central product *is* test
+evidence: a doubled suite is not an inconvenience in this phase, it invalidates the output the phase
+exists to produce.
+
+## This directory can come back, and what would bring it back
+
+Removing `.planning/` from `KaruguDev/ZERO-PAPERHUB` ends the duplication as it stands today. It does
+not make the duplication impossible.
+
+The concrete evidence is in this plan's own history. The one shared path that differed at the 13:01Z
+walk, `STATE.md`, differed **because a GSD session was still pointed at the ZERO-PAPER HUB checkout**
+and wrote its state there at 12:56:04Z. Nothing structural prevented that; the tool writes its state
+into the working directory it is given. A future `/gsd-*` command run with ZERO-PAPER HUB as the
+working directory would recreate `.planning/` in that repository, and would do it silently — the
+disjointness auditor excludes the directory from every comparison by design, so `npm run
+verify:disjoint` would continue to exit 0 with a recreated planning tree sitting beside it.
+
+What makes a recurrence visible is therefore not a check but the working-directory rule above, applied
+by whoever runs the next command. A future edit to a recreated `../ZERO-PAPERHUB/.planning/` that
+never reaches HAOO is precisely the two-homes problem 04.2 D-03 closed, re-opened.
+
+---
+*Plan: 05-01 — Phase 5, Prove the Deployed Journey*
+*Walk: 2026-09-07T13:07:25Z — Disjointness runs: 2026-09-07T13:24:26Z*
