@@ -38,6 +38,16 @@ export const RING_COLOR_TOKENS: Readonly<Record<string, string>> = {
  * that repository's copy of this list. Removed PER FILE — the extractor, RING_COLOR_TOKENS
  * and the `pairs.length > 0` guard are untouched, so the list is still closed and the six
  * remaining sources are measured exactly as strictly as the seven were.
+ *
+ * WIDENED from six entries to seven by plan `05-04`, authorised by owner decision D-OQ-4
+ * (2026-09-07, recorded in `05-UI-SPEC.md` §F3). `src/components/MeasurementDisclosure.tsx`
+ * declares focus rings on both a `<summary>` and a `<button>` but had never been registered,
+ * and the paragraph above already says a new interactive component is admitted by being
+ * registered here — an unmeasured focus style is not a passing focus style, it is an unasked
+ * question, and a focus-bearing component outside this list is exactly the silent gap the list
+ * exists to prevent. Added PER FILE: MIN_FOCUS_CONTRAST, RING_COLOR_TOKENS, DEFAULT_RING_OFFSET,
+ * the extractor and the `pairs.length > 0` guard are all byte-unchanged, so the seven entries
+ * are measured exactly as strictly as the six were. The component itself is not touched.
  */
 export const FOCUS_SOURCES = [
   'src/pages/ProductPage.tsx',
@@ -46,6 +56,7 @@ export const FOCUS_SOURCES = [
   'src/components/BrochurePanel.tsx',
   'src/components/QualifyForm.tsx',
   'src/components/QualifyFallback.tsx',
+  'src/components/MeasurementDisclosure.tsx',
 ] as const;
 
 /** Tailwind ring *width* keywords — these are not colours and carry no contrast. */
