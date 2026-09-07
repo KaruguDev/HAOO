@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-09-07T19:44:50.231Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-09-07T19:55:57.818Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: d8eed99b1771c1ee43e1525e55df5f09e91b0633
+state_head: 0da283fe4f378e5e362316dc44175873ff1a4cd7
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 55
+  completed_plans: 56
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 2 of 17
+Plan: 3 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -98,6 +98,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 04.2 P08 | 21 min | 2 tasks | 9 files |
 | Phase 04.2 P09 | 28 min | 3 tasks | 6 files |
 | Phase 05 P03 | 49 min | 3 tasks | 10 files |
+| Phase 05 P04 | 9 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -221,6 +222,9 @@ Recent decisions affecting current work:
 - [Phase 04.2]: The Kenya DPA 2019 sign-off (D26) is carried forward OPEN and is explicitly NOT closed by the owner's approval of the visitor-facing copy
 - [Phase 04.2]: The three PostHog build variables were copied through stdin and cmp-compared byte-identical BEFORE the originals were deleted, never retyped
 - [Phase 04.2]: The plan's own project-bundle check was replaced with a per-chunk measurement: as written it greps a concatenation including the vendor SDK chunk and cannot fail
+- [Phase 05]: Both halves of the F1 link fix landed in one commit — the two components and the jsdom assertion that had been pinning the wrong destination — 05-UI-SPEC F1 says it twice: a components-only commit leaves a red suite that invites the next reader to revert a correct fix. A guarding assertion is part of the fix, not collateral damage.
+- [Phase 05]: F2 (overflow-x-hidden on both root wrappers) is closed by measurement method with no source change — The utility is not the defect; a single scrollWidth check passing vacuously was. VC-1a/b/c answer it, and the phase boundary forbids changing shipped interactions.
+- [Phase 05]: FOCUS_SOURCES widened 6 to 7 by registering MeasurementDisclosure.tsx, with the ring-colour map and the 3:1 floor byte-unchanged — Owner decision D-OQ-4. A registration, never a relaxation — an unmeasured focus style is an unasked question, and a token the map does not know must still fail loudly.
 
 ### Pending Todos
 
@@ -272,6 +276,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-07T19:44:50.109Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-09-07T19:55:34.569Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
