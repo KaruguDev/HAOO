@@ -10,11 +10,13 @@
     "preview": "vite preview",
     "test": "npm run build && vitest run",
     "test:unit": "vitest run",
+    "test:e2e": "playwright test --project=preview",
+    "test:e2e:live": "playwright test --project=live",
     "verify:coverage": "node scripts/verify-phase4-coverage.mjs .planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/COVERAGE.md",
     "verify:disjoint": "node scripts/verify-tree-disjointness.mjs . ../ZERO-PAPERHUB",
     "test:phase1:red": "node scripts/assert-phase1-red.mjs",
     "report:haoo": "node scripts/generate-haoo-report.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json"
   },
   "engines": {
     "node": ">=22.18.0"

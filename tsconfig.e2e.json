@@ -1,0 +1,56 @@
+{
+  /*
+   * The THIRD project, and the reason it exists is an escape that was measured, not feared.
+   *
+   * `npm run typecheck` is one of the six gates D-15 enumerates by name. It ran
+   * `tsconfig.app.json` (`"include": ["src"]`) and `tsconfig.node.json`
+   * (`"include": ["vite.config.ts", "config"]`) and nothing else. Neither covers `e2e/` or
+   * `playwright.config.ts`, so before this file existed EVERY line of the browser evidence
+   * harness was invisible to that gate: a type error in the harness would have shipped
+   * inside a green run, and the only warning sign would have been `npm run typecheck`
+   * finishing in the same time it did before ~600 lines of new TypeScript were added.
+   *
+   * This is a third project, NOT a relaxation of the other two. `strict`,
+   * `noFallthroughCasesInSwitch`, `moduleResolution: "bundler"`, `isolatedModules`,
+   * `moduleDetection` and `noEmit` are byte-identical to `tsconfig.node.json` — AGENTS.md
+   * § TypeScript forbids weakening them to bypass errors, and adding coverage is the
+   * opposite of weakening.
+   *
+   * Three deltas from `tsconfig.node.json`, and only three:
+   *   - `include` names the harness rather than the build config.
+   *   - `types: ["node"]`, because the tracer writes its evidence artefact with `node:fs`.
+   *   - `lib` adds `DOM`/`DOM.Iterable` on top of the inherited `ES2023`: the bodies of
+   *     `page.evaluate` callbacks are real browser code that is type-checked here even
+   *     though it executes in Chromium, so `Element`, `window` and `getComputedStyle` must
+   *     resolve. This widens what is CHECKED; it weakens no strictness setting.
+   *
+   * A third tsconfig does not breach SPLT-01. All three existing tsconfigs are ground-A
+   * (`@ground: scaffold`) entries on `shared-scaffold.txt` — toolchain owned by the
+   * repository rather than by either product half — and ground-A entries already diverge
+   * between the two trees (`package.json` differs today and `verify:disjoint` exits 0).
+   * This file is not added to that closed 26-path list: it exists in HAOO only, which is
+   * a path the other tree does not have, and disjointness is what SPLT-01 asks for.
+   */
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+    "types": ["node"]
+  },
+  "include": ["e2e", "playwright.config.ts"]
+}
