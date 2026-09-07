@@ -358,11 +358,11 @@ after wave 1 must be run from HAOO.*
 **Wave 2** *(blocked on Wave 1)*
 
 - [ ] 05-02-PLAN.md — Open the mail chain: the MX records gate, placed early so DNS propagation overlaps the harness build.
-- [ ] 05-03-PLAN.md — Tracer: one live HAOO surface measured end to end, with the harness inside typecheck and outside the unit run.
+- [ ] 05-03-PLAN.md — Tracer: one live HAOO surface measured end to end, with the harness inside typecheck and outside the unit run. **The phase's sole `type="tracer"` task.**
+
+**Wave 3** *(blocked on Wave 2 — every plan here depends on the tracer being verified)*
+
 - [ ] 05-04-PLAN.md — Fix the parent-site links and their guarding assertion, and register the unmeasured focus source.
-
-**Wave 3** *(blocked on Wave 2)*
-
 - [ ] 05-05-PLAN.md — The closed-list fixture layer, the axe factory and the measured-value recorder.
 - [ ] 05-06-PLAN.md — Activate the HAOO form endpoint and record the activation as its own claim.
 
