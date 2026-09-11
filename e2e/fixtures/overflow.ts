@@ -24,6 +24,24 @@ export interface OverflowEscapee {
   readonly left: number;
   readonly right: number;
   readonly innerWidth: number;
+  /**
+   * Present only when the caller asked for region attribution: whether the escapee lies inside
+   * the element matched by `regionSelector`. It never changes WHICH elements are collected —
+   * the sweep is still over the whole document, because overflow is a page-level property —
+   * it only lets a scoped surface (S3, under D-OQ-3) tell its own findings apart from
+   * out-of-scope observations elsewhere on the same page.
+   */
+  readonly insideRegion?: boolean;
+}
+
+export interface EscapeeSweepOptions {
+  /**
+   * A selector naming the region a surface is scoped to. When given, every escapee is
+   * annotated with `insideRegion`. When the selector matches nothing the sweep THROWS rather
+   * than annotating every escapee `false`: a region that is not on the page would otherwise
+   * report every finding as out of scope, which is a vacuous pass by attribution.
+   */
+  readonly regionSelector?: string;
 }
 
 /**
@@ -38,45 +56,61 @@ export interface OverflowEscapee {
  * Returns the escapees rather than asserting: the caller records the measured list — including
  * when it is empty, which is the most useful reading this produces — and then asserts.
  */
-export async function collectViewportEscapees(page: Page): Promise<OverflowEscapee[]> {
-  return page.evaluate<OverflowEscapee[], number>((tolerance) => {
-    const escapees: OverflowEscapee[] = [];
-    const innerWidth = window.innerWidth;
+export async function collectViewportEscapees(
+  page: Page,
+  { regionSelector }: EscapeeSweepOptions = {},
+): Promise<OverflowEscapee[]> {
+  return page.evaluate<OverflowEscapee[], { tolerance: number; selector: string | null }>(
+    ({ tolerance, selector }) => {
+      const escapees: OverflowEscapee[] = [];
+      const innerWidth = window.innerWidth;
+      const region = selector === null ? null : document.querySelector(selector);
+      if (selector !== null && region === null) {
+        throw new Error(
+          `collectViewportEscapees: region '${selector}' is not on the page, so no escapee can ` +
+            'be attributed to it. Refusing to report every finding as out of scope.',
+        );
+      }
 
-    /** Intentionally off-canvas by design: the sr-only utility and the honeypot's far-left offset. */
-    const isIntentionallyOffCanvas = (element: Element): boolean => {
-      let node: Element | null = element;
-      while (node) {
-        if (node.classList.contains('sr-only')) return true;
-        if (typeof node.className === 'string' && node.className.includes('-left-[10000px]')) {
-          return true;
+      /** Intentionally off-canvas by design: the sr-only utility and the honeypot's far-left offset. */
+      const isIntentionallyOffCanvas = (element: Element): boolean => {
+        let node: Element | null = element;
+        while (node) {
+          if (node.classList.contains('sr-only')) return true;
+          if (typeof node.className === 'string' && node.className.includes('-left-[10000px]')) {
+            return true;
+          }
+          node = node.parentElement;
         }
-        node = node.parentElement;
+        return false;
+      };
+
+      for (const element of Array.from(document.body.getElementsByTagName('*'))) {
+        const style = window.getComputedStyle(element);
+        if (style.visibility === 'hidden' || style.display === 'none') continue;
+        if (isIntentionallyOffCanvas(element)) continue;
+
+        const rect = element.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) continue;
+
+        if (rect.right > innerWidth + tolerance || rect.left < -tolerance) {
+          escapees.push({
+            tag: element.tagName.toLowerCase(),
+            id: element.id,
+            className: typeof element.className === 'string' ? element.className : '',
+            left: Math.round(rect.left * 100) / 100,
+            right: Math.round(rect.right * 100) / 100,
+            innerWidth,
+            // Added only when attribution was requested, so an unscoped caller's record is
+            // byte-identical to what this helper produced before the option existed.
+            ...(region === null ? {} : { insideRegion: region.contains(element) }),
+          });
+        }
       }
-      return false;
-    };
-
-    for (const element of Array.from(document.body.getElementsByTagName('*'))) {
-      const style = window.getComputedStyle(element);
-      if (style.visibility === 'hidden' || style.display === 'none') continue;
-      if (isIntentionallyOffCanvas(element)) continue;
-
-      const rect = element.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) continue;
-
-      if (rect.right > innerWidth + tolerance || rect.left < -tolerance) {
-        escapees.push({
-          tag: element.tagName.toLowerCase(),
-          id: element.id,
-          className: typeof element.className === 'string' ? element.className : '',
-          left: Math.round(rect.left * 100) / 100,
-          right: Math.round(rect.right * 100) / 100,
-          innerWidth,
-        });
-      }
-    }
-    return escapees;
-  }, OVERFLOW_TOLERANCE_PX);
+      return escapees;
+    },
+    { tolerance: OVERFLOW_TOLERANCE_PX, selector: regionSelector ?? null },
+  );
 }
 
 export interface DocumentWidths {

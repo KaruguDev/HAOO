@@ -1,0 +1,605 @@
+[
+  {
+    "recordedAt": "2026-09-11T21:49:49.385Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 361,
+      "documentBoundMaskNeutralisedPx": 361
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:49:53.529Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -112,
+          "right": 488,
+          "innerWidth": 360,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 360,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 488,
+      "documentBoundUnmodifiedPx": 489,
+      "documentBoundMaskNeutralisedPx": 489
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:49:55.157Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 391,
+      "documentBoundMaskNeutralisedPx": 391
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:49:59.297Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -82,
+          "right": 518,
+          "innerWidth": 390,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 390,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 518,
+      "documentBoundUnmodifiedPx": 519,
+      "documentBoundMaskNeutralisedPx": 519
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:00.995Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 769,
+      "documentBoundMaskNeutralisedPx": 769
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:04.311Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 296,
+          "right": 896,
+          "innerWidth": 768,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 768,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 896,
+      "documentBoundUnmodifiedPx": 897,
+      "documentBoundMaskNeutralisedPx": 897
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:06.234Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 1281,
+      "documentBoundMaskNeutralisedPx": 1281
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:09.490Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 808,
+          "right": 1408,
+          "innerWidth": 1280,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 1280,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 1408,
+      "documentBoundUnmodifiedPx": 1409,
+      "documentBoundMaskNeutralisedPx": 1409
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:11.031Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 1441,
+      "documentBoundMaskNeutralisedPx": 1441
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:14.155Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 968,
+          "right": 1568,
+          "innerWidth": 1440,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 1440,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "criterion": "product-support width (D-09)",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 1568,
+      "documentBoundUnmodifiedPx": 1569,
+      "documentBoundMaskNeutralisedPx": 1569
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:16.109Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "whole document in scope",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 0,
+      "documentBoundUnmodifiedPx": 321,
+      "documentBoundMaskNeutralisedPx": 321
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:50:19.058Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -152,
+          "right": 448,
+          "innerWidth": 320,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 320,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "relative z-10 max-w-4xl mx-auto px-6",
+          "left": 0,
+          "right": 334,
+          "innerWidth": 320,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 3
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "overflowToleranceCssPx": 1,
+      "sweepScope": "whole document (overflow is a page-level property)",
+      "attribution": "escapees inside #products fail; escapees outside it are out-of-scope observations under D-OQ-3",
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last",
+      "outOfScopeReachPx": 448,
+      "documentBoundUnmodifiedPx": 449,
+      "documentBoundMaskNeutralisedPx": 449
+    }
+  }
+]
