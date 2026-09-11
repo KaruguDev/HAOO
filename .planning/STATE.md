@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-09-11T21:28:14.452Z"
+stopped_at: Completed 05-08-PLAN.md
+last_updated: "2026-09-11T22:01:17.577Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: 87437ebd3e35ce7fca01b7366f509cbbdcb1f88c
+state_head: 26f1a8e6f95bb48e0f15aa5c3a19bf3d1dfb41af
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 58
+  completed_plans: 59
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 5 of 17
+Plan: 6 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -101,6 +101,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P04 | 9 min | 3 tasks | 5 files |
 | Phase 05 P05 | 15 min | 3 tasks | 8 files |
 | Phase 05 P07 | 25 min | 2 tasks | 3 files |
+| Phase 05 P08 | 28 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -233,6 +234,8 @@ Recent decisions affecting current work:
 - [Phase 05]: The axe baseline rule accounting mirrors axe-core 4.13.0 own selection (matchTags and ruleShouldRun: tag match, minus experimental or deprecated tagExclude, minus page-level rules on a scoped context, minus per-URL disables) and asserts applicable plus inapplicable equals selected before recording. The public getRules(tags) lists 7 rules the engine never runs, so it made a correct run look narrowed.
 - [Phase 05]: S4 bypass (serious) is INCOMPLETE, not a violation, in both readings. It is handed to 05-14 as review item R-1 and is not a blocking finding under D-OQ-1. bypass stays undisabled for every surface.
 - [Phase 05]: First live axe baseline at axe-core 4.13.0: 0 violations at every impact across 11 surface-states, color-contrast applied on all 11. Seven WCAG-tagged experimental or deprecated rules are not performed by this configuration and are recorded by id.
+- [Phase 05]: 05-08: VC-1a and VC-1c are asserted on every surface; on S3 the document-width bound extends only as far as escapees outside #products reach, and region attribution lives in the shared collectViewportEscapees helper
+- [Phase 05]: 05-08: at 320x256 three ZERO-PAPER HUB mobile-menu entries are unreachable inside a fixed header (VP-O3); recorded as a D-OQ-3 out-of-scope observation and handed forward with VP-O1 and VP-O2, while P10 and its opener stay asserted
 
 ### Pending Todos
 
@@ -284,6 +287,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:28:14.322Z
-Stopped at: Completed 05-07-PLAN.md
+Last session: 2026-09-11T22:01:17.452Z
+Stopped at: Completed 05-08-PLAN.md
 Resume file: None

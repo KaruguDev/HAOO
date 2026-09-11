@@ -343,7 +343,7 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
   3. Direct production navigation and refresh work for the HAOO page and brochure, while build, typecheck, lint, automated contract/component tests, and required deployed checks pass.
   4. A uniquely tagged production qualification submission demonstrates that the activated HAOO endpoint reaches the `info@haoo.online` inbox or spam folder, with direct onboarding recovery paths still available.
 
-**Plans**: 5/18 plans executed
+**Plans**: 6/18 plans executed
 
 - [ ] 05-EVIDENCE-PLANNING-HOME.md
 
@@ -371,7 +371,7 @@ after wave 1 must be run from HAOO.*
 **Wave 4** *(blocked on Wave 3)*
 
 - [x] 05-07-PLAN.md — Exploratory, non-gating accessibility baseline across every surface and reachable state.
-- [ ] 05-08-PLAN.md — Viewport, primary actions and mobile navigation at six widths, measured three ways.
+- [x] 05-08-PLAN.md — Viewport, primary actions and mobile navigation at six widths, measured three ways.
 - [ ] 05-09-PLAN.md — Keyboard traversal, the skip link, and painted focus indicators.
 - [ ] 05-10-PLAN.md — Semantic structure, truthful destinations, and the brochure HTML equivalent.
 - [ ] 05-11-PLAN.md — Recovery surfaces: the scriptless DOM, the retired-path document, and link resolution.
@@ -406,4 +406,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
 | 04.2. Split HAOO into its Own Repository and Domain | 9/9 | Complete    | 2026-09-07 |
-| 5. Prove the Deployed Journey | 5/18 | In Progress|  |
+| 5. Prove the Deployed Journey | 6/18 | In Progress|  |
