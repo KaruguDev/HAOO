@@ -1,0 +1,314 @@
+[
+  {
+    "recordedAt": "2026-09-11T22:19:55.622Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 360,
+        "innerHeight": 740
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 360,
+        "innerHeight": 740
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:09.662Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 390,
+        "innerHeight": 844
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 390,
+        "innerHeight": 844
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:24.551Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 768,
+        "innerHeight": 1024
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 768,
+        "innerHeight": 1024
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:40.484Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 1280,
+        "innerHeight": 1024
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 1280,
+        "innerHeight": 1024
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:55.407Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 1440,
+        "innerHeight": 900
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 1440,
+        "innerHeight": 900
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:21:10.255Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "firstStop": {
+        "tag": "a",
+        "name": "Skip to HAOO content",
+        "href": "#haoo-content",
+        "domIndex": 26
+      },
+      "boxBeforeFocus": {
+        "left": -1,
+        "top": -1,
+        "right": 31,
+        "bottom": 23,
+        "width": 32,
+        "height": 24,
+        "innerWidth": 320,
+        "innerHeight": 256
+      },
+      "boxOnFocus": {
+        "left": 16,
+        "top": 16,
+        "right": 166,
+        "bottom": 35.59,
+        "width": 150,
+        "height": 19.59,
+        "innerWidth": 320,
+        "innerHeight": 256
+      },
+      "hashAfterActivation": "#haoo-content",
+      "nextStop": {
+        "tag": "a",
+        "name": "Chat with HAOO on WhatsApp",
+        "domIndex": 65,
+        "insideHeader": false,
+        "insideMain": true
+      },
+      "nextInsideTargetMain": true
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/#haoo-content",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "mainId": "haoo-content",
+      "method": "Tab from document start, read the box; Enter; Tab once more and read where focus landed"
+    }
+  }
+]

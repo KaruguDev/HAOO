@@ -1,0 +1,488 @@
+[
+  {
+    "recordedAt": "2026-09-11T22:20:02.318Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "layoutBranch": "compact image preview (below lg)",
+      "embedRendered": false,
+      "embedDocumentType": "no embed rendered in this layout branch",
+      "fallbackHeadingVisible": false,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "no embedded viewer in this layout branch",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 14,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:16.405Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "layoutBranch": "compact image preview (below lg)",
+      "embedRendered": false,
+      "embedDocumentType": "no embed rendered in this layout branch",
+      "fallbackHeadingVisible": false,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "no embedded viewer in this layout branch",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 14,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:31.984Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "layoutBranch": "compact image preview (below lg)",
+      "embedRendered": false,
+      "embedDocumentType": "no embed rendered in this layout branch",
+      "fallbackHeadingVisible": false,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "no embedded viewer in this layout branch",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 18,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:20:47.728Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "layoutBranch": "embedded PDF <object> (lg and up)",
+      "embedRendered": true,
+      "embedDocumentType": "no content document",
+      "fallbackHeadingVisible": true,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "focus never entered the embedded viewer: Tab moved from the stop before it directly to the brochure actions",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 18,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:21:02.192Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "layoutBranch": "embedded PDF <object> (lg and up)",
+      "embedRendered": true,
+      "embedDocumentType": "no content document",
+      "fallbackHeadingVisible": true,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "focus never entered the embedded viewer: Tab moved from the stop before it directly to the brochure actions",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 18,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T22:21:16.907Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "layoutBranch": "compact image preview (below lg)",
+      "embedRendered": false,
+      "embedDocumentType": "no embed rendered in this layout branch",
+      "fallbackHeadingVisible": false,
+      "embedEntered": false,
+      "embedLeft": false,
+      "embedOutcome": "no embedded viewer in this layout branch",
+      "embedRestingPlace": "focus never came to rest inside the embed",
+      "keySequenceLength": 14,
+      "keySequence": [
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab",
+        "Tab"
+      ],
+      "openReachedByTab": {
+        "domIndex": 231,
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "openAttributes": {
+        "target": "_blank",
+        "rel": "noopener",
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "openActivated": true,
+      "popupUrl": "a new browsing context opened, but headless Chromium reported no URL for it (the PDF became a download)",
+      "focusAfterOpen": {
+        "tag": "a",
+        "name": "Open brochure (opens in a new tab)"
+      },
+      "downloadStateAfterOpen": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "downloadReachedByTab": {
+        "domIndex": 237,
+        "name": "Download brochure"
+      },
+      "downloadStarted": true,
+      "downloadName": "HAOO-Marketing-Brochure.pdf",
+      "openStateAfterDownload": {
+        "count": 1,
+        "enabled": true,
+        "href": "/brochure/HAOO-Marketing-Brochure.pdf"
+      },
+      "modalSemanticsBefore": 0,
+      "modalSemanticsAfter": 0,
+      "overlaysBefore": 0,
+      "overlaysAfter": 0
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "contract": "UI-SPEC KF-4: the panel is not modal by design, so no focus trap and no focus return is asserted; a trap assertion would fail a correct component",
+      "embedDiscipline": "if the embedded viewer keeps focus, the limit is RECORDED with the key sequence and resting place and the run does not fail. Recorded is not passed.",
+      "focusAfterOpenNote": "recorded only; no focus-return contract applies to a non-modal component",
+      "downloadHandling": "the download is cancelled as soon as it starts; nothing is written to disk"
+    }
+  }
+]
