@@ -1,0 +1,1428 @@
+[
+  {
+    "recordedAt": "2026-09-11T21:51:38.949Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "controlledId": "haoo-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open HAOO navigation",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 300,
+          "right": 344,
+          "innerWidth": 360,
+          "top": 16,
+          "bottom": 60,
+          "innerHeight": 740,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 5,
+      "inScopeLinkCount": 5,
+      "revealedLinks": [
+        {
+          "name": "Benefits",
+          "href": "#benefits",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 44,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 85,
+            "bottom": 129,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#benefits",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Capabilities",
+          "href": "#capabilities",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 44,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 133,
+            "bottom": 177,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#capabilities",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Brochure",
+          "href": "#brochure",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 44,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 181,
+            "bottom": 225,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#brochure",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Send details",
+          "href": "#qualify",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 44,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 229,
+            "bottom": 273,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#qualify",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Onboarding",
+          "href": "#onboarding",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 44,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 277,
+            "bottom": 321,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#onboarding",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        }
+      ],
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "every revealed link in scope"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:51:42.900Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "controlledId": "home-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open navigation menu",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 300,
+          "right": 344,
+          "innerWidth": 360,
+          "top": 16,
+          "bottom": 60,
+          "innerHeight": 740,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 7,
+      "inScopeLinkCount": 1,
+      "revealedLinks": [
+        {
+          "name": "About",
+          "href": "#about",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 83,
+            "bottom": 127,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#about",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Mission",
+          "href": "#mission",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 135,
+            "bottom": 179,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#mission",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Services",
+          "href": "#services",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 187,
+            "bottom": 231,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#services",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Products",
+          "href": "#products",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 239,
+            "bottom": 283,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#products",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Values",
+          "href": "#values",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 291,
+            "bottom": 335,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#values",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Contact",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 343,
+            "bottom": 387,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Get Started",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 312,
+            "height": 44,
+            "left": 24,
+            "right": 336,
+            "innerWidth": 360,
+            "top": 395,
+            "bottom": 439,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        }
+      ],
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "P10 and its opener fail; other header entries are D-OQ-3 out-of-scope observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:51:59.838Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "controlledId": "haoo-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open HAOO navigation",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 330,
+          "right": 374,
+          "innerWidth": 390,
+          "top": 16,
+          "bottom": 60,
+          "innerHeight": 844,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 5,
+      "inScopeLinkCount": 5,
+      "revealedLinks": [
+        {
+          "name": "Benefits",
+          "href": "#benefits",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 44,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 85,
+            "bottom": 129,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#benefits",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Capabilities",
+          "href": "#capabilities",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 44,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 133,
+            "bottom": 177,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#capabilities",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Brochure",
+          "href": "#brochure",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 44,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 181,
+            "bottom": 225,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#brochure",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Send details",
+          "href": "#qualify",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 44,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 229,
+            "bottom": 273,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#qualify",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Onboarding",
+          "href": "#onboarding",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 44,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 277,
+            "bottom": 321,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#onboarding",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        }
+      ],
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "every revealed link in scope"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:52:05.194Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "controlledId": "home-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open navigation menu",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 330,
+          "right": 374,
+          "innerWidth": 390,
+          "top": 16,
+          "bottom": 60,
+          "innerHeight": 844,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 7,
+      "inScopeLinkCount": 1,
+      "revealedLinks": [
+        {
+          "name": "About",
+          "href": "#about",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 83,
+            "bottom": 127,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#about",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Mission",
+          "href": "#mission",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 135,
+            "bottom": 179,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#mission",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Services",
+          "href": "#services",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 187,
+            "bottom": 231,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#services",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Products",
+          "href": "#products",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 239,
+            "bottom": 283,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#products",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Values",
+          "href": "#values",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 291,
+            "bottom": 335,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#values",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Contact",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 343,
+            "bottom": 387,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Get Started",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 342,
+            "height": 44,
+            "left": 24,
+            "right": 366,
+            "innerWidth": 390,
+            "top": 395,
+            "bottom": 439,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        }
+      ],
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "P10 and its opener fail; other header entries are D-OQ-3 out-of-scope observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:53:05.992Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "controlledId": "haoo-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open HAOO navigation",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 16,
+          "right": 60,
+          "innerWidth": 320,
+          "top": 76,
+          "bottom": 120,
+          "innerHeight": 256,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open HAOO navigation",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 5,
+      "inScopeLinkCount": 5,
+      "revealedLinks": [
+        {
+          "name": "Benefits",
+          "href": "#benefits",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 44,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 145,
+            "bottom": 189,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#benefits",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Capabilities",
+          "href": "#capabilities",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 44,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 193,
+            "bottom": 237,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#capabilities",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Brochure",
+          "href": "#brochure",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 44,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 212,
+            "bottom": 256,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#brochure",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Send details",
+          "href": "#qualify",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 44,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 106,
+            "bottom": 150,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#qualify",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Onboarding",
+          "href": "#onboarding",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 44,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 154,
+            "bottom": 198,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#onboarding",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        }
+      ],
+      "outOfScopeObservations": [],
+      "outOfScopeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "every revealed link in scope"
+    }
+  },
+  {
+    "recordedAt": "2026-09-11T21:53:24.994Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "controlledId": "home-mobile-navigation",
+      "desktopNavLandmarks": 1,
+      "desktopNavRendered": [
+        false
+      ],
+      "opener": {
+        "name": "Open navigation menu",
+        "box": {
+          "rendered": true,
+          "width": 44,
+          "height": 44,
+          "left": 260,
+          "right": 304,
+          "innerWidth": 320,
+          "top": 16,
+          "bottom": 60,
+          "innerHeight": 256,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "",
+          "tabIndex": 0
+        },
+        "pointer": "receives-pointer",
+        "defects": []
+      },
+      "before": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "afterOpen": {
+        "ariaExpanded": "true",
+        "toggleName": "Close navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": false,
+        "controlledRendered": true
+      },
+      "afterClose": {
+        "ariaExpanded": "false",
+        "toggleName": "Open navigation menu",
+        "controlledExists": true,
+        "controlledHiddenAttribute": true,
+        "controlledRendered": false
+      },
+      "revealedLinkCount": 7,
+      "inScopeLinkCount": 1,
+      "revealedLinks": [
+        {
+          "name": "About",
+          "href": "#about",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 83,
+            "bottom": 127,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#about",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Mission",
+          "href": "#mission",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 135,
+            "bottom": 179,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#mission",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Services",
+          "href": "#services",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 187,
+            "bottom": 231,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#services",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Products",
+          "href": "#products",
+          "inScope": true,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 239,
+            "bottom": 283,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#products",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        {
+          "name": "Values",
+          "href": "#values",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 291,
+            "bottom": 335,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#values",
+            "tabIndex": 0
+          },
+          "pointer": "not-actionable: locator.click: Timeout 5000ms exceeded.",
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        },
+        {
+          "name": "Contact",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 343,
+            "bottom": 387,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "not-actionable: locator.click: Timeout 5000ms exceeded.",
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        },
+        {
+          "name": "Get Started",
+          "href": "#contact",
+          "inScope": false,
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 395,
+            "bottom": 439,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "pointer": "not-actionable: locator.click: Timeout 5000ms exceeded.",
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        }
+      ],
+      "outOfScopeObservations": [
+        {
+          "name": "Values",
+          "href": "#values",
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 291,
+            "bottom": 335,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#values",
+            "tabIndex": 0
+          },
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        },
+        {
+          "name": "Contact",
+          "href": "#contact",
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 343,
+            "bottom": 387,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        },
+        {
+          "name": "Get Started",
+          "href": "#contact",
+          "box": {
+            "rendered": true,
+            "width": 272,
+            "height": 44,
+            "left": 24,
+            "right": 296,
+            "innerWidth": 320,
+            "top": 395,
+            "bottom": 439,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": true,
+            "href": "#contact",
+            "tabIndex": 0
+          },
+          "defects": [
+            "not-actionable: locator.click: Timeout 5000ms exceeded."
+          ]
+        }
+      ],
+      "outOfScopeCount": 3
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "activation": "keyboard — focus the toggle, press Enter (twice: open, then close)",
+      "linkFloorPx": 44,
+      "scope": "P10 and its opener fail; other header entries are D-OQ-3 out-of-scope observations"
+    }
+  }
+]
