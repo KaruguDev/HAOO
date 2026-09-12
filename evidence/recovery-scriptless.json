@@ -280,5 +280,99 @@
       "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, JS-disabled row; P13",
       "note": "The shipped markup renders EIGHT anchors across two labelled sections. The contract is FIVE DISTINCT DESTINATIONS; the anchor count is recorded and never asserted."
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:34:47.745Z",
+    "surface": "S2",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "anchorsTotal": 8,
+      "anchorsInOnboardingSection": 5,
+      "anchorsInFormRecoverySection": 3,
+      "distinctDestinationCount": 5,
+      "distinctDestinations": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online",
+        "https://manage.haoo.online/",
+        "/brochure/HAOO-Marketing-Brochure.pdf"
+      ],
+      "onboardingSectionAnchors": [
+        "Chat with HAOO on WhatsApp -> https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "Call +254 702 188 044 -> tel:+254702188044",
+        "Email info@haoo.online -> mailto:info@haoo.online",
+        "Start with HAOO -> https://manage.haoo.online/",
+        "Open the HAOO brochure -> /brochure/HAOO-Marketing-Brochure.pdf"
+      ],
+      "formRecoverySectionAnchors": [
+        "Message HAOO on WhatsApp instead -> https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "Call HAOO on +254 702 188 044 instead -> tel:+254702188044",
+        "Email HAOO at info@haoo.online instead -> mailto:info@haoo.online"
+      ],
+      "headingSequence": [
+        "h1 Choose how to start with HAOO",
+        "h2 This form needs JavaScript"
+      ],
+      "headingLevels": [
+        1,
+        2
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "javaScriptEnabled": false,
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, JS-disabled row; P13",
+      "note": "The shipped markup renders EIGHT anchors across two labelled sections. The contract is FIVE DISTINCT DESTINATIONS; the anchor count is recorded and never asserted."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:36:42.084Z",
+    "surface": "S2",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "anchorsTotal": 8,
+      "anchorsInOnboardingSection": 5,
+      "anchorsInFormRecoverySection": 3,
+      "distinctDestinationCount": 5,
+      "distinctDestinations": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online",
+        "https://manage.haoo.online/",
+        "/brochure/HAOO-Marketing-Brochure.pdf"
+      ],
+      "onboardingSectionAnchors": [
+        "Chat with HAOO on WhatsApp -> https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "Call +254 702 188 044 -> tel:+254702188044",
+        "Email info@haoo.online -> mailto:info@haoo.online",
+        "Start with HAOO -> https://manage.haoo.online/",
+        "Open the HAOO brochure -> /brochure/HAOO-Marketing-Brochure.pdf"
+      ],
+      "formRecoverySectionAnchors": [
+        "Message HAOO on WhatsApp instead -> https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "Call HAOO on +254 702 188 044 instead -> tel:+254702188044",
+        "Email HAOO at info@haoo.online instead -> mailto:info@haoo.online"
+      ],
+      "headingSequence": [
+        "h1 Choose how to start with HAOO",
+        "h2 This form needs JavaScript"
+      ],
+      "headingLevels": [
+        1,
+        2
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "javaScriptEnabled": false,
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, JS-disabled row; P13",
+      "note": "The shipped markup renders EIGHT anchors across two labelled sections. The contract is FIVE DISTINCT DESTINATIONS; the anchor count is recorded and never asserted."
+    }
   }
 ]

@@ -1,7 +1,8 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
+import { APPROVED_ANALYTICS_HOSTS } from '../config/approved-analytics-hosts';
 import { recordEvidence } from './fixtures/evidence';
-import { PRIMARY_ACTIONS } from './fixtures/primary-actions';
+import { MIN_PRIMARY_HIT_TARGET_PX, PRIMARY_ACTIONS } from './fixtures/primary-actions';
 import { SURFACES, assertNonEmptySubjects } from './fixtures/surfaces';
 
 /**
@@ -44,6 +45,8 @@ const EVIDENCE = {
   scriptless: 'recovery-scriptless',
   destinations: 'recovery-destinations',
   retiredPath: 'recovery-retired-path',
+  reachability: 'recovery-reachability',
+  analyticsBlocked: 'recovery-analytics-blocked',
 } as const;
 
 /* ------------------------------------------------------------------------------------------- */
@@ -907,5 +910,404 @@ test.describe('S4 — the retired-path document with the refresh permitted to ru
     );
     expect(topLevel, 'the HAOO page has no single top-level heading').toHaveLength(1);
     expect(topLevel[0]?.text, "S1's top-level heading").toBe(HAOO_OUTCOME_HEADING);
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* Reachability, probed out of band                                                              */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * The status at or above which a reading is treated as unavailable.
+ *
+ * Named rather than written as `400` at each site, because the number appears in both the
+ * assertion and the recorded-observation branch and the two must not drift apart.
+ */
+const ERROR_THRESHOLD = 400;
+
+/** A third-party probe that hangs must not hang the run. */
+const PROBE_TIMEOUT_MS = 20_000;
+
+/**
+ * The three destinations that are NEVER fetched, with the reason attached to each.
+ *
+ * This is the machine-readable form of "resolve, never deliver". A `GET` of `tel:` places nothing
+ * and a `GET` of `mailto:` sends nothing — but `https://wa.me/…?text=…` DOES reach a third-party
+ * system, and a suite that probed it would hit WhatsApp's infrastructure on every re-run for the
+ * rest of the project's life. All three are validated by scheme and form in the S1 and S2 blocks
+ * above and are recorded here as `validated, not fetched`, never as `reachable`.
+ */
+const VALIDATED_NOT_FETCHED = [
+  { destination: SHIPPED_FORM.tel, reason: 'a telephone scheme — dialling it would place a call' },
+  { destination: SHIPPED_FORM.mailto, reason: 'a mailbox scheme — resolving it would send mail' },
+  {
+    destination: RECOVERY_DESTINATIONS[0],
+    reason: 'a third-party messaging host — fetching it would open a conversation',
+  },
+] as const;
+
+interface ProbeReading {
+  readonly target: string;
+  readonly attemptedAt: string;
+  readonly elapsedMs: number;
+  readonly status: number;
+  readonly redirectTarget: string;
+  readonly contentType: string;
+  readonly transportFailure: string;
+}
+
+test.describe('Reachability — out of band, redirects not followed, status treated as data', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  /**
+   * One probe, through the request context rather than a navigation.
+   *
+   * `maxRedirects: 0` and `failOnStatusCode: false` together are what make the STATUS a reading
+   * rather than a verdict: a 3xx is recorded with its `Location` header instead of being followed
+   * into whatever it points at, so an unexpected redirect into a different flow is visible in the
+   * evidence rather than absorbed by a "non-error" reading (T-05-50). A transport failure is
+   * caught and recorded for the same reason — a thrown exception is a reading too.
+   */
+  async function probe(
+    request: import('@playwright/test').APIRequestContext,
+    target: string,
+  ): Promise<ProbeReading> {
+    const attemptedAt = new Date().toISOString();
+    const startedAt = Date.now();
+
+    try {
+      const response = await request.get(target, {
+        maxRedirects: 0,
+        failOnStatusCode: false,
+        timeout: PROBE_TIMEOUT_MS,
+      });
+      const headers = response.headers();
+      return {
+        target,
+        attemptedAt,
+        elapsedMs: Date.now() - startedAt,
+        status: response.status(),
+        redirectTarget: headers['location'] ?? 'no Location header',
+        contentType: headers['content-type'] ?? 'no content-type header',
+        transportFailure: 'none observed',
+      };
+    } catch (error) {
+      return {
+        target,
+        attemptedAt,
+        elapsedMs: Date.now() - startedAt,
+        // -1 is not a status. It is the sentinel for "the transport never produced one", and it
+        // is a number so the record stays machine-readable beside the real statuses.
+        status: -1,
+        redirectTarget: 'no response',
+        contentType: 'no response',
+        transportFailure: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  test('the self-onboarding host resolves, or its unavailability is recorded', async ({
+    request,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    const reading = await probe(request, SHIPPED_FORM.manage);
+    const unavailable = reading.status === -1 || reading.status >= ERROR_THRESHOLD;
+
+    recordEvidence(EVIDENCE.reachability, {
+      surface: HAOO.id,
+      viewport: null,
+      measured: {
+        target: reading.target,
+        disposition: unavailable ? 'unavailable, recorded as an observation' : 'reachable',
+        status: reading.status,
+        redirectTarget: reading.redirectTarget,
+        contentType: reading.contentType,
+        transportFailure: reading.transportFailure,
+        attemptedAt: reading.attemptedAt,
+        elapsedMs: reading.elapsedMs,
+      },
+      detail: {
+        method: 'GET through the request context, maxRedirects 0, failOnStatusCode false',
+        rule: 'UI-SPEC § Onboarding Recovery Resolution Contract, Reachable row',
+        errorThreshold: ERROR_THRESHOLD,
+      },
+    });
+
+    /*
+     * THE BRANCH THIS PLAN EXISTS TO DRAW, and the two sides are different verdicts.
+     *
+     * A status at or above the error threshold, a connection failure or a timeout against a host
+     * this project does not control is RECORDED — status, redirect target, wall-clock time — and
+     * does NOT fail the run. A third-party host being down is not a defect in this project's
+     * markup, and a gate that went red for it would be un-greenable for reasons nobody here can
+     * fix, which is how a suite gets ignored.
+     *
+     * A MISSING, MALFORMED OR WRONG-TARGET LINK is a CONTRACT FAILURE and does fail the run. That
+     * assertion lives in the S1 and S2 blocks above, where the shipped form is compared literally.
+     * The two must stay distinguishable in the evidence and must never be collapsed into one
+     * verdict: "the link is right and the host is down" and "the link is wrong" are different
+     * facts about different owners.
+     */
+    if (unavailable) {
+      testInfo.annotations.push({
+        type: 'observation',
+        description:
+          `${reading.target} was unavailable at ${reading.attemptedAt}: status ${reading.status}, ` +
+          `redirect target ${reading.redirectTarget}, transport ${reading.transportFailure}. ` +
+          'Recorded, not failed — a third-party host being down is not a defect in this markup.',
+      });
+      return;
+    }
+
+    expect(reading.status, `${reading.target} status`).toBeLessThan(ERROR_THRESHOLD);
+  });
+
+  test('the brochure artifact returns success with its document content type', async ({
+    request,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    const target = new URL(SHIPPED_FORM.brochure, HAOO.url).toString();
+    const reading = await probe(request, target);
+
+    recordEvidence(EVIDENCE.reachability, {
+      surface: HAOO.id,
+      viewport: null,
+      measured: {
+        target: reading.target,
+        disposition: 'reachable',
+        status: reading.status,
+        redirectTarget: reading.redirectTarget,
+        contentType: reading.contentType,
+        transportFailure: reading.transportFailure,
+        attemptedAt: reading.attemptedAt,
+        elapsedMs: reading.elapsedMs,
+      },
+      detail: {
+        method: 'GET through the request context, maxRedirects 0, failOnStatusCode false',
+        rule: 'UI-SPEC § Onboarding Recovery Resolution Contract, brochure PDF Reachable row',
+        note:
+          'The brochure is FIRST-PARTY — this project publishes it — so it is asserted rather ' +
+          'than recorded-and-excused. The recorded-observation branch is for hosts nobody here owns.',
+      },
+    });
+
+    expect(reading.status, 'the brochure artifact status').toBe(200);
+    expect(reading.contentType, 'the brochure artifact content type').toContain('application/pdf');
+  });
+
+  /*
+   * This test takes NO fixture, and the empty pattern is the point rather than an oversight: a
+   * `request` or `page` fixture in scope is a standing invitation to fetch one of these three
+   * destinations, and the entire contract here is that none of them is ever fetched. Playwright
+   * requires the destructuring form for its first argument, so the empty pattern is the only way
+   * to write "this test has no way to make a request".
+   */
+  // eslint-disable-next-line no-empty-pattern
+  test('the scheme-only destinations are recorded as validated, not fetched', async ({}, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    recordEvidence(EVIDENCE.reachability, {
+      surface: HAOO.id,
+      viewport: null,
+      measured: {
+        disposition: 'validated, not fetched',
+        destinations: VALIDATED_NOT_FETCHED.map((entry) => entry.destination),
+        reasons: VALIDATED_NOT_FETCHED.map(
+          (entry) => `${entry.destination}: ${entry.reason}`,
+        ),
+        requestsIssued: 0,
+        validationMethod: 'literal equality against the shipped form, on both S1 and S2',
+      },
+      detail: {
+        rule: 'UI-SPEC § Onboarding Recovery Resolution Contract, not-fetched row; D-14',
+        note:
+          'These three carry a different disposition from a reachable entry and the two must read ' +
+          'as different claims. Nothing here was proven to DELIVER; it was proven to RESOLVE.',
+      },
+    });
+
+    // A guard, not a ceremony: the not-fetched set must stay the three scheme-only forms, so a
+    // later edit cannot quietly move a fetched destination into the unfetched column.
+    expect(
+      VALIDATED_NOT_FETCHED.map((entry) => entry.destination).sort(),
+      'the validated-not-fetched set',
+    ).toEqual([RECOVERY_DESTINATIONS[0], SHIPPED_FORM.mailto, SHIPPED_FORM.tel].sort());
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* The journey with the analytics ingestion origin blocked                                       */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * The approved ingestion origin, read from the repository configuration rather than transcribed.
+ *
+ * `config/approved-analytics-hosts.ts` is a plain module with no `import.meta.env` read, so unlike
+ * `src/products/haoo.ts` it imports cleanly outside Vite. Reading it here means a change of region
+ * or provider cannot leave this test blocking an origin the build stopped using.
+ */
+const ANALYTICS_ORIGINS = APPROVED_ANALYTICS_HOSTS.map((host) => new URL(host.origin).hostname);
+
+/** P1-P8: every primary action the HAOO page carries. */
+const S1_ACTION_IDS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'] as const;
+
+test.describe('The HAOO journey with the analytics ingestion origin blocked', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  test('renders, and every primary action stays present, enabled and hit-targetable', async ({
+    page,
+    request,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    /*
+     * The measurement facade is DESIGNED to fail closed to a no-op (`src/measurement/
+     * posthog-lockdown.ts`), so the journey should be unaffected by the ingestion origin being
+     * unreachable. "Should be unaffected" is a design claim; this test converts it into a
+     * measurement (T-05-52).
+     *
+     * The block is by HOSTNAME SUFFIX rather than by an exact URL: the provider serves ingestion,
+     * assets and remote configuration from sibling subdomains, and an exact-URL route would let
+     * the ones it did not name through.
+     */
+    const blockedRequests: string[] = [];
+    await page.route(
+      (url) => ANALYTICS_ORIGINS.some((hostname) => url.hostname.endsWith(hostname)),
+      (route) => {
+        blockedRequests.push(route.request().url());
+        return route.abort('blockedbyclient');
+      },
+    );
+
+    await page.setViewportSize(DESKTOP);
+    await page.goto(HAOO.url, { waitUntil: 'networkidle' });
+
+    const headings = await headingWalk(page);
+    const topLevel = headings.filter((heading) => heading.level === 1);
+    const capabilities = page.getByRole('region', { name: 'Capabilities', exact: true });
+    const capabilityHeadings = await capabilities.getByRole('heading', { level: 3 }).count();
+
+    /*
+     * A blocked-request count is ambiguous on its own: zero can mean "the facade held" or "there
+     * was never anything to block". So the bundle is read as well, and the two readings together
+     * say which. `capture_pageview: false` is part of the lockdown, so a page LOAD is expected to
+     * issue no ingestion request even on a fully configured build — the bundle reference is what
+     * distinguishes a configured-but-quiet build from an unconfigured one.
+     */
+    const bundleHref =
+      (await page.locator('script[type="module"][src]').first().getAttribute('src')) ?? '';
+    const bundleUrl = bundleHref === '' ? '' : new URL(bundleHref, HAOO.url).toString();
+    let bundleMentionsIngestionOrigin = 'bundle not read';
+    if (bundleUrl !== '') {
+      const bundle = await request.get(bundleUrl, { failOnStatusCode: false });
+      const body = await bundle.text();
+      bundleMentionsIngestionOrigin = ANALYTICS_ORIGINS.some((hostname) => body.includes(hostname))
+        ? 'the ingestion origin appears in the deployed bundle'
+        : 'the ingestion origin does not appear in the deployed bundle';
+    }
+
+    interface ActionReading {
+      readonly id: string;
+      readonly name: string;
+      readonly instances: number;
+      readonly minWidth: number;
+      readonly minHeight: number;
+      readonly enabled: number;
+      readonly visible: number;
+    }
+
+    const readings: ActionReading[] = [];
+
+    for (const id of S1_ACTION_IDS) {
+      const action = actionById(id);
+      const located = page.getByRole(id === 'P3' ? 'button' : 'link', {
+        name: action.accessibleName,
+        exact: true,
+        includeHidden: true,
+      });
+      const count = await located.count();
+      assertNonEmptySubjects(
+        Array.from({ length: count }, (_, index) => index),
+        `${id} ("${action.accessibleName}") with the analytics origin blocked`,
+      );
+
+      let minWidth = Number.POSITIVE_INFINITY;
+      let minHeight = Number.POSITIVE_INFINITY;
+      let enabled = 0;
+      let visible = 0;
+
+      for (let index = 0; index < count; index += 1) {
+        const instance = located.nth(index);
+        // D-OQ-2: scrolling to an action before measuring it is correct and expected.
+        await instance.scrollIntoViewIfNeeded();
+        const box = await instance.boundingBox();
+        minWidth = Math.min(minWidth, box?.width ?? 0);
+        minHeight = Math.min(minHeight, box?.height ?? 0);
+        if (await instance.isEnabled()) enabled += 1;
+        if (await instance.isVisible()) visible += 1;
+      }
+
+      readings.push({
+        id,
+        name: action.accessibleName,
+        instances: count,
+        minWidth,
+        minHeight,
+        enabled,
+        visible,
+      });
+    }
+
+    recordEvidence(EVIDENCE.analyticsBlocked, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        analyticsRequestsBlocked: blockedRequests.length,
+        blockedRequestUrls: blockedRequests,
+        blockedHostnameSuffixes: ANALYTICS_ORIGINS,
+        deployedBundle: bundleUrl,
+        bundleMentionsIngestionOrigin,
+        topLevelHeadings: topLevel.map((heading) => heading.text),
+        headingCount: headings.length,
+        capabilityHeadingCount: capabilityHeadings,
+        actions: readings.map(
+          (reading) =>
+            `${reading.id} "${reading.name}" x${reading.instances} visible ${reading.visible} ` +
+            `enabled ${reading.enabled} min ${reading.minWidth}x${reading.minHeight}`,
+        ),
+        smallestPrimaryTarget: Math.min(
+          ...readings.map((reading) => Math.min(reading.minWidth, reading.minHeight)),
+        ),
+      },
+      detail: {
+        url: HAOO.url,
+        rule: 'UI-SPEC § UI Considerations, "S1 under a slow or failed PostHog load"; T-05-52',
+        floorPx: MIN_PRIMARY_HIT_TARGET_PX,
+        note:
+          'A blocked-request count of 0 is a reading, not a gap, and the bundle reading beside it ' +
+          'is what makes the 0 interpretable. capture_pageview is false in the lockdown, so a page ' +
+          'load issues no ingestion request even on a configured build.',
+      },
+    });
+
+    // The page rendered.
+    expect(topLevel, 'the page did not render its single top-level heading').toHaveLength(1);
+    expect(topLevel[0]?.text).toBe(HAOO_OUTCOME_HEADING);
+    await expect(capabilities, 'the capabilities region').toBeVisible();
+    expect(capabilityHeadings, 'capability entries rendered').toBeGreaterThan(0);
+
+    // Every primary action stayed present, enabled, visible and above the shipped floor.
+    for (const reading of readings) {
+      expect(reading.visible, `${reading.id} visible instances`).toBe(reading.instances);
+      expect(reading.enabled, `${reading.id} enabled instances`).toBe(reading.instances);
+      expect(reading.minWidth, `${reading.id} narrowest instance`).toBeGreaterThanOrEqual(
+        MIN_PRIMARY_HIT_TARGET_PX,
+      );
+      expect(reading.minHeight, `${reading.id} shortest instance`).toBeGreaterThanOrEqual(
+        MIN_PRIMARY_HIT_TARGET_PX,
+      );
+    }
   });
 });
