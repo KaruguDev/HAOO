@@ -14,9 +14,9 @@ requires:
 provides:
   - "e2e/zoom-motion.e2e.ts: 21 live tests (ZM-1a-d at 640x512, 720x450 and 320x256; ZM-2a/2b/2c; a no-preference control; the Products/F6 observation; E1/E3 readability inputs at four widths) plus ZM-2a/2b and the control on preview"
   - "e2e/fixtures/targets.ts and e2e/fixtures/brochure-equivalence.ts: the VC-2 and SS-4 assertion code, moved verbatim so the viewport, semantics and zoom specs share one definition"
-  - "A source fix for two reduced-motion defects on the live HAOO page (ZM-LIVE-1 hover translate, ZM-LIVE-2 smooth scrolling), proven on the preview build and registered on live until deploy"
+  - "A source fix for two reduced-motion defects on the live HAOO page (ZM-LIVE-1 hover translate, ZM-LIVE-2 smooth scrolling), proven on the preview build, registered on live until deploy, and CLOSED on live after the deploy of 651eebe"
   - "05-EVIDENCE-ZOOM-MOTION.md: criterion-labelled zoom table, ZM-2 computed literals for live and the fixed build, observations, and E1/E3 held out for human judgement"
-affects: [05-14, 05-17, "the next HAOO deploy (deletes ZM-LIVE-1/2)", "future ZERO-PAPER HUB accessibility phase (F6 numbers)"]
+affects: [05-14, 05-17, "the HAOO deploy of 651eebe (closed ZM-LIVE-1/2; the DEPLOY_LAG entries are deleted)", "future ZERO-PAPER HUB accessibility phase (F6 numbers)"]
 
 actuals:
   # chars/4 over every added line in the realized diff (base 5a2b74c..0d5ac30).
@@ -59,7 +59,7 @@ key-files:
 key-decisions:
   - "The zoom entries are ZOOM_VIEWPORTS (640x512, 720x450, labelled SC 1.4.4 Resize Text 200%) plus the one criterion-bearing VIEWPORTS entry (320x256, SC 1.4.10 Reflow). No row is a reflow claim unless its label says so."
   - "Two reduced-motion defects on the live page were fixed in source rather than accommodated: the hover translate is now motion-safe:hover:-translate-y-1 (the old motion-reduce:transform-none lost on specificity), and smooth scrolling sits inside a no-preference media query."
-  - "ZM-LIVE-1 and ZM-LIVE-2 are registered in a live-only DEPLOY_LAG that asserts the deployed values, following the F1-LIVE pattern from 05-10. The deploy of 65a612a breaks both assertions, and the entries must then be deleted, never updated."
+  - "ZM-LIVE-1 and ZM-LIVE-2 are registered in a live-only DEPLOY_LAG that asserts the deployed values, following the F1-LIVE pattern from 05-10. The deploy of 65a612a breaks both assertions, and the entries must then be deleted, never updated. CLOSED 2026-09-12: the owner-decided push ea538c0..651eebe and Deploy HAOO run 34717723054 (success) broke both assertions as designed, and the entries were deleted with all of their machinery."
   - "ZM-2a, ZM-2b and the control also run on the preview project, which serves the fixed build, so the fix is proven before it is deployed. ZM-2c and the Products observation stay live-only."
   - "src/index.css is a ground-A scaffold entry. HAOO's copy now diverges from ZERO-PAPER HUB's, which scaffold entries permit (verify:disjoint 26/26/0). ZERO-PAPER HUB is untouched, and its unguarded rule stays under F6."
   - "The Products region's colour transition (P9, colour properties only, 0.2s) is recorded as deliberately not required to be suppressed, and is not asserted."
@@ -82,17 +82,16 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: "ZM-2a/2b with reduced motion requested. On the fixed preview build, transition-property computes none, transform reads none before and after hover, there are 0 animate- elements, and html and body both compute scroll-behavior auto. On live, the page still reads matrix(1, 0, 0, 1, 0, -4) after hover and html smooth, held as the registered ZM-LIVE-1 and ZM-LIVE-2 values."
+    description: "ZM-2a/2b with reduced motion requested. On the fixed preview build, transition-property computes none, transform reads none before and after hover, there are 0 animate- elements, and html and body both compute scroll-behavior auto. Before the deploy, live read matrix(1, 0, 0, 1, 0, -4) after hover and html smooth, held as the registered ZM-LIVE-1 and ZM-LIVE-2 values. After the deploy of 651eebe (live haoo-C1OXjuEM.js, SHA-256 3a6ee0fd849f1d0f..., and haoo-BYmxvBcM.css), live reads transform none before and after hover and html auto, and the DEPLOY_LAG entries are deleted, so the contract asserts unconditionally on both projects."
     requirement: QUAL-03
     verification:
       - kind: e2e
-        ref: "npx playwright test --project=preview e2e/zoom-motion.e2e.ts -g ZM-2 (ZM-2a, ZM-2b, control)"
+        ref: "npx playwright test --project=preview e2e/zoom-motion.e2e.ts (ZM-2a, ZM-2b, control; 2026-09-12T20:49Z against dist/ built from 651eebe)"
         status: pass
       - kind: e2e
-        ref: "npx playwright test --project=live e2e/zoom-motion.e2e.ts (ZM-2a/2b via DEPLOY_LAG, control)"
+        ref: "npx playwright test --project=live e2e/zoom-motion.e2e.ts (21 tests, ZM-2a/2b unconditional, 0 retries consumed; 2026-09-12T20:47:31Z-20:49:08Z against haoo-C1OXjuEM.js), after commit 'fix(05-13): close ZM-LIVE-1 and ZM-LIVE-2 by deleting the DEPLOY_LAG entries the deploy terminated'"
         status: pass
-    human_judgment: true
-    rationale: "The live half of the reduced-motion claim stays open until the owner authorises the push and deploy of 65a612a. When the deploy lands, the two DEPLOY_LAG assertions break by design and must be deleted in a follow-up commit, as F1-LIVE was."
+    human_judgment: false
   - id: D3
     description: "ZM-2c: with reduced motion active on live, the brochure equivalent is complete (10/10 exposed and visible, 0 missing) and P1-P8 all hold their conditions (8/8, 0 defects)"
     requirement: QUAL-03
@@ -137,7 +136,7 @@ status: complete
 
 # Phase 5 Plan 13: Zoom and Motion Summary
 
-**The live HAOO page reflows at 200% and at 320 px with every content item and control intact, and each reading carries the WCAG criterion it measures. Reduced motion turned up two live defects: the capability-card hover still moved, and smooth scrolling was unguarded. Both are fixed in source and proven on the build. The live page closes on the next deploy.**
+**The live HAOO page reflows at 200% and at 320 px with every content item and control intact, and each reading carries the WCAG criterion it measures. Reduced motion turned up two live defects: the capability-card hover still moved, and smooth scrolling was unguarded. Both are fixed in source and proven on the build, and the deploy of `651eebe` closed both on the live page too.**
 
 ## Performance
 
@@ -163,7 +162,7 @@ status: complete
 - **Fixed and proven.**
   - `motion-safe:hover:-translate-y-1` replaces the ineffective guard, and smooth scrolling now sits inside a `no-preference` query.
   - On the preview build, transform reads `none` before and after hover, and `html` reads `auto`.
-  - On live, both old values are held by self-terminating `DEPLOY_LAG` entries, ZM-LIVE-1 and ZM-LIVE-2.
+  - On live, both old values were held by self-terminating `DEPLOY_LAG` entries, ZM-LIVE-1 and ZM-LIVE-2, until the deploy of `651eebe` broke them as designed. Both are now CLOSED, and the entries are deleted (see the closure section below).
 - **Nothing disappears.** With reduce active: 10 of 10 items and 8 of 8 actions.
 - **Observations recorded, not asserted.**
   - The Products region has exactly 1 transition, the P9 colour transition. It is deliberately not suppressed.
@@ -178,6 +177,7 @@ status: complete
 2. **Task 2, fix found during the task: make the capability-card hover and smooth scrolling honour reduced motion**: `65a612a` (fix)
 3. **Task 2: Assert reduced-motion suppression, its closed negative, and that nothing disappears**: `a298ae4` (feat)
 4. **Task 3: Record the zoom and motion evidence and the held-out readability inputs**: `0d5ac30` (docs)
+5. **Follow-up after the deploy: close ZM-LIVE-1 and ZM-LIVE-2**: `fix(05-13): close ZM-LIVE-1 and ZM-LIVE-2 by deleting the DEPLOY_LAG entries the deploy terminated` (fix)
 
 **Plan metadata:** recorded in the close-out commit (docs: complete plan)
 
@@ -237,18 +237,34 @@ See `key-decisions` above. The two with the most consequence:
 
 **5. The Task 3 commit first ran before its acceptance grep held.** A `;` where the chain needed `&&` let `git commit` run after the grep for `not a pass` failed: the file said "Neither item below is a pass". The phrase was corrected, all four patterns were re-verified, and the unpushed commit was amended to `0d5ac30`. The committed evidence file now carries all four patterns.
 
-**Total deviations:** 3 auto-fixed (1 blocking, 1 bug, 1 missing critical), 1 carried measured correction, 1 process issue corrected. **Impact:** Two product files changed outside the plan's `files_modified` to fix real reduced-motion defects. The live half of ZM-2a and ZM-2b stays open until deploy.
+**Total deviations:** 3 auto-fixed (1 blocking, 1 bug, 1 missing critical), 1 carried measured correction, 1 process issue corrected. **Impact:** Two product files changed outside the plan's `files_modified` to fix real reduced-motion defects. The live half of ZM-2a and ZM-2b stayed open until the deploy of `651eebe`, and it is now closed.
 
 ## Issues Encountered
 
 None beyond the deviations above. Every recorded run used `--retries=0` and none was retried.
 
-## Escalation: owner action needed to close ZM-LIVE-1 and ZM-LIVE-2 on live
+## ZM-LIVE-1 and ZM-LIVE-2: CLOSED by deployment, 2026-09-12
 
-Nothing was pushed. To close the live half of the reduced-motion claim:
-1. The owner authorises pushing HAOO `main`, which includes `65a612a`, and the Deploy HAOO workflow runs.
-2. After the deploy, `npx playwright test --project=live e2e/zoom-motion.e2e.ts` will fail ZM-2a and ZM-2b, and each failure message names its entry.
-3. Delete the ZM-LIVE-1 and ZM-LIVE-2 entries, together with `DEPLOY_LAG`, `lagFor` and `expectContractOrRegisteredLag` once nothing uses them. Then re-run and record the new bundle name, as F1-LIVE was closed.
+This plan escalated both findings to the owner, because closing them needed a push. **The owner chose one HAOO deploy after 05-14. On that explicit decision, the orchestrator ran `git push origin main`.** This plan pushed nothing.
+
+- **Push:** `origin/main` moved `ea538c0..651eebe`, 11 commits. The only product-source commit in that range is `65a612a`.
+- **Runs:** Deploy HAOO run `34717723054` and Verify tree disjointness run `34717723047` both finished with status `completed` and conclusion `success`, on head `651eebe`.
+- **Re-measured independently at 20:45–20:49 UTC:**
+  - Live serves `/assets/haoo-C1OXjuEM.js` (SHA-256 `3a6ee0fd849f1d0f…`) and `/assets/haoo-BYmxvBcM.css` (SHA-256 `29f8b5bdfc9771dc…`).
+  - With reduce emulated, the card's transform reads `none` before and after hover, and `html` computes `scroll-behavior: auto`. The spec read those values, and so did a standalone probe in 3 of 3 loads.
+  - A no-preference control still reads `matrix(1, 0, 0, 1, 0, -4)` and `smooth`.
+- **Self-termination:** run before any edit, the spec broke ZM-2a and ZM-2b as designed: Expected `matrix(1, 0, 0, 1, 0, -4)`, Received `none`; Expected `smooth`, Received `auto`.
+- **Deleted, not updated:**
+  - both entries, `DeployLagEntry`, `DEPLOY_LAG`, `lagFor` and `expectContractOrRegisteredLag`, whose contract calls are now inlined;
+  - the `deployLag` evidence field.
+  - `DEPLOY_LAG` occurrences went from 3 to 0.
+- **Re-runs after the deletion:**
+  - live: exit 0, 21 tests, 0 retries consumed;
+  - preview: exit 0, 3 tests, 18 skipped by design;
+  - the gate baseline held.
+- **Closing commit:** `fix(05-13): close ZM-LIVE-1 and ZM-LIVE-2 by deleting the DEPLOY_LAG entries the deploy terminated`.
+
+The full readings are in `05-EVIDENCE-ZOOM-MOTION.md` § 2.1.
 
 ## Known Stubs
 

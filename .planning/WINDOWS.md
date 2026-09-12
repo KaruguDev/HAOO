@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 30
+open_count: 28
 waived_count: 0
-fixed_count: 5
+fixed_count: 7
 total_count: 35
-last_updated: 2026-09-12T20:11:08.951Z
+last_updated: 2026-09-12T20:54:16.088Z
 ---
 
 # Broken Windows Ledger
@@ -48,8 +48,8 @@ last_updated: 2026-09-12T20:11:08.951Z
 | 31 | 04.2 | unmet-truth | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-SPLIT-CONTRACT.md |  | haoo.online has no MX records so info@haoo.online very likely does not receive mail; decided 2026-09-05, DNS change not executed | open |  | 2026-09-06T14:46:56.216Z |  |
 | 32 | 04.2 | unmet-truth | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-DEFERRED-ITEMS.md |  | D34: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim | open |  | 2026-09-06T14:46:56.403Z |  |
 | 33 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-VALIDATION.md |  | PROD-02 has no row in the per-task verification map (D39) | open |  | 2026-09-06T14:46:56.586Z |  |
-| 34 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-1: the live HAOO capability card still translates on hover under prefers-reduced-motion. Fixed in 65a612a; held by DEPLOY_LAG until deploy, then delete the entry | open |  | 2026-09-12T20:11:08.790Z |  |
-| 35 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-2: live html computes scroll-behavior smooth under prefers-reduced-motion. Fixed in 65a612a (src/index.css); held by DEPLOY_LAG until deploy, then delete the entry | open |  | 2026-09-12T20:11:08.951Z |  |
+| 34 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-1: the live HAOO capability card still translates on hover under prefers-reduced-motion. Fixed in 65a612a; held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.790Z | 2026-09-12T20:54:15.895Z |
+| 35 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-2: live html computes scroll-behavior smooth under prefers-reduced-motion. Fixed in 65a612a (src/index.css); held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.951Z | 2026-09-12T20:54:16.088Z |
 
 ````json
 [
@@ -456,10 +456,10 @@ last_updated: 2026-09-12T20:11:08.951Z
     "file": "e2e/zoom-motion.e2e.ts",
     "line": null,
     "description": "ZM-LIVE-1: the live HAOO capability card still translates on hover under prefers-reduced-motion. Fixed in 65a612a; held by DEPLOY_LAG until deploy, then delete the entry",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-12T20:11:08.790Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-12T20:54:15.895Z"
   },
   {
     "id": 35,
@@ -468,10 +468,10 @@ last_updated: 2026-09-12T20:11:08.951Z
     "file": "e2e/zoom-motion.e2e.ts",
     "line": null,
     "description": "ZM-LIVE-2: live html computes scroll-behavior smooth under prefers-reduced-motion. Fixed in 65a612a (src/index.css); held by DEPLOY_LAG until deploy, then delete the entry",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-12T20:11:08.951Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-12T20:54:16.088Z"
   }
 ]
 ````

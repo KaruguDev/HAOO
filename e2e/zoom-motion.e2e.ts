@@ -470,73 +470,6 @@ const MOTION_EVIDENCE = {
 /** Longer than the shipped 200 ms card transition, so a transition that still ran has finished. */
 const HOVER_SETTLE_MS = 500;
 
-/**
- * Deployed divergences from ZM-2, REGISTERED rather than accommodated — the F1-LIVE pattern from
- * 05-10. Measured on 2026-09-12 against the live bundle `/assets/haoo-D1dl6F2P.js`:
- *
- *   - ZM-LIVE-1: with reduced motion requested, hovering a capability card still computed
- *     `transform: matrix(1, 0, 0, 1, 0, -4)`. The shipped `motion-reduce:transform-none` guard
- *     never took effect: `.hover\:-translate-y-1:hover` (class plus pseudo-class) out-specifies
- *     the media-wrapped `.motion-reduce\:transform-none` (class only). The transition itself was
- *     suppressed, so the card jumped rather than animated — but it still moved.
- *   - ZM-LIVE-2: with reduced motion requested, `html` computed `scroll-behavior: smooth`, from an
- *     unguarded rule in `src/index.css`.
- *
- * Both are fixed in source by 05-13 and proven against the local build (the `preview` project,
- * where this list does not apply). On `live` each entry asserts the DEPLOYED value, so the deploy
- * that ships the fix breaks the assertion — and the failure message instructs deleting the entry,
- * never updating it. The contract assertion itself is unchanged and applies everywhere else.
- */
-interface DeployLagEntry {
-  readonly id: string;
-  readonly reading: 'hoverTransformAfter' | 'htmlScrollBehavior';
-  readonly deployedValue: string;
-  readonly measuredOnBundle: string;
-  readonly fixedIn: string;
-}
-
-const DEPLOY_LAG: readonly DeployLagEntry[] = [
-  {
-    id: 'ZM-LIVE-1',
-    reading: 'hoverTransformAfter',
-    deployedValue: 'matrix(1, 0, 0, 1, 0, -4)',
-    measuredOnBundle: '/assets/haoo-D1dl6F2P.js',
-    fixedIn: 'src/pages/ProductPage.tsx — the hover translate is now motion-safe:hover:-translate-y-1',
-  },
-  {
-    id: 'ZM-LIVE-2',
-    reading: 'htmlScrollBehavior',
-    deployedValue: 'smooth',
-    measuredOnBundle: '/assets/haoo-D1dl6F2P.js',
-    fixedIn: 'src/index.css — smooth scrolling now sits inside a no-preference media query',
-  },
-];
-
-function lagFor(reading: DeployLagEntry['reading'], testInfo: TestInfo): DeployLagEntry | null {
-  if (testInfo.project.name !== 'live') return null;
-  return DEPLOY_LAG.find((entry) => entry.reading === reading) ?? null;
-}
-
-/** Hold a reading to its contract, or — on live only — to its registered deployed value. */
-function expectContractOrRegisteredLag(
-  reading: DeployLagEntry['reading'],
-  actual: string,
-  testInfo: TestInfo,
-  contract: () => void,
-): void {
-  const lag = lagFor(reading, testInfo);
-  if (lag === null) {
-    contract();
-    return;
-  }
-  expect(
-    actual,
-    `${lag.id}: the deployed page no longer reads '${lag.deployedValue}' for ${reading}. If it now ` +
-      `satisfies the ZM-2 contract, the fix (${lag.fixedIn}) has deployed: DELETE the ${lag.id} ` +
-      'entry from DEPLOY_LAG so the contract applies unconditionally. Never update deployedValue.',
-  ).toBe(lag.deployedValue);
-}
-
 /** Both projects measure ZM-2a/2b: live for the deployed page, preview for the fix in the build. */
 function requireMotionProject(testInfo: TestInfo): void {
   test.skip(
@@ -565,7 +498,8 @@ interface CardMotionReading {
 /**
  * The computed transition and transform on a capability card, before and after a real hover.
  * Computed values rather than class presence: a guard class that does not take effect is exactly
- * the failure this measures, and a class-presence check would have passed ZM-LIVE-1.
+ * the failure this measures, and a class-presence check would have passed ZM-LIVE-1 (the closed
+ * finding recorded in `05-EVIDENCE-ZOOM-MOTION.md` § 2).
  */
 async function readCardMotion(page: Page): Promise<CardMotionReading> {
   const items = page.locator('#capabilities li');
@@ -632,7 +566,6 @@ test.describe('ZM-2 with reduced motion requested', () => {
         project: testInfo.project.name,
         url: page.url(),
         hoverSettleMs: HOVER_SETTLE_MS,
-        deployLag: lagFor('hoverTransformAfter', testInfo),
       },
     });
 
@@ -646,10 +579,8 @@ test.describe('ZM-2 with reduced motion requested', () => {
       `ZM-2a: transition-duration '${reading.transitionDuration}' with transition-property '${reading.transitionProperty}'`,
     ).toBe(true);
 
-    expectContractOrRegisteredLag('hoverTransformAfter', reading.transformAfter, testInfo, () => {
-      expect(reading.transformAfter, 'ZM-2a: hovering changed the computed transform').toBe(reading.transformBefore);
-      expect(reading.translateAfter, 'ZM-2a: hovering changed the computed translate').toBe(reading.translateBefore);
-    });
+    expect(reading.transformAfter, 'ZM-2a: hovering changed the computed transform').toBe(reading.transformBefore);
+    expect(reading.translateAfter, 'ZM-2a: hovering changed the computed translate').toBe(reading.translateBefore);
   });
 
   test('ZM-2b the closed negative: no animation utility and no smooth scrolling', async ({ page }, testInfo) => {
@@ -691,15 +622,12 @@ test.describe('ZM-2 with reduced motion requested', () => {
         recordedNotAsserted: 'runningAnimations and elementsWithRunnableTransition',
         project: testInfo.project.name,
         url: page.url(),
-        deployLag: lagFor('htmlScrollBehavior', testInfo),
       },
     });
 
     expect(negative.animationUtilityElements, 'ZM-2b: animation utility elements on the HAOO page').toBe(0);
     expect(negative.bodyScrollBehavior, 'ZM-2b: body scroll-behavior').not.toBe('smooth');
-    expectContractOrRegisteredLag('htmlScrollBehavior', negative.htmlScrollBehavior, testInfo, () => {
-      expect(negative.htmlScrollBehavior, 'ZM-2b: html scroll-behavior').not.toBe('smooth');
-    });
+    expect(negative.htmlScrollBehavior, 'ZM-2b: html scroll-behavior').not.toBe('smooth');
   });
 
   test('ZM-2c suppression removes no content and no control', async ({ page }, testInfo) => {

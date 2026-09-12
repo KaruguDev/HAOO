@@ -103,5 +103,215 @@
       "overflowToleranceCssPx": 1,
       "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
     }
+  },
+  {
+    "recordedAt": "2026-09-12T20:43:56.900Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 640,
+      "height": 512
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "innerWidth": 640,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "innerWidth": 640,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1280 halved — models 200% zoom on the first desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:44:09.513Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 720,
+        "clientWidth": 720,
+        "innerWidth": 720,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 720,
+        "clientWidth": 720,
+        "innerWidth": 720,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1440 halved — models 200% zoom on the wide desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:44:20.129Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "claim": "reflow-320",
+      "entryReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:47:41.256Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 640,
+      "height": 512
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "innerWidth": 640,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "innerWidth": 640,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1280 halved — models 200% zoom on the first desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:48:08.507Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 720,
+        "clientWidth": 720,
+        "innerWidth": 720,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 720,
+        "clientWidth": 720,
+        "innerWidth": 720,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1440 halved — models 200% zoom on the wide desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:48:33.008Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "unmodified": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "unmodified"
+      },
+      "maskNeutralised": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "mode": "mask-neutralised"
+      },
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "claim": "reflow-320",
+      "entryReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "overflowToleranceCssPx": 1,
+      "readingOrder": "VC-1a unmodified, VC-1b unmodified, then VC-1c on a modified page, last"
+    }
   }
 ]

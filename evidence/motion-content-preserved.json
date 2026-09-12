@@ -42,5 +42,93 @@
       "project": "live",
       "url": "https://www.haoo.online/"
     }
+  },
+  {
+    "recordedAt": "2026-09-12T20:44:52.805Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "capabilitiesFound": 6,
+      "capabilitiesExpected": 6,
+      "journeyStepsFound": 4,
+      "journeyStepsExpected": 4,
+      "equivalentItemsFound": 10,
+      "equivalentItemsExpected": 10,
+      "titlesExposed": 10,
+      "descriptionsVisible": 10,
+      "missing": [],
+      "primaryFloorPx": 44,
+      "actionsExpected": 8,
+      "actionsSatisfyingAllConditions": 8,
+      "actionDefectCount": 0,
+      "actionDefects": [],
+      "instanceCountGaps": [
+        {
+          "id": "P5",
+          "declared": 4,
+          "found": 3
+        },
+        {
+          "id": "P6",
+          "declared": 4,
+          "found": 3
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2c",
+      "emulation": "reducedMotion: 'reduce' through the runner option",
+      "reRuns": "SS-4 through e2e/fixtures/brochure-equivalence.ts and VC-2 through e2e/fixtures/targets.ts",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:48:52.040Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "capabilitiesFound": 6,
+      "capabilitiesExpected": 6,
+      "journeyStepsFound": 4,
+      "journeyStepsExpected": 4,
+      "equivalentItemsFound": 10,
+      "equivalentItemsExpected": 10,
+      "titlesExposed": 10,
+      "descriptionsVisible": 10,
+      "missing": [],
+      "primaryFloorPx": 44,
+      "actionsExpected": 8,
+      "actionsSatisfyingAllConditions": 8,
+      "actionDefectCount": 0,
+      "actionDefects": [],
+      "instanceCountGaps": [
+        {
+          "id": "P5",
+          "declared": 4,
+          "found": 3
+        },
+        {
+          "id": "P6",
+          "declared": 4,
+          "found": 3
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2c",
+      "emulation": "reducedMotion: 'reduce' through the runner option",
+      "reRuns": "SS-4 through e2e/fixtures/brochure-equivalence.ts and VC-2 through e2e/fixtures/targets.ts",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
   }
 ]
