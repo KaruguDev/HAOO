@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 
+import { PRODUCTS_REGION_SELECTOR } from './fixtures/axe';
 import {
   BROCHURE_EQUIVALENT_ITEMS,
   EXPECTED_CAPABILITIES,
@@ -449,3 +450,393 @@ for (const entry of ZOOM_ENTRIES) {
     });
   });
 }
+
+/* ------------------------------------------------------------------------------------ *
+ * ZM-2 — reduced motion.
+ *
+ * Requested through the runner's own `reducedMotion` emulation, which sets the media feature at
+ * the browser level. No stylesheet is injected to fake the query: emulation is what makes the
+ * Tailwind `motion-safe:`/`motion-reduce:` variants AND a plain media query in `src/index.css`
+ * respond exactly as they would for a real visitor who has asked for less motion.
+ * ------------------------------------------------------------------------------------ */
+
+const MOTION_EVIDENCE = {
+  suppression: 'motion-suppression',
+  negative: 'motion-closed-negative',
+  preserved: 'motion-content-preserved',
+  observations: 'motion-observations',
+} as const;
+
+/** Longer than the shipped 200 ms card transition, so a transition that still ran has finished. */
+const HOVER_SETTLE_MS = 500;
+
+/**
+ * Deployed divergences from ZM-2, REGISTERED rather than accommodated — the F1-LIVE pattern from
+ * 05-10. Measured on 2026-09-12 against the live bundle `/assets/haoo-D1dl6F2P.js`:
+ *
+ *   - ZM-LIVE-1: with reduced motion requested, hovering a capability card still computed
+ *     `transform: matrix(1, 0, 0, 1, 0, -4)`. The shipped `motion-reduce:transform-none` guard
+ *     never took effect: `.hover\:-translate-y-1:hover` (class plus pseudo-class) out-specifies
+ *     the media-wrapped `.motion-reduce\:transform-none` (class only). The transition itself was
+ *     suppressed, so the card jumped rather than animated — but it still moved.
+ *   - ZM-LIVE-2: with reduced motion requested, `html` computed `scroll-behavior: smooth`, from an
+ *     unguarded rule in `src/index.css`.
+ *
+ * Both are fixed in source by 05-13 and proven against the local build (the `preview` project,
+ * where this list does not apply). On `live` each entry asserts the DEPLOYED value, so the deploy
+ * that ships the fix breaks the assertion — and the failure message instructs deleting the entry,
+ * never updating it. The contract assertion itself is unchanged and applies everywhere else.
+ */
+interface DeployLagEntry {
+  readonly id: string;
+  readonly reading: 'hoverTransformAfter' | 'htmlScrollBehavior';
+  readonly deployedValue: string;
+  readonly measuredOnBundle: string;
+  readonly fixedIn: string;
+}
+
+const DEPLOY_LAG: readonly DeployLagEntry[] = [
+  {
+    id: 'ZM-LIVE-1',
+    reading: 'hoverTransformAfter',
+    deployedValue: 'matrix(1, 0, 0, 1, 0, -4)',
+    measuredOnBundle: '/assets/haoo-D1dl6F2P.js',
+    fixedIn: 'src/pages/ProductPage.tsx — the hover translate is now motion-safe:hover:-translate-y-1',
+  },
+  {
+    id: 'ZM-LIVE-2',
+    reading: 'htmlScrollBehavior',
+    deployedValue: 'smooth',
+    measuredOnBundle: '/assets/haoo-D1dl6F2P.js',
+    fixedIn: 'src/index.css — smooth scrolling now sits inside a no-preference media query',
+  },
+];
+
+function lagFor(reading: DeployLagEntry['reading'], testInfo: TestInfo): DeployLagEntry | null {
+  if (testInfo.project.name !== 'live') return null;
+  return DEPLOY_LAG.find((entry) => entry.reading === reading) ?? null;
+}
+
+/** Hold a reading to its contract, or — on live only — to its registered deployed value. */
+function expectContractOrRegisteredLag(
+  reading: DeployLagEntry['reading'],
+  actual: string,
+  testInfo: TestInfo,
+  contract: () => void,
+): void {
+  const lag = lagFor(reading, testInfo);
+  if (lag === null) {
+    contract();
+    return;
+  }
+  expect(
+    actual,
+    `${lag.id}: the deployed page no longer reads '${lag.deployedValue}' for ${reading}. If it now ` +
+      `satisfies the ZM-2 contract, the fix (${lag.fixedIn}) has deployed: DELETE the ${lag.id} ` +
+      'entry from DEPLOY_LAG so the contract applies unconditionally. Never update deployedValue.',
+  ).toBe(lag.deployedValue);
+}
+
+/** Both projects measure ZM-2a/2b: live for the deployed page, preview for the fix in the build. */
+function requireMotionProject(testInfo: TestInfo): void {
+  test.skip(
+    testInfo.project.name !== 'live' && testInfo.project.name !== 'preview',
+    'ZM-2 measures the HAOO page through the live or preview project only',
+  );
+  test.setTimeout(LIVE_TIMEOUT_MS);
+}
+
+function motionSurface(testInfo: TestInfo) {
+  return testInfo.project.name === 'preview' ? SURFACES.S5 : HAOO;
+}
+
+interface CardMotionReading {
+  readonly transitionProperty: string;
+  readonly transitionDuration: string;
+  readonly transformBefore: string;
+  readonly transformAfter: string;
+  readonly translateBefore: string;
+  readonly translateAfter: string;
+  readonly hoveredBefore: boolean;
+  readonly hoveredAfter: boolean;
+  readonly capabilityItems: number;
+}
+
+/**
+ * The computed transition and transform on a capability card, before and after a real hover.
+ * Computed values rather than class presence: a guard class that does not take effect is exactly
+ * the failure this measures, and a class-presence check would have passed ZM-LIVE-1.
+ */
+async function readCardMotion(page: Page): Promise<CardMotionReading> {
+  const items = page.locator('#capabilities li');
+  const capabilityItems = await items.count();
+  assertNonEmptySubjects(Array.from({ length: capabilityItems }), 'capability list items');
+  const card = items.first();
+  await card.scrollIntoViewIfNeeded();
+  await page.mouse.move(0, 0);
+
+  const read = () =>
+    card.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      return {
+        transitionProperty: style.transitionProperty,
+        transitionDuration: style.transitionDuration,
+        transform: style.transform,
+        translate: style.translate,
+        hovered: element.matches(':hover'),
+      };
+    });
+
+  const before = await read();
+  await card.hover();
+  await page.waitForTimeout(HOVER_SETTLE_MS);
+  const after = await read();
+
+  return {
+    transitionProperty: after.transitionProperty,
+    transitionDuration: after.transitionDuration,
+    transformBefore: before.transform,
+    transformAfter: after.transform,
+    translateBefore: before.translate,
+    translateAfter: after.translate,
+    hoveredBefore: before.hovered,
+    hoveredAfter: after.hovered,
+    capabilityItems,
+  };
+}
+
+function everyDurationIsZero(durations: string): boolean {
+  return durations.split(',').every((duration) => Number.parseFloat(duration) === 0);
+}
+
+test.describe('ZM-2 with reduced motion requested', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('ZM-2a the one shipped transition is suppressed and hovering moves nothing', async ({ page }, testInfo) => {
+    requireMotionProject(testInfo);
+    await openHaoo(page);
+    const surface = motionSurface(testInfo);
+
+    const reading = await readCardMotion(page);
+    const matchesReduce = await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    recordEvidence(MOTION_EVIDENCE.suppression, {
+      surface: surface.id,
+      viewport: page.viewportSize(),
+      measured: { ...reading, mediaQueryReduceMatches: matchesReduce },
+      detail: {
+        plan: '05-13',
+        rule: 'ZM-2a',
+        criterion: 'WCAG 2.2 SC 2.3.3 Animation from Interactions',
+        emulation: "reducedMotion: 'reduce' through the runner option",
+        project: testInfo.project.name,
+        url: page.url(),
+        hoverSettleMs: HOVER_SETTLE_MS,
+        deployLag: lagFor('hoverTransformAfter', testInfo),
+      },
+    });
+
+    // Plumbing that keeps the comparison honest: the emulation reached the page, and the hover landed.
+    expect(matchesReduce, 'the reduced-motion emulation did not reach the page').toBe(true);
+    expect(reading.hoveredBefore, 'the card was already hovered before the first reading').toBe(false);
+    expect(reading.hoveredAfter, 'the hover never landed, so the transform comparison would be vacuous').toBe(true);
+
+    expect(
+      everyDurationIsZero(reading.transitionDuration) || reading.transitionProperty === 'none',
+      `ZM-2a: transition-duration '${reading.transitionDuration}' with transition-property '${reading.transitionProperty}'`,
+    ).toBe(true);
+
+    expectContractOrRegisteredLag('hoverTransformAfter', reading.transformAfter, testInfo, () => {
+      expect(reading.transformAfter, 'ZM-2a: hovering changed the computed transform').toBe(reading.transformBefore);
+      expect(reading.translateAfter, 'ZM-2a: hovering changed the computed translate').toBe(reading.translateBefore);
+    });
+  });
+
+  test('ZM-2b the closed negative: no animation utility and no smooth scrolling', async ({ page }, testInfo) => {
+    requireMotionProject(testInfo);
+    await openHaoo(page);
+    const surface = motionSurface(testInfo);
+
+    /*
+     * A CLOSED NEGATIVE. The HAOO page is asserted to carry no motion beyond the one card
+     * transition ZM-2a measures: zero animation utilities and no smooth scrolling. A future
+     * addition of either surfaces here, as an exact count or an exact computed value, rather than
+     * shipping unguarded.
+     */
+    const negative = await page.evaluate(() => {
+      const transitioned = Array.from(document.querySelectorAll('*')).filter((element) => {
+        const style = window.getComputedStyle(element);
+        return (
+          style.transitionProperty !== 'none' &&
+          style.transitionDuration.split(',').some((duration) => Number.parseFloat(duration) > 0)
+        );
+      });
+      return {
+        animationUtilityElements: document.querySelectorAll('[class*="animate-"]').length,
+        htmlScrollBehavior: window.getComputedStyle(document.documentElement).scrollBehavior,
+        bodyScrollBehavior: window.getComputedStyle(document.body).scrollBehavior,
+        runningAnimations: document.getAnimations().length,
+        elementsWithRunnableTransition: transitioned.length,
+      };
+    });
+
+    recordEvidence(MOTION_EVIDENCE.negative, {
+      surface: surface.id,
+      viewport: page.viewportSize(),
+      measured: negative,
+      detail: {
+        plan: '05-13',
+        rule: 'ZM-2b',
+        closedNegative: 'zero [class*="animate-"] elements; neither html nor body computes scroll-behavior smooth',
+        recordedNotAsserted: 'runningAnimations and elementsWithRunnableTransition',
+        project: testInfo.project.name,
+        url: page.url(),
+        deployLag: lagFor('htmlScrollBehavior', testInfo),
+      },
+    });
+
+    expect(negative.animationUtilityElements, 'ZM-2b: animation utility elements on the HAOO page').toBe(0);
+    expect(negative.bodyScrollBehavior, 'ZM-2b: body scroll-behavior').not.toBe('smooth');
+    expectContractOrRegisteredLag('htmlScrollBehavior', negative.htmlScrollBehavior, testInfo, () => {
+      expect(negative.htmlScrollBehavior, 'ZM-2b: html scroll-behavior').not.toBe('smooth');
+    });
+  });
+
+  test('ZM-2c suppression removes no content and no control', async ({ page }, testInfo) => {
+    // Live only: the preview build's form configuration is not the deployed one, and ZM-2c is a
+    // claim about the deployed journey.
+    requireLive(testInfo);
+    await openHaoo(page);
+
+    const equivalent = await measureEquivalent(page);
+    const actions = await measurePrimaryActions(page);
+
+    recordEvidence(MOTION_EVIDENCE.preserved, {
+      surface: HAOO.id,
+      viewport: page.viewportSize(),
+      measured: {
+        ...equivalent.reading,
+        primaryFloorPx: MIN_PRIMARY_HIT_TARGET_PX,
+        actionsExpected: actions.expected,
+        actionsSatisfyingAllConditions: actions.satisfying,
+        actionDefectCount: actions.defects.length,
+        actionDefects: actions.defects,
+        instanceCountGaps: actions.instanceCountGaps,
+      },
+      detail: {
+        plan: '05-13',
+        rule: 'ZM-2c',
+        emulation: "reducedMotion: 'reduce' through the runner option",
+        reRuns: 'SS-4 through e2e/fixtures/brochure-equivalence.ts and VC-2 through e2e/fixtures/targets.ts',
+        project: testInfo.project.name,
+        url: page.url(),
+      },
+    });
+
+    assertEquivalent(equivalent, 'with reduced motion requested');
+    expect(actions.defects, `ZM-2c:\n${actions.defects.join('\n')}`).toEqual([]);
+    expect(actions.satisfying).toBe(actions.expected);
+  });
+
+  test('ZM-2 observations: the Products colour transition and the deferred F6 inventory, recorded not asserted', async ({ page }, testInfo) => {
+    requireLive(testInfo);
+
+    const response = await page.goto(SURFACES.S3.url);
+    expect(response?.status(), `unexpected status for ${SURFACES.S3.url}`).toBe(200);
+    await page.waitForLoadState('networkidle');
+    const region = page.locator(PRODUCTS_REGION_SELECTOR);
+    await expect(region, 'the Products region is not on the page').toHaveCount(1);
+    await region.scrollIntoViewIfNeeded();
+
+    const inventory = await page.evaluate((selector) => {
+      const productsRegion = document.querySelector(selector);
+      const describe = (element: Element) => {
+        const style = window.getComputedStyle(element);
+        const label = (element.getAttribute('aria-label') ?? element.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
+        return {
+          tag: element.tagName.toLowerCase(),
+          label,
+          transitionProperty: style.transitionProperty,
+          transitionDuration: style.transitionDuration,
+          transitionsMovementProperty: /\b(all|transform|translate|scale|rotate)\b/.test(style.transitionProperty),
+        };
+      };
+      const runnable = (element: Element) => {
+        const style = window.getComputedStyle(element);
+        return (
+          style.transitionProperty !== 'none' &&
+          style.transitionDuration.split(',').some((duration) => Number.parseFloat(duration) > 0)
+        );
+      };
+      const all = Array.from(document.querySelectorAll('*'));
+      const inRegion = productsRegion === null ? [] : all.filter((element) => productsRegion.contains(element));
+      const outside = all.filter((element) => productsRegion === null || !productsRegion.contains(element));
+      return {
+        productsRegionTransitions: inRegion.filter(runnable).map(describe),
+        outsideRegionAnimationUtilityElements: outside.filter((element) =>
+          (element.getAttribute('class') ?? '').includes('animate-'),
+        ).length,
+        outsideRegionElementsWithRunnableTransition: outside.filter(runnable).length,
+        outsideRegionHoverScaleUtilityElements: outside.filter((element) =>
+          (element.getAttribute('class') ?? '').includes('hover:scale-'),
+        ).length,
+        htmlScrollBehavior: window.getComputedStyle(document.documentElement).scrollBehavior,
+      };
+    }, PRODUCTS_REGION_SELECTOR);
+
+    recordEvidence(MOTION_EVIDENCE.observations, {
+      surface: 'S3',
+      viewport: page.viewportSize(),
+      measured: {
+        ...inventory,
+        productsRegionTransitionCount: inventory.productsRegionTransitions.length,
+      },
+      detail: {
+        plan: '05-13',
+        emulation: "reducedMotion: 'reduce' through the runner option",
+        url: page.url(),
+        colourTransitionExclusion:
+          'The Products region colour transition is deliberately NOT required to be suppressed under reduced motion: ' +
+          'a colour transition neither moves nor scales anything, and the criterion concerns motion animation. ' +
+          'Requiring it would push a correct component into a variant it does not need.',
+        deferredFinding:
+          'F6 (05-UI-SPEC.md § Pre-Flight Findings): the ZERO-PAPER HUB home page outside the Products region has ' +
+          'animation utilities, hover scaling and observer-driven reveals with no reduced-motion handling anywhere in ' +
+          'that repository. Already recorded and DEFERRED by D-OQ-3; cross-referenced here, not re-raised.',
+      },
+    });
+    // Deliberately no assertion on the inventory: D-OQ-3 scopes it out, and the exclusion is a recorded decision.
+  });
+});
+
+test.describe('ZM-2 control: with no motion preference the same hover does move the card', () => {
+  test.use({ reducedMotion: 'no-preference' });
+
+  test('the transform reading is sensitive: hovering changes it when motion is allowed', async ({ page }, testInfo) => {
+    requireMotionProject(testInfo);
+    await openHaoo(page);
+
+    const reading = await readCardMotion(page);
+    recordEvidence(MOTION_EVIDENCE.suppression, {
+      surface: motionSurface(testInfo).id,
+      viewport: page.viewportSize(),
+      measured: reading,
+      detail: {
+        plan: '05-13',
+        rule: 'ZM-2a control',
+        emulation: "reducedMotion: 'no-preference' through the runner option",
+        purpose:
+          'Proves the before/after transform comparison can see a hover translate at all, so an equal pair under reduce is a measurement rather than an instrument that never reads a change.',
+        project: testInfo.project.name,
+        url: page.url(),
+      },
+    });
+
+    expect(reading.hoveredAfter, 'the hover never landed in the control').toBe(true);
+    expect(
+      reading.transformAfter,
+      'the control lost its subject: hovering no longer translates the card even with motion allowed. ' +
+        'ZM-2a then measures nothing; revisit it rather than deleting this control.',
+    ).not.toBe(reading.transformBefore);
+  });
+});
