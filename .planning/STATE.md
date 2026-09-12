@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-09-11T22:01:17.577Z"
+stopped_at: Completed 05-10-PLAN.md
+last_updated: "2026-09-12T09:57:02.694Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: 26f1a8e6f95bb48e0f15aa5c3a19bf3d1dfb41af
+state_head: 1f4692278afb94eca7cc45c3bb74c60e2b8d2e2c
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 59
+  completed_plans: 61
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 6 of 17
+Plan: 7 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -102,6 +102,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P05 | 15 min | 3 tasks | 8 files |
 | Phase 05 P07 | 25 min | 2 tasks | 3 files |
 | Phase 05 P08 | 28 min | 3 tasks | 7 files |
+| Phase 05 P10 | 62 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -236,6 +237,9 @@ Recent decisions affecting current work:
 - [Phase 05]: First live axe baseline at axe-core 4.13.0: 0 violations at every impact across 11 surface-states, color-contrast applied on all 11. Seven WCAG-tagged experimental or deprecated rules are not performed by this configuration and are recorded by id.
 - [Phase 05]: 05-08: VC-1a and VC-1c are asserted on every surface; on S3 the document-width bound extends only as far as escapees outside #products reach, and region attribution lives in the shared collectViewportEscapees helper
 - [Phase 05]: 05-08: at 320x256 three ZERO-PAPER HUB mobile-menu entries are unreachable inside a fixed header (VP-O3); recorded as a D-OQ-3 out-of-scope observation and handed forward with VP-O1 and VP-O2, while P10 and its opener stay asserted
+- [Phase 05]: Heading order is owned by e2e/semantics.e2e.ts as a DOM walk, not by axe: heading-order is best-practice-tagged, AXE_TAGS excludes it, and re-adding it with withRules overwrites runOnly and narrows the whole sweep to that one rule while still reporting a conformance pass
+- [Phase 05]: Three rows of 05-UI-SPEC.md are corrected against the shipped page with their measurements: the SS-2 region list is ten not nine, SS-2 never exposes two navigation landmarks at once, and SS-4 "10 capability titles" is six capabilities plus four journey steps
+- [Phase 05]: A known-open deployed defect is accommodated only by a self-terminating registry entry that asserts the DEPLOYED value, so the assertion fails the moment the fix ships and the entry cannot outlive the defect
 
 ### Pending Todos
 
@@ -265,6 +269,7 @@ None yet.
 - OPEN: Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) — NOT closed by the owner's copy approval; needs someone with legal standing
 - DECIDED NOT EXECUTED: haoo.online has no MX records, so info@haoo.online very likely does not receive mail; Phase 5 / LEAD-07 blocks on the DNS change
 - OPEN: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim (D34)
+- F1-LIVE (OPEN): both "Back to ZERO-PAPER HUB" links on the deployed https://www.haoo.online/ resolve to the HAOO page itself, not the parent site. The fix is commit d8f4bea, committed locally and never pushed; origin/main is 32 commits behind, so GitHub Pages has never built it. Closing it needs a push and deploy (owner decision), then deletion of the DEPLOY_LAG entry in e2e/semantics.e2e.ts.
 
 ### Quick Tasks Completed
 
@@ -287,6 +292,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-11T22:01:17.452Z
-Stopped at: Completed 05-08-PLAN.md
+Last session: 2026-09-12T09:56:35.719Z
+Stopped at: Completed 05-10-PLAN.md
 Resume file: None
