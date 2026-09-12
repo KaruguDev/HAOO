@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-15-PLAN.md
-last_updated: "2026-09-12T19:41:08.032Z"
+stopped_at: Completed 05-13-PLAN.md
+last_updated: "2026-09-12T20:11:06.170Z"
 last_activity: 2026-09-12
-last_activity_desc: 05-15 complete, 05-13 next
-state_head: 98c1c41c7d2b7bbd5640cc1222d8ecd7aa491c72
+last_activity_desc: 05-13 complete, 05-14 next
+state_head: 30314deb23e2090459aa5aea24e79bc7d209a484
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 64
+  completed_plans: 65
   percent: 43
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 12 of 17 (05-13 next; 11 plans summarised; 05-02 and 05-06 parked on the haoo.online MX records)
+Plan: 13 of 17 (05-14 next; 12 plans summarised; 05-02, 05-06 and 05-16 parked on the haoo.online MX records)
 Total Plans in Phase: 17
-Status: Executing Phase 05 — wave 5 open (05-13, 05-14); 05-15 landed locally, unpushed in both repositories
-Last activity: 2026-09-12 — 05-15 complete: test:phase1:contracts replaces the expected-red gate in both repositories, and verify-split.yml is added. Push ZERO-PAPER HUB first, then HAOO
+Status: Executing Phase 05 — wave 5: 05-13 landed locally and unpushed, 05-14 open. ZM-LIVE-1 and ZM-LIVE-2 close on the next HAOO deploy (65a612a)
+Last activity: 2026-09-12 — 05-13 complete. ZM-1 is measured at 640/720 (SC 1.4.4, 200%) and 320 (SC 1.4.10): 0 escapees, 10/10 content items, 8/8 actions, 0 truncations. ZM-2 found two live reduced-motion defects, fixed in 65a612a and proven on preview. E1 and E3 are held out for human judgement
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
 
@@ -106,6 +106,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P11 | 25min | 3 tasks | 7 files |
 | Phase 05 P12 | ~8h40m wall clock (interrupted) | 3 tasks | 7 files |
 | Phase 05 P15 | 12 min | 3 tasks | 12 files |
+| Phase 05 P13 | 19 min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-12: FS-O1 recorded, not judged: 1 submission status region at every moment, 2 role=status elements in the document whenever the form renders
 - [Phase 05]: 05-15: D-16 resolved by the owner as invert-rename. test:phase1:red is withdrawn in both repositories with the named successor scripts/assert-phase1-contracts.mjs, run as npm run test:phase1:contracts (owner-selected, orchestrator-proposed). Exit 1 before, exit 0 after, on both sides. The suites, the markers (HAOO 3, ZPH 1) and the 8-signature rejection list are byte-unchanged; a marker now counts only on a green line, because a skipped case prints its marker and exits 0
 - [Phase 05]: 05-15: .github/workflows/verify-split.yml runs npm run verify:disjoint unchanged on every HAOO push and pull request against an anonymous clone of the ZERO-PAPER HUB main tip, then runs cmp on the two allowlists. Measured: the auditor alone exits 0 when the origins disagree (26 entries, 25 subtracted). Push ZERO-PAPER HUB first, then HAOO
+- [Phase 05]: 05-13: two reduced-motion defects on the live HAOO page (ZM-LIVE-1 hover translate that motion-reduce:transform-none never overrode; ZM-LIVE-2 unguarded smooth scrolling) are fixed in source in 65a612a and held on live by a self-terminating DEPLOY_LAG. The deploy breaks both entries, and they must then be deleted.
+- [Phase 05]: 05-13: the VC-2 primary-action and SS-4 brochure-equivalence code moved verbatim to e2e/fixtures/targets.ts and e2e/fixtures/brochure-equivalence.ts, because Playwright refuses spec-to-spec imports. The viewport, semantics and zoom specs share one definition.
+- [Phase 05]: 05-13: HAOO's src/index.css (a ground-A scaffold entry) now diverges from ZERO-PAPER HUB's copy, which scaffold entries permit (verify:disjoint 26/26/0). ZERO-PAPER HUB is untouched, and its unguarded motion stays under F6.
 
 ### Pending Todos
 
@@ -302,6 +306,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T19:41:07.849Z
-Stopped at: Completed 05-15-PLAN.md
+Last session: 2026-09-12T20:11:06.031Z
+Stopped at: Completed 05-13-PLAN.md
 Resume file: None
