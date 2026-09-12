@@ -41,5 +41,8 @@ came from and why it is recorded here rather than fixed.
 - **What a fix involves:** exclude the test tree from Tailwind's content scan (for example, add
   `'!./src/test/**'` to `content`), confirm the three rules are absent from a fresh `dist/` build and
   that no product class disappears, then deploy.
-- **ZERO-PAPER HUB:** not checked by build: ZERO-PAPER HUB's Tailwind content glob reads `['./index.html', './src/**/*.{js,ts,jsx,tsx}']`, and its `src/` markers are: src/test/build-output.test.ts:43: * | `[phase1-red:build] emits a physical nested HAOO document` | `[phase1-red:build] emits a physical HAOO document at its published path` |
-src/test/products-section.test.tsx:35:  it('[phase1-red:products] omits the Products landmark when the collection is empty', () => {. Whether its production CSS carries the same rules was not measured.
+- **ZERO-PAPER HUB:** the same mechanism applies. Its `tailwind.config.js` scans the same
+  `./src/**/*.{js,ts,jsx,tsx}` glob, and its test tree carries `[phase1-red:build]`
+  (`src/test/build-output.test.ts`) and `[phase1-red:products]` (`src/test/products-section.test.tsx:35`).
+  Measured on 2026-09-12T20:56:44Z: the live stylesheet `/assets/main-CgNg8OQE.css` carries 2 such rule(s): `.[phase1-red:build]`, `.[phase1-red:products]`. A fix there is a
+  ZERO-PAPER HUB commit, which 05-CONTEXT D-03 allows only when evidence forces it.
