@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-11-PLAN.md
-last_updated: "2026-09-12T10:43:02.190Z"
+stopped_at: Completed 05-12-PLAN.md
+last_updated: "2026-09-12T19:22:30.271Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: 937410624c506d140f15c2cd13956b27fc4d17ad
+state_head: c199265299d44b14ffa33ac1444493e89f70ca59
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 62
+  completed_plans: 63
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 8 of 17
+Plan: 9 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -104,6 +104,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P08 | 28 min | 3 tasks | 7 files |
 | Phase 05 P10 | 62 min | 3 tasks | 9 files |
 | Phase 05 P11 | 25min | 3 tasks | 7 files |
+| Phase 05 P12 | ~8h40m wall clock (interrupted) | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -243,6 +244,8 @@ Recent decisions affecting current work:
 - [Phase 05]: A known-open deployed defect is accommodated only by a self-terminating registry entry that asserts the DEPLOYED value, so the assertion fails the moment the fix ships and the entry cannot outlive the defect
 - [Phase 05]: 05-11: the retired-path document's exactly-zero script budget is asserted as 'scripts NOT carrying the Cloudflare edge signature equals 0' — the served document carries two edge-injected scripts (bot management, plus a content-negotiated Web Analytics beacon) that are in neither repository tree — The authored budget stays exact so any script a human adds is a red run, while a third-party edge behaviour is recorded as observation O-1 rather than reported as a defect in this project's markup. Handed to 05-14 and the future ZERO-PAPER HUB phase.
 - [Phase 05]: 05-11: a third-party host being unavailable is a recorded observation carrying its status, redirect target and wall-clock time; a missing, malformed or wrong-target link is a contract failure that fails the run. The two verdicts are never collapsed. — A gate that goes red because someone else's host is down is un-greenable for a reason nobody here can fix, which is how a suite gets ignored. Recorded is neither passed nor failed.
+- [Phase 05]: 05-12: option-label backstop measured on live at 360x740 with the placeholder kept apart from product labels; recorded as not a pass and routed to human judgement
+- [Phase 05]: 05-12: FS-O1 recorded, not judged: 1 submission status region at every moment, 2 role=status elements in the document whenever the form renders
 
 ### Pending Todos
 
@@ -296,6 +299,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T10:42:46.220Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-09-12T19:22:30.146Z
+Stopped at: Completed 05-12-PLAN.md
 Resume file: None
