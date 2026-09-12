@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-12-PLAN.md
-last_updated: "2026-09-12T19:22:30.271Z"
+stopped_at: Completed 05-15-PLAN.md
+last_updated: "2026-09-12T19:41:08.032Z"
 last_activity: 2026-09-12
-last_activity_desc: 05-12 complete, 05-15 next
-state_head: c199265299d44b14ffa33ac1444493e89f70ca59
+last_activity_desc: 05-15 complete, 05-13 next
+state_head: 98c1c41c7d2b7bbd5640cc1222d8ecd7aa491c72
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 63
+  completed_plans: 64
   percent: 43
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 11 of 17 (05-15 next; 10 plans summarised)
+Plan: 12 of 17 (05-13 next; 11 plans summarised; 05-02 and 05-06 parked on the haoo.online MX records)
 Total Plans in Phase: 17
-Status: Executing Phase 05 — wave 4 closing; 05-02 and 05-06 parked on the haoo.online MX records
-Last activity: 2026-09-12 — 05-12 complete; F1-LIVE closed after the owner-authorised deploy
+Status: Executing Phase 05 — wave 5 open (05-13, 05-14); 05-15 landed locally, unpushed in both repositories
+Last activity: 2026-09-12 — 05-15 complete: test:phase1:contracts replaces the expected-red gate in both repositories, and verify-split.yml is added. Push ZERO-PAPER HUB first, then HAOO
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
 
@@ -105,6 +105,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P10 | 62 min | 3 tasks | 9 files |
 | Phase 05 P11 | 25min | 3 tasks | 7 files |
 | Phase 05 P12 | ~8h40m wall clock (interrupted) | 3 tasks | 7 files |
+| Phase 05 P15 | 12 min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -246,6 +247,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-11: a third-party host being unavailable is a recorded observation carrying its status, redirect target and wall-clock time; a missing, malformed or wrong-target link is a contract failure that fails the run. The two verdicts are never collapsed. — A gate that goes red because someone else's host is down is un-greenable for a reason nobody here can fix, which is how a suite gets ignored. Recorded is neither passed nor failed.
 - [Phase 05]: 05-12: option-label backstop measured on live at 360x740 with the placeholder kept apart from product labels; recorded as not a pass and routed to human judgement
 - [Phase 05]: 05-12: FS-O1 recorded, not judged: 1 submission status region at every moment, 2 role=status elements in the document whenever the form renders
+- [Phase 05]: 05-15: D-16 resolved by the owner as invert-rename. test:phase1:red is withdrawn in both repositories with the named successor scripts/assert-phase1-contracts.mjs, run as npm run test:phase1:contracts (owner-selected, orchestrator-proposed). Exit 1 before, exit 0 after, on both sides. The suites, the markers (HAOO 3, ZPH 1) and the 8-signature rejection list are byte-unchanged; a marker now counts only on a green line, because a skipped case prints its marker and exits 0
+- [Phase 05]: 05-15: .github/workflows/verify-split.yml runs npm run verify:disjoint unchanged on every HAOO push and pull request against an anonymous clone of the ZERO-PAPER HUB main tip, then runs cmp on the two allowlists. Measured: the auditor alone exits 0 when the origins disagree (26 entries, 25 subtracted). Push ZERO-PAPER HUB first, then HAOO
 
 ### Pending Todos
 
@@ -269,7 +272,7 @@ None yet.
 - 04.1: the three GitHub Actions repository variables (VITE_HAOO_MEASUREMENT_PROVIDER / VITE_HAOO_POSTHOG_TOKEN / VITE_HAOO_POSTHOG_API_HOST) are NOT confirmed created. The deploy workflow reads them; nothing in this repo can observe them. An absent variable fails the selector closed to and the deploy captures nothing while every gate stays green — a green workflow is not evidence of a capturing deploy. Blocks UAT 10 and 8, and therefore MEAS-01/MEAS-08.
 - [Phase 04.2 RESOLVED 2026-09-05] The third-party GitHub Pages takeover of haoo.online is CLEARED. The owner verified both domains in the account-level Pages UI; orchestrator re-measured: _github-pages-challenge-karugudev.haoo.online TXT = "4cc29667cf247705c08667d0f5e10e" and .zero-paperhub.com TXT = "1a1b2ecceedfebd66940e9cb5b17d7" (both non-empty), www.haoo.online now returns 404 ("Site not found - GitHub Pages", the RAJABOM/MEGAWIN spam site is gone), haoo.online returns 301 to that 404, and www.zero-paperhub.com still returns 200. Both domains are verified to the KaruguDev account, so neither can be re-taken. Plan 04.2-01 tasks 1 and 2 are cleared and task 3 is committed. STILL OPEN, unrelated to the takeover: haoo.online has no MX records, so mail to info@haoo.online very likely does not arrive; the owner decided to point MX at mx1/mx2.privateemail.com, but that DNS change is out of this phase scope.
 - [Phase 04.2 RESOLVED 2026-09-06] Both plan 04.2-02 blockers are cleared. (1) KaruguDev/HAOO was changed to PUBLIC by the owner, so Pages publishes on the free plan and the account-plan question is moot. (2) The missing gh workflow scope no longer blocks: pushes go over SSH, and OAuth scopes are not enforced on SSH key auth, so workflow files push fine. Verified: `ssh -T git@github.com` returns "Hi KaruguDev!", ZPH origin is already git@github.com:KaruguDev/ZERO-PAPERHUB.git, and `git ls-remote git@github.com:KaruguDev/HAOO.git` exits 0. CONSTRAINT for plan 04.2-02: the new repository's origin MUST be the SSH URL git@github.com:KaruguDev/HAOO.git, never the HTTPS URL — over HTTPS the gh token (scopes gist, read:org, repo) would be rejected when pushing .github/workflows/deploy.yml. Any `gh api` write to workflow files would fail for the same reason; use git over SSH. [Q3, the asset directory, was RESOLVED 2026-09-05 as brochure/.]
-- npm run test:phase1:red exits 1 in BOTH repositories (pre-existing: it is a RED gate asserting the Phase 1 suites fail, and they pass). Owner decision owed — see 04.2-DEFERRED-ITEMS.md D6.
+- [Phase 05 RESOLVED 2026-09-12 by 05-15] test:phase1:red no longer exists in either repository. The owner chose invert-rename (D-16), and the successor npm run test:phase1:contracts exits 0 on both sides (HAOO a54d54b, ZPH 3525f6d). OPEN until the orchestrator pushes (ZERO-PAPER HUB first, then HAOO): the first run of verify-split.yml, whose run id and conclusion are pending in 05-EVIDENCE-GATES.md section 4. G-1 (the auditor passes when an allowlist entry is no longer shared) is handed to 05-14.
 - Phase 04.2 plan 04 is HALTED at its first task — a blocking-human checkpoint:decision on the measurement-disclosure data-controller copy (D-09). No source work is possible: tasks 2 and 3 both carry preconditions on that approval. Owner must return the approved controller heading and note verbatim, the placement, and the orphaned-record disposition. The unresolved Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) feeds into this gate.
 - [Phase 04.2] RESOLVED by plan 04.2-08: the owner ratified the 26-entry scaffold allowlist on two grounds and narrowed SPLT-01's positive half to product source. `npm run verify:disjoint` now exits 0 in BOTH repositories (26 shared paths, 26 subtracted, 0 violations, 0 converged collisions, 0 product-source leaks). SPLT-01 is Complete.
 - OPEN: Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) — NOT closed by the owner's copy approval; needs someone with legal standing
@@ -299,6 +302,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T19:22:30.146Z
-Stopped at: Completed 05-12-PLAN.md
+Last session: 2026-09-12T19:41:07.849Z
+Stopped at: Completed 05-15-PLAN.md
 Resume file: None
