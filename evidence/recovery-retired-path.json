@@ -1,0 +1,263 @@
+[
+  {
+    "recordedAt": "2026-09-12T10:31:24.319Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "as-served (refresh destination aborted, byte-unmodified document)",
+      "refreshContent": "0; url=https://www.haoo.online/",
+      "refreshDelaySeconds": 0,
+      "refreshTarget": "https://www.haoo.online/",
+      "canonicalHref": "https://www.haoo.online/",
+      "robotsContent": "noindex, follow",
+      "forwardLinkHref": "https://www.haoo.online/",
+      "scriptElementCount": 2,
+      "authoredScriptElementCount": 2,
+      "edgeInjectedScriptElementCount": 0,
+      "edgeInjectedScripts": []
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, structural assertions",
+      "observation": "O-1: the served document carries one edge-injected Cloudflare bot-management script that is in neither repository tree. The authored script budget is still exactly zero."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:31:27.208Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "as-served (refresh destination aborted, byte-unmodified document)",
+      "refreshContent": "0; url=https://www.haoo.online/",
+      "refreshDelaySeconds": 0,
+      "refreshTarget": "https://www.haoo.online/",
+      "canonicalHref": "https://www.haoo.online/",
+      "robotsContent": "noindex, follow",
+      "forwardLinkHref": "https://www.haoo.online/",
+      "scriptElementCount": 2,
+      "authoredScriptElementCount": 2,
+      "edgeInjectedScriptElementCount": 0,
+      "edgeInjectedScripts": []
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, structural assertions",
+      "observation": "O-1: the served document carries one edge-injected Cloudflare bot-management script that is in neither repository tree. The authored script budget is still exactly zero."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:31:30.475Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "as-served (refresh destination aborted, byte-unmodified document)",
+      "refreshContent": "0; url=https://www.haoo.online/",
+      "refreshDelaySeconds": 0,
+      "refreshTarget": "https://www.haoo.online/",
+      "canonicalHref": "https://www.haoo.online/",
+      "robotsContent": "noindex, follow",
+      "forwardLinkHref": "https://www.haoo.online/",
+      "scriptElementCount": 2,
+      "authoredScriptElementCount": 2,
+      "edgeInjectedScriptElementCount": 0,
+      "edgeInjectedScripts": []
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, structural assertions",
+      "observation": "O-1: the served document carries one edge-injected Cloudflare bot-management script that is in neither repository tree. The authored script budget is still exactly zero."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:31:33.759Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-neutralised (response body rewritten) with scripting disabled",
+      "renderedTextLength": 622,
+      "renderedText": "HAOO has moved to its own domain. Open HAOO at www.haoo.online. The HAOO brochure is published at www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf. The brochure, preview, hero and logo files that used to sit beside this page are not retained here and their old URLs return 404 — a deliberate choice recorded in the phase 04.2 split contract, not an oversight. The visible links above are the guarantee. The refresh is the enhancement: if it does not run, or if a visitor has JavaScript and meta refresh disabled entirely, the links still work — the same discipline every no-JavaScript fallback in this project follows.",
+      "R1": "HAOO has moved to its own domain.",
+      "R2": "Open HAOO at www.haoo.online -> https://www.haoo.online/",
+      "R3": "www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf -> https://www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf",
+      "R4": "are not retained here and their old URLs return 404",
+      "R5": "The visible links above are the guarantee. The refresh is the enhancement"
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": true,
+      "interventions": [
+        "rewrote the response body to remove the meta refresh directive (RESEARCH Pattern 2)",
+        "disabled scripting in the browser context"
+      ],
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract R1-R5"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:31:34.787Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-neutralised, visible link activated",
+      "landedOn": "https://www.haoo.online/",
+      "topLevelHeadings": [
+        "Choose how to start with HAOO"
+      ],
+      "headingSequence": [
+        "h1 Choose how to start with HAOO",
+        "h2 This form needs JavaScript"
+      ]
+    },
+    "detail": {
+      "javaScriptEnabled": false,
+      "note": "Scripting is off in this context, so the top-level heading present on the landing page is the <noscript> h1 rather than the React h1. That is the heading a visitor in THIS state sees; the React h1 is asserted by the refresh-permitted reading instead."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:31:38.678Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-permitted (no interception)",
+      "startedAt": "https://www.zero-paperhub.com/products/haoo/",
+      "landedOn": "https://www.haoo.online/",
+      "topLevelHeadings": [
+        "Run the business—not the paperwork."
+      ],
+      "headingCount": 26
+    },
+    "detail": {
+      "javaScriptEnabled": true,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, refresh-permitted row (SC3)"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:32:40.464Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "as-served (refresh destination aborted, byte-unmodified document)",
+      "refreshContent": "0; url=https://www.haoo.online/",
+      "refreshDelaySeconds": 0,
+      "refreshTarget": "https://www.haoo.online/",
+      "canonicalHref": "https://www.haoo.online/",
+      "robotsContent": "noindex, follow",
+      "forwardLinkHref": "https://www.haoo.online/",
+      "scriptElementCount": 2,
+      "authoredScriptElementCount": 0,
+      "edgeInjectedScriptElementCount": 2,
+      "edgeInjectedScripts": [
+        "inline(921 chars): (function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWin",
+        "src: https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, structural assertions",
+      "observation": "O-1: the served document carries edge-injected Cloudflare scripts that are in neither repository tree - a bot-management bootstrap and the Web Analytics beacon. The authored script budget is still exactly zero."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:32:42.754Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-neutralised (response body rewritten) with scripting disabled",
+      "renderedTextLength": 622,
+      "renderedText": "HAOO has moved to its own domain. Open HAOO at www.haoo.online. The HAOO brochure is published at www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf. The brochure, preview, hero and logo files that used to sit beside this page are not retained here and their old URLs return 404 — a deliberate choice recorded in the phase 04.2 split contract, not an oversight. The visible links above are the guarantee. The refresh is the enhancement: if it does not run, or if a visitor has JavaScript and meta refresh disabled entirely, the links still work — the same discipline every no-JavaScript fallback in this project follows.",
+      "R1": "HAOO has moved to its own domain.",
+      "R2": "Open HAOO at www.haoo.online -> https://www.haoo.online/",
+      "R3": "www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf -> https://www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf",
+      "R4": "are not retained here and their old URLs return 404",
+      "R5": "The visible links above are the guarantee. The refresh is the enhancement"
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "javaScriptEnabled": false,
+      "modifiedPage": true,
+      "interventions": [
+        "rewrote the response body to remove the meta refresh directive (RESEARCH Pattern 2)",
+        "disabled scripting in the browser context"
+      ],
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract R1-R5"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:32:43.591Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-neutralised, visible link activated",
+      "landedOn": "https://www.haoo.online/",
+      "topLevelHeadings": [
+        "Choose how to start with HAOO"
+      ],
+      "headingSequence": [
+        "h1 Choose how to start with HAOO",
+        "h2 This form needs JavaScript"
+      ]
+    },
+    "detail": {
+      "javaScriptEnabled": false,
+      "note": "Scripting is off in this context, so the top-level heading present on the landing page is the <noscript> h1 rather than the React h1. That is the heading a visitor in THIS state sees; the React h1 is asserted by the refresh-permitted reading instead."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:32:46.727Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mode": "refresh-permitted (no interception)",
+      "startedAt": "https://www.zero-paperhub.com/products/haoo/",
+      "landedOn": "https://www.haoo.online/",
+      "topLevelHeadings": [
+        "Run the business—not the paperwork."
+      ],
+      "headingCount": 26
+    },
+    "detail": {
+      "javaScriptEnabled": true,
+      "modifiedPage": false,
+      "rule": "UI-SPEC § Retired-Path Recovery Document Contract, refresh-permitted row (SC3)"
+    }
+  }
+]

@@ -43,6 +43,7 @@ const DESKTOP = { width: 1280, height: 1024 } as const;
 const EVIDENCE = {
   scriptless: 'recovery-scriptless',
   destinations: 'recovery-destinations',
+  retiredPath: 'recovery-retired-path',
 } as const;
 
 /* ------------------------------------------------------------------------------------------- */
@@ -517,5 +518,394 @@ test.describe('S1 — the scripted HAOO page carries the same recovery destinati
     ).toEqual([...RECOVERY_DESTINATIONS].sort());
 
     assertWellFormed(scriptedDistinct, 'S1');
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* S4 — the retired-path recovery document                                                       */
+/* ------------------------------------------------------------------------------------------- */
+
+const RETIRED = SURFACES.S4;
+
+/**
+ * `HAOO_PRODUCT.outcome`, the S1 top-level heading, pinned by `src/test/haoo-content.test.ts:38`.
+ *
+ * Transcribed for the same reason `WHATSAPP_STARTER_TEXT` is: `src/products/haoo.ts` reads
+ * `import.meta.env` at module scope and throws when imported outside Vite.
+ */
+const HAOO_OUTCOME_HEADING = 'Run the business—not the paperwork.';
+
+/** The `<noscript>` top-level heading, which is the h1 a JS-disabled visitor lands on. */
+const SCRIPTLESS_HEADING = 'Choose how to start with HAOO';
+
+/**
+ * R1–R5, transcribed from `05-UI-SPEC.md` § Retired-Path Recovery Document Contract and matched
+ * against the document's RENDERED VISIBLE TEXT.
+ *
+ * `innerText`, never `textContent` and never a markup search: a statement present in the markup
+ * but not rendered is not a statement to a visitor, which is the whole distinction the contract's
+ * "as rendered, visible text" wording carries. Whitespace is collapsed before matching because the
+ * source wraps these sentences across several lines and the renderer joins them with one space.
+ */
+const REQUIRED_STATEMENTS = {
+  R1: 'HAOO has moved to its own domain.',
+  R4: 'are not retained here and their old URLs return 404',
+  R5: 'The visible links above are the guarantee. The refresh is the enhancement',
+} as const;
+
+/** R2 and R3 are anchors, located by the shipped accessible names P11 and P12 carry. */
+const RETIRED_LINKS = { forward: 'P11', brochure: 'P12' } as const;
+
+/**
+ * The signature of a script this document did not author.
+ *
+ * **Read this before changing the exact-zero assertion below.** 04.2 D25 gives this document a
+ * script budget of EXACTLY ZERO and the suite asserts that as an exact number rather than a
+ * maximum, so "just one more line" is a red test. Measured on 2026-09-12, the document as served
+ * to a browser carries TWO `<script>` elements that neither repository wrote. `www.zero-paperhub.com`
+ * is fronted by Cloudflare (`server: cloudflare`, `cf-ray` on every response) and its edge injects:
+ *
+ *   1. an inline bot-management bootstrap carrying `window.__CF$cv$params`, which loads
+ *      `/cdn-cgi/challenge-platform/scripts/jsd/main.js` into a hidden iframe; and
+ *   2. the Cloudflare Web Analytics beacon, `https://static.cloudflareinsights.com/beacon.min.js`.
+ *
+ * The second is content-negotiated: a plain `curl` of the same URL returns only the first, so it
+ * is invisible to a bytes-level check and only a real browser request sees it. The GitHub Pages
+ * origin behind the edge serves the authored document; both injections happen after the origin and
+ * are in neither tree. The BEACON in particular is an analytics script on a document defined as
+ * script-free, in a project whose measurement posture is a locked-down facade — that is a question
+ * for the ZERO-PAPER HUB owner, recorded here rather than settled here.
+ *
+ * So the assertion is: the count of scripts that do NOT carry this signature is exactly zero. That
+ * keeps the budget exact — any script without the edge signature is a failing run, which is what
+ * D25 asked for — while a third-party edge behaviour is RECORDED as an observation rather than
+ * reported as a defect in this project's markup. It is the same verdict split this plan applies to
+ * an unreachable third-party host, applied to a third-party addition instead of a subtraction.
+ * Observation O-1 in `05-EVIDENCE-RECOVERY.md` carries it forward; widening this signature to
+ * absorb a script somebody actually wrote would be the abuse it is guarding against.
+ */
+const EDGE_INJECTED_SIGNATURE =
+  /\/cdn-cgi\/|__CF\$cv\$params|challenge-platform|cloudflareinsights\.com/u;
+
+interface ScriptReading {
+  readonly src: string;
+  /** The FULL inline body. Matched in full — a truncated body hides the signature it carries. */
+  readonly inline: string;
+}
+
+function isEdgeInjected(script: ScriptReading): boolean {
+  return EDGE_INJECTED_SIGNATURE.test(script.src) || EDGE_INJECTED_SIGNATURE.test(script.inline);
+}
+
+/** A script identified for the record, without pasting a kilobyte of minified third-party code. */
+function describeScript(script: ScriptReading): string {
+  return script.src === ''
+    ? `inline(${script.inline.length} chars): ${script.inline.slice(0, 80)}`
+    : `src: ${script.src}`;
+}
+
+interface RetiredStructure {
+  readonly refreshContent: string;
+  readonly canonicalHref: string;
+  readonly robotsContent: string;
+  readonly scripts: readonly ScriptReading[];
+}
+
+async function readRetiredStructure(page: Page): Promise<RetiredStructure> {
+  return page.evaluate(() => ({
+    refreshContent:
+      document.querySelector('meta[http-equiv="refresh"]')?.getAttribute('content') ?? '',
+    canonicalHref: document.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? '',
+    robotsContent: document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? '',
+    scripts: Array.from(document.querySelectorAll('script')).map((script) => ({
+      src: script.getAttribute('src') ?? '',
+      inline: script.textContent ?? '',
+    })),
+  }));
+}
+
+/** The document's rendered visible text, whitespace collapsed. */
+async function visibleText(page: Page): Promise<string> {
+  return (await page.locator('body').innerText()).replace(/\s+/gu, ' ').trim();
+}
+
+test.describe('S4 — the retired-path document a visitor the refresh does not carry', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  /*
+   * Scripting is off for both readings in this block, because the contract's fallback case is
+   * "refresh neutralised AND JavaScript disabled". It also means the edge-injected script cannot
+   * run and mutate the DOM, so the structural reading below is the document as PARSED FROM THE
+   * SERVED BYTES rather than the document after somebody else's code finished with it.
+   */
+  test.use({ javaScriptEnabled: false });
+
+  test('as served: an instant refresh, a canonical, a no-index directive, no authored script, and one target', async ({
+    page,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    /*
+     * The document ships `content="0; url=…"`. At zero seconds there is no window in which to
+     * read it, and disabling scripting does not help — meta refresh is a parser directive, not
+     * script (RESEARCH Pitfall 8). So the DESTINATION is blocked rather than the document
+     * rewritten: the refresh fires, its navigation fails, and the browser stays on the document
+     * exactly as the server sent it. This is therefore NOT a modified-page measurement, and it is
+     * recorded as `as-served` so it can never be read as the neutralised one.
+     */
+    await page.route(HAOO.url, (route) => route.abort('aborted'));
+
+    try {
+      await page.goto(RETIRED.url, { waitUntil: 'domcontentloaded' });
+    } catch {
+      // The refresh can interrupt the navigation `goto` awaits. The URL check below is the real
+      // proof that the document under measurement is the right one.
+    }
+    await page.waitForTimeout(2000);
+    expect(page.url(), 'the refresh carried the browser away from the document under test').toContain(
+      '/products/haoo/',
+    );
+
+    const structure = await readRetiredStructure(page);
+    const refreshMatch = /^\s*(\d+)\s*;\s*url\s*=\s*(.+?)\s*$/iu.exec(structure.refreshContent);
+    const refreshDelay = Number(refreshMatch?.[1] ?? Number.NaN);
+    const refreshTarget = refreshMatch?.[2] ?? '';
+    const forwardHref =
+      (await page
+        .getByRole('link', { name: actionById(RETIRED_LINKS.forward).accessibleName, exact: true })
+        .getAttribute('href')) ?? '';
+
+    const authoredScripts = structure.scripts.filter((script) => !isEdgeInjected(script));
+    const edgeScripts = structure.scripts.filter(isEdgeInjected);
+
+    recordEvidence(EVIDENCE.retiredPath, {
+      surface: RETIRED.id,
+      viewport: DESKTOP,
+      measured: {
+        mode: 'as-served (refresh destination aborted, byte-unmodified document)',
+        refreshContent: structure.refreshContent,
+        refreshDelaySeconds: refreshDelay,
+        refreshTarget,
+        canonicalHref: structure.canonicalHref,
+        robotsContent: structure.robotsContent,
+        forwardLinkHref: forwardHref,
+        scriptElementCount: structure.scripts.length,
+        authoredScriptElementCount: authoredScripts.length,
+        edgeInjectedScriptElementCount: edgeScripts.length,
+        edgeInjectedScripts: edgeScripts.map(describeScript),
+      },
+      detail: {
+        url: RETIRED.url,
+        javaScriptEnabled: false,
+        modifiedPage: false,
+        rule: 'UI-SPEC § Retired-Path Recovery Document Contract, structural assertions',
+        observation:
+          'O-1: the served document carries edge-injected Cloudflare scripts that are in neither ' +
+          'repository tree - a bot-management bootstrap and the Web Analytics beacon. The ' +
+          'authored script budget is still exactly zero.',
+      },
+    });
+
+    /*
+     * The delay is exactly the instant value, asserted as that exact number. An INSTANT refresh
+     * reads as a permanent move and a DELAYED one reads as temporary, so the number is
+     * load-bearing rather than incidental — and axe-core's `meta-refresh` rule (critical,
+     * wcag2a) passes only at `redirectDelay <= 0`, so any other number would also have blocked
+     * the whole accessibility run.
+     */
+    expect(refreshDelay, 'the meta refresh delay in seconds').toBe(0);
+
+    expect(structure.canonicalHref, 'the canonical reference').not.toBe('');
+    expect(structure.robotsContent, 'the robots directive').toContain('noindex');
+
+    // EXACTLY zero authored scripts, as an exact number and never as a maximum (04.2 D25).
+    expect(
+      authoredScripts.length,
+      `the document carries ${authoredScripts.length} script element(s) this project authored: ` +
+        `${authoredScripts.map(describeScript).join(' | ')}`,
+    ).toBe(0);
+
+    /*
+     * The three destinations asserted EQUAL TO ONE ANOTHER, never each against a literal. A
+     * literal comparison would let one edited target sit alongside two stale ones and still pass
+     * each row on its own; comparing them to each other is what makes a split impossible. This
+     * mirrors `src/test/build-output.test.ts` against the built tree and extends it to the
+     * deployed bytes.
+     */
+    expect(refreshTarget, 'the refresh target and the canonical reference have split').toBe(
+      structure.canonicalHref,
+    );
+    expect(structure.canonicalHref, 'the canonical reference and the visible link have split').toBe(
+      forwardHref,
+    );
+    expect(forwardHref, 'the visible link and the refresh target have split').toBe(refreshTarget);
+  });
+
+  test('refresh neutralised: all five required statements are rendered, and the visible link lands on HAOO', async ({
+    page,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    /*
+     * RESEARCH Pattern 2: intercept the document response and strip the refresh directive from
+     * the body before the parser sees it. Disabling scripting is NOT sufficient and is not relied
+     * on — it is done as well, because the case the contract names is the visitor the enhancement
+     * does not carry at all. This IS a modified-page measurement and is recorded as such.
+     */
+    await page.route(RETIRED.url, async (route) => {
+      const response = await route.fetch();
+      const html = await response.text();
+      await route.fulfill({
+        response,
+        body: html.replace(/<meta\s+http-equiv=["']refresh["'][^>]*>/iu, ''),
+      });
+    });
+
+    await page.goto(RETIRED.url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+
+    // If the strip failed the browser is on the HAOO page by now. This is what makes the
+    // modified-page claim checkable rather than merely asserted.
+    expect(page.url(), 'the refresh was not neutralised — the strip did not match').toContain(
+      '/products/haoo/',
+    );
+
+    const rendered = await visibleText(page);
+    const forward = page.getByRole('link', {
+      name: actionById(RETIRED_LINKS.forward).accessibleName,
+      exact: true,
+    });
+    const brochure = page.getByRole('link', {
+      name: actionById(RETIRED_LINKS.brochure).accessibleName,
+      exact: true,
+    });
+    const forwardHref = (await forward.getAttribute('href')) ?? '';
+    const brochureHref = (await brochure.getAttribute('href')) ?? '';
+
+    recordEvidence(EVIDENCE.retiredPath, {
+      surface: RETIRED.id,
+      viewport: DESKTOP,
+      measured: {
+        mode: 'refresh-neutralised (response body rewritten) with scripting disabled',
+        renderedTextLength: rendered.length,
+        renderedText: rendered,
+        R1: REQUIRED_STATEMENTS.R1,
+        R2: `${actionById(RETIRED_LINKS.forward).accessibleName} -> ${forwardHref}`,
+        R3: `${actionById(RETIRED_LINKS.brochure).accessibleName} -> ${brochureHref}`,
+        R4: REQUIRED_STATEMENTS.R4,
+        R5: REQUIRED_STATEMENTS.R5,
+      },
+      detail: {
+        url: RETIRED.url,
+        javaScriptEnabled: false,
+        modifiedPage: true,
+        interventions: [
+          'rewrote the response body to remove the meta refresh directive (RESEARCH Pattern 2)',
+          'disabled scripting in the browser context',
+        ],
+        rule: 'UI-SPEC § Retired-Path Recovery Document Contract R1-R5',
+      },
+    });
+
+    // R1, R4 and R5 as rendered visible text.
+    for (const [id, statement] of Object.entries(REQUIRED_STATEMENTS)) {
+      expect(rendered, `${id} is not present as rendered visible text`).toContain(statement);
+    }
+
+    // R2: a working absolute anchor whose VISIBLE TEXT names the destination host.
+    await expect(forward, 'R2 is not visible').toBeVisible();
+    expect(forwardHref, 'R2 is not absolute').toMatch(/^https:\/\//u);
+    expect(await forward.innerText(), 'R2 visible text does not name the destination host').toContain(
+      'www.haoo.online',
+    );
+
+    // R3: a working absolute anchor to the brochure at its new host.
+    await expect(brochure, 'R3 is not visible').toBeVisible();
+    expect(brochureHref, 'R3 brochure destination').toEqual(
+      actionById(RETIRED_LINKS.brochure).destinations[0],
+    );
+
+    /*
+     * Activate the visible link in exactly this state. The refresh NOT running is the case the
+     * document exists for, so it is the case that must be proven — not inferred from the anchor
+     * being present in the markup.
+     */
+    await forward.click();
+    await page.waitForURL(/haoo\.online/u, { timeout: 60_000 });
+    const headings = await headingWalk(page);
+
+    recordEvidence(EVIDENCE.retiredPath, {
+      surface: RETIRED.id,
+      viewport: DESKTOP,
+      measured: {
+        mode: 'refresh-neutralised, visible link activated',
+        landedOn: page.url(),
+        topLevelHeadings: headings
+          .filter((heading) => heading.level === 1)
+          .map((heading) => heading.text),
+        headingSequence: headings.map((heading) => `h${heading.level} ${heading.text}`),
+      },
+      detail: {
+        javaScriptEnabled: false,
+        note:
+          'Scripting is off in this context, so the top-level heading present on the landing page ' +
+          'is the <noscript> h1 rather than the React h1. That is the heading a visitor in THIS ' +
+          'state sees; the React h1 is asserted by the refresh-permitted reading instead.',
+      },
+    });
+
+    expect(page.url(), 'the visible link did not land on the HAOO page').toContain(
+      'www.haoo.online',
+    );
+    const topLevel = headings.filter((heading) => heading.level === 1);
+    expect(topLevel, 'the landing page has no single top-level heading').toHaveLength(1);
+    expect(topLevel[0]?.text, 'the scriptless landing heading').toBe(SCRIPTLESS_HEADING);
+  });
+});
+
+test.describe('S4 — the retired-path document with the refresh permitted to run', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  test('carries the visitor to the HAOO page, top-level heading present', async ({
+    page,
+  }, testInfo) => {
+    requireProject(testInfo, 'live');
+
+    /*
+     * No interception of any kind. This is SC3's cross-repository navigation claim end to end,
+     * and it is a SEPARATE assertion from the neutralised one above — the two prove different
+     * things about the same document and are recorded under different modes so they can never be
+     * read as one reading.
+     */
+    await page.setViewportSize(DESKTOP);
+    await page.goto(RETIRED.url, { waitUntil: 'domcontentloaded' });
+    await page.waitForURL(/www\.haoo\.online/u, { timeout: 60_000 });
+    await page.waitForLoadState('networkidle');
+
+    const headings = await headingWalk(page);
+    const topLevel = headings.filter((heading) => heading.level === 1);
+
+    recordEvidence(EVIDENCE.retiredPath, {
+      surface: RETIRED.id,
+      viewport: DESKTOP,
+      measured: {
+        mode: 'refresh-permitted (no interception)',
+        startedAt: RETIRED.url,
+        landedOn: page.url(),
+        topLevelHeadings: topLevel.map((heading) => heading.text),
+        headingCount: headings.length,
+      },
+      detail: {
+        javaScriptEnabled: true,
+        modifiedPage: false,
+        rule: 'UI-SPEC § Retired-Path Recovery Document Contract, refresh-permitted row (SC3)',
+      },
+    });
+
+    expect(page.url(), 'the refresh did not carry the browser to the HAOO page').toContain(
+      'www.haoo.online',
+    );
+    expect(topLevel, 'the HAOO page has no single top-level heading').toHaveLength(1);
+    expect(topLevel[0]?.text, "S1's top-level heading").toBe(HAOO_OUTCOME_HEADING);
   });
 });
