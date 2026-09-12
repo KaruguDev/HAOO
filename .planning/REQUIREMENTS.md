@@ -114,12 +114,11 @@ workflow reads them; it cannot create them, and an absent variable expands to th
 fails the selector closed to `none`. A green workflow run is therefore not evidence of a capturing
 deploy. MEAS-01 and MEAS-08 stay unchecked and `Gaps Found`.*
 
-
 ### Experience and Release Quality
 
-- [ ] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
-- [ ] **QUAL-02**: Visitor can navigate product content, brochure controls, form fields, validation messages, and onboarding links by keyboard with visible focus
-- [ ] **QUAL-03**: HAOO page preserves semantic heading order, descriptive link and control names, zoom support, reduced-motion behavior, and an HTML equivalent for brochure information
+- [x] **QUAL-01**: Visitor can use the Products and HAOO journeys at supported mobile and desktop widths without horizontal overflow or hidden primary actions
+- [x] **QUAL-02**: Visitor can navigate product content, brochure controls, form fields, validation messages, and onboarding links by keyboard with visible focus
+- [x] **QUAL-03**: HAOO page preserves semantic heading order, descriptive link and control names, zoom support, reduced-motion behavior, and an HTML equivalent for brochure information
 - [x] **QUAL-04**: Direct navigation and browser refresh work for the HAOO document and the published brochure asset on the HAOO production host `www.haoo.online`, both served as physical files. **Retired-path asset disposition, stated explicitly (RESEARCH Pitfall 6 gap, closed by Phase 04.2):** the four assets formerly published under `https://www.zero-paperhub.com/products/haoo/` — `HAOO-Marketing-Brochure.pdf`, `brochure-preview.png`, `haoo-hero.png`, `haoo-logo.png` — are **not copied into and not retained by ZERO-PAPER HUB; those URLs 404 after cutover.** This is an accepted, recorded cost, not an oversight: a static host emits no per-path redirect, so an already-published brochure URL either resolves or 404s. Only the retired *page* keeps a recovery document (D-12); the retired *asset files* do not. *Amended by Phase 04.2; host re-pointed to the `www` leg 2026-09-06 when the owner reversed decision (a).*
 - [ ] **QUAL-05**: Build, typecheck, lint, automated contract/component tests, and required deployed manual checks pass before launch
 - [x] **QUAL-06**: Published HAOO claims, phone number, email address, and onboarding URL match the supplied brochure source material

@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-13-PLAN.md
-last_updated: "2026-09-12T20:11:06.170Z"
+stopped_at: Completed 05-14-PLAN.md
+last_updated: "2026-09-12T20:37:53.927Z"
 last_activity: 2026-09-12
 last_activity_desc: 05-13 complete, 05-14 next
-state_head: 30314deb23e2090459aa5aea24e79bc7d209a484
+state_head: 1f1230acb588fbe18db276009a9a1fa1455ab679
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 65
+  completed_plans: 66
   percent: 43
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 13 of 17 (05-14 next; 12 plans summarised; 05-02, 05-06 and 05-16 parked on the haoo.online MX records)
+Plan: 14 of 17 (05-14 next; 12 plans summarised; 05-02, 05-06 and 05-16 parked on the haoo.online MX records)
 Total Plans in Phase: 17
-Status: Executing Phase 05 — wave 5: 05-13 landed locally and unpushed, 05-14 open. ZM-LIVE-1 and ZM-LIVE-2 close on the next HAOO deploy (65a612a)
+Status: Ready to execute
 Last activity: 2026-09-12 — 05-13 complete. ZM-1 is measured at 640/720 (SC 1.4.4, 200%) and 320 (SC 1.4.10): 0 escapees, 10/10 content items, 8/8 actions, 0 truncations. ZM-2 found two live reduced-motion defects, fixed in 65a612a and proven on preview. E1 and E3 are held out for human judgement
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
@@ -107,6 +107,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P12 | ~8h40m wall clock (interrupted) | 3 tasks | 7 files |
 | Phase 05 P15 | 12 min | 3 tasks | 12 files |
 | Phase 05 P13 | 19 min | 3 tasks | 17 files |
+| Phase 05 P14 | 23 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -253,6 +254,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-13: two reduced-motion defects on the live HAOO page (ZM-LIVE-1 hover translate that motion-reduce:transform-none never overrode; ZM-LIVE-2 unguarded smooth scrolling) are fixed in source in 65a612a and held on live by a self-terminating DEPLOY_LAG. The deploy breaks both entries, and they must then be deleted.
 - [Phase 05]: 05-13: the VC-2 primary-action and SS-4 brochure-equivalence code moved verbatim to e2e/fixtures/targets.ts and e2e/fixtures/brochure-equivalence.ts, because Playwright refuses spec-to-spec imports. The viewport, semantics and zoom specs share one definition.
 - [Phase 05]: 05-13: HAOO's src/index.css (a ground-A scaffold entry) now diverges from ZERO-PAPER HUB's copy, which scaffold entries permit (verify:disjoint 26/26/0). ZERO-PAPER HUB is untouched, and its unguarded motion stays under F6.
+- [Phase 05]: 05-14: the axe gate (e2e/axe-gate.e2e.ts) fails on any critical or serious node in violations OR incomplete without a named exception, and covers all 11 surface-states including S4 (owner rulings, deliberately wider than the plan wording)
+- [Phase 05]: 05-14: R-1 (bypass, serious, incomplete, S4 html) ACCEPTED as the one named exception with a vacuity guard; reason owner-accepted, orchestrator-drafted at the owner's request, not the owner's own wording
+- [Phase 05]: 05-14: the numbered axe blocking list stayed empty on a re-read against the builds serving now (live haoo-D1dl6F2P.js, ZPH 3525f6d, preview haoo-CNGGkFFJ.js), so no product source changed; e2e/fixtures/axe.ts byte-unchanged
 
 ### Pending Todos
 
@@ -283,7 +287,8 @@ None yet.
 - DECIDED NOT EXECUTED: haoo.online has no MX records, so info@haoo.online very likely does not receive mail; Phase 5 / LEAD-07 blocks on the DNS change
 - OPEN: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim (D34)
 - [Phase 05 RESOLVED 2026-09-12] F1-LIVE is CLOSED. Both "Back to ZERO-PAPER HUB" links on the deployed https://www.haoo.online/ had resolved to the HAOO page itself because fix commit d8f4bea was never pushed. The owner gave explicit authorisation and the orchestrator ran git push origin main: origin/main moved f957fd9 -> c39cc5a (37 commits), and the Deploy HAOO workflow run 34687312104 concluded success (10:00:38Z -> 10:01:45Z, head SHA c39cc5a2). Re-measured independently at 10:12-10:13 UTC: the live page serves bundle /assets/haoo-D1dl6F2P.js (SHA-256 d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508), that bundle carries two <a> elements with href="https://www.zero-paperhub.com/", and both links resolve to that destination in the DOM across 3 of 3 measurements. The self-terminating DEPLOY_LAG entry in e2e/semantics.e2e.ts broke as designed and was deleted with all of its machinery, so promise rule D4 is now unconditional. Full readings in 05-EVIDENCE-SEMANTICS.md section 5.1.
-- O-1: the ZERO-PAPER HUB Cloudflare zone injects a Web Analytics beacon into the retired-path document, which 04.2 D25 defines as carrying exactly zero script. Owner decision about the other repository's hosting; handed to 05-14 alongside R-1.
+- O-1: the ZERO-PAPER HUB Cloudflare zone injects a Web Analytics beacon into the retired-path document, which 04.2 D25 defines as carrying exactly zero script. Owner decision about the other repository's hosting; handed to 05-14 alongside R-1. DECIDED, OWNER ACTION DONE (formal closure on 05-17): Owner decision, 2026-09-12 (05-14): the owner will turn off Cloudflare Web Analytics auto-injection for zero-paperhub.com themselves, as a Cloudflare dashboard action outside both repositories. Owner-decided; owner action done (reported 2026-09-12); beacon measured absent by the orchestrator at 2026-09-12T20:31:04Z (Chromium via @playwright/test, JavaScript enabled, the haoo.online refresh target blocked: HTTP 200, cf-cache-status DYNAMIC, 0 requests to cloudflareinsights.com during load plus 3 s, beacon.min.js not referenced, 1 script tag in the served HTML, and plain curl also 1); formal closure still on 05-17's final live run. The one remaining script is the inline Cloudflare bot-management bootstrap 05-11 already recorded: it is not measurement, and 05-11's spec already asserts 0 non-Cloudflare scripts. Whether a bot-management bootstrap sits within D-12's zero-script intent is recorded for 05-17 and phase verification, not decided here. No spec in 05-14 asserts the beacon's absence.
+- OPEN (05-14, AG-O1): www.haoo.online is also fronted by Cloudflare (server: cloudflare, cf-ray). The Cloudflare Web Analytics beacon static.cloudflareinsights.com/beacon.min.js was PRESENT beside /assets/haoo-D1dl6F2P.js on all 4 live S1 states at 2026-09-12T20:29:26Z-20:29:50Z and ABSENT on all 4 at 20:33:19Z-20:34:06Z (e2e/axe-gate.e2e.ts scriptSources); the built dist/index.html carries 0. The owner reported turning off Web Analytics for zero-paperhub.com between the two readings; whether that also covered haoo.online, or the injection is intermittent, is not established. Owner to confirm the haoo.online zone's setting; 05-17's live run is the next reading. Recorded in 05-EVIDENCE-AXE.md section 9.7.
 
 ### Quick Tasks Completed
 
@@ -306,6 +311,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T20:11:06.031Z
-Stopped at: Completed 05-13-PLAN.md
+Last session: 2026-09-12T20:37:53.783Z
+Stopped at: Completed 05-14-PLAN.md
 Resume file: None
