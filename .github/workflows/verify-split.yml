@@ -1,0 +1,84 @@
+name: Verify tree disjointness
+
+# SPLT-01 on every push, not only when someone remembers to run it (phase 5 D-17, plan
+# `05-15`). Separation is the guarantee from the 04.2 split most likely to erode silently, and a
+# check that only runs by hand is close to no check at all.
+#
+# Its own workflow, deliberately not a job in `deploy.yml`: the sibling clone below must never be
+# able to land inside a workspace whose `dist/` the deploy publishes (T-05-72).
+#
+# Runs on HAOO events only. A change pushed to ZERO-PAPER HUB alone is not audited until the next
+# HAOO push or a manual dispatch of this workflow.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Read-only. The job reads two public trees and prints counts; the sibling clone is anonymous, so
+# nothing here needs a token scoped beyond reading this repository.
+permissions:
+  contents: read
+
+jobs:
+  disjoint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      # WHY A SIBLING OF THE WORKSPACE, NOT A PATH INSIDE IT. `npm run verify:disjoint` is
+      # `node scripts/verify-tree-disjointness.mjs . ../ZERO-PAPERHUB`, and the script resolves both
+      # arguments against its OWN repository root, not the working directory. `../ZERO-PAPERHUB`
+      # therefore means `$GITHUB_WORKSPACE/../ZERO-PAPERHUB`. `actions/checkout` will not place a
+      # checkout outside the workspace, which is why this is a plain `git clone`.
+      #
+      # WHY ANONYMOUS IS ENOUGH. Both repositories are public, so a shallow clone over HTTPS needs
+      # no credential and no cross-repository token enters this workflow at all (T-05-71). The
+      # sibling is only read as a file tree: nothing is installed or executed inside it (T-05-70).
+      #
+      # WHICH REF. The tip of the sibling's `main` at the moment this step runs, not a pinned SHA.
+      # Separation is a claim about the two trees as they stand now, and a pin would keep auditing
+      # a tree nobody deploys. The SHA actually audited is printed beside this run's own, so a
+      # result can be tied to the exact pair of commits it compared.
+      #
+      # IF THE CLONE FAILS, THE JOB FAILS. No step in this file is allowed to carry on past an
+      # error, and none may ever be: a separation check that goes green with no sibling to compare
+      # against is the silent pass T-05-73 forbids. If the clone ever proves infeasible, the phase
+      # records SPLT-01 as spot-checked rather than continuously enforced. It does not make this
+      # badge green.
+      - name: Clone the sibling repository beside the workspace
+        run: |
+          git clone --depth 1 --branch main https://github.com/KaruguDev/ZERO-PAPERHUB.git "$GITHUB_WORKSPACE/../ZERO-PAPERHUB"
+          echo "Auditing HAOO ${GITHUB_SHA} against ZERO-PAPER HUB $(git -C "$GITHUB_WORKSPACE/../ZERO-PAPERHUB" rev-parse HEAD)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The enumerated command, byte-unchanged. Never a CI-only variant that could drift from the
+      # command the phase gate list names.
+      - name: Verify tree disjointness
+        run: npm run verify:disjoint
+
+      # WHAT HAPPENS WHEN THE TWO ORIGINS DISAGREE. The auditor above does not compare the two
+      # copies of `shared-scaffold.txt`, and it does not fail on an allowlist entry that is no
+      # longer shared. Measured by `05-15`: HAOO carrying that plan's renamed entry, audited against
+      # the ZERO-PAPER HUB origin that still carried the old name, printed `allowlist entries: 26`,
+      # `allowlist subtracted: 25`, `violations: 0`, and exited 0, while `cmp` on the two lists
+      # exited 1. Pushing one repository without the other would have passed the step above
+      # silently. The allowlist's own header names `cmp` as the way a unilateral change shows up.
+      # This step is that `cmp`, and it fails the job whenever the two origins disagree.
+      #
+      # So a change to the list is pushed to ZERO-PAPER HUB FIRST, then to HAOO. This workflow runs
+      # on HAOO events and clones the sibling as it stands when the clone step runs; the reverse
+      # order races that clone and goes red for a real, if transient, reason.
+      - name: Compare the two copies of the shared allowlist
+        run: cmp shared-scaffold.txt "$GITHUB_WORKSPACE/../ZERO-PAPERHUB/shared-scaffold.txt"
