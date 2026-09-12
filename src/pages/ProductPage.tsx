@@ -189,7 +189,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                 return (
                   <li
                     key={title}
-                    className="rounded-2xl border border-[#DFE4F0] bg-[#FBFCFF] p-6 transition-transform duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none md:p-8"
+                    className="rounded-2xl border border-[#DFE4F0] bg-[#FBFCFF] p-6 transition-transform duration-200 motion-safe:hover:-translate-y-1 motion-reduce:transition-none md:p-8"
                   >
                     <span className="mb-4 inline-flex size-11 items-center justify-center rounded-lg bg-[#4054C6] text-white">
                       <Icon aria-hidden="true" size={20} />

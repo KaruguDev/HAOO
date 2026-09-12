@@ -4,8 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
+/*
+ * Smooth in-page scrolling only for visitors who have not asked for less motion. Unguarded, it
+ * computed `smooth` under `prefers-reduced-motion: reduce` on the live HAOO page (05-13, ZM-2b).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
