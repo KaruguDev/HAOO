@@ -1,0 +1,1406 @@
+[
+  {
+    "recordedAt": "2026-09-12T20:04:26.654Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 640,
+      "height": 512
+    },
+    "measured": {
+      "actionBoxesMeasured": 18,
+      "headingBoxesMeasured": 25,
+      "boxesNotRendered": 1,
+      "truncationDefectCount": 0,
+      "defects": [],
+      "boxes": [
+        {
+          "subject": "P1 #0 'Open brochure (opens in a new tab)'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 590,
+          "clientWidth": 590,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P2 #0 'Download brochure'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 590,
+          "clientWidth": 590,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P3 #0 'Send my details'",
+          "tag": "button",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 510,
+          "clientWidth": 510,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #0 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #1 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #2 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #0 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #1 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #2 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #0 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #1 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #2 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #0 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 540,
+          "clientWidth": 540,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #1 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 540,
+          "clientWidth": 540,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #2 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 540,
+          "clientWidth": 540,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #0 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #1 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #2 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "heading #0 'Run the business—not the paperwork.'",
+          "tag": "h1",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 90,
+          "clientHeight": 88
+        },
+        {
+          "subject": "heading #1 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #2 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #3 'Who HAOO supports'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #4 'Benefits'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #5 'The paperwork problem'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #6 'Less chasing. More control.'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #7 'Capabilities'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #8 'Rent & payments'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #9 'Properties & units'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #10 'Leases & screening'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #11 'Maintenance'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #12 'Vacancy marketplace'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #13 'Reports & communication'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #14 'Rental journey'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #15 'Fill vacancies with confidence'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 532,
+          "clientWidth": 532,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #16 'Move in with clarity'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 532,
+          "clientWidth": 532,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #17 'Make every month easier'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 532,
+          "clientWidth": 532,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #18 'Grow with visibility'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 532,
+          "clientWidth": 532,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #19 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #20 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #21 'Brochure'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #22 'Brochure preview unavailable'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": false,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        {
+          "subject": "heading #23 'Send your details'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 592,
+          "clientWidth": 592,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #24 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 544,
+          "clientWidth": 544,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #25 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 542,
+          "clientWidth": 542,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1280 halved — models 200% zoom on the first desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "rule": "scrollWidth <= clientWidth + 1 on the element's own box",
+      "subjects": "every instance of every S1 primary action, and every h1, h2 and h3"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:04:38.428Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "measured": {
+      "actionBoxesMeasured": 18,
+      "headingBoxesMeasured": 25,
+      "boxesNotRendered": 1,
+      "truncationDefectCount": 0,
+      "defects": [],
+      "boxes": [
+        {
+          "subject": "P1 #0 'Open brochure (opens in a new tab)'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 670,
+          "clientWidth": 670,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P2 #0 'Download brochure'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 670,
+          "clientWidth": 670,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P3 #0 'Send my details'",
+          "tag": "button",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 510,
+          "clientWidth": 510,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #0 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #1 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #2 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #0 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #1 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #2 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #0 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #1 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #2 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #0 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 620,
+          "clientWidth": 620,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #1 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 620,
+          "clientWidth": 620,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #2 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 620,
+          "clientWidth": 620,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #0 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #1 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #2 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "heading #0 'Run the business—not the paperwork.'",
+          "tag": "h1",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 620,
+          "clientWidth": 620,
+          "scrollHeight": 90,
+          "clientHeight": 88
+        },
+        {
+          "subject": "heading #1 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #2 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #3 'Who HAOO supports'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #4 'Benefits'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #5 'The paperwork problem'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #6 'Less chasing. More control.'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #7 'Capabilities'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #8 'Rent & payments'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #9 'Properties & units'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #10 'Leases & screening'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #11 'Maintenance'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #12 'Vacancy marketplace'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #13 'Reports & communication'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #14 'Rental journey'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #15 'Fill vacancies with confidence'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 612,
+          "clientWidth": 612,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #16 'Move in with clarity'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 612,
+          "clientWidth": 612,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #17 'Make every month easier'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 612,
+          "clientWidth": 612,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #18 'Grow with visibility'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 612,
+          "clientWidth": 612,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #19 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #20 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #21 'Brochure'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #22 'Brochure preview unavailable'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": false,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        {
+          "subject": "heading #23 'Send your details'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #24 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 624,
+          "clientWidth": 624,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #25 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 622,
+          "clientWidth": 622,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1440 halved — models 200% zoom on the wide desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "rule": "scrollWidth <= clientWidth + 1 on the element's own box",
+      "subjects": "every instance of every S1 primary action, and every h1, h2 and h3"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:04:50.753Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "actionBoxesMeasured": 18,
+      "headingBoxesMeasured": 25,
+      "boxesNotRendered": 1,
+      "truncationDefectCount": 0,
+      "defects": [],
+      "boxes": [
+        {
+          "subject": "P1 #0 'Open brochure (opens in a new tab)'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 286,
+          "clientWidth": 286,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P2 #0 'Download brochure'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 286,
+          "clientWidth": 286,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P3 #0 'Send my details'",
+          "tag": "button",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P4 #0 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 63,
+          "clientHeight": 63
+        },
+        {
+          "subject": "P4 #1 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 63,
+          "clientHeight": 63
+        },
+        {
+          "subject": "P4 #2 'Chat with HAOO on WhatsApp'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 63,
+          "clientHeight": 63
+        },
+        {
+          "subject": "P5 #0 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #1 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P5 #2 'Call +254 702 188 044'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #0 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #1 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P6 #2 'Email info@haoo.online'",
+          "tag": "a",
+          "display": "flex",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #0 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 236,
+          "clientWidth": 236,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #1 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 236,
+          "clientWidth": 236,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P7 #2 'Start with HAOO'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 236,
+          "clientWidth": 236,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #0 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #1 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "P8 #2 'Send your details instead'",
+          "tag": "a",
+          "display": "inline-flex",
+          "rendered": true,
+          "scrollWidth": 192,
+          "clientWidth": 192,
+          "scrollHeight": 44,
+          "clientHeight": 44
+        },
+        {
+          "subject": "heading #0 'Run the business—not the paperwork.'",
+          "tag": "h1",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 178,
+          "clientHeight": 176
+        },
+        {
+          "subject": "heading #1 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #2 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #3 'Who HAOO supports'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #4 'Benefits'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #5 'The paperwork problem'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #6 'Less chasing. More control.'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #7 'Capabilities'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #8 'Rent & payments'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #9 'Properties & units'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #10 'Leases & screening'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #11 'Maintenance'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #12 'Vacancy marketplace'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #13 'Reports & communication'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #14 'Rental journey'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #15 'Fill vacancies with confidence'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #16 'Move in with clarity'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #17 'Make every month easier'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #18 'Grow with visibility'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 228,
+          "clientWidth": 228,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #19 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #20 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #21 'Brochure'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #22 'Brochure preview unavailable'",
+          "tag": "h3",
+          "display": "block",
+          "rendered": false,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        {
+          "subject": "heading #23 'Send your details'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        },
+        {
+          "subject": "heading #24 'Get help choosing'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 240,
+          "clientWidth": 240,
+          "scrollHeight": 67,
+          "clientHeight": 67
+        },
+        {
+          "subject": "heading #25 'Ready to begin?'",
+          "tag": "h2",
+          "display": "block",
+          "rendered": true,
+          "scrollWidth": 238,
+          "clientWidth": 238,
+          "scrollHeight": 34,
+          "clientHeight": 34
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "claim": "reflow-320",
+      "entryReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "rule": "scrollWidth <= clientWidth + 1 on the element's own box",
+      "subjects": "every instance of every S1 primary action, and every h1, h2 and h3"
+    }
+  }
+]

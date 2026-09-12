@@ -1,0 +1,826 @@
+[
+  {
+    "recordedAt": "2026-09-12T20:05:10.147Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "innerWidth": 360,
+      "columns": [
+        {
+          "maxWidthToken": "max-w-[620px]",
+          "tag": "div",
+          "section": "Get help choosing",
+          "renderedWidthPx": 328,
+          "paragraphCount": 3,
+          "longestParagraph": {
+            "characters": 126,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 32,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 100,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 33,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 328,
+          "paragraphCount": 2,
+          "longestParagraph": {
+            "characters": 94,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 31,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Capabilities",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 51,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 51,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "ol",
+          "section": "Rental journey",
+          "renderedWidthPx": 328,
+          "paragraphCount": 4,
+          "longestParagraph": {
+            "characters": 86,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 29,
+            "paragraphWidthPx": 268,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Rental journey",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 118,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 39,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Brochure",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 131,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 33,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 84,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 42,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 183,
+            "renderedLines": 5,
+            "approxCharactersPerLine": 37,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 328,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 47,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 47,
+            "paragraphWidthPx": 328,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "form",
+          "section": "Send your details",
+          "renderedWidthPx": 328,
+          "paragraphCount": 19,
+          "longestParagraph": {
+            "characters": 449,
+            "renderedLines": 14,
+            "approxCharactersPerLine": 32,
+            "paragraphWidthPx": 244,
+            "fontSizePx": 14
+          }
+        }
+      ],
+      "capabilityGrid": {
+        "cards": 6,
+        "rows": 6,
+        "cardsPerRow": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "cardWidthPx": 328,
+        "longestDescription": {
+          "characters": 79,
+          "renderedLines": 3,
+          "approxCharactersPerLine": 26,
+          "paragraphWidthPx": 278,
+          "fontSizePx": 16
+        }
+      },
+      "journey": {
+        "steps": 4,
+        "longestDescription": {
+          "characters": 86,
+          "renderedLines": 3,
+          "approxCharactersPerLine": 29,
+          "paragraphWidthPx": 268,
+          "fontSizePx": 16
+        }
+      },
+      "columnCount": 11
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "narrowest supported product width (D-09); no criterion",
+      "heldOut": "E1 (paragraph copy in the max-width columns at a halved viewport) and E3 (the brochure equivalent once the capability grid collapses) are backstop items routed to human judgement; these are their inputs, and nothing about readability is asserted",
+      "method": "renderedLines = round(paragraph height / computed line-height); approxCharactersPerLine = round(characters / renderedLines)",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:05:12.516Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 640,
+      "height": 512
+    },
+    "measured": {
+      "innerWidth": 640,
+      "columns": [
+        {
+          "maxWidthToken": "max-w-[620px]",
+          "tag": "div",
+          "section": "Get help choosing",
+          "renderedWidthPx": 592,
+          "paragraphCount": 3,
+          "longestParagraph": {
+            "characters": 126,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 63,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 100,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 50,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 592,
+          "paragraphCount": 2,
+          "longestParagraph": {
+            "characters": 94,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 47,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Capabilities",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 51,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 51,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "ol",
+          "section": "Rental journey",
+          "renderedWidthPx": 592,
+          "paragraphCount": 4,
+          "longestParagraph": {
+            "characters": 86,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 43,
+            "paragraphWidthPx": 532,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Rental journey",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 118,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 59,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Brochure",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 131,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 66,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 84,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 42,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 592,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 183,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 61,
+            "paragraphWidthPx": 592,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 560,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 47,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 47,
+            "paragraphWidthPx": 560,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "form",
+          "section": "Send your details",
+          "renderedWidthPx": 560,
+          "paragraphCount": 19,
+          "longestParagraph": {
+            "characters": 449,
+            "renderedLines": 7,
+            "approxCharactersPerLine": 64,
+            "paragraphWidthPx": 476,
+            "fontSizePx": 14
+          }
+        }
+      ],
+      "capabilityGrid": {
+        "cards": 6,
+        "rows": 6,
+        "cardsPerRow": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "cardWidthPx": 592,
+        "longestDescription": {
+          "characters": 79,
+          "renderedLines": 2,
+          "approxCharactersPerLine": 40,
+          "paragraphWidthPx": 542,
+          "fontSizePx": 16
+        }
+      },
+      "journey": {
+        "steps": 4,
+        "longestDescription": {
+          "characters": 86,
+          "renderedLines": 2,
+          "approxCharactersPerLine": 43,
+          "paragraphWidthPx": 532,
+          "fontSizePx": 16
+        }
+      },
+      "columnCount": 11
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "heldOut": "E1 (paragraph copy in the max-width columns at a halved viewport) and E3 (the brochure equivalent once the capability grid collapses) are backstop items routed to human judgement; these are their inputs, and nothing about readability is asserted",
+      "method": "renderedLines = round(paragraph height / computed line-height); approxCharactersPerLine = round(characters / renderedLines)",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:05:14.963Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "measured": {
+      "innerWidth": 720,
+      "columns": [
+        {
+          "maxWidthToken": "max-w-[620px]",
+          "tag": "div",
+          "section": "Get help choosing",
+          "renderedWidthPx": 620,
+          "paragraphCount": 3,
+          "longestParagraph": {
+            "characters": 126,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 63,
+            "paragraphWidthPx": 620,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 100,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 50,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 672,
+          "paragraphCount": 2,
+          "longestParagraph": {
+            "characters": 94,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 47,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Capabilities",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 51,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 51,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "ol",
+          "section": "Rental journey",
+          "renderedWidthPx": 672,
+          "paragraphCount": 4,
+          "longestParagraph": {
+            "characters": 86,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 43,
+            "paragraphWidthPx": 612,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Rental journey",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 118,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 59,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Brochure",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 131,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 66,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 84,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 84,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 672,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 183,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 61,
+            "paragraphWidthPx": 672,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 560,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 47,
+            "renderedLines": 1,
+            "approxCharactersPerLine": 47,
+            "paragraphWidthPx": 560,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "form",
+          "section": "Send your details",
+          "renderedWidthPx": 560,
+          "paragraphCount": 19,
+          "longestParagraph": {
+            "characters": 449,
+            "renderedLines": 7,
+            "approxCharactersPerLine": 64,
+            "paragraphWidthPx": 476,
+            "fontSizePx": 14
+          }
+        }
+      ],
+      "capabilityGrid": {
+        "cards": 6,
+        "rows": 6,
+        "cardsPerRow": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "cardWidthPx": 672,
+        "longestDescription": {
+          "characters": 79,
+          "renderedLines": 2,
+          "approxCharactersPerLine": 40,
+          "paragraphWidthPx": 622,
+          "fontSizePx": 16
+        }
+      },
+      "journey": {
+        "steps": 4,
+        "longestDescription": {
+          "characters": 86,
+          "renderedLines": 2,
+          "approxCharactersPerLine": 43,
+          "paragraphWidthPx": 612,
+          "fontSizePx": 16
+        }
+      },
+      "columnCount": 11
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "heldOut": "E1 (paragraph copy in the max-width columns at a halved viewport) and E3 (the brochure equivalent once the capability grid collapses) are backstop items routed to human judgement; these are their inputs, and nothing about readability is asserted",
+      "method": "renderedLines = round(paragraph height / computed line-height); approxCharactersPerLine = round(characters / renderedLines)",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:05:17.023Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "innerWidth": 320,
+      "columns": [
+        {
+          "maxWidthToken": "max-w-[620px]",
+          "tag": "div",
+          "section": "Get help choosing",
+          "renderedWidthPx": 288,
+          "paragraphCount": 3,
+          "longestParagraph": {
+            "characters": 126,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 32,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 100,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 33,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "div",
+          "section": "Benefits",
+          "renderedWidthPx": 288,
+          "paragraphCount": 2,
+          "longestParagraph": {
+            "characters": 94,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 31,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Capabilities",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 51,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 26,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "ol",
+          "section": "Rental journey",
+          "renderedWidthPx": 288,
+          "paragraphCount": 4,
+          "longestParagraph": {
+            "characters": 86,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 22,
+            "paragraphWidthPx": 228,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Rental journey",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 118,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 30,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Brochure",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 131,
+            "renderedLines": 4,
+            "approxCharactersPerLine": 33,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 84,
+            "renderedLines": 3,
+            "approxCharactersPerLine": 28,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[680px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 183,
+            "renderedLines": 5,
+            "approxCharactersPerLine": 37,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 16
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "p",
+          "section": "Send your details",
+          "renderedWidthPx": 288,
+          "paragraphCount": 1,
+          "longestParagraph": {
+            "characters": 47,
+            "renderedLines": 2,
+            "approxCharactersPerLine": 24,
+            "paragraphWidthPx": 288,
+            "fontSizePx": 14
+          }
+        },
+        {
+          "maxWidthToken": "max-w-[560px]",
+          "tag": "form",
+          "section": "Send your details",
+          "renderedWidthPx": 288,
+          "paragraphCount": 19,
+          "longestParagraph": {
+            "characters": 449,
+            "renderedLines": 17,
+            "approxCharactersPerLine": 26,
+            "paragraphWidthPx": 204,
+            "fontSizePx": 14
+          }
+        }
+      ],
+      "capabilityGrid": {
+        "cards": 6,
+        "rows": 6,
+        "cardsPerRow": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "cardWidthPx": 288,
+        "longestDescription": {
+          "characters": 79,
+          "renderedLines": 3,
+          "approxCharactersPerLine": 26,
+          "paragraphWidthPx": 238,
+          "fontSizePx": 16
+        }
+      },
+      "journey": {
+        "steps": 4,
+        "longestDescription": {
+          "characters": 86,
+          "renderedLines": 4,
+          "approxCharactersPerLine": 22,
+          "paragraphWidthPx": 228,
+          "fontSizePx": 16
+        }
+      },
+      "columnCount": 11
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "heldOut": "E1 (paragraph copy in the max-width columns at a halved viewport) and E3 (the brochure equivalent once the capability grid collapses) are backstop items routed to human judgement; these are their inputs, and nothing about readability is asserted",
+      "method": "renderedLines = round(paragraph height / computed line-height); approxCharactersPerLine = round(characters / renderedLines)",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  }
+]

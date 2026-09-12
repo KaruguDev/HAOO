@@ -1,0 +1,33 @@
+[
+  {
+    "recordedAt": "2026-09-12T20:05:04.626Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "productsRegionTransitions": [
+        {
+          "tag": "a",
+          "label": "Explore HAOO",
+          "transitionProperty": "color, background-color, border-color, text-decoration-color, fill, stroke",
+          "transitionDuration": "0.2s",
+          "transitionsMovementProperty": false
+        }
+      ],
+      "outsideRegionAnimationUtilityElements": 1,
+      "outsideRegionElementsWithRunnableTransition": 56,
+      "outsideRegionHoverScaleUtilityElements": 9,
+      "htmlScrollBehavior": "smooth",
+      "productsRegionTransitionCount": 1
+    },
+    "detail": {
+      "plan": "05-13",
+      "emulation": "reducedMotion: 'reduce' through the runner option",
+      "url": "https://www.zero-paperhub.com/#products",
+      "colourTransitionExclusion": "The Products region colour transition is deliberately NOT required to be suppressed under reduced motion: a colour transition neither moves nor scales anything, and the criterion concerns motion animation. Requiring it would push a correct component into a variant it does not need.",
+      "deferredFinding": "F6 (05-UI-SPEC.md § Pre-Flight Findings): the ZERO-PAPER HUB home page outside the Products region has animation utilities, hover scaling and observer-driven reveals with no reduced-motion handling anywhere in that repository. Already recorded and DEFERRED by D-OQ-3; cross-referenced here, not re-raised."
+    }
+  }
+]

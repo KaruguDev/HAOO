@@ -1,0 +1,56 @@
+[
+  {
+    "recordedAt": "2026-09-12T20:04:57.041Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "animationUtilityElements": 0,
+      "htmlScrollBehavior": "smooth",
+      "bodyScrollBehavior": "auto",
+      "runningAnimations": 0,
+      "elementsWithRunnableTransition": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2b",
+      "closedNegative": "zero [class*=\"animate-\"] elements; neither html nor body computes scroll-behavior smooth",
+      "recordedNotAsserted": "runningAnimations and elementsWithRunnableTransition",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "deployLag": {
+        "id": "ZM-LIVE-2",
+        "reading": "htmlScrollBehavior",
+        "deployedValue": "smooth",
+        "measuredOnBundle": "/assets/haoo-D1dl6F2P.js",
+        "fixedIn": "src/index.css — smooth scrolling now sits inside a no-preference media query"
+      }
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:05:24.084Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "animationUtilityElements": 0,
+      "htmlScrollBehavior": "auto",
+      "bodyScrollBehavior": "auto",
+      "runningAnimations": 0,
+      "elementsWithRunnableTransition": 0
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2b",
+      "closedNegative": "zero [class*=\"animate-\"] elements; neither html nor body computes scroll-behavior smooth",
+      "recordedNotAsserted": "runningAnimations and elementsWithRunnableTransition",
+      "project": "preview",
+      "url": "http://localhost:4173/",
+      "deployLag": null
+    }
+  }
+]

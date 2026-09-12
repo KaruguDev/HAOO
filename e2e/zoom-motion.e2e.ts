@@ -840,3 +840,163 @@ test.describe('ZM-2 control: with no motion preference the same hover does move 
     ).not.toBe(reading.transformBefore);
   });
 });
+
+/* ------------------------------------------------------------------------------------ *
+ * Held-out readability inputs — E1 and E3 in 05-UI-SPEC.md § UI Considerations.
+ *
+ * MEASURED, NEVER ASSERTED. Whether paragraph copy inside the max-width columns reads well at a
+ * halved viewport (E1), and whether the brochure equivalent stays readable and complete once the
+ * capability grid collapses to one column (E3), are line-length and reflow judgements. Any
+ * assertion here would pass on unreadable output, so there is none: these are backstop items and
+ * route to human judgement at verification time. This test exists to hand that reviewer numbers
+ * instead of an impression. The only `expect`-shaped calls are plumbing (the page loaded, and the
+ * subjects exist), never a threshold on a readability number.
+ * ------------------------------------------------------------------------------------ */
+
+const READABILITY_EVIDENCE = 'zoom-readability-inputs';
+
+interface ReadabilityEntry {
+  readonly width: number;
+  readonly height: number;
+  readonly label: string;
+}
+
+/** The narrowest D-09 product-support width, taken from the closed list rather than typed. */
+const NARROWEST_SUPPORTED: ReadabilityEntry = (() => {
+  const supported = assertNonEmptyViewports(
+    VIEWPORTS.filter((entry) => entry.criterion === null),
+    'VIEWPORTS filtered to the D-09 product-support widths',
+  );
+  const narrowest = supported.reduce((least, entry) => (entry.width < least.width ? entry : least));
+  return {
+    width: narrowest.width,
+    height: narrowest.height,
+    label: 'narrowest supported product width (D-09); no criterion',
+  };
+})();
+
+const READABILITY_ENTRIES: readonly ReadabilityEntry[] = [
+  NARROWEST_SUPPORTED,
+  ...ZOOM_ENTRIES.map((entry) => ({ width: entry.width, height: entry.height, label: entry.criterion })),
+];
+
+for (const entry of READABILITY_ENTRIES) {
+  test.describe(`held-out readability inputs at ${entry.width}x${entry.height}`, () => {
+    test.use({ viewport: viewportOf(entry) });
+
+    test('E1 and E3 inputs: column widths, longest paragraphs, characters per line, cards per row', async ({ page }, testInfo) => {
+      requireLive(testInfo);
+      await openHaoo(page);
+
+      const inputs = await page.evaluate(() => {
+        const rendered = (element: Element) =>
+          element.getClientRects().length > 0 && window.getComputedStyle(element).display !== 'none';
+
+        /** Characters, rendered lines and the resulting characters per line for one paragraph. */
+        const paragraphReading = (paragraph: Element) => {
+          const style = window.getComputedStyle(paragraph);
+          const lineHeight = Number.parseFloat(style.lineHeight);
+          const rect = paragraph.getBoundingClientRect();
+          const characters = (paragraph.textContent ?? '').replace(/\s+/g, ' ').trim().length;
+          const lines = Number.isFinite(lineHeight) && lineHeight > 0 ? Math.max(1, Math.round(rect.height / lineHeight)) : 1;
+          return {
+            characters,
+            renderedLines: lines,
+            approxCharactersPerLine: Math.round(characters / lines),
+            paragraphWidthPx: Math.round(rect.width),
+            fontSizePx: Math.round(Number.parseFloat(style.fontSize)),
+          };
+        };
+
+        const columns = Array.from(document.querySelectorAll('[class*="max-w-["]'))
+          .filter(rendered)
+          .map((column) => {
+            const token = (column.getAttribute('class') ?? '').match(/max-w-\[[^\]]+\]/)?.[0] ?? '';
+            const section = column.closest('section');
+            const where =
+              section?.getAttribute('aria-label') ??
+              (section?.querySelector('h2')?.textContent ?? '').trim() ??
+              '';
+            const paragraphs = column.matches('p') ? [column] : Array.from(column.querySelectorAll('p')).filter(rendered);
+            const longest = paragraphs.reduce<Element | null>(
+              (best, paragraph) =>
+                best === null || (paragraph.textContent ?? '').length > (best.textContent ?? '').length ? paragraph : best,
+              null,
+            );
+            return {
+              maxWidthToken: token,
+              tag: column.tagName.toLowerCase(),
+              section: where === '' ? '(hero)' : where,
+              renderedWidthPx: Math.round(column.getBoundingClientRect().width),
+              paragraphCount: paragraphs.length,
+              longestParagraph: longest === null ? null : paragraphReading(longest),
+            };
+          });
+
+        const cards = Array.from(document.querySelectorAll('#capabilities li')).filter(rendered);
+        const rows = new Map<number, number>();
+        for (const card of cards) {
+          const top = Math.round(card.getBoundingClientRect().top + window.scrollY);
+          rows.set(top, (rows.get(top) ?? 0) + 1);
+        }
+        const descriptions = cards
+          .map((card) => card.querySelector('p'))
+          .filter((paragraph): paragraph is HTMLParagraphElement => paragraph !== null);
+        const longestDescription = descriptions.reduce<HTMLParagraphElement | null>(
+          (best, paragraph) =>
+            best === null || (paragraph.textContent ?? '').length > (best.textContent ?? '').length ? paragraph : best,
+          null,
+        );
+        const journeySteps = Array.from(
+          document.querySelectorAll('section[aria-label="Rental journey"] ol li p'),
+        ).filter(rendered);
+        const longestJourney = journeySteps.reduce<Element | null>(
+          (best, paragraph) =>
+            best === null || (paragraph.textContent ?? '').length > (best.textContent ?? '').length ? paragraph : best,
+          null,
+        );
+
+        return {
+          innerWidth: window.innerWidth,
+          columns,
+          capabilityGrid: {
+            cards: cards.length,
+            rows: rows.size,
+            cardsPerRow: [...rows.entries()].sort(([a], [b]) => a - b).map(([, count]) => count),
+            cardWidthPx: cards.length === 0 ? 0 : Math.round(cards[0].getBoundingClientRect().width),
+            longestDescription: longestDescription === null ? null : paragraphReading(longestDescription),
+          },
+          journey: {
+            steps: journeySteps.length,
+            longestDescription: longestJourney === null ? null : paragraphReading(longestJourney),
+          },
+        };
+      });
+
+      // Vacuity guards only: the subjects exist. Nothing below is a readability threshold.
+      assertNonEmptySubjects(inputs.columns, `rendered max-width content columns at ${entry.width}px`);
+      assertNonEmptySubjects(
+        Array.from({ length: inputs.capabilityGrid.cards }),
+        `rendered capability cards at ${entry.width}px`,
+      );
+
+      recordEvidence(READABILITY_EVIDENCE, {
+        surface: HAOO.id,
+        viewport: viewportOf(entry),
+        measured: { ...inputs, columnCount: inputs.columns.length },
+        detail: {
+          plan: '05-13',
+          criterion: entry.label,
+          heldOut:
+            'E1 (paragraph copy in the max-width columns at a halved viewport) and E3 (the brochure equivalent once the ' +
+            'capability grid collapses) are backstop items routed to human judgement; these are their inputs, and ' +
+            'nothing about readability is asserted',
+          method:
+            'renderedLines = round(paragraph height / computed line-height); approxCharactersPerLine = round(characters / renderedLines)',
+          project: testInfo.project.name,
+          url: page.url(),
+        },
+      });
+    });
+  });
+}
