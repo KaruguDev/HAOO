@@ -5,8 +5,8 @@ current_phase_name: Prove the Deployed Journey
 status: executing
 stopped_at: Completed 05-12-PLAN.md
 last_updated: "2026-09-12T19:22:30.271Z"
-last_activity: 2026-09-07
-last_activity_desc: Phase 05 execution started
+last_activity: 2026-09-12
+last_activity_desc: 05-12 complete, 05-15 next
 state_head: c199265299d44b14ffa33ac1444493e89f70ca59
 progress:
   total_phases: 7
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 9 of 17
+Plan: 11 of 17 (05-15 next; 10 plans summarised)
 Total Plans in Phase: 17
-Status: Ready to execute
-Last activity: 2026-09-07 — Phase 05 execution started
+Status: Executing Phase 05 — wave 4 closing; 05-02 and 05-06 parked on the haoo.online MX records
+Last activity: 2026-09-12 — 05-12 complete; F1-LIVE closed after the owner-authorised deploy
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
 
