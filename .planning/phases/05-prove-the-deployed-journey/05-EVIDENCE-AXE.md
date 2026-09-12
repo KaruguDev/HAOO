@@ -250,3 +250,144 @@ It does not re-raise the three known deferred findings, which are cross-referenc
 
 This baseline is exploratory and non-gating. Its blocking list (0 entries, plus review item R-1) is
 the input to plan 05-14, and no finding was removed from it by a configuration change.
+
+---
+
+## 8. Triage (plan 05-14, Task 1)
+
+**What this section covers.** It disposes of the numbered blocking list in §4 (B-0: none) and of the
+four items earlier plans handed to 05-14 by name. §1 to §7 are 05-07's record and were not edited.
+The gate run, its integer counts, the unchanged-configuration statement and the deployment note are
+added by Task 3, after the owner has answered the Task 2 checkpoint.
+
+### 8.1 A re-read on the builds serving now
+
+§4 was measured at 2026-09-11T21:22Z. Three changes since then affect what the targets serve:
+
+- **HAOO live.** The F1-LIVE deploy (Deploy HAOO run `34687312104`, commit `c39cc5a`) landed at
+  about 10:13Z on 2026-09-12, followed by run `34715004127` (commit `ea538c0`). The 05-07 entries do
+  not record a bundle name, so the only identification of the S1 baseline build is that it predates
+  run `34687312104`.
+- **ZERO-PAPER HUB live.** Deploy ZERO-PAPERHUB run `34714952939` (`main` at `3525f6d`) ran after
+  the baseline. `git diff` of `public/` and `src/` between the last commit before the baseline and
+  `3525f6d` is empty, so the S3 and S4 source is unchanged.
+- **HAOO working tree.** 05-13's `65a612a` changed `src/pages/ProductPage.tsx` and `src/index.css`.
+  It is committed but not deployed.
+
+So the list was read again with the unchanged spec `e2e/axe-baseline.e2e.ts` and the unchanged
+factory, on both projects. The run covered 2026-09-12T20:16:53Z to 20:17:27Z, with 11 run and 11
+skipped (each test skips on the other project), exit 0.
+
+| Target | Build measured | Identified by |
+|--------|----------------|---------------|
+| live S1 | `/assets/haoo-D1dl6F2P.js`, SHA-256 `d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508` | Fetched from `https://www.haoo.online/` at 2026-09-12T20:15:44Z. It does **not** include `65a612a` |
+| live S3, S4 | ZERO-PAPER HUB `main` `3525f6d`, deployed by run `34714952939`, served through Cloudflare | The deploy run recorded in `05-15-SUMMARY.md` |
+| preview S5 | `dist/assets/haoo-CNGGkFFJ.js`, SHA-256 `544c52d854cfc1d9d37ecb356ef8aab81a67a8362562e658b64e6f4f1f1b8ccc` | Built 2026-09-12T20:16:08Z by `npm test` from the clean HAOO tree at `f1f9637`. It **includes** `65a612a` |
+
+| Surface / state | Selected (baseline → re-read) | Applicable | Violations | Incomplete |
+|-----------------|------------------------------:|-----------:|-----------:|-----------:|
+| S1 / default | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+| S1 / disclosure-expanded | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+| S1 / error-summary | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+| S1 / mobile-nav-open | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+| S3 / products-region | 62 → 62 | 12 → 12 | 0 → 0 | 0 → 0 |
+| S4 / as-served | 63 → 63 | 10 → 10 | 0 → 0 | 1 → 1 (`bypass`, `serious`, `html`) |
+| S4 / refresh-stripped | 63 → 63 | 9 → 9 | 0 → 0 | 1 → 1 (`bypass`, `serious`, `html`) |
+| S5 / in-flight | 63 → 63 | 28 → 28 | 0 → 0 | 0 → 0 |
+| S5 / success | 63 → 63 | 23 → 23 | 0 → 0 | 0 → 0 |
+| S5 / transport-failure | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+| S5 / blocked | 63 → 63 | 29 → 29 | 0 → 0 | 0 → 0 |
+
+Across the 11 re-read entries, the impact counts are critical 0, serious 0, moderate 0, minor 0 and
+unknown 0. `color-contrast` was applicable on 11 of 11 entries, with 0 violations and 0 incomplete.
+The engine was `axe-core` 4.13.0 with 5 tags.
+
+**Where the re-read output went.** The spec upserts into `evidence/axe-baseline.json`. After the
+run, that file was restored with `git checkout -- evidence/axe-baseline.json`, so §1 to §7 still
+derive from the record they cite. The re-read's values are the ones in the tables above.
+
+### 8.2 The numbered blocking list
+
+| # | Rule | Surface / state | Disposition | Detail |
+|---|------|-----------------|-------------|--------|
+| B-0 | none | none | none | §4 has no numbered entry, and the re-read in §8.1 returned 0 blocking violations |
+
+**Counts from the numbered list:** FIXED 0, DEFERRED 0, ACCEPTED (escalated) 0.
+
+Each zero follows from the empty list, not from work being skipped:
+
+- **No source file changed.** `tailwind.config.js` and the seven components in the plan's file list
+  are untouched, so the static focus-contrast gate and the axe gate cannot disagree about a colour.
+  `npx vitest run src/test/focus-contrast.test.ts` ran 11 tests and exited 0. `npm test` ran 684
+  tests across 10 files and exited 0.
+- **The configuration is unchanged.** `git diff --quiet HEAD -- e2e/fixtures/axe.ts` exits 0. The
+  file still holds 5 tags, 3 per-URL disables (S4 only), and `BLOCKING_IMPACTS` of `critical` and
+  `serious`.
+
+### 8.3 Items handed to 05-14 by name, and where each went
+
+| ID | Handed over by | What it is | Where it went |
+|----|----------------|------------|---------------|
+| **R-1** | 05-07 (§4) | `bypass`, impact `serious`, in axe's **incomplete** bucket. Node `html`, on S4 as-served and S4 refresh-stripped, in both the baseline and the re-read | **Escalated to the Task 2 checkpoint** |
+| **O-1** | 05-11 | Cloudflare injects a bot-management bootstrap and the Web Analytics beacon into the served S4 document | **Not triaged here, not escalated here.** It stays an open owner decision where 05-11 recorded it |
+| **FS-O1** | 05-12 | 2 `role="status"` elements in the document whenever the form card renders, against 1 submission region | **Not triaged here, not escalated here.** Handed to phase verification |
+| **G-1** | 05-15 | `verify-tree-disjointness.mjs` exits 0 when an allowlist entry is no longer shared by both trees | **Not triaged here, not escalated here.** Logged in `deferred-items.md` |
+
+**R-1: why it is escalated.** 05-07 reserved R-1 for a human judgement, and none of the three
+dispositions this plan permits an executor to record fits it:
+
+- It is not on the numbered list. It is an incomplete result, not a violation.
+- **FIXED would mean adding a skip link, a heading or a landmark** to a document that 04.2 D-12
+  defines as minimal ("a static document, not a route"). That document lives in the ZERO-PAPER HUB
+  repository (`public/products/haoo/index.html`, last changed in `11d0df3`). Adding a heading or a
+  landmark would also leave the S4 rows of `AXE_PER_URL_DISABLES` giving reasons that no longer
+  match the page, in a file this plan must keep byte-unchanged.
+- **DEFERRED under D-OQ-3 does not apply.** D-OQ-3 covers the ZERO-PAPER HUB home page outside
+  `#products`. S4 is a registered surface in its own right, and it is not F5's document.
+- **ACCEPTED can only be recorded in the owner's words.**
+
+The owner's disposition also settles how the Task 3 gate treats a `serious` incomplete result.
+
+**O-1: why it is neither.** No axe rule counts scripts or identifies third-party beacons. The
+authored document carries 0 `<script>` elements, re-counted in
+`ZERO-PAPERHUB/public/products/haoo/index.html`. The injection comes from the ZERO-PAPER HUB
+Cloudflare zone's configuration, which is outside both repository trees and outside this plan's
+accessibility dispositions. It remains in `05-11-SUMMARY.md` coverage D8 (`human_judgment: true`)
+and in `05-EVIDENCE-RECOVERY.md`, for the owner and the future ZERO-PAPER HUB phase.
+
+- **Its measured effect on this plan:** the S4 scans ran on the document as a browser receives it,
+  beacon included, and returned 0 violations and exactly R-1.
+- **A citation to correct:** the 04.2 decision the beacon conflicts with is D-12, which says the
+  document "carries no measurement". The S4 contract in `05-UI-SPEC.md` attributes its exactly-zero
+  script assertion to "04.2 D25". In the 04.2 record, D25 is a different item: the stranded browser
+  record at the retired origin.
+
+**FS-O1: why it is neither.** No axe rule counts status regions, and both regions sat inside scans
+that returned 0 violations in every S1 and S5 state. The open question is how to read FS-2's wording
+("exactly one such region", in a paragraph describing the submission region outside the form card).
+It is not a defect with a fix, a deferral or an acceptance. The measured values stay in
+`05-EVIDENCE-FORM-STATES.md` §7: the submission region is 1 at every measured moment, and the
+document holds 2 whenever the card renders, the second being the measurement disclosure's
+clear-context region. 05-12 named verification as the other place the wording can be reconciled,
+and it is handed there.
+
+**G-1: why it is neither.** It is not an accessibility finding. Fixing it means changing
+`scripts/verify-tree-disjointness.mjs`, which is byte-identical in both repositories (`cmp` exit 0 on
+2026-09-12) and outside this plan's file list. That would require a paired ZERO-PAPER HUB commit
+that no evidence in this plan forces (05-CONTEXT D-03). 05-17 runs the auditor, but its plan does
+not name G-1, so G-1 is logged in `deferred-items.md` rather than assumed to be covered.
+
+**Known fixture gap, recorded and not edited.** `PRIMARY_ACTIONS` declares 4 instances each for P5
+and P6, and the page ships 3 under those names (05-11 O-2, and 05-08's census at all six widths).
+It is not an axe result. `e2e/fixtures/primary-actions.ts` is not touched.
+
+**Cross-referenced, not raised again.** F4, F4b, F5 and F6 (`05-UI-SPEC.md` § Deferred) and VP-O1,
+VP-O2 and VP-O3 (`05-EVIDENCE-VIEWPORT.md`) all sit on the ZERO-PAPER HUB home page outside
+`#products`. D-OQ-3 defers them, and that deferral is a **scope decision, not a severity
+judgement**. None of them is in the axe list, because S3 is scoped to `#products`, and the re-read
+raised no new finding there.
+
+### 8.4 What Task 2 receives
+
+- **From the numbered blocking list:** 0 findings.
+- **Escalated review items:** 1, which is R-1.
