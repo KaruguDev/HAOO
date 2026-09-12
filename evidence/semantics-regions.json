@@ -203,5 +203,46 @@
       "rule": "SS-2",
       "note": "Ten, not the nine 05-UI-SPEC SS-2 lists: the audiences section is labelled by aria-labelledby=\"audiences-heading\" and is a region named \"Who HAOO supports\"."
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:14:31.575Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "capturedRegionNames": [
+        "Opening onboarding choices",
+        "Who HAOO supports",
+        "Benefits",
+        "Capabilities",
+        "Rental journey",
+        "Mid-page onboarding choices",
+        "Brochure",
+        "Send your details",
+        "Onboarding",
+        "Closing onboarding choices"
+      ],
+      "capturedRegionCount": 10,
+      "expectedRegionNames": [
+        "Opening onboarding choices",
+        "Who HAOO supports",
+        "Benefits",
+        "Capabilities",
+        "Rental journey",
+        "Mid-page onboarding choices",
+        "Brochure",
+        "Send your details",
+        "Onboarding",
+        "Closing onboarding choices"
+      ],
+      "expectedRegionCount": 10
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-2",
+      "note": "Ten, not the nine 05-UI-SPEC SS-2 lists: the audiences section is labelled by aria-labelledby=\"audiences-heading\" and is a region named \"Who HAOO supports\"."
+    }
   }
 ]

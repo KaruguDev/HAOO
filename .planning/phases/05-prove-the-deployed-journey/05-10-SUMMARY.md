@@ -16,7 +16,7 @@ provides:
   - "e2e/semantics.e2e.ts: 12 live tests covering SS-1 (heading order in three states), SS-2 (landmark and region inventories on S1 and S3), SS-3 (accessible names, label/description resolution, names-promise-destinations) and SS-4 (the brochure HTML equivalent under artifact failure, and the three-reference equality)"
   - "Seven evidence records: semantics-headings, semantics-landmarks, semantics-regions, semantics-products-region, semantics-accessible-names, semantics-destinations, semantics-brochure-equivalence"
   - "05-EVIDENCE-SEMANTICS.md: literal heading sequences per state, integer landmark and region inventories, the name-to-destination table, the found-against-expected equivalence counts, and the observations section"
-  - "FINDING F1-LIVE (OPEN): the deployed page still serves href=\"/\" for both parent-site links. Needs a deploy, which is the owner's decision"
+  - "FINDING F1-LIVE (CLOSED 2026-09-12 by deployment, see 05-EVIDENCE-SEMANTICS.md § 5.1): at authoring time the deployed page served href=\"/\" for both parent-site links. The owner then authorised a push; origin/main moved f957fd9 -> c39cc5a and Deploy HAOO run 34687312104 concluded success. Re-measured at 10:13 UTC on bundle /assets/haoo-D1dl6F2P.js: both links resolve to https://www.zero-paperhub.com/. The DEPLOY_LAG entry and its machinery are deleted and rule D4 is unconditional"
   - "Three measured corrections to 05-UI-SPEC.md: the region list is ten not nine, the navigation landmarks are never two at once, and SS-4's \"10 capability titles\" is six capabilities plus four journey steps"
 affects: [05-12, 05-14, 05-17, "the next HAOO deploy"]
 
@@ -57,7 +57,7 @@ key-decisions:
   - "MEASURED CORRECTION: the labelled-region list is TEN, not the nine 05-UI-SPEC SS-2 lists. The audiences section is labelled by aria-labelledby=\"audiences-heading\" and is a region named \"Who HAOO supports\". A spec asserting nine would fail a correct page."
   - "MEASURED CORRECTION: SS-2's \"two navigation landmarks\" is never true at one moment. Measured 1 at 1280 px, 0 at 390 px closed, 1 at 390 px open. Asserted instead as two distinct names across three states, with no state exposing more than one."
   - "MEASURED CORRECTION: SS-4's \"10 capability titles, 10 of 10\" is six capabilities (already pinned at haoo-page.test.tsx:102) plus four journey steps. Ten is the size of the whole equivalent. Count equality is asserted per list AND against the total, so a dropped item fails either way."
-  - "FINDING F1-LIVE: the deployed page fails the truthful-destination rule and this spec does NOT weaken the rule to accommodate it. The divergence is registered in a one-entry DEPLOY_LAG list that asserts the deployed value and fails the moment a deploy lands, with a message instructing its deletion. Closing the finding needs a push and deploy, which is the owner's decision and was not taken here."
+  - "FINDING F1-LIVE: the deployed page diverged from the truthful-destination rule and this spec did NOT weaken the rule to accommodate it. The divergence was registered in a one-entry DEPLOY_LAG list asserting the deployed value, so a landed deploy would break it and the break would instruct its own deletion. That is exactly what happened on 2026-09-12: the owner authorised the push, Deploy HAOO run 34687312104 concluded success, the assertion broke reporting Received https://www.zero-paperhub.com/, and the entry plus every consumer was deleted rather than widened. Rule D4 now covers both links unconditionally and DEPLOY_LAG appears nowhere in the file."
   - "The capability and journey ledger is transcribed from src/test/haoo-content.test.ts rather than imported, because src/products/haoo.ts reads import.meta.env at module scope and throws outside Vite. The limit is stated in both the spec and the evidence file; the vitest suite remains the owner."
 
 patterns-established:
@@ -108,14 +108,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: SS-3b
-    description: "Every link whose accessible name names a destination resolves to that destination, and repeated identical names share one destination. FOUR of the six destination-naming names pass unconditionally; the two parent-site links are the registered, self-terminating F1-LIVE divergence and DO NOT satisfy the rule on the deployed page."
+    description: "Every link whose accessible name names a destination resolves to that destination, and repeated identical names share one destination. All SIX destination-naming names satisfy their rule unconditionally on the deployed page as of 2026-09-12 10:13 UTC; the two parent-site links were the F1-LIVE divergence until the deploy of c39cc5a, and their registered exception has been deleted."
     requirement: QUAL-03
     verification:
       - kind: e2e
         ref: "e2e/semantics.e2e.ts#every name that names a destination resolves to that destination"
         status: pass
-    human_judgment: true
-    rationale: "The automated assertion passes, but it passes by asserting the DEPLOYED (defective) value for the two parent-site links. Whether to close F1-LIVE by pushing and deploying commit d8f4bea is an owner decision, not a test outcome — see Escalation below."
+    human_judgment: false
   - id: SS-4
     description: "The brochure's substantive content exists as real HTML: 6 of 6 capability titles with descriptions in the same list item, 4 of 4 journey steps in document order, 10 of 10 equivalent items in total — all re-asserted unchanged with the artifact route aborted, alongside the fallback subtree and both controls still present and enabled."
     requirement: QUAL-03
@@ -176,10 +175,11 @@ four journey steps, compared as ordered `[title, description]` pairs, re-asserte
 enabled. The three references to the artifact resolve to one target and are asserted against one
 another, with the expected path read from the closed primary-action list rather than retyped.
 
-## Escalation — FINDING F1-LIVE is OPEN and needs an owner decision
+## Escalation — FINDING F1-LIVE was escalated, and is now CLOSED by deployment
 
-**Both `Back to ZERO-PAPER HUB` links on `https://www.haoo.online/` promise the parent site and
-resolve to the HAOO page the visitor is already on.**
+**As authored (deployed bundle `f957fd9`), both `Back to ZERO-PAPER HUB` links on
+`https://www.haoo.online/` promised the parent site and resolved to the HAOO page the visitor was
+already on.**
 
 | Reading | Value |
 |---|---|
@@ -188,26 +188,49 @@ resolve to the HAOO page the visitor is already on.**
 | promised destination | `https://www.zero-paperhub.com/` |
 | instances | 2 (header, footer) |
 | fix commit | `d8f4bea` — `fix(05-04): point both parent-site links at the parent site` |
-| fix on `origin/main` | **no** |
+| `git merge-base --is-ancestor d8f4bea f957fd9` | not an ancestor |
 | local `main` ahead of `origin/main` | 32 commits |
 | deployed bundle | `origin/main` at `f957fd9`, which predates the fix |
 
 `05-04-SUMMARY.md` states that "any wave-4 spec asserting SS-3 will now measure the corrected
-destination". That is true of the **source** and false of the **deployed page** — and the deployed
-page is what this phase exists to prove. The fix has never been pushed, so GitHub Pages has never
-built it.
+destination". That was true of the **source** and false of the **deployed page** — and the deployed
+page is what this phase exists to prove.
 
-**What was NOT done, deliberately:** the executor did not push. Publishing 32 local commits to
-`origin/main` triggers a production Pages deploy, and that is the owner's call, not an auto-fix.
+**What was NOT done by this plan's executor, deliberately:** it did not push. Publishing local
+commits to `origin/main` triggers a production Pages deploy, and that was the owner's call, not an
+auto-fix.
 
-**What was done instead:** the rule is asserted in full, and the divergence is registered in a
-one-entry `DEPLOY_LAG` list that asserts the **deployed** value. That assertion **fails the moment
-a deploy lands**, and its failure message instructs the reader to delete the entry — after which
-promise rule D4 covers the link unconditionally with no exception anywhere in the file. The
-accommodation cannot outlive the defect it accommodates, and it cannot be forgotten.
+**What was done instead:** the rule was asserted in full, and the divergence was registered in a
+one-entry `DEPLOY_LAG` list asserting the **deployed** value — an accommodation that breaks the
+moment the defect is fixed and whose break message instructs its own deletion.
 
-**To close it:** push `main` and let the deploy run, then delete the `DEPLOY_LAG` entry in
-`e2e/semantics.e2e.ts` and re-run `npx playwright test --project=live e2e/semantics.e2e.ts`.
+### The closure, 2026-09-12
+
+**The owner gave explicit authorisation to publish, and the orchestrator ran `git push origin
+main` on that authorisation** — not this plan's executor, and not an automatic step.
+
+| Reading | Value |
+|---|---|
+| `origin/main` before / after the push | `f957fd9` / `c39cc5a` |
+| commits transferred | 37 |
+| `git merge-base --is-ancestor d8f4bea origin/main` afterwards | ancestor |
+| workflow run | `Deploy HAOO`, run `34687312104`, head SHA `c39cc5a2`, status `completed`, conclusion `success`, `10:00:38Z` → `10:01:45Z` |
+| bundle served afterwards | `/assets/haoo-D1dl6F2P.js`, 207 685 bytes, SHA-256 `d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508` |
+| `<a>` elements in that bundle whose text is `Back to ZERO-PAPER HUB` | 2, each with `href:"https://www.zero-paperhub.com/"` |
+| resolved destination re-measured in the DOM at `10:13` UTC | `https://www.zero-paperhub.com/`, 2 instances, 1 distinct destination, agreeing across 3 of 3 independent measurements |
+
+The self-terminating assertion did terminate itself: run against the post-deploy page **before any
+edit was made**, it broke with `Expected: "https://www.haoo.online/"` /
+`Received: "https://www.zero-paperhub.com/"` and the message `DELETE the DEPLOY_LAG entry so rule
+D4 covers this link unconditionally`. The entry, the `if (lag === undefined)` branch, the
+`registeredDeployLag` evidence field and the instance-count loop were all deleted rather than
+widened; `DEPLOY_LAG` occurrences in `e2e/semantics.e2e.ts` went 4 → 0, leaving no empty list and
+no dead scaffolding. Promise rule D4 now covers both links with no exception anywhere in the file,
+and `npx playwright test --project=live e2e/semantics.e2e.ts` executed 12 tests with no assertion
+break in 32.6 s, 0 retries consumed.
+
+Closed by commit `fix(05-10): close F1-LIVE by deleting the DEPLOY_LAG entry the deploy terminated` (the follow-up to this plan; `git log --grep="close F1-LIVE"`).
+Full readings, both rounds, in `05-EVIDENCE-SEMANTICS.md` § 5.1.
 
 ## Deviations from Plan
 
@@ -281,9 +304,13 @@ accommodation cannot outlive the defect it accommodates, and it cannot be forgot
 - **Found during:** Task 2
 - **Issue:** See **Escalation** above. Closing it requires pushing 32 commits and triggering a
   production deploy.
-- **Action taken:** Escalated rather than fixed. The rule is asserted in full; the divergence is
+- **Action taken:** Escalated rather than fixed. The rule is asserted in full; the divergence was
   registered as `F1-LIVE` in a self-terminating `DEPLOY_LAG` entry that breaks on the next deploy.
-- **Commit:** `262da8f`, `2f31cda`
+- **Resolution:** CLOSED 2026-09-12. The owner authorised the push, `Deploy HAOO` run
+  `34687312104` concluded `success`, the live page was re-measured at `https://www.zero-paperhub.com/`
+  for both links, and the `DEPLOY_LAG` entry with all of its machinery was deleted so rule D4 is
+  unconditional. See the **Escalation** section above and `05-EVIDENCE-SEMANTICS.md` § 5.1.
+- **Commit:** `262da8f`, `2f31cda`; closed by `fix(05-10): close F1-LIVE by deleting the DEPLOY_LAG entry the deploy terminated`
 
 **Total deviations:** 4 auto-fixed (3 × Rule 1, 1 × Rule 2), 1 escalated (Rule 4).
 **Impact:** Three of the four auto-fixes are corrections to the UI design contract rather than to
@@ -308,7 +335,7 @@ None. The threat register's four `mitigate` dispositions are all implemented:
 
 | Threat | Mitigation as shipped |
 |---|---|
-| T-05-43 spoofing, destination-naming links | Four closed promise rules over resolved destinations, plus the closed complement list; caught F1-LIVE on the deployed page |
+| T-05-43 spoofing, destination-naming links | Four closed promise rules over resolved destinations, plus the closed complement list; caught F1-LIVE on the deployed page and, after the deploy, covers both parent-site links unconditionally |
 | T-05-44 repudiation, heading-order coverage | The spec owns the DOM walk, asserts per state, and documents the reading that means the engine corroboration stopped |
 | T-05-45 DoS, brochure content availability | The equivalent is re-asserted with `**/*.pdf` aborted, alongside the fallback subtree and both surviving controls |
 | T-05-46 tampering, three references drifting | The three resolved destinations are asserted equal to one another and to the closed primary-action list's path |
@@ -336,9 +363,10 @@ None. The threat register's four `mitigate` dispositions are all implemented:
 
 Ready for `05-11`. Handoffs:
 
-- **To the owner, blocking nothing but open:** `F1-LIVE`. Push and deploy to close it, then delete
-  the `DEPLOY_LAG` entry. Until then the live page's two parent-site links loop the visitor back to
-  the page they are on.
+- **To the owner — `F1-LIVE` is CLOSED, no action outstanding.** The owner authorised the push on
+  2026-09-12; `origin/main` moved `f957fd9` → `c39cc5a`, `Deploy HAOO` run `34687312104` concluded
+  `success`, and the live page's two parent-site links were re-measured resolving to
+  `https://www.zero-paperhub.com/`. The `DEPLOY_LAG` entry is deleted and rule D4 is unconditional.
 - **To 05-12:** the two completed-submission headings (`Your details are on their way`,
   `We couldn't send your details`) are asserted ABSENT from the live default state here and are
   owned there on the preview target, at level `h3`.

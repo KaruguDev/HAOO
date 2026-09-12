@@ -3,7 +3,12 @@
 **Instrument:** `e2e/semantics.e2e.ts`, `npx playwright test --project=live`, Chromium
 (Playwright 1.63.0, `devices['Desktop Chrome']`).
 **Subjects:** S1 `https://www.haoo.online/`, S3 `https://www.zero-paperhub.com/#products`.
-**Measured:** 2026-09-12. **Deployed bundle under measurement:** `origin/main` at `f957fd9`.
+**Measured:** 2026-09-12, in two rounds against two different deployed bundles.
+**Round 1 (09:46–09:53 UTC):** `origin/main` at `f957fd9`; every reading below is from this
+round unless a row says otherwise.
+**Round 2 (10:13 UTC, re-measurement of § 5 only):** `origin/main` at `c39cc5a`, served as
+`/assets/haoo-D1dl6F2P.js`. Round 2 exists because the deploy that closes finding F1-LIVE
+landed between the rounds; § 5.1 records both readings.
 **Raw records:** `evidence/semantics-headings.json`, `evidence/semantics-landmarks.json`,
 `evidence/semantics-regions.json`, `evidence/semantics-products-region.json`,
 `evidence/semantics-accessible-names.json`, `evidence/semantics-destinations.json`,
@@ -285,8 +290,8 @@ attribute values.
 | `Email info@haoo.online` | D2 email address | `mailto:info@haoo.online` | `mailto:info@haoo.online` | 3 |
 | `info@haoo.online` (footer) | D2 email address | `mailto:info@haoo.online` | `mailto:info@haoo.online` | 1 |
 | `Chat with HAOO on WhatsApp` | D3 host | host `wa.me` | `https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.` | 3 |
-| **`Back to ZERO-PAPER HUB` (header)** | **D4 another site** | **`https://www.zero-paperhub.com/`** | **`https://www.haoo.online/`** | 1 |
-| **`Back to ZERO-PAPER HUB` (footer)** | **D4 another site** | **`https://www.zero-paperhub.com/`** | **`https://www.haoo.online/`** | 1 |
+| `Back to ZERO-PAPER HUB` (header) | D4 another site | `https://www.zero-paperhub.com/` | round 1 `https://www.haoo.online/` → round 2 `https://www.zero-paperhub.com/` | 1 |
+| `Back to ZERO-PAPER HUB` (footer) | D4 another site | `https://www.zero-paperhub.com/` | round 1 `https://www.haoo.online/` → round 2 `https://www.zero-paperhub.com/` | 1 |
 
 | Reading | Value |
 |---|---|
@@ -294,16 +299,17 @@ attribute values.
 | distinct accessible names among them | 17 |
 | names matching a promise rule | 6 |
 | names with more than one resolved destination | 0 |
-| destination-naming links whose resolved destination ≠ its promise | 2 |
+| destination-naming links whose resolved destination ≠ its promise, round 1 | 2 |
+| destination-naming links whose resolved destination ≠ its promise, round 2 | 0 |
 
 Repeated identical names are asserted to share **one** destination rather than asserted unique.
 Duplication is correct on this page — P4 through P8 render three times each — and a uniqueness
 assertion would fail a correct page. Divergence is the defect.
 
-### 5.1 FINDING F1-LIVE — OPEN. The two parent-site links on the deployed page
+### 5.1 FINDING F1-LIVE — CLOSED by deployment, 2026-09-12. The two parent-site links
 
-**Both `Back to ZERO-PAPER HUB` links on the live page promise the parent site and resolve to the
-HAOO page the visitor is already on.**
+**Round 1 reading (deployed bundle `f957fd9`).** Both `Back to ZERO-PAPER HUB` links on the live
+page promised the parent site and resolved to the HAOO page the visitor was already on.
 
 | Reading | Value |
 |---|---|
@@ -311,26 +317,91 @@ HAOO page the visitor is already on.**
 | resolved destination | `https://www.haoo.online/` |
 | promised destination | `https://www.zero-paperhub.com/` |
 | instances | 2 (header, footer) |
+| distinct resolved destinations across the 2 instances | 1 |
 | fix commit | `d8f4bea` — `fix(05-04): point both parent-site links at the parent site` |
-| fix present in the working tree | yes |
-| fix present on `origin/main` | **no** |
+| `git merge-base --is-ancestor d8f4bea HEAD` | ancestor |
+| `git merge-base --is-ancestor d8f4bea f957fd9` | not an ancestor |
 | local `main` ahead of `origin/main` by | 32 commits |
 | deployed bundle | `origin/main` at `f957fd9`, which predates `d8f4bea` |
+| raw record | `evidence/semantics-destinations.json`, entries `2026-09-12T09:46:58.409Z` .. `09:53:55.351Z` |
 
 `05-04-SUMMARY.md` states that "any wave-4 spec asserting SS-3 … will now measure the corrected
-destination". That is true of the **source** and false of the **deployed page**, and the deployed
-page is this phase's subject. The fix has never been pushed, so GitHub Pages has never built it.
+destination". That was true of the **source** and false of the **deployed page**, and the deployed
+page is this phase's subject. The fix had never been pushed, so GitHub Pages had never built it.
 
-**Nothing cheaper than this rule could have caught it, before or now.** `/` on the HAOO host
-returns `200` and renders a valid page, so a status-code sweep, a broken-link crawler and the axe
-conformance run all see a healthy link. Only comparing a link's promise against its destination
-surfaces this class of defect. That is threat `T-05-43`, rated `high`.
+**Nothing cheaper than this rule could have caught it.** `/` on the HAOO host returns `200` and
+renders a valid page, so a status-code sweep, a broken-link crawler and the axe conformance run all
+saw a healthy link. Only comparing a link's promise against its destination surfaces this class of
+defect. That is threat `T-05-43`, rated `high`.
 
-**Disposition:** the spec registers the divergence in a one-entry `DEPLOY_LAG` list that asserts
-the **deployed** value. The assertion therefore **fails the moment a deploy lands**, and its
-message instructs the reader to delete the entry — after which promise rule D4 covers the link
-unconditionally, with no exception anywhere in the file. The accommodation cannot outlive the
-defect it accommodates. **Closing F1-LIVE requires a deploy, which is the owner's decision.**
+#### The deploy that closed it
+
+The divergence was a deploy lag, not a source defect, so closing it needed a push — an owner
+decision this phase's specs deliberately did not take. **The owner gave explicit authorisation, and
+the orchestrator (not this spec, and not an automatic step) ran `git push origin main` on that
+authorisation.**
+
+| Reading | Value |
+|---|---|
+| `origin/main` before the push | `f957fd9` |
+| `origin/main` after the push | `c39cc5a` |
+| commits transferred | 37 |
+| `git merge-base --is-ancestor d8f4bea origin/main` afterwards | ancestor |
+| workflow | `Deploy HAOO`, run `34687312104` |
+| run URL | `https://github.com/KaruguDev/HAOO/actions/runs/34687312104` |
+| run head SHA | `c39cc5a26704e8a8b37809a294d5e6d2b118206e` |
+| run status / conclusion | `completed` / `success` |
+| run created / updated (UTC) | `2026-09-12T10:00:38Z` / `2026-09-12T10:01:45Z`, 1 m 07 s |
+
+#### Round 2 reading (deployed bundle `c39cc5a`), re-measured independently
+
+Re-measured after the deploy rather than inferred from it. Two independent instruments, and the
+HTML root is not one of them — the `href` lives in the JavaScript bundle, so a grep of
+`https://www.haoo.online/` returns nothing either before or after the fix.
+
+| Reading | Value |
+|---|---|
+| measurement time (UTC) | `2026-09-12T10:12:26Z` (transport) / `10:13:00`, `10:13:04`, `10:13:08` (DOM) |
+| bundle served by `https://www.haoo.online/` | `/assets/haoo-D1dl6F2P.js` |
+| bundle transfer size | 207 685 bytes, HTTP `200` |
+| bundle SHA-256 | `d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508` |
+| occurrences of `https://www.zero-paperhub.com/` in that bundle | 2 |
+| `<a>` elements in that bundle whose child text is `Back to ZERO-PAPER HUB` | 2, each carrying `href:"https://www.zero-paperhub.com/"` |
+| resolved destination in the rendered DOM (Chromium) | `https://www.zero-paperhub.com/` |
+| instances measured in the DOM | 2 (header, footer) |
+| distinct resolved destinations across the 2 instances | 1 |
+| independent DOM measurements agreeing on that value | 3 of 3 (attempt plus two retries) |
+| raw record | `evidence/semantics-destinations.json`, entries `2026-09-12T10:13:00.496Z`, `10:13:04.995Z`, `10:13:08.139Z` |
+
+#### The accommodation did not outlive the defect
+
+The spec had registered the divergence in a one-entry `DEPLOY_LAG` list that asserted the
+**deployed** value, so that a landed deploy would break it and the break's message would instruct
+its own deletion. That is what happened, measured before any edit was made:
+
+```
+Error: F1-LIVE: "Back to ZERO-PAPER HUB" still serves the pre-d8f4bea destination. If this
+failed because it now resolves to https://www.zero-paperhub.com/, the deploy has landed —
+DELETE the DEPLOY_LAG entry so rule D4 covers this link unconditionally.
+
+  Expected: "https://www.haoo.online/"
+  Received: "https://www.zero-paperhub.com/"
+```
+
+The entry, the `if (lag === undefined)` branch that consumed it, the `registeredDeployLag` field in
+the evidence record, and the instance-count loop that validated the entry's own claim were all
+deleted rather than widened — no empty list and no dead scaffolding remain, and `DEPLOY_LAG`
+appears nowhere in `e2e/semantics.e2e.ts`. Promise rule D4 now covers both links with no exception
+anywhere in the file. The live count of 2 instances stays recorded in the evidence table above, and
+the source-level count is pinned independently at `src/test/haoo-page.test.tsx:403`.
+
+| Reading | Value |
+|---|---|
+| `e2e/semantics.e2e.ts` before / after | 61 581 / 58 138 bytes |
+| `DEPLOY_LAG` occurrences in `e2e/semantics.e2e.ts` | 4 before, 0 after |
+| destination-naming links covered by D4 unconditionally | 2 of 2 |
+| `npx playwright test --project=live e2e/semantics.e2e.ts` | 12 tests executed, 12 completed with no assertion break, 32.6 s, 0 retries consumed |
+| raw record of the post-deletion run | `evidence/semantics-destinations.json`, entry `2026-09-12T10:14:44.822Z` — the first with no `registeredDeployLag` field, measuring `https://www.zero-paperhub.com/` |
 
 ---
 

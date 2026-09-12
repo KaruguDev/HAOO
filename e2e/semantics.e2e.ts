@@ -780,45 +780,6 @@ const EXPECTED_UNEXPOSED_AT_DESKTOP = [
   'Clear what this page remembers',
 ] as const;
 
-/**
- * **The ONE registered divergence between the shipped source and the page actually deployed.**
- *
- * This is not an exemption and it is not a softened assertion. It records a measurement: on
- * 2026-09-12 the live page still serves the PRE-FIX markup for both `Back to ZERO-PAPER HUB`
- * links, because the fix — commit `d8f4bea`, `fix(05-04): point both parent-site links at the
- * parent site` — is committed locally and has never been pushed, so GitHub Pages has never built
- * it. `05-04-SUMMARY.md` states that "any wave-4 spec asserting SS-3 will now measure the
- * corrected destination"; that is true of the SOURCE and false of the DEPLOYED page, and this
- * phase's subject is the deployed page.
- *
- * **The entry is self-terminating.** The assertion below requires the measured destination to
- * still equal `deployedDestination`. The moment a deploy lands, that assertion FAILS and its
- * message says to delete this entry — at which point `DESTINATION_PROMISES` rule D4 covers the
- * link unconditionally, with no exception anywhere. An accommodation that cannot outlive the
- * defect it accommodates is the only kind this phase's discipline permits; a silent `if` would
- * have rotted into a permanent hole.
- *
- * **The defect is OPEN on the live site.** It is recorded as finding F1-LIVE in
- * `05-EVIDENCE-SEMANTICS.md` and escalated in `05-10-SUMMARY.md`: closing it needs a deploy,
- * which is the owner's decision and not this spec's.
- */
-const DEPLOY_LAG = [
-  {
-    id: 'F1-LIVE',
-    accessibleName: 'Back to ZERO-PAPER HUB',
-    promiseRule: 'D4',
-    promisedDestination: 'https://www.zero-paperhub.com/',
-    deployedDestination: 'https://www.haoo.online/',
-    instances: 2,
-    fixCommit: 'd8f4bea',
-    fixedIn: 'src/components/ProductHeader.tsx and src/pages/ProductPage.tsx',
-    measuredOn: '2026-09-12',
-    reason:
-      'The fix is committed and unpushed, so the deployed bundle predates it. Delete this entry ' +
-      'once a deploy lands; rule D4 then covers the link with no exception.',
-  },
-] as const;
-
 /** `new URL(...).host`, or the input itself for a non-URL scheme such as `tel:`. */
 function safeHost(href: string): string {
   try {
@@ -1200,13 +1161,6 @@ test.describe('SS-3 — every name is descriptive, and every name that names a d
           instances: table.filter((row) => row.name === name).length,
           rule: table.find((row) => row.name === name)?.rule ?? '(none)',
         })),
-        registeredDeployLag: DEPLOY_LAG.map((entry) => ({
-          id: entry.id,
-          accessibleName: entry.accessibleName,
-          promised: entry.promisedDestination,
-          deployed: entry.deployedDestination,
-          fixCommit: entry.fixCommit,
-        })),
       },
       detail: { url: HAOO.url, rule: 'SS-3', threat: 'T-05-43' },
     });
@@ -1232,34 +1186,11 @@ test.describe('SS-3 — every name is descriptive, and every name that names a d
       const rule = DESTINATION_PROMISES.find((entry) => entry.id === row.rule);
       if (rule === undefined) continue;
 
-      const lag = DEPLOY_LAG.find((entry) => entry.accessibleName === row.name);
-      if (lag === undefined) {
-        expect(
-          rule.resolves(row.resolved),
-          `"${row.name}" names ${rule.kind} ${rule.promise} and must resolve to it; ` +
-            `it resolves to ${row.resolved}`,
-        ).toBe(true);
-        continue;
-      }
-
-      /*
-       * The self-terminating deploy-lag assertion. It asserts the DEPLOYED value, so it fails the
-       * moment the deploy lands — which is the point. Do not "fix" that failure by widening this
-       * branch; delete the DEPLOY_LAG entry instead.
-       */
-      expect(lag.deployedDestination, `${lag.id} must describe a real divergence`)
-        .not.toBe(lag.promisedDestination);
       expect(
-        row.resolved,
-        `${lag.id}: "${row.name}" still serves the pre-${lag.fixCommit} destination. If this ` +
-          `failed because it now resolves to ${lag.promisedDestination}, the deploy has landed — ` +
-          'DELETE the DEPLOY_LAG entry so rule D4 covers this link unconditionally.',
-      ).toBe(lag.deployedDestination);
-    }
-
-    // The registered lag describes the number of instances it claims to.
-    for (const lag of DEPLOY_LAG) {
-      expect(table.filter((row) => row.name === lag.accessibleName)).toHaveLength(lag.instances);
+        rule.resolves(row.resolved),
+        `"${row.name}" names ${rule.kind} ${rule.promise} and must resolve to it; ` +
+          `it resolves to ${row.resolved}`,
+      ).toBe(true);
     }
   });
 });

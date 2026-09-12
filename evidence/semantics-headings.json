@@ -868,5 +868,179 @@
       "rule": "SS-1",
       "state": "artifact-aborted"
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:14:23.763Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "default",
+      "sequence": [
+        "h1 Run the business—not the paperwork.",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Who HAOO supports",
+        "h2 Benefits",
+        "h3 The paperwork problem",
+        "h3 Less chasing. More control.",
+        "h2 Capabilities",
+        "h3 Rent & payments",
+        "h3 Properties & units",
+        "h3 Leases & screening",
+        "h3 Maintenance",
+        "h3 Vacancy marketplace",
+        "h3 Reports & communication",
+        "h2 Rental journey",
+        "h3 Fill vacancies with confidence",
+        "h3 Move in with clarity",
+        "h3 Make every month easier",
+        "h3 Grow with visibility",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Brochure",
+        "h3 Brochure preview unavailable",
+        "h2 Send your details",
+        "h2 Get help choosing",
+        "h2 Ready to begin?"
+      ],
+      "levels": [
+        1,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        2,
+        3,
+        3,
+        3,
+        3,
+        2,
+        2,
+        2,
+        3,
+        2,
+        2,
+        2
+      ],
+      "topLevelCount": 1,
+      "skippedStep": "none observed"
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-1",
+      "owner": "this spec, not axe: heading-order is best-practice-tagged and AXE_TAGS excludes it"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:14:26.359Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "error-summary (empty required submit, nothing sent)",
+      "sequence": [
+        "h1 Run the business—not the paperwork.",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Who HAOO supports",
+        "h2 Benefits",
+        "h3 The paperwork problem",
+        "h3 Less chasing. More control.",
+        "h2 Capabilities",
+        "h3 Rent & payments",
+        "h3 Properties & units",
+        "h3 Leases & screening",
+        "h3 Maintenance",
+        "h3 Vacancy marketplace",
+        "h3 Reports & communication",
+        "h2 Rental journey",
+        "h3 Fill vacancies with confidence",
+        "h3 Move in with clarity",
+        "h3 Make every month easier",
+        "h3 Grow with visibility",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Brochure",
+        "h3 Brochure preview unavailable",
+        "h2 Send your details",
+        "h3 There is a problem",
+        "h2 Get help choosing",
+        "h2 Ready to begin?"
+      ],
+      "errorSummaryLevels": [
+        3
+      ],
+      "topLevelCount": 1,
+      "skippedStep": "none observed"
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-1",
+      "state": "error-summary"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:14:28.792Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "artifact route aborted (**/*.pdf)",
+      "sequence": [
+        "h1 Run the business—not the paperwork.",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Who HAOO supports",
+        "h2 Benefits",
+        "h3 The paperwork problem",
+        "h3 Less chasing. More control.",
+        "h2 Capabilities",
+        "h3 Rent & payments",
+        "h3 Properties & units",
+        "h3 Leases & screening",
+        "h3 Maintenance",
+        "h3 Vacancy marketplace",
+        "h3 Reports & communication",
+        "h2 Rental journey",
+        "h3 Fill vacancies with confidence",
+        "h3 Move in with clarity",
+        "h3 Make every month easier",
+        "h3 Grow with visibility",
+        "h2 Get help choosing",
+        "h2 Ready to begin?",
+        "h2 Brochure",
+        "h3 Brochure preview unavailable",
+        "h2 Send your details",
+        "h2 Get help choosing",
+        "h2 Ready to begin?"
+      ],
+      "fallbackHeadingLevels": [
+        3
+      ],
+      "fallbackExposedInAccessibilityTree": 1,
+      "topLevelCount": 1,
+      "skippedStep": "none observed"
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-1",
+      "state": "artifact-aborted"
+    }
   }
 ]
