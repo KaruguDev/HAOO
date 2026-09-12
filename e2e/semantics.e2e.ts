@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { PRODUCTS_REGION_SELECTOR } from './fixtures/axe';
 import { recordEvidence } from './fixtures/evidence';
+import { PRIMARY_ACTIONS } from './fixtures/primary-actions';
 import { SURFACES, assertNonEmptySubjects } from './fixtures/surfaces';
 
 /**
@@ -672,5 +673,753 @@ test.describe('SS-2 — landmark and region inventories', () => {
     for (const entry of navEntries) {
       expect(entry.raw).toBe(`#${section?.id ?? ''}`);
     }
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* SS-3 — accessible names, and names that promise destinations                                  */
+/* ------------------------------------------------------------------------------------------- */
+
+/** `${productName} brochure preview` (`src/components/BrochurePanel.tsx:139`). */
+const EMBED_LABEL = 'HAOO brochure preview';
+
+/**
+ * The closed list of promise rules: which accessible names NAME a destination, and what
+ * destination each one promises.
+ *
+ * SS-3's rule is "for every link whose accessible name names a destination — a phone number, an
+ * email address, a host, or another site — the resolved destination must be that destination".
+ * That is unassertable until "names a destination" is a closed list, so it is one here. A name
+ * that matches no rule is not silently exempt: `UNMATCHED_DESTINATION_NAMES` below pins the
+ * names that are deliberately outside the rule set, so a new destination-naming link cannot
+ * appear without one of the two lists changing.
+ *
+ * **This is the rule that caught F1, and nothing cheaper could have.** Both
+ * `Back to ZERO-PAPER HUB` links shipped `href="/"` — correct while HAOO lived at
+ * `zero-paperhub.com/products/haoo/`, a self-loop the moment 04.2 gave HAOO its own origin. A
+ * status-code check cannot see it: `/` on the HAOO host returns 200 and renders a valid page. A
+ * broken-link crawler cannot see it. Only comparing a link's PROMISE against its DESTINATION
+ * surfaces that class of defect, which is why T-05-43 rates it `high` and why this list exists.
+ *
+ * Resolved destinations are compared, never raw attribute strings — `href="/"` and
+ * `href="https://www.haoo.online/"` are the same destination and different strings.
+ */
+const DESTINATION_PROMISES = [
+  {
+    id: 'D1',
+    kind: 'phone number',
+    names: (name: string) => name.includes('+254 702 188 044'),
+    promise: 'tel:+254702188044',
+    resolves: (href: string) => href === 'tel:+254702188044',
+  },
+  {
+    id: 'D2',
+    kind: 'email address',
+    names: (name: string) => name.includes('info@haoo.online'),
+    promise: 'mailto:info@haoo.online',
+    resolves: (href: string) => href === 'mailto:info@haoo.online',
+  },
+  {
+    id: 'D3',
+    kind: 'host',
+    names: (name: string) => /WhatsApp/i.test(name),
+    promise: 'the wa.me host',
+    resolves: (href: string) => safeHost(href) === 'wa.me',
+  },
+  {
+    id: 'D4',
+    kind: 'another site',
+    names: (name: string) => /ZERO-PAPER HUB/.test(name),
+    promise: 'https://www.zero-paperhub.com/',
+    resolves: (href: string) => safeOrigin(href) === 'https://www.zero-paperhub.com',
+  },
+] as const;
+
+/**
+ * Accessible names that are deliberately NOT destination promises, each with its reason.
+ *
+ * Kept as a closed list rather than an implicit "anything unmatched is fine", so that a newly
+ * shipped link naming a host nobody registered fails this file instead of passing it.
+ */
+const UNMATCHED_DESTINATION_NAMES = [
+  'Skip to HAOO content',
+  'Benefits',
+  'Capabilities',
+  'Brochure',
+  'Send details',
+  'Onboarding',
+  'Send your details instead',
+  'Start with HAOO',
+  'Open brochure (opens in a new tab)',
+  'Download brochure',
+  'How we measure this page',
+  'Send my details',
+  'Open HAOO navigation',
+] as const;
+
+/**
+ * The controls present in the DOM but not exposed by the accessibility tree at 1280 px.
+ *
+ * Closed list, measured live on 2026-09-12, in the same discipline as every other list in this
+ * phase: an entry is admitted for a stated reason, and the list is not widened to make a failing
+ * run pass. Entries one through five are the mobile navigation's copies of the section links,
+ * entry six is the navigation toggle (`md:hidden`), entry seven is the anti-spam honeypot, which
+ * sits inside an `aria-hidden="true"` wrapper by design, and entry eight is the measurement
+ * disclosure's clear control, which lives inside a `<details>` element that ships collapsed
+ * (`src/components/MeasurementDisclosure.tsx:28`; the label is `measurement.disclosure.clearLabel`
+ * in `src/products/haoo.ts:351`).
+ */
+const EXPECTED_UNEXPOSED_AT_DESKTOP = [
+  'Benefits',
+  'Capabilities',
+  'Brochure',
+  'Send details',
+  'Onboarding',
+  'Open HAOO navigation',
+  'Leave this field blank',
+  'Clear what this page remembers',
+] as const;
+
+/**
+ * **The ONE registered divergence between the shipped source and the page actually deployed.**
+ *
+ * This is not an exemption and it is not a softened assertion. It records a measurement: on
+ * 2026-09-12 the live page still serves the PRE-FIX markup for both `Back to ZERO-PAPER HUB`
+ * links, because the fix — commit `d8f4bea`, `fix(05-04): point both parent-site links at the
+ * parent site` — is committed locally and has never been pushed, so GitHub Pages has never built
+ * it. `05-04-SUMMARY.md` states that "any wave-4 spec asserting SS-3 will now measure the
+ * corrected destination"; that is true of the SOURCE and false of the DEPLOYED page, and this
+ * phase's subject is the deployed page.
+ *
+ * **The entry is self-terminating.** The assertion below requires the measured destination to
+ * still equal `deployedDestination`. The moment a deploy lands, that assertion FAILS and its
+ * message says to delete this entry — at which point `DESTINATION_PROMISES` rule D4 covers the
+ * link unconditionally, with no exception anywhere. An accommodation that cannot outlive the
+ * defect it accommodates is the only kind this phase's discipline permits; a silent `if` would
+ * have rotted into a permanent hole.
+ *
+ * **The defect is OPEN on the live site.** It is recorded as finding F1-LIVE in
+ * `05-EVIDENCE-SEMANTICS.md` and escalated in `05-10-SUMMARY.md`: closing it needs a deploy,
+ * which is the owner's decision and not this spec's.
+ */
+const DEPLOY_LAG = [
+  {
+    id: 'F1-LIVE',
+    accessibleName: 'Back to ZERO-PAPER HUB',
+    promiseRule: 'D4',
+    promisedDestination: 'https://www.zero-paperhub.com/',
+    deployedDestination: 'https://www.haoo.online/',
+    instances: 2,
+    fixCommit: 'd8f4bea',
+    fixedIn: 'src/components/ProductHeader.tsx and src/pages/ProductPage.tsx',
+    measuredOn: '2026-09-12',
+    reason:
+      'The fix is committed and unpushed, so the deployed bundle predates it. Delete this entry ' +
+      'once a deploy lands; rule D4 then covers the link with no exception.',
+  },
+] as const;
+
+/** `new URL(...).host`, or the input itself for a non-URL scheme such as `tel:`. */
+function safeHost(href: string): string {
+  try {
+    return new URL(href).host;
+  } catch {
+    return href;
+  }
+}
+
+/** `new URL(...).origin`, or the input itself for a non-URL scheme such as `mailto:`. */
+function safeOrigin(href: string): string {
+  try {
+    return new URL(href).origin;
+  } catch {
+    return href;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------- */
+/* SS-4 — the brochure HTML equivalent                                                           */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * The capability and journey content, transcribed from `src/test/haoo-content.test.ts`
+ * (`EXPECTED_CAPABILITIES`, `EXPECTED_CAPABILITY_DESCRIPTIONS`, `EXPECTED_JOURNEY`,
+ * `EXPECTED_JOURNEY_DESCRIPTIONS`), which is where the brochure ledger is pinned.
+ *
+ * Transcribed rather than imported because `src/products/haoo.ts` reads `import.meta.env` at
+ * module scope, which is `undefined` outside Vite — a Playwright spec importing it throws before
+ * a single test runs. The vitest suite owns these lists; a divergence between the two files is a
+ * defect in THIS file, not in the page.
+ */
+const EXPECTED_CAPABILITIES = [
+  ['Rent & payments', 'Track balances, digital payment workflows and tenant receipts—including M-Pesa.'],
+  ['Properties & units', 'Organise portfolios, occupancy, vacancies and property details.'],
+  ['Leases & screening', 'Support tenant applications, screening and digital lease workflows.'],
+  ['Maintenance', 'Capture issues, assign work and keep progress visible to the right people.'],
+  ['Vacancy marketplace', 'Publish available homes and receive tenant applications online.'],
+  ['Reports & communication', 'Turn activity into insight and keep stakeholders informed.'],
+] as const;
+
+const EXPECTED_JOURNEY = [
+  ['Fill vacancies with confidence', 'Present available homes clearly and give prospective tenants a simple path to apply.'],
+  ['Move in with clarity', 'Keep tenant information, screening and lease workflows organised from the start.'],
+  ['Make every month easier', 'Give tenants a convenient place for payments, receipts, utilities and requests.'],
+  ['Grow with visibility', 'Use connected records and reports to manage more units without losing the human touch.'],
+] as const;
+
+/**
+ * The size of the HTML equivalent: **ten content items**, six capability cards and four journey
+ * steps.
+ *
+ * **MEASURED CORRECTION to `05-UI-SPEC.md` § SS-4, which reads "10 capability titles" and "10 of
+ * 10".** The shipped product carries SIX capabilities — already pinned at
+ * `src/test/haoo-page.test.tsx:102` (`toHaveLength(6)`) and enumerated in
+ * `src/test/haoo-content.test.ts` — and FOUR journey steps, measured live on 2026-09-12 as six
+ * `#capabilities h3` and four journey `<li>`. The contract's ten is the size of the whole
+ * equivalent, which is what SS-4 assertions 1 and 2 cover together; a spec asserting ten
+ * capability cards would fail a correct page. Count equality is asserted against BOTH lists
+ * individually and against this total, so a silently dropped item fails either way.
+ */
+const BROCHURE_EQUIVALENT_ITEMS = 10;
+
+const NAME_EVIDENCE = {
+  names: 'semantics-accessible-names',
+  destinations: 'semantics-destinations',
+  equivalence: 'semantics-brochure-equivalence',
+} as const;
+
+interface NamedControl {
+  readonly tag: string;
+  readonly role: 'link' | 'button' | 'control';
+  readonly name: string;
+  readonly textContent: string;
+  readonly ariaLabel: string | null;
+  readonly href: string | null;
+  readonly labelText: string | null;
+  readonly describedBy: string | null;
+  readonly describedByResolves: boolean | null;
+  readonly iconDescendants: number;
+  readonly exposedIconDescendants: number;
+  /**
+   * Whether the element is rendered at the CURRENT viewport and outside any `aria-hidden`
+   * subtree — i.e. whether the accessibility tree exposes it here.
+   *
+   * The DOM traversal is a strict SUPERSET of the accessibility-tree traversal at any one
+   * width, and that is by design rather than a defect: the responsive header ships both a
+   * desktop nav and a mobile nav, and exactly one of them is rendered at a time. Keeping the
+   * two apart is what lets the name rules apply to every control in the document while the
+   * engine cross-check applies only to the controls the engine can actually see.
+   */
+  readonly exposed: boolean;
+}
+
+/**
+ * Every link, button and form control in the traversal, with the material SS-3 needs.
+ *
+ * `name` is the shipped accessible name for these controls: each is either a text control whose
+ * `textContent` is its name, an icon-only control carrying `aria-label`, or a form control
+ * labelled by a resolving `<label for>`. That equivalence is not assumed — the caller checks
+ * each captured name against the ENGINE's own computation via `toHaveAccessibleName` before the
+ * table is trusted.
+ */
+async function namedControls(page: Page): Promise<readonly NamedControl[]> {
+  return page.evaluate(() => {
+    const results: unknown[] = [];
+
+    for (const element of Array.from(
+      document.querySelectorAll('a[href], button, input, select, textarea'),
+    )) {
+      const tag = element.tagName;
+      const isControl = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+      const ariaLabel = element.getAttribute('aria-label');
+      const text = (element.textContent ?? '').trim();
+      const label = element.id === ''
+        ? null
+        : document.querySelector(`label[for="${CSS.escape(element.id)}"]`);
+      const labelText = label === null ? null : (label.textContent ?? '').trim();
+      const describedBy = element.getAttribute('aria-describedby');
+      const icons = Array.from(element.querySelectorAll('svg'));
+
+      results.push({
+        tag,
+        role: isControl ? 'control' : tag === 'BUTTON' ? 'button' : 'link',
+        name: isControl ? (labelText ?? ariaLabel ?? '') : (ariaLabel ?? text),
+        textContent: text,
+        ariaLabel,
+        href: element instanceof HTMLAnchorElement ? element.href : null,
+        labelText,
+        describedBy,
+        describedByResolves: describedBy === null
+          ? null
+          : describedBy
+            .split(/\s+/)
+            .filter((token) => token !== '')
+            .every((token) => document.getElementById(token) !== null),
+        iconDescendants: icons.length,
+        exposedIconDescendants: icons.filter(
+          (icon) => icon.getAttribute('aria-hidden') !== 'true',
+        ).length,
+        exposed:
+          element.checkVisibility() && element.closest('[aria-hidden="true"]') === null,
+      });
+    }
+
+    return results as never;
+  });
+}
+
+/** Every `<img>` with the two facts SS-3 distinguishes: alt present, and alt non-empty. */
+async function images(page: Page) {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll('img')).map((image) => ({
+      src: image.getAttribute('src') ?? '(none)',
+      hasAltAttribute: image.hasAttribute('alt'),
+      alt: image.getAttribute('alt') ?? '(missing)',
+      decorative: image.getAttribute('alt') === '',
+    })),
+  );
+}
+
+/** The three references to the brochure artifact, each RESOLVED against the live document. */
+async function brochureReferences(page: Page) {
+  return page.evaluate(() => {
+    const head = document.querySelector<HTMLLinkElement>(
+      'link[rel="alternate"][type="application/pdf"]',
+    );
+    const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href]'));
+    const open = anchors.find((anchor) => /Open brochure/.test(anchor.textContent ?? ''));
+    const download = anchors.find((anchor) => anchor.hasAttribute('download'));
+
+    return {
+      head: head === null ? null : { raw: head.getAttribute('href'), resolved: head.href },
+      open: open === undefined ? null : { raw: open.getAttribute('href'), resolved: open.href },
+      download: download === undefined
+        ? null
+        : { raw: download.getAttribute('href'), resolved: download.href },
+    };
+  });
+}
+
+/** The capability cards as `[title, description]` pairs, in document order. */
+async function capabilityItems(page: Page) {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll('#capabilities li')).map((item) => [
+      (item.querySelector('h3')?.textContent ?? '').trim(),
+      (item.querySelector('p')?.textContent ?? '').trim(),
+    ]),
+  );
+}
+
+/** The journey steps as `[title, description]` pairs, in document order. */
+async function journeyItems(page: Page) {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll('section[aria-label="Rental journey"] ol li')).map(
+      (item) => [
+        (item.querySelector('h3')?.textContent ?? '').trim(),
+        (item.querySelector('p')?.textContent ?? '').trim(),
+      ],
+    ),
+  );
+}
+
+test.describe('SS-3 — every name is descriptive, and every name that names a destination is true', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  test('every link, button and control has a non-empty name, and no name is icon content', async ({
+    page,
+  }) => {
+    await openHaoo(page);
+
+    const controls = assertNonEmptySubjects(
+      await namedControls(page),
+      'the links, buttons and form controls on the live HAOO page',
+    );
+    const pictures = assertNonEmptySubjects(await images(page), 'the images on the live HAOO page');
+    const unnamed = controls.filter((control) => control.name === '');
+    const exposedIcons = controls.filter((control) => control.exposedIconDescendants > 0);
+    const iconOnlyNames = controls.filter(
+      (control) => control.textContent === '' && (control.ariaLabel ?? '') === '' &&
+        (control.labelText ?? '') === '',
+    );
+    const totalIcons = await page.locator('svg').count();
+    const unhiddenIcons = await page.locator('svg:not([aria-hidden="true"])').count();
+
+    recordEvidence(NAME_EVIDENCE.names, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        controlsTraversed: controls.length,
+        unnamedControls: unnamed.map((control) => `${control.tag} ${control.href ?? ''}`),
+        iconElements: totalIcons,
+        iconElementsExposedToTheAccessibilityTree: unhiddenIcons,
+        controlsWhoseOnlyContentIsAnIcon: iconOnlyNames.length,
+        controlsNotExposedAtThisWidth: controls
+          .filter((control) => !control.exposed)
+          .map((control) => control.name),
+        imagesWithNonEmptyAlt: pictures.filter((image) => !image.decorative).length,
+        imagesMarkedDecorative: pictures.filter((image) => image.decorative).length,
+        imagesMissingAnAltAttribute: pictures.filter((image) => !image.hasAltAttribute).length,
+        embedLabel: (await page.locator('object').getAttribute('aria-label')) ?? '(none)',
+      },
+      detail: { url: HAOO.url, rule: 'SS-3' },
+    });
+
+    expect(unnamed, 'every link, button and form control carries a non-empty accessible name')
+      .toEqual([]);
+
+    /*
+     * The decorative-icon rule, asserted as a NEGATIVE. Every lucide icon carries
+     * aria-hidden="true", so no icon contributes a character to any accessible name; and no
+     * control is left whose only content is an icon, which is the state in which a name COULD be
+     * composed solely of icon content. Both halves are needed: hiding the icons without naming
+     * the icon-only control would leave a nameless button, and naming it without hiding them
+     * would leave the icon in the name.
+     */
+    expect(exposedIcons, 'no icon is exposed to the accessibility tree').toEqual([]);
+    expect(unhiddenIcons).toBe(0);
+    expect(totalIcons).toBeGreaterThan(0);
+    expect(iconOnlyNames, 'no control is named by icon content alone').toEqual([]);
+
+    // Images: a non-empty alt, or an explicit empty alt marking it decorative. Never absent.
+    for (const image of pictures) {
+      expect(image.hasAltAttribute, `img ${image.src} carries an alt attribute`).toBe(true);
+    }
+    expect(pictures.filter((image) => !image.decorative).length).toBeGreaterThan(0);
+
+    // The embed's label is the product name followed by the brochure-preview suffix.
+    await expect(page.locator('object')).toHaveAttribute('aria-label', EMBED_LABEL);
+
+    /*
+     * The captured names are the ENGINE's, not this file's: each is checked against
+     * `toHaveAccessibleName`. Only controls the engine exposes at this width can be checked
+     * that way, so the unexposed remainder is not quietly dropped — it is captured as a closed
+     * list below and asserted, which is what stops "the engine could not see it" from becoming
+     * a place for an unnamed control to hide.
+     */
+    for (const control of controls.filter(
+      (entry) => entry.role !== 'control' && entry.exposed,
+    )) {
+      const role = control.role === 'button' ? 'button' : 'link';
+      await expect(
+        page.getByRole(role, { name: control.name, exact: true }).first(),
+      ).toHaveAccessibleName(control.name);
+    }
+
+    /*
+     * The controls present in the DOM and NOT exposed at 1280 px, asserted as a closed list.
+     * All of them are the responsive header's mobile half plus the anti-spam honeypot: the
+     * toggle is `md:hidden`, the mobile nav carries the `hidden` attribute until it is opened,
+     * and the honeypot sits inside an `aria-hidden="true"` wrapper with `tabIndex={-1}`. Each
+     * still carries a non-empty accessible name, which the `unnamed` assertion above covers for
+     * every control in the document, exposed or not.
+     */
+    const unexposedNames = controls.filter((control) => !control.exposed).map((c) => c.name);
+    expect(unexposedNames.slice().sort()).toEqual([...EXPECTED_UNEXPOSED_AT_DESKTOP].sort());
+
+    // Every form control's name comes from a <label for> that resolves.
+    const formControls = controls.filter((control) => control.role === 'control');
+    assertNonEmptySubjects(formControls, 'the form controls on the live HAOO page');
+    for (const control of formControls) {
+      expect(control.labelText, `${control.tag} is named by a resolving <label for>`)
+        .not.toBeNull();
+      expect(control.labelText).not.toBe('');
+    }
+  });
+
+  test('every description reference resolves in the state that renders one', async ({ page }) => {
+    await openHaoo(page);
+
+    const idle = (await namedControls(page)).filter((control) => control.describedBy !== null);
+
+    await submitEmptyRequired(page);
+    const described = (await namedControls(page)).filter((control) => control.describedBy !== null);
+
+    recordEvidence(NAME_EVIDENCE.names, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'error-summary (empty required submit, nothing sent)',
+        describedControlsInDefaultState: idle.length,
+        describedControlsInErrorState: described.length,
+        describedByTokens: described.map((control) => control.describedBy ?? '(none)'),
+        unresolvedDescriptionReferences: described
+          .filter((control) => control.describedByResolves !== true)
+          .map((control) => control.describedBy ?? '(none)'),
+      },
+      detail: {
+        url: HAOO.url,
+        rule: 'SS-3',
+        note:
+          'No field ships help text, so aria-describedby is absent in the default state and is ' +
+          'asserted in the error state, which is the state that renders one.',
+      },
+    });
+
+    assertNonEmptySubjects(described, 'the controls carrying aria-describedby in the error state');
+    for (const control of described) {
+      expect(
+        control.describedByResolves,
+        `aria-describedby="${control.describedBy ?? ''}" resolves to elements that exist`,
+      ).toBe(true);
+    }
+  });
+
+  test('every name that names a destination resolves to that destination', async ({ page }) => {
+    await openHaoo(page);
+
+    const links = assertNonEmptySubjects(
+      (await namedControls(page)).filter((control) => control.role === 'link'),
+      'the links on the live HAOO page',
+    );
+
+    const table = links.map((link) => {
+      const rule = DESTINATION_PROMISES.find((entry) => entry.names(link.name));
+      return {
+        name: link.name,
+        resolved: link.href ?? '(none)',
+        rule: rule?.id ?? '(none)',
+        promise: rule?.promise ?? '(names no destination)',
+      };
+    });
+
+    const byName = new Map<string, Set<string>>();
+    for (const row of table) {
+      const destinations = byName.get(row.name) ?? new Set<string>();
+      destinations.add(row.resolved);
+      byName.set(row.name, destinations);
+    }
+
+    recordEvidence(NAME_EVIDENCE.destinations, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        linksTraversed: links.length,
+        table: [...byName.entries()].map(([name, destinations]) => ({
+          accessibleName: name,
+          resolvedDestinations: [...destinations],
+          instances: table.filter((row) => row.name === name).length,
+          rule: table.find((row) => row.name === name)?.rule ?? '(none)',
+        })),
+        registeredDeployLag: DEPLOY_LAG.map((entry) => ({
+          id: entry.id,
+          accessibleName: entry.accessibleName,
+          promised: entry.promisedDestination,
+          deployed: entry.deployedDestination,
+          fixCommit: entry.fixCommit,
+        })),
+      },
+      detail: { url: HAOO.url, rule: 'SS-3', threat: 'T-05-43' },
+    });
+
+    // Identical accessible name implies identical destination. Duplication is correct on this
+    // page (P4-P8 render three times); divergence is the defect.
+    for (const [name, destinations] of byName) {
+      expect([...destinations], `"${name}" resolves to one destination in every instance`)
+        .toHaveLength(1);
+    }
+
+    // Every name either matches a promise rule or is registered as naming no destination.
+    for (const row of table) {
+      if (row.rule !== '(none)') continue;
+      expect(
+        [...UNMATCHED_DESTINATION_NAMES] as string[],
+        `"${row.name}" matches no promise rule and is not registered as naming no destination`,
+      ).toContain(row.name);
+    }
+
+    // The promise rules themselves.
+    for (const row of table) {
+      const rule = DESTINATION_PROMISES.find((entry) => entry.id === row.rule);
+      if (rule === undefined) continue;
+
+      const lag = DEPLOY_LAG.find((entry) => entry.accessibleName === row.name);
+      if (lag === undefined) {
+        expect(
+          rule.resolves(row.resolved),
+          `"${row.name}" names ${rule.kind} ${rule.promise} and must resolve to it; ` +
+            `it resolves to ${row.resolved}`,
+        ).toBe(true);
+        continue;
+      }
+
+      /*
+       * The self-terminating deploy-lag assertion. It asserts the DEPLOYED value, so it fails the
+       * moment the deploy lands — which is the point. Do not "fix" that failure by widening this
+       * branch; delete the DEPLOY_LAG entry instead.
+       */
+      expect(lag.deployedDestination, `${lag.id} must describe a real divergence`)
+        .not.toBe(lag.promisedDestination);
+      expect(
+        row.resolved,
+        `${lag.id}: "${row.name}" still serves the pre-${lag.fixCommit} destination. If this ` +
+          `failed because it now resolves to ${lag.promisedDestination}, the deploy has landed — ` +
+          'DELETE the DEPLOY_LAG entry so rule D4 covers this link unconditionally.',
+      ).toBe(lag.deployedDestination);
+    }
+
+    // The registered lag describes the number of instances it claims to.
+    for (const lag of DEPLOY_LAG) {
+      expect(table.filter((row) => row.name === lag.accessibleName)).toHaveLength(lag.instances);
+    }
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* SS-4 — the brochure HTML equivalent                                                           */
+/* ------------------------------------------------------------------------------------------- */
+
+test.describe('SS-4 — the brochure content exists as HTML, and outlives the brochure file', () => {
+  test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
+
+  test('the capability and journey content is present, in order, at count equality', async ({
+    page,
+  }) => {
+    await openHaoo(page);
+
+    const capabilities = await capabilityItems(page);
+    const journey = await journeyItems(page);
+
+    recordEvidence(NAME_EVIDENCE.equivalence, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'artifact reachable',
+        capabilitiesFound: capabilities.length,
+        capabilitiesExpected: EXPECTED_CAPABILITIES.length,
+        journeyStepsFound: journey.length,
+        journeyStepsExpected: EXPECTED_JOURNEY.length,
+        equivalentItemsFound: capabilities.length + journey.length,
+        equivalentItemsExpected: BROCHURE_EQUIVALENT_ITEMS,
+        capabilityTitles: capabilities.map(([title]) => title),
+        journeyTitles: journey.map(([title]) => title),
+      },
+      detail: { url: HAOO.url, rule: 'SS-4', threat: 'T-05-45' },
+    });
+
+    assertNonEmptySubjects(capabilities, 'the capability cards on the live HAOO page');
+    assertNonEmptySubjects(journey, 'the journey steps on the live HAOO page');
+
+    // Count equality on each list, not merely presence: a silently dropped item fails here.
+    expect(capabilities).toHaveLength(EXPECTED_CAPABILITIES.length);
+    expect(journey).toHaveLength(EXPECTED_JOURNEY.length);
+    expect(capabilities.length + journey.length).toBe(BROCHURE_EQUIVALENT_ITEMS);
+
+    // Title as an <h3> and description as text, in the same <li>, in document order.
+    expect(capabilities).toEqual(EXPECTED_CAPABILITIES.map(([title, body]) => [title, body]));
+    expect(journey).toEqual(EXPECTED_JOURNEY.map(([title, body]) => [title, body]));
+
+    const capabilityHeadings = await page.locator('#capabilities li h3').allInnerTexts();
+    expect(capabilityHeadings.map((text) => text.trim()))
+      .toEqual(EXPECTED_CAPABILITIES.map(([title]) => title));
+  });
+
+  test('the equivalent survives the artifact being unavailable, and keeps both controls', async ({
+    page,
+  }) => {
+    await page.route('**/*.pdf', (route) => route.abort());
+    await openHaoo(page);
+    await page.getByRole('region', { name: 'Brochure', exact: true }).scrollIntoViewIfNeeded();
+
+    const fallbackHeading = page.getByRole('heading', {
+      name: BROCHURE_FALLBACK_HEADING,
+      exact: true,
+    });
+    const fallbackBody = page.getByText(
+      'You can still open the HAOO brochure in a new tab or download the PDF.',
+      { exact: true },
+    );
+    const open = page.getByRole('link', { name: 'Open brochure (opens in a new tab)', exact: true });
+    const download = page.getByRole('link', { name: 'Download brochure', exact: true });
+
+    const capabilities = await capabilityItems(page);
+    const journey = await journeyItems(page);
+
+    recordEvidence(NAME_EVIDENCE.equivalence, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'artifact route aborted (**/*.pdf)',
+        capabilitiesFound: capabilities.length,
+        capabilitiesExpected: EXPECTED_CAPABILITIES.length,
+        journeyStepsFound: journey.length,
+        journeyStepsExpected: EXPECTED_JOURNEY.length,
+        equivalentItemsFound: capabilities.length + journey.length,
+        fallbackHeadingCount: await fallbackHeading.count(),
+        fallbackBodyCount: await fallbackBody.count(),
+        openActionCount: await open.count(),
+        downloadActionCount: await download.count(),
+      },
+      detail: { url: HAOO.url, rule: 'SS-4', threat: 'T-05-45' },
+    });
+
+    // (3) The equivalent must not depend on the artifact it is the equivalent OF.
+    expect(capabilities).toEqual(EXPECTED_CAPABILITIES.map(([title, body]) => [title, body]));
+    expect(journey).toEqual(EXPECTED_JOURNEY.map(([title, body]) => [title, body]));
+    expect(capabilities.length + journey.length).toBe(BROCHURE_EQUIVALENT_ITEMS);
+
+    // (4) The recovery copy renders, and never replaces the controls.
+    await expect(fallbackHeading).toBeVisible();
+    await expect(fallbackBody).toBeVisible();
+    await expect(open).toBeVisible();
+    await expect(open).toBeEnabled();
+    await expect(download).toBeVisible();
+    await expect(download).toBeEnabled();
+  });
+
+  test('the three brochure references resolve to one and the same target', async ({ page }) => {
+    await openHaoo(page);
+
+    const references = await brochureReferences(page);
+    const resolved = [
+      references.head?.resolved,
+      references.open?.resolved,
+      references.download?.resolved,
+    ].filter((value): value is string => typeof value === 'string');
+
+    /*
+     * RESOLVED destinations, never raw attribute strings. The head-level pointer ships as the
+     * relative `/brochure/HAOO-Marketing-Brochure.pdf` (pinned by `PDF_ALTERNATE_LINK` in
+     * `src/test/build-output.test.ts:55`) while the two actions ship the same relative path, so a
+     * raw string comparison would be comparing the page's own authoring style rather than its
+     * target. The expected path is read from the closed primary-action list — P1 and P2 both
+     * carry it — and resolved against the live document, so the built-tree assertion and this
+     * live assertion cannot diverge into two different literals.
+     */
+    const expectedPath = assertNonEmptySubjects(
+      [...new Set(
+        PRIMARY_ACTIONS.filter((action) => action.id === 'P1' || action.id === 'P2')
+          .flatMap((action) => [...action.destinations]),
+      )],
+      'the brochure destination carried by primary actions P1 and P2',
+    );
+    const expectedResolved = new URL(expectedPath[0] ?? '', page.url()).href;
+
+    recordEvidence(NAME_EVIDENCE.equivalence, {
+      surface: HAOO.id,
+      viewport: DESKTOP,
+      measured: {
+        headRaw: references.head?.raw ?? '(absent)',
+        headResolved: references.head?.resolved ?? '(absent)',
+        openRaw: references.open?.raw ?? '(absent)',
+        openResolved: references.open?.resolved ?? '(absent)',
+        downloadRaw: references.download?.raw ?? '(absent)',
+        downloadResolved: references.download?.resolved ?? '(absent)',
+        distinctResolvedDestinations: [...new Set(resolved)],
+        expectedResolvedFromPrimaryActions: expectedResolved,
+      },
+      detail: { url: HAOO.url, rule: 'SS-4', threat: 'T-05-46' },
+    });
+
+    expect(references.head, 'the head-level machine-discoverable pointer exists').not.toBeNull();
+    expect(references.open, 'the open action exists').not.toBeNull();
+    expect(references.download, 'the download action exists').not.toBeNull();
+    expect(resolved).toHaveLength(3);
+
+    // The three are asserted against ONE ANOTHER, not each against a literal.
+    expect(new Set(resolved).size, `three references resolved to ${[...new Set(resolved)].join(', ')}`)
+      .toBe(1);
+
+    // And the one target they share is the one the closed primary-action list carries.
+    expect(resolved[0]).toBe(expectedResolved);
   });
 });
