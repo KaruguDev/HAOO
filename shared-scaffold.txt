@@ -97,9 +97,12 @@ CNAME
 # RATIFIED 2026-09-06 — Vite's application entry document, which the bundler rewrites at
 # build time; the app shell, not either product's source
 index.html
-# RATIFIED 2026-09-06 — the expected-red gate (D6/D12), narrowed per side to its own
-# suites and markers; tooling that polices the suites rather than a product file
-scripts/assert-phase1-red.mjs
+# RATIFIED 2026-09-06 — the Phase 1 contract gate (D6/D12), narrowed per side to its own
+# suites and markers; tooling that polices the suites rather than a product file.
+# RENAMED by plan 05-15 from `scripts/assert-phase1-red.mjs`, when the gate was inverted
+# to assert green (HAOO phase 5 D-16): the same ratified entry at its new path, in both
+# repositories in the same change — a rename, not an admission, so the count is unchanged
+scripts/assert-phase1-contracts.mjs
 # RATIFIED 2026-09-06 — this list itself, which MUST be byte-identical on both sides
 shared-scaffold.txt
 # RATIFIED 2026-09-06 — the disjointness auditor, which MUST be byte-identical on both
