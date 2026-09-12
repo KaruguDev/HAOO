@@ -1,0 +1,124 @@
+[
+  {
+    "recordedAt": "2026-09-12T10:56:05.853Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-1",
+          "transition": "invalid submit",
+          "expected": "the error-summary container"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-2",
+          "transition": "repeat invalid submit, unchanged errors",
+          "expected": "the error-summary container again"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-3",
+          "transition": "correcting a field while typing",
+          "expected": "unchanged — the control the visitor is in"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 3
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 rows 1-3",
+      "target": "preview (S5)",
+      "matrix": [
+        "KF5-1",
+        "KF5-2",
+        "KF5-3",
+        "KF5-4",
+        "KF5-5",
+        "KF5-6"
+      ],
+      "note": "rows 4-6 extend this same matrix from the terminal-state block"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:56:20.952Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-1",
+          "transition": "invalid submit",
+          "expected": "the error-summary container"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-2",
+          "transition": "repeat invalid submit, unchanged errors",
+          "expected": "the error-summary container again"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-3",
+          "transition": "correcting a field while typing",
+          "expected": "unchanged — the control the visitor is in"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 3
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 rows 1-3",
+      "target": "live (S1)",
+      "matrix": [
+        "KF5-1",
+        "KF5-2",
+        "KF5-3",
+        "KF5-4",
+        "KF5-5",
+        "KF5-6"
+      ],
+      "note": "rows 4-6 extend this same matrix from the terminal-state block"
+    }
+  }
+]
