@@ -487,5 +487,168 @@
       "rule": "SS-3",
       "threat": "T-05-43"
     }
+  },
+  {
+    "recordedAt": "2026-09-12T09:53:55.351Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "linksTraversed": 33,
+      "table": [
+        {
+          "accessibleName": "Skip to HAOO content",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#haoo-content"
+          ],
+          "instances": 1,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Back to ZERO-PAPER HUB",
+          "resolvedDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "instances": 2,
+          "rule": "D4"
+        },
+        {
+          "accessibleName": "Benefits",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#benefits"
+          ],
+          "instances": 2,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Capabilities",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#capabilities"
+          ],
+          "instances": 2,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Brochure",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#brochure"
+          ],
+          "instances": 2,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Send details",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#qualify"
+          ],
+          "instances": 2,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Onboarding",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#onboarding"
+          ],
+          "instances": 2,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "resolvedDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "instances": 3,
+          "rule": "D3"
+        },
+        {
+          "accessibleName": "Call +254 702 188 044",
+          "resolvedDestinations": [
+            "tel:+254702188044"
+          ],
+          "instances": 3,
+          "rule": "D1"
+        },
+        {
+          "accessibleName": "Email info@haoo.online",
+          "resolvedDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "instances": 3,
+          "rule": "D2"
+        },
+        {
+          "accessibleName": "Send your details instead",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#qualify"
+          ],
+          "instances": 3,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Start with HAOO",
+          "resolvedDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "instances": 3,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "resolvedDestinations": [
+            "https://www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "instances": 1,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "Download brochure",
+          "resolvedDestinations": [
+            "https://www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "instances": 1,
+          "rule": "(none)"
+        },
+        {
+          "accessibleName": "+254 702 188 044",
+          "resolvedDestinations": [
+            "tel:+254702188044"
+          ],
+          "instances": 1,
+          "rule": "D1"
+        },
+        {
+          "accessibleName": "info@haoo.online",
+          "resolvedDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "instances": 1,
+          "rule": "D2"
+        },
+        {
+          "accessibleName": "How we measure this page",
+          "resolvedDestinations": [
+            "https://www.haoo.online/#haoo-measurement-disclosure"
+          ],
+          "instances": 1,
+          "rule": "(none)"
+        }
+      ],
+      "registeredDeployLag": [
+        {
+          "id": "F1-LIVE",
+          "accessibleName": "Back to ZERO-PAPER HUB",
+          "promised": "https://www.zero-paperhub.com/",
+          "deployed": "https://www.haoo.online/",
+          "fixCommit": "d8f4bea"
+        }
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-3",
+      "threat": "T-05-43"
+    }
   }
 ]
