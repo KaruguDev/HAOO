@@ -559,5 +559,68 @@
       "rule": "every anchor carrying a recovery scheme, by scheme rather than by accessible name",
       "note": "Includes the two footer anchors whose accessible names are the phone display and the mailbox address rather than P5/P6 names."
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:18.420Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "distinctDestinationCount": 5,
+      "distinctDestinations": [
+        "/brochure/HAOO-Marketing-Brochure.pdf",
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online",
+        "https://manage.haoo.online/"
+      ],
+      "perAction": [
+        "P1 \"Open brochure (opens in a new tab)\" x1 -> /brochure/HAOO-Marketing-Brochure.pdf",
+        "P2 \"Download brochure\" x1 -> /brochure/HAOO-Marketing-Brochure.pdf",
+        "P4 \"Chat with HAOO on WhatsApp\" x3 -> https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "P5 \"Call +254 702 188 044\" x3 -> tel:+254702188044",
+        "P6 \"Email info@haoo.online\" x3 -> mailto:info@haoo.online",
+        "P7 \"Start with HAOO\" x3 -> https://manage.haoo.online/"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "javaScriptEnabled": true,
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, Present and Well-formed rows",
+      "actionsRead": [
+        "P1",
+        "P2",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "excluded": "P3 submits to an endpoint rather than linking, and P8 is the in-page #qualify anchor; neither is a recovery destination."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:18.428Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "recoverySchemeAnchorCount": 16,
+      "recoverySchemeDestinations": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online",
+        "https://manage.haoo.online/",
+        "/brochure/HAOO-Marketing-Brochure.pdf"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "every anchor carrying a recovery scheme, by scheme rather than by accessible name",
+      "note": "Includes the two footer anchors whose accessible names are the phone display and the mailbox address rather than P5/P6 names."
+    }
   }
 ]

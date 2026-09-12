@@ -126,5 +126,69 @@
       "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, not-fetched row; D-14",
       "note": "These three carry a different disposition from a reachable entry and the two must read as different claims. Nothing here was proven to DELIVER; it was proven to RESOLVE."
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:30.234Z",
+    "surface": "S1",
+    "viewport": null,
+    "measured": {
+      "target": "https://manage.haoo.online/",
+      "disposition": "reachable",
+      "status": 200,
+      "redirectTarget": "no Location header",
+      "contentType": "text/html",
+      "transportFailure": "none observed",
+      "attemptedAt": "2026-09-12T10:40:29.739Z",
+      "elapsedMs": 495
+    },
+    "detail": {
+      "method": "GET through the request context, maxRedirects 0, failOnStatusCode false",
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, Reachable row",
+      "errorThreshold": 400
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:31.188Z",
+    "surface": "S1",
+    "viewport": null,
+    "measured": {
+      "target": "https://www.haoo.online/brochure/HAOO-Marketing-Brochure.pdf",
+      "disposition": "reachable",
+      "status": 200,
+      "redirectTarget": "no Location header",
+      "contentType": "application/pdf",
+      "transportFailure": "none observed",
+      "attemptedAt": "2026-09-12T10:40:30.278Z",
+      "elapsedMs": 910
+    },
+    "detail": {
+      "method": "GET through the request context, maxRedirects 0, failOnStatusCode false",
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, brochure PDF Reachable row",
+      "note": "The brochure is FIRST-PARTY — this project publishes it — so it is asserted rather than recorded-and-excused. The recorded-observation branch is for hosts nobody here owns."
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:31.206Z",
+    "surface": "S1",
+    "viewport": null,
+    "measured": {
+      "disposition": "validated, not fetched",
+      "destinations": [
+        "tel:+254702188044",
+        "mailto:info@haoo.online",
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+      ],
+      "reasons": [
+        "tel:+254702188044: a telephone scheme — dialling it would place a call",
+        "mailto:info@haoo.online: a mailbox scheme — resolving it would send mail",
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.: a third-party messaging host — fetching it would open a conversation"
+      ],
+      "requestsIssued": 0,
+      "validationMethod": "literal equality against the shipped form, on both S1 and S2"
+    },
+    "detail": {
+      "rule": "UI-SPEC § Onboarding Recovery Resolution Contract, not-fetched row; D-14",
+      "note": "These three carry a different disposition from a reachable entry and the two must read as different claims. Nothing here was proven to DELIVER; it was proven to RESOLVE."
+    }
   }
 ]

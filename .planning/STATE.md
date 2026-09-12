@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-10-PLAN.md
-last_updated: "2026-09-12T09:57:02.694Z"
+stopped_at: Completed 05-11-PLAN.md
+last_updated: "2026-09-12T10:43:02.190Z"
 last_activity: 2026-09-07
 last_activity_desc: Phase 05 execution started
-state_head: 1f4692278afb94eca7cc45c3bb74c60e2b8d2e2c
+state_head: 937410624c506d140f15c2cd13956b27fc4d17ad
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 61
+  completed_plans: 62
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 7 of 17
+Plan: 8 of 17
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-07 — Phase 05 execution started
@@ -103,6 +103,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P07 | 25 min | 2 tasks | 3 files |
 | Phase 05 P08 | 28 min | 3 tasks | 7 files |
 | Phase 05 P10 | 62 min | 3 tasks | 9 files |
+| Phase 05 P11 | 25min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -240,6 +241,8 @@ Recent decisions affecting current work:
 - [Phase 05]: Heading order is owned by e2e/semantics.e2e.ts as a DOM walk, not by axe: heading-order is best-practice-tagged, AXE_TAGS excludes it, and re-adding it with withRules overwrites runOnly and narrows the whole sweep to that one rule while still reporting a conformance pass
 - [Phase 05]: Three rows of 05-UI-SPEC.md are corrected against the shipped page with their measurements: the SS-2 region list is ten not nine, SS-2 never exposes two navigation landmarks at once, and SS-4 "10 capability titles" is six capabilities plus four journey steps
 - [Phase 05]: A known-open deployed defect is accommodated only by a self-terminating registry entry that asserts the DEPLOYED value, so the assertion fails the moment the fix ships and the entry cannot outlive the defect
+- [Phase 05]: 05-11: the retired-path document's exactly-zero script budget is asserted as 'scripts NOT carrying the Cloudflare edge signature equals 0' — the served document carries two edge-injected scripts (bot management, plus a content-negotiated Web Analytics beacon) that are in neither repository tree — The authored budget stays exact so any script a human adds is a red run, while a third-party edge behaviour is recorded as observation O-1 rather than reported as a defect in this project's markup. Handed to 05-14 and the future ZERO-PAPER HUB phase.
+- [Phase 05]: 05-11: a third-party host being unavailable is a recorded observation carrying its status, redirect target and wall-clock time; a missing, malformed or wrong-target link is a contract failure that fails the run. The two verdicts are never collapsed. — A gate that goes red because someone else's host is down is un-greenable for a reason nobody here can fix, which is how a suite gets ignored. Recorded is neither passed nor failed.
 
 ### Pending Todos
 
@@ -270,6 +273,7 @@ None yet.
 - DECIDED NOT EXECUTED: haoo.online has no MX records, so info@haoo.online very likely does not receive mail; Phase 5 / LEAD-07 blocks on the DNS change
 - OPEN: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim (D34)
 - [Phase 05 RESOLVED 2026-09-12] F1-LIVE is CLOSED. Both "Back to ZERO-PAPER HUB" links on the deployed https://www.haoo.online/ had resolved to the HAOO page itself because fix commit d8f4bea was never pushed. The owner gave explicit authorisation and the orchestrator ran git push origin main: origin/main moved f957fd9 -> c39cc5a (37 commits), and the Deploy HAOO workflow run 34687312104 concluded success (10:00:38Z -> 10:01:45Z, head SHA c39cc5a2). Re-measured independently at 10:12-10:13 UTC: the live page serves bundle /assets/haoo-D1dl6F2P.js (SHA-256 d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508), that bundle carries two <a> elements with href="https://www.zero-paperhub.com/", and both links resolve to that destination in the DOM across 3 of 3 measurements. The self-terminating DEPLOY_LAG entry in e2e/semantics.e2e.ts broke as designed and was deleted with all of its machinery, so promise rule D4 is now unconditional. Full readings in 05-EVIDENCE-SEMANTICS.md section 5.1.
+- O-1: the ZERO-PAPER HUB Cloudflare zone injects a Web Analytics beacon into the retired-path document, which 04.2 D25 defines as carrying exactly zero script. Owner decision about the other repository's hosting; handed to 05-14 alongside R-1.
 
 ### Quick Tasks Completed
 
@@ -292,6 +296,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T09:56:35.719Z
-Stopped at: Completed 05-10-PLAN.md
+Last session: 2026-09-12T10:42:46.220Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None

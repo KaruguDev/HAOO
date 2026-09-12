@@ -74,5 +74,44 @@
       "floorPx": 44,
       "note": "A blocked-request count of 0 is a reading, not a gap, and the bundle reading beside it is what makes the 0 interpretable. capture_pageview is false in the lockdown, so a page load issues no ingestion request even on a configured build."
     }
+  },
+  {
+    "recordedAt": "2026-09-12T10:40:35.133Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "analyticsRequestsBlocked": 0,
+      "blockedRequestUrls": [],
+      "blockedHostnameSuffixes": [
+        "us.i.posthog.com"
+      ],
+      "deployedBundle": "https://www.haoo.online/assets/haoo-D1dl6F2P.js",
+      "bundleMentionsIngestionOrigin": "the ingestion origin appears in the deployed bundle",
+      "topLevelHeadings": [
+        "Run the business—not the paperwork."
+      ],
+      "headingCount": 26,
+      "capabilityHeadingCount": 6,
+      "actions": [
+        "P1 \"Open brochure (opens in a new tab)\" x1 visible 1 enabled 1 min 592x45.59375",
+        "P2 \"Download brochure\" x1 visible 1 enabled 1 min 592x45.59375",
+        "P3 \"Send my details\" x1 visible 1 enabled 1 min 150x44",
+        "P4 \"Chat with HAOO on WhatsApp\" x3 visible 3 enabled 3 min 320x44",
+        "P5 \"Call +254 702 188 044\" x3 visible 3 enabled 3 min 320x44",
+        "P6 \"Email info@haoo.online\" x3 visible 3 enabled 3 min 320x44",
+        "P7 \"Start with HAOO\" x3 visible 3 enabled 3 min 318x45.59375",
+        "P8 \"Send your details instead\" x3 visible 3 enabled 3 min 192x44"
+      ],
+      "smallestPrimaryTarget": 44
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "UI-SPEC § UI Considerations, \"S1 under a slow or failed PostHog load\"; T-05-52",
+      "floorPx": 44,
+      "note": "A blocked-request count of 0 is a reading, not a gap, and the bundle reading beside it is what makes the 0 interpretable. capture_pageview is false in the lockdown, so a page load issues no ingestion request even on a configured build."
+    }
   }
 ]
