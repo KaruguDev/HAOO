@@ -317,6 +317,8 @@ disabled. Whether ZERO-PAPER HUB's Cloudflare zone should have Web Analytics ena
 decision about the other repository. **Handed forward to the future ZERO-PAPER HUB phase, and to
 plan 05-14 alongside review item R-1**, which also concerns this document.
 
+**Owner decision, 2026-09-12 (05-14):** the owner will turn off Cloudflare Web Analytics auto-injection for zero-paperhub.com themselves, as a Cloudflare dashboard action outside both repositories. Owner-decided; owner action done (reported 2026-09-12); beacon measured absent by the orchestrator at 2026-09-12T20:31:04Z (Chromium via @playwright/test, JavaScript enabled, the haoo.online refresh target blocked: HTTP 200, cf-cache-status DYNAMIC, 0 requests to cloudflareinsights.com during load plus 3 s, beacon.min.js not referenced, 1 script tag in the served HTML, and plain curl also 1); formal closure still on 05-17's final live run. The one remaining script is the inline Cloudflare bot-management bootstrap 05-11 already recorded: it is not measurement, and 05-11's spec already asserts 0 non-Cloudflare scripts. Whether a bot-management bootstrap sits within D-12's zero-script intent is recorded for 05-17 and phase verification, not decided here. No spec in 05-14 asserts the beacon's absence.
+
 ### O-2 — P5 and P6 ship three elements under their listed names, not the four the closed list declares
 
 **Surface:** S1. **Owner:** this phase's fixture layer. **Measured:** 2026-09-12, and previously by

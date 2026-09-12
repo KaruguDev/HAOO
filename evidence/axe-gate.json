@@ -1,0 +1,1015 @@
+[
+  {
+    "recordedAt": "2026-09-12T20:29:26.879Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "default",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:31.242Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "disclosure-expanded",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:34.873Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "error-summary",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:40.636Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "products-region",
+      "url": "https://www.zero-paperhub.com/#products",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/main-ClJKpN3o.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:44.034Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 1,
+      "blockingNodeCount": 1,
+      "exceptedBlockingNodeCount": 1,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "as-served",
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [
+        "page-has-heading-one",
+        "landmark-one-main",
+        "region"
+      ],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [
+        {
+          "id": "R-1",
+          "matchedNodes": 1
+        }
+      ],
+      "exceptedNodes": [
+        "incomplete/bypass (serious) at html"
+      ],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:47.341Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 1,
+      "blockingNodeCount": 1,
+      "exceptedBlockingNodeCount": 1,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "refresh-stripped",
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [
+        "page-has-heading-one",
+        "landmark-one-main",
+        "region"
+      ],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [
+        {
+          "id": "R-1",
+          "matchedNodes": 1
+        }
+      ],
+      "exceptedNodes": [
+        "incomplete/bypass (serious) at html"
+      ],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:50.719Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "mobile-nav-open",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:29:59.167Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "in-flight",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:30:04.634Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "success",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:30:10.432Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "transport-failure",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:30:17.021Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "blocked",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:18.991Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "default",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:22.845Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "disclosure-expanded",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:26.944Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "error-summary",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:32.508Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "products-region",
+      "url": "https://www.zero-paperhub.com/#products",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/main-ClJKpN3o.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:35.479Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 1,
+      "blockingNodeCount": 1,
+      "exceptedBlockingNodeCount": 1,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "as-served",
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [
+        "page-has-heading-one",
+        "landmark-one-main",
+        "region"
+      ],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [
+        {
+          "id": "R-1",
+          "matchedNodes": 1
+        }
+      ],
+      "exceptedNodes": [
+        "incomplete/bypass (serious) at html"
+      ],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": []
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:38.256Z",
+    "surface": "S4",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 1,
+      "blockingNodeCount": 1,
+      "exceptedBlockingNodeCount": 1,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "refresh-stripped",
+      "url": "https://www.zero-paperhub.com/products/haoo/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [
+        "page-has-heading-one",
+        "landmark-one-main",
+        "region"
+      ],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [
+        {
+          "id": "R-1",
+          "matchedNodes": 1
+        }
+      ],
+      "exceptedNodes": [
+        "incomplete/bypass (serious) at html"
+      ],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": []
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:41.653Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "mobile-nav-open",
+      "url": "https://www.haoo.online/",
+      "project": "live",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-D1dl6F2P.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:49.920Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "in-flight",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:33:55.065Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "success",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:34:00.283Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "transport-failure",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T20:34:06.003Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "violationNodeCount": 0,
+      "incompleteNodeCount": 0,
+      "blockingNodeCount": 0,
+      "exceptedBlockingNodeCount": 0,
+      "unexceptedBlockingNodeCount": 0,
+      "moderateNodeCount": 0,
+      "minorNodeCount": 0,
+      "unclassifiableNodeCount": 0
+    },
+    "detail": {
+      "state": "blocked",
+      "url": "http://localhost:4173/",
+      "project": "preview",
+      "engine": "axe-core",
+      "engineVersion": "4.13.0",
+      "tags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa",
+        "wcag22aa"
+      ],
+      "perUrlDisabledRules": [],
+      "blockingImpacts": [
+        "critical",
+        "serious"
+      ],
+      "exceptionsApplicable": [],
+      "exceptedNodes": [],
+      "unexceptedBlockingNodes": [],
+      "recordedOnlyNodes": [],
+      "scriptSources": [
+        "/assets/haoo-CNGGkFFJ.js"
+      ]
+    }
+  }
+]

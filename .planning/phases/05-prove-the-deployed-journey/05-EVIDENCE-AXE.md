@@ -391,3 +391,185 @@ raised no new finding there.
 
 - **From the numbered blocking list:** 0 findings.
 - **Escalated review items:** 1, which is R-1.
+
+---
+
+## 9. Closing the triage (plan 05-14, Tasks 2 and 3)
+
+### 9.1 The owner's rulings at the Task 2 checkpoint (2026-09-12)
+
+1. **R-1: `accept-recorded`.**
+2. **Gate scope.** A `serious` or `critical` **incomplete** result fails the gate exactly as a
+   violation does, unless a named exception matches it. The gate covers **all 11** surface-states,
+   S4 included.
+   - This is **deliberately wider** than the plan's literal wording, which names "a HAOO surface or
+     the Products region". S4 is served by ZERO-PAPER HUB.
+   - The owner decided it, so the gate is no looser than the baseline scan.
+3. **O-1.** The owner will turn off Cloudflare Web Analytics auto-injection for `zero-paperhub.com`
+   themselves, as a dashboard action outside both repositories. It is not part of this gate. The
+   owner later reported the action done (see §9.6).
+
+### 9.2 The gate
+
+`e2e/axe-gate.e2e.ts` is the gating counterpart to `e2e/axe-baseline.e2e.ts`:
+
+- **Scope.** It covers the same 11 surface-states and builds every scan with `axeFor`.
+- **Blocking.** It fails on any node at a `BLOCKING_IMPACTS` impact (`critical`, `serious`), in
+  either the violations or the incomplete bucket, that no named exception matches.
+- **Recording.** It records `moderate` and `minor` nodes in `evidence/axe-gate.json` without
+  failing.
+- **Method checks.** Each scan asserts that the engine's reported `toolOptions.runOnly` is the
+  factory's 5-tag selection, and that every node carries an impact D-OQ-1 can classify.
+  Measurement is written before any assertion, so a red run still leaves its record.
+
+**The named exception list** (`GATE_EXCEPTIONS`, `as const`) has one entry:
+
+| Field | Value |
+|-------|-------|
+| id | `R-1` |
+| Key | rule `bypass`, bucket `incomplete`, impact `serious`, node target `html`, surface `S4`, states `as-served` and `refresh-stripped` |
+| Reason (verbatim) | The retired-path page is a single short notice with no navigation and no blocks repeated across pages, so there is nothing for a skip link, heading or landmark to let a visitor bypass; 04.2 D-12 keeps it deliberately minimal. |
+| Provenance | **Owner-accepted, orchestrator-drafted at the owner's request.** The owner chose `accept-recorded` at the Task 2 checkpoint. Asked for their own words, the owner replied "provide a reason", and the orchestrator drafted the sentence above at that request. **It is not the owner's own wording.** |
+
+- **Vacuity guard.** A scan of either named S4 state in which the exception matches no node fails,
+  so the exception cannot outlive the result it excuses.
+- **List check.** A page-less test holds the list closed: unique ids, only registered states, only
+  blocking impacts, and a non-empty reason and provenance for every entry.
+
+### 9.3 One row per finding
+
+| # | Rule | Surface / state | Disposition | Detail |
+|---|------|-----------------|-------------|--------|
+| B-0 | none | none | none | The numbered blocking list is empty (§4, and re-read in §8.1) |
+| R-1 | `bypass` (`serious`, incomplete) | S4 / as-served and S4 / refresh-stripped, node `html` | **ACCEPTED** | Owner-accepted, orchestrator-drafted at the owner's request. The reason is transcribed verbatim in §9.2 and carried inline at the exception in `e2e/axe-gate.e2e.ts` |
+
+### 9.4 The counts
+
+| Count | Value |
+|-------|------:|
+| Findings fixed | **0** |
+| Findings deferred | **0** |
+| Findings accepted | **1** (R-1) |
+| Blocking findings returned by the gate run | **1** (R-1: 2 nodes, one per S4 reading, both matched by the exception) |
+| Blocking nodes with no exception | **0** |
+| Moderate / minor / unclassifiable nodes | **0 / 0 / 0** |
+
+The blocking-finding count from the gate run (1) equals the accepted count (1).
+
+**Gate readings and the build each came from.** These are from the development run,
+2026-09-12T20:29:13Z to 20:30:17Z. Both projects exited 0: live had 8 passed and 4 skipped, preview
+had 5 passed and 7 skipped. It wrote 11 records to `evidence/axe-gate.json`. The build of each
+reading comes from that record's own `scriptSources`.
+
+| Surface / state | Project | Build (from the document's script sources) | Blocking nodes | Excepted | Unexcepted |
+|-----------------|---------|--------------------------------------------|---------------:|---------:|-----------:|
+| S1 / default, disclosure-expanded, error-summary, mobile-nav-open | live | `/assets/haoo-D1dl6F2P.js` (SHA-256 `d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508`); **does not include `65a612a`** | 0 each | 0 | 0 |
+| S3 / products-region | live | ZERO-PAPER HUB `/assets/main-ClJKpN3o.js`, `main` `3525f6d` | 0 | 0 | 0 |
+| S4 / as-served | live | ZERO-PAPER HUB `public/products/haoo/index.html` at `3525f6d` (0 authored scripts) | 1 | 1 (R-1) | 0 |
+| S4 / refresh-stripped | live | same | 1 | 1 (R-1) | 0 |
+| S5 / in-flight, success, transport-failure, blocked | preview | `/assets/haoo-CNGGkFFJ.js` (SHA-256 `544c52d854cfc1d9d37ecb356ef8aab81a67a8362562e658b64e6f4f1f1b8ccc`), built from the HAOO tree; **includes `65a612a`** | 0 each | 0 | 0 |
+
+**The plan's `<verify><automated>` run**, 2026-09-12T20:33:12Z to 20:34:06Z, run exactly as
+written, exited 0. Live had 8 passed and 4 skipped; preview had 5 passed and 7 skipped. It appended
+11 more records to `evidence/axe-gate.json` (records 12 to 22, `recordedAt` 20:33:18.991Z to
+20:34:06.003Z).
+
+- **Builds:** the same as the development run. Live S1 was on `/assets/haoo-D1dl6F2P.js`, S3 on
+  `/assets/main-ClJKpN3o.js`, and preview S5 on `/assets/haoo-CNGGkFFJ.js`.
+- **Totals:** 2 blocking nodes (S4 as-served 1, S4 refresh-stripped 1), 2 excepted by R-1 with
+  `matchedNodes` 1 on each, 0 unexcepted, 0 moderate, 0 minor and 0 unclassifiable.
+- **The one difference** from the development run is in `scriptSources`: see §9.6 and §9.7.
+
+### 9.5 The configuration is unchanged from the baseline run
+
+The tag list, the per-URL disable table and the impact threshold are unchanged from the baseline
+run:
+
+- **Tags:** 5 (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`).
+- **Per-URL disables:** 3, all on S4, all `best-practice`.
+- **Blocking impacts:** `critical` and `serious`.
+- **Engine:** `axe-core` **4.13.0** on every baseline entry (§1) and every gate record, so the two
+  runs are comparable.
+
+`e2e/fixtures/axe.ts` is byte-unchanged across this plan. The gate file constructs no builder of
+its own and contains no rule disable. The gate is **stricter** than the baseline's classification
+in one respect: blocking incomplete results fail. That comes from the owner's ruling in §9.1, not
+from any change to the configuration.
+
+### 9.6 O-1: decided, owner action done, formal closure on 05-17
+
+**Owner-decided on 2026-09-12:** the owner turns off Cloudflare Web Analytics auto-injection for
+`zero-paperhub.com`. **Owner action done** (reported 2026-09-12). The decision and its status are
+recorded against O-1 in `05-EVIDENCE-RECOVERY.md`, in `05-11-SUMMARY.md` coverage D8, and in the
+STATE.md O-1 line.
+
+| Reading | When (UTC) | Who | Beacon on the served S4 document |
+|---------|------------|-----|----------------------------------|
+| This plan's gate run, `scriptSources` | 2026-09-12T20:29:44Z (as-served), 20:29:47Z (refresh-stripped) | executor | **present**: `static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495` |
+| After the owner's report | 2026-09-12T20:31:04Z | orchestrator | **absent** (details below) |
+
+The orchestrator's reading was taken in Chromium via `@playwright/test`, with JavaScript enabled and
+the `haoo.online` refresh target blocked. It measured:
+
+- HTTP 200, with `cf-cache-status: DYNAMIC` and `age: 84`.
+- 0 requests to `cloudflareinsights.com` during load plus 3 s.
+- `beacon.min.js` not referenced in the served HTML.
+- 1 script tag in the served HTML, and 1 in a plain `curl` of the same URL.
+
+The two readings are consistent with the change landing between them. The gate's own verify run
+then read the same thing:
+
+- **S4:** both readings (20:33Z) carried no `script[src]` at all, so no beacon.
+- **S3:** it carried the beacon at 20:29:40Z. At 20:33Z it carried only `/assets/main-ClJKpN3o.js`.
+
+- **Formal closure is still on 05-17's final live run.** This plan adds no spec assertion about the
+  beacon's absence.
+- **One script remains:** the inline Cloudflare bot-management bootstrap (`__CF$cv$params`) that
+  05-11 already recorded. It is not measurement, and 05-11's spec already asserts 0 non-Cloudflare
+  scripts. Whether a bot-management bootstrap sits within D-12's zero-script intent is recorded for
+  05-17 and phase verification, not decided here.
+- **AG-O1 (§9.7) is unaffected.** The owner's action names `zero-paperhub.com`, and AG-O1 concerns
+  `www.haoo.online`.
+
+### 9.7 New observation AG-O1: the same beacon loaded on `www.haoo.online`, then did not
+
+This is **not an axe finding, and the gate does not assert on it.** The gate's `scriptSources`
+readings measured it, and the O-1 decision names only `zero-paperhub.com`.
+
+| Reading | When (UTC) | All 4 live S1 states on `www.haoo.online` |
+|---------|------------|-------------------------------------------|
+| Gate development run | 2026-09-12T20:29:26Z to 20:29:50Z | `https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495` **present**, beside `/assets/haoo-D1dl6F2P.js` |
+| Gate verify run | 2026-09-12T20:33:19Z to 20:34:06Z | **absent**: `scriptSources` holds `/assets/haoo-D1dl6F2P.js` only |
+
+- **How it gets there.** `www.haoo.online` answers with `server: cloudflare` and a `cf-ray` in front
+  of GitHub Pages (`via: 1.1 varnish`, `x-github-request-id`), at 2026-09-12T20:31:16Z.
+- **Same mechanism as O-1.** A `curl` with a browser user agent receives the bot-management
+  bootstrap (`__CF$cv$params`, 1 occurrence) and no beacon.
+- **Not in the build.** The built `dist/index.html` contains 0 occurrences of
+  `cloudflareinsights`. The beacon is added at the edge, not by this repository.
+- **The cause of the change is not established.** Between the two readings the owner reported
+  turning off Web Analytics for `zero-paperhub.com`. The records here cannot separate two
+  explanations: that the change also covered `haoo.online` (for example, a setting shared by both
+  hostnames), or that the injection varies between requests. The owner can tell which from the
+  Cloudflare dashboard; this plan cannot.
+- **Not decided here, and not judged here:** whether the `haoo.online` zone should carry Web
+  Analytics, and whether the page's measurement disclosure covers it.
+- **Where it went.** It stays with the owner, with an OPEN line in STATE.md. No spec asserts the
+  beacon's absence. 05-17's live run is the next reading.
+
+### 9.8 Deployment note
+
+**No product source changed in this plan.** Findings fixed: 0. Every file this plan committed is a
+spec, an evidence record or a planning document.
+
+**The live specs still measure production, and production is behind the repository.** The live
+readings above were taken on `/assets/haoo-D1dl6F2P.js`, which does not include 05-13's `65a612a`.
+The preview readings were taken on a build that does include it.
+
+**Plan 05-17 is where the final live evidence run happens.** It must run against a HAOO deployment
+that includes every commit unpushed at the end of this plan, `65a612a` among them. A fix that is
+committed but not deployed leaves the live evidence measuring the old page.
+
+On that run, `e2e/axe-gate.e2e.ts` will also re-check R-1: if the S4 document changes so that the
+`bypass` result disappears or moves, the vacuity guard fails the run and the exception must be
+re-decided.
