@@ -1,6 +1,6 @@
 [
   {
-    "recordedAt": "2026-09-12T10:56:01.124Z",
+    "recordedAt": "2026-09-12T11:03:29.049Z",
     "surface": "S5",
     "viewport": {
       "width": 1280,
@@ -37,7 +37,7 @@
     }
   },
   {
-    "recordedAt": "2026-09-12T10:56:05.852Z",
+    "recordedAt": "2026-09-12T11:03:33.605Z",
     "surface": "S5",
     "viewport": {
       "width": 1280,
@@ -150,7 +150,7 @@
     }
   },
   {
-    "recordedAt": "2026-09-12T10:56:10.457Z",
+    "recordedAt": "2026-09-12T11:03:40.313Z",
     "surface": "S5",
     "viewport": {
       "width": 1280,
@@ -188,7 +188,237 @@
     }
   },
   {
-    "recordedAt": "2026-09-12T10:56:15.370Z",
+    "recordedAt": "2026-09-12T11:04:03.808Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "in-flight",
+      "project": "preview",
+      "submitEnabled": false,
+      "submitLabel": "Sending…",
+      "statusRegionText": "Sending your details…",
+      "disabledFieldControls": 10,
+      "fieldControlCount": 10,
+      "honeypotDisabled": false,
+      "requestsDuringWindow": 1,
+      "focusDestination": "<no focus move: the in-flight state moves no focus>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 in-flight row",
+      "target": "preview (S5)",
+      "observationFsO2": "the honeypot input is not disabled during the window; it is not a product field, is aria-hidden, off-canvas and out of the tab order, so no visitor edit can be lost in it"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T11:04:08.720Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "success",
+      "project": "preview",
+      "formElements": 0,
+      "confirmationHeading": "Your details are on their way",
+      "confirmationBody": "Your details were submitted. If you don't hear back within one business day, use one of the contacts below.",
+      "followUpPrompt": "Need an answer sooner?",
+      "confirmationLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044"
+      ],
+      "statusRegionText": "Your details were sent.",
+      "statusRegionsInDocument": 1,
+      "focusDestination": "H3 tabindex=-1 \"Your details are on their way\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 1,
+      "submitEnabled": "<absent: the submit control was replaced with the confirmation card>",
+      "submitLabel": "<absent: the submit control was replaced with the confirmation card>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 success row",
+      "target": "preview (S5)",
+      "claimBoundary": "the sent announcement is a browser-observable claim that the provider accepted the request; it is not a delivery claim and must never be recorded as one"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T11:04:13.418Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "transport failure",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "We couldn't send your details.",
+      "statusRegionsInDocument": 2,
+      "fallbackBody": "Something went wrong between this page and our email provider. Your answers are still here, so you can try again — or reach HAOO directly.",
+      "retryControls": 1,
+      "panelLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online"
+      ],
+      "formElements": 1,
+      "valuesBefore": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "valuesAfter": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "focusDestination": "H3 tabindex=-1 \"We couldn't send your details\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 1
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 failed row",
+      "target": "preview (S5)",
+      "method": "the endpoint routed to an aborted response"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T11:04:18.750Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "blocked",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "We couldn't send your details.",
+      "statusRegionsInDocument": 2,
+      "blockedBody": "This page couldn't prepare your details for sending, so nothing was sent. Your answers are still here — please reach HAOO directly.",
+      "retryControls": 0,
+      "panelLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online"
+      ],
+      "formElements": 1,
+      "valuesBefore": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "valuesAfter": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "focusDestination": "H3 tabindex=-1 \"We couldn't send your details\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 blocked row",
+      "target": "preview (S5)",
+      "method": "JSON.stringify patched in the browser to throw for the submission body only, so the page refuses to start a submission it cannot assemble"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T11:04:34.307Z",
     "surface": "S1",
     "viewport": {
       "width": 1280,
@@ -225,7 +455,7 @@
     }
   },
   {
-    "recordedAt": "2026-09-12T10:56:20.951Z",
+    "recordedAt": "2026-09-12T11:04:39.164Z",
     "surface": "S1",
     "viewport": {
       "width": 1280,
@@ -338,7 +568,7 @@
     }
   },
   {
-    "recordedAt": "2026-09-12T10:56:26.066Z",
+    "recordedAt": "2026-09-12T11:04:44.481Z",
     "surface": "S1",
     "viewport": {
       "width": 1280,

@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 
 import { recordEvidence } from './fixtures/evidence';
 import { SURFACES, assertNonEmptySubjects, type Surface } from './fixtures/surfaces';
@@ -50,6 +50,45 @@ const SUBMIT_LABEL = 'Send my details';
 
 /** The error-summary heading, `src/components/qualify-form.logic.ts:21`. */
 const SUMMARY_HEADING = 'There is a problem';
+
+/** The in-flight submit label, `src/components/qualify-form.logic.ts:20`. */
+const SUBMITTING_LABEL = 'Sending…';
+
+/** The confirmation heading, `src/components/QualifyForm.tsx:51`. */
+const CONFIRMATION_HEADING = 'Your details are on their way';
+
+/** The recovery-panel heading, shared by the failed and blocked states (`QualifyFallback.tsx`). */
+const FALLBACK_HEADING = "We couldn't send your details";
+
+/** The retry control, offered on transport failure and withheld on a blocked submission. */
+const RETRY_LABEL = 'Try sending again';
+
+/** The follow-up prompt in the confirmation card (`QualifyForm.tsx`). */
+const FOLLOW_UP_PROMPT = 'Need an answer sooner?';
+
+/**
+ * Body copy, cited from `src/products/copy.ts` rather than retyped from the design.
+ *
+ * The confirmation body is the one string in this file that a reader is most likely to
+ * over-read. It says the details were SUBMITTED. It does not say they were delivered, because
+ * this page cannot observe delivery — only that the provider accepted the request.
+ */
+const CONFIRMATION_BODY =
+  "Your details were submitted. If you don't hear back within one business day, use one of the contacts below.";
+const FAILED_BODY =
+  'Something went wrong between this page and our email provider. Your answers are still here, so you can try again — or reach HAOO directly.';
+const BLOCKED_BODY =
+  "This page couldn't prepare your details for sending, so nothing was sent. Your answers are still here — please reach HAOO directly.";
+
+/** The three direct-contact destinations the recovery panel offers, in the order it lists them. */
+const FALLBACK_DESTINATIONS = [
+  'https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.',
+  'tel:+254702188044',
+  'mailto:info@haoo.online',
+] as const;
+
+/** The two contacts the confirmation card offers instead. */
+const CONFIRMATION_DESTINATIONS = [FALLBACK_DESTINATIONS[0], FALLBACK_DESTINATIONS[1]] as const;
 
 /** `QualifyForm.tsx`, the lead above the form card. */
 const LEAD_TEXT = 'All fields are required unless marked optional.';
@@ -138,6 +177,30 @@ const PHONE_RULE = {
    * conditional-required gate and reach the inbox as an uncallable number.
    */
   separatorsOnly: '+()- ()-',
+} as const;
+
+/** A complete, valid answer set. Distinctive enough to be recognised when read back out. */
+const VALID_ANSWERS = {
+  name: 'Form State Probe',
+  email: 'form-state-probe@example.com',
+  preferredChannel: 'Email',
+  role: 'Landlord',
+  portfolioBand: '1–5 units',
+  county: 'Nairobi',
+  timeframe: 'Ready now',
+} as const;
+
+/**
+ * The two optional answers the retention check is made of.
+ *
+ * They are deliberately optional fields: a lost REQUIRED value would at least resurface as a
+ * validation error the next time the visitor submits, but a lost optional one is simply absent from
+ * the payload with nothing anywhere to reveal it. The distinctive token is what makes a read-back
+ * comparison meaningful rather than a check that the field is merely non-empty.
+ */
+const DISTINCTIVE_ANSWERS = {
+  organization: 'Retained Holdings FS-12-ORG',
+  message: 'Distinctive pre-submission answer FS-12-RETAIN-7788',
 } as const;
 
 /* ------------------------------------------------------------------------------------------- */
@@ -269,15 +332,11 @@ interface IndicatorReading {
   readonly paintedByFocus: boolean;
 }
 
-async function readScriptFocusIndicator(
-  page: Page,
-  locate: string,
-): Promise<IndicatorReading> {
-  return page.evaluate((selector) => {
-    const element = document.querySelector(selector) as HTMLElement | null;
-    if (element === null) {
-      throw new Error(`script-focus indicator: nothing matched ${selector}`);
-    }
+async function readScriptFocusIndicator(target: Locator): Promise<IndicatorReading> {
+  await expect(target, 'script-focus indicator: the target did not resolve to one element').toHaveCount(1);
+
+  return target.evaluate((node) => {
+    const element = node as HTMLElement;
 
     const read = (node: HTMLElement) => {
       const style = getComputedStyle(node);
@@ -342,7 +401,7 @@ async function readScriptFocusIndicator(
         addedShadowLayers.length > 0 ||
         (outlineVisibleAfter && (!outlineVisible(before) || outlineChanged)),
     };
-  }, locate);
+  });
 }
 
 /* ------------------------------------------------------------------------------------------- */
@@ -441,6 +500,23 @@ function surfaceFor(testInfo: TestInfo): Surface {
 }
 
 /**
+ * The FS-0 target guard for a state that may only be exercised on the local mirror.
+ *
+ * This is the mechanism, not a convention: a failure-state test that ran under `--project=live`
+ * would either send junk to a real mailbox or require lying to a real provider on the live origin,
+ * so the decision is enforced by skipping rather than by a describe-block title a future edit could
+ * move.
+ */
+function requirePreview(testInfo: TestInfo): Surface {
+  test.skip(
+    testInfo.project.name !== 'preview',
+    'FS-0: this state is induced, and an induced failure state must never reach the live provider',
+  );
+  test.setTimeout(TIMEOUT_MS);
+  return SURFACES.S5;
+}
+
+/**
  * The guard for a state FS-0 permits on both targets. It still names the project, so an unknown
  * project added later fails loudly instead of silently measuring nothing.
  */
@@ -495,6 +571,53 @@ async function openForm(page: Page, surface: Surface, viewport = DESKTOP): Promi
 
 function submitButton(page: Page) {
   return page.getByRole('button', { name: SUBMIT_LABEL });
+}
+
+/** Fill every required control with a valid answer, plus any override supplied by the caller. */
+async function fillValidly(page: Page, overrides: Record<string, string> = {}): Promise<void> {
+  const answers: Record<string, string> = { ...VALID_ANSWERS, ...overrides };
+
+  for (const [name, value] of Object.entries(answers)) {
+    const field = FIELDS.find((candidate) => candidate.name === name);
+    if (field === undefined) {
+      throw new Error(`fillValidly: '${name}' is not a field of this form`);
+    }
+    if (field.control === 'select') {
+      await page.selectOption(`#${qid(name)}`, value);
+    } else {
+      await page.fill(`#${qid(name)}`, value);
+    }
+  }
+}
+
+/** Every field control's value, read back out of the DOM. `<absent>` where the control is gone. */
+async function readValues(page: Page): Promise<Record<string, string>> {
+  return page.evaluate(
+    (entries) => {
+      const values: Record<string, string> = {};
+      for (const [name, id] of entries) {
+        const element = document.getElementById(id) as HTMLInputElement | null;
+        values[name] = element === null ? '<absent>' : element.value;
+      }
+      return values;
+    },
+    FIELDS.map((field) => [field.name, qid(field.name)] as const),
+  );
+}
+
+/** Every field control's disabled flag, plus the honeypot's, read out of the DOM. */
+async function readDisabledFlags(page: Page): Promise<Record<string, boolean | null>> {
+  return page.evaluate(
+    (entries) => {
+      const flags: Record<string, boolean | null> = {};
+      for (const [name, id] of entries) {
+        const element = document.getElementById(id) as HTMLInputElement | null;
+        flags[name] = element === null ? null : element.disabled;
+      }
+      return flags;
+    },
+    [...FIELDS.map((field) => [field.name, qid(field.name)] as const), ['_honey', qid('website')] as const],
+  );
 }
 
 /* ------------------------------------------------------------------------------------------- */
@@ -660,7 +783,7 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
     // there. The focusable element is the CONTAINER that wraps the alert, not the alert itself:
     // `role="alert"` is on an inner div so that the live region's content changes, while the
     // container carries `tabindex="-1"` and the focus ring.
-    const indicator = await readScriptFocusIndicator(page, SUMMARY_CONTAINER_SELECTOR);
+    const indicator = await readScriptFocusIndicator(page.locator(SUMMARY_CONTAINER_SELECTOR));
     expect(
       indicator.paintedByFocus,
       `the error-summary container paints no indicator on scripted focus: ${JSON.stringify(indicator)}`,
@@ -833,6 +956,631 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
         contract: 'haoo.ts requiredWhen on phone, keyed on preferredChannel',
         url: page.url(),
         target: `${project} (${surface.id})`,
+      },
+    });
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* KF-5 row 4 — activating a summary item moves focus to the field it names                      */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * This row extends the SAME matrix rows 1-3 belong to, and it runs on BOTH targets.
+ *
+ * It sits beside the induced-state block because it is part of the matrix that block completes,
+ * not because it needs the preview mirror: activating an error-summary link issues no request, so
+ * FS-0 permits it live exactly as it permits the invalid submit that produced the summary.
+ */
+test.describe('KF-5 row 4 — the error summary is a working index into the form', () => {
+  test.describe.configure({ timeout: TIMEOUT_MS });
+
+  test('activating a summary item moves focus to the field that item names', async ({
+    page,
+  }, testInfo) => {
+    const project = requireKnownProject(testInfo);
+    const surface = surfaceFor(testInfo);
+    const provider = await routeProvider(page, abortRoute);
+    const focus = focusLog();
+
+    await openForm(page, surface);
+    await submitButton(page).click();
+    await expect(page.locator('[role="alert"]'), 'no error summary to index from').toHaveCount(1);
+
+    /*
+     * Every item, not a sample. The row is "the field that item names" — an implementation that
+     * always focused the first field would satisfy a single-item check and fail every visitor who
+     * clicked any other line.
+     */
+    const landings: { item: string; href: string; focused: string }[] = [];
+    for (const field of REQUIRED_WHEN_EMPTY) {
+      const item = page.locator(`[role="alert"] a[href="#${qid(field.name)}"]`);
+      await expect(item, `no summary item targets ${field.name}`).toHaveCount(1);
+      await item.click();
+
+      const landed = await focus.observe(page, 'KF5-4');
+      expect(landed.isBody, `focus landed on the document body after activating the ${field.name} item`).toBe(false);
+      expect(landed.id, `activating the ${field.name} item did not focus that field`).toBe(qid(field.name));
+
+      landings.push({
+        item: field.requiredMessage,
+        href: `#${qid(field.name)}`,
+        focused: landed.id,
+      });
+    }
+
+    await assertStatusInvariants(page, STATUS.idle, 'summary navigation');
+    expect(provider.attempts, 'navigating the summary reached the provider').toEqual([]);
+    expect(focus.bodyFocusCount, 'transitions after which focus was on the document body').toBe(0);
+
+    recordEvidence(EVIDENCE.focus, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        rows: focus.rows,
+        landings,
+        bodyFocusCount: focus.bodyFocusCount,
+        transitionCount: focus.rows.length,
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC KF-5 row 4',
+        target: `${project} (${surface.id})`,
+        method: 'activate every summary item in turn and read document.activeElement after each',
+      },
+    });
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* FS-1 — the four states that may only be induced on the local mirror                           */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * In-flight, success, transport failure and blocked.
+ *
+ * Each is induced by ROUTING the runner's own request interception — never by a stub server, never
+ * by a build-time flag, and never by an environment variable. A browser-prefixed variable added for
+ * the harness would be inlined into the published bundle and would correctly trip the built-tree
+ * variable-set gate, which is why this file names no such variable anywhere — not even in a
+ * comment, since the gate that proves the absence reads this file as text. The point of routing is
+ * that the page under test is the shipped page, unmodified.
+ *
+ * The blocked state is the one exception to "route the endpoint", because it is by construction a
+ * state in which NO request is made: the page refuses to start a submission whose body it could not
+ * assemble. It is induced by making the serialisation itself fail, in the browser, before any
+ * transport state is entered — which is exactly the condition the shipped code distinguishes from a
+ * transport failure.
+ */
+test.describe('FS-1 — the four states FS-0 confines to the local preview mirror', () => {
+  test.describe.configure({ timeout: TIMEOUT_MS });
+
+  test('in-flight: the whole form is locked, the region announces, and a second submission issues no second request', async ({
+    page,
+  }, testInfo) => {
+    const surface = requirePreview(testInfo);
+
+    /** Long enough to make every in-window reading, short enough to stay inside the 15 s budget. */
+    const DELAY_MS = 4_000;
+    const provider = await routeProvider(page, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ success: 'true' }),
+      });
+    });
+
+    await openForm(page, surface);
+    await fillValidly(page, DISTINCTIVE_ANSWERS);
+    await submitButton(page).click();
+
+    const sending = page.getByRole('button', { name: SUBMITTING_LABEL });
+    await expect(sending, 'the submit control did not take its sending label').toHaveCount(1);
+    await expect(sending, 'the submit control stayed operable while a request was open').toBeDisabled();
+
+    /*
+     * Every field control disabled, and this is the assertion that matters most in this file.
+     * The request body was serialised from the values captured when the submission started. A
+     * correction accepted after that moment is absent from the request already in flight and is
+     * then destroyed with the form subtree on success — the visitor would believe they had sent a
+     * value that nothing ever carried. Locking the controls makes the window visibly read-only
+     * instead of silently discarding the edit.
+     */
+    const disabledFlags = await readDisabledFlags(page);
+    for (const field of FIELDS) {
+      expect(disabledFlags[field.name], `${field.name} stayed editable during the request window`).toBe(true);
+    }
+    /*
+     * Observation FS-O2, recorded rather than asserted: the honeypot input is NOT disabled during
+     * the window. It is not one of the product's fields, it is `aria-hidden`, off-canvas and out of
+     * the tab order, so no visitor can edit it and no correction can be lost in it. Recorded so a
+     * reader can see the exception was measured rather than overlooked.
+     */
+    const honeypotDisabled = disabledFlags._honey;
+
+    await assertStatusInvariants(page, STATUS.submitting, 'in-flight');
+
+    /*
+     * The second submission, issued the only way a visitor's browser still could: the submit
+     * control is disabled, so the form element is asked to submit itself directly. That path tests
+     * the synchronous in-flight guard rather than the disabled attribute, which is feedback rather
+     * than the authority that admits a request.
+     */
+    await page.evaluate(() => {
+      const form = document.querySelector('form');
+      if (form === null) throw new Error('the form is not mounted');
+      (form as HTMLFormElement).requestSubmit();
+    });
+    await page.waitForTimeout(500);
+    const attemptsDuringWindow = provider.attempts.length;
+
+    await expect(
+      page.getByRole('heading', { name: CONFIRMATION_HEADING }),
+      'the delayed request never reached a terminal state',
+    ).toBeVisible({ timeout: 30_000 });
+    const attemptsAfterSettling = provider.attempts.length;
+
+    expect(attemptsDuringWindow, 'a second submission inside the in-flight window issued a second request').toBe(1);
+    expect(attemptsAfterSettling, 'the settled submission issued more than one request in total').toBe(1);
+
+    recordEvidence(EVIDENCE.requests, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'in-flight',
+        delayMs: DELAY_MS,
+        submissionsAttempted: 2,
+        requestsDuringWindow: attemptsDuringWindow,
+        requestsAfterSettling: attemptsAfterSettling,
+        requestMethods: provider.attempts.map((attempt) => attempt.method),
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 in-flight row',
+        target: `preview (${surface.id})`,
+        method:
+          'the endpoint routed to a delayed response; the second submission issued through form.requestSubmit() because the submit control is disabled',
+      },
+    });
+
+    recordEvidence(EVIDENCE.states, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'in-flight',
+        project: 'preview',
+        submitEnabled: false,
+        submitLabel: SUBMITTING_LABEL,
+        statusRegionText: STATUS.submitting,
+        disabledFieldControls: FIELDS.filter((field) => disabledFlags[field.name] === true).length,
+        fieldControlCount: FIELDS.length,
+        honeypotDisabled,
+        requestsDuringWindow: attemptsDuringWindow,
+        focusDestination: '<no focus move: the in-flight state moves no focus>',
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 in-flight row',
+        target: `preview (${surface.id})`,
+        observationFsO2:
+          'the honeypot input is not disabled during the window; it is not a product field, is aria-hidden, off-canvas and out of the tab order, so no visitor edit can be lost in it',
+      },
+    });
+  });
+
+  test('success: the card is replaced, the confirmation heading takes focus, and the region reports what the browser saw', async ({
+    page,
+  }, testInfo) => {
+    const surface = requirePreview(testInfo);
+    const focus = focusLog();
+    const provider = await routeProvider(page, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ success: 'true' }),
+      });
+    });
+
+    await openForm(page, surface);
+    await fillValidly(page, DISTINCTIVE_ANSWERS);
+    await submitButton(page).click();
+
+    const confirmation = page.getByRole('heading', { name: CONFIRMATION_HEADING });
+    await expect(confirmation, 'the confirmation card did not render').toBeVisible({ timeout: 30_000 });
+
+    // The form subtree is REPLACED, not hidden: a hidden form would still hold focusable controls.
+    await expect(page.locator('form'), 'the form subtree survived the success state').toHaveCount(0);
+
+    const card = page.locator(`div:has(> h3:text-is("${CONFIRMATION_HEADING}"))`).first();
+    await expect(
+      card.getByText(CONFIRMATION_BODY, { exact: true }),
+      'the confirmation body copy is not the shipped sentence',
+    ).toHaveCount(1);
+    await expect(
+      card.getByText(FOLLOW_UP_PROMPT, { exact: true }),
+      'the follow-up prompt is missing',
+    ).toHaveCount(1);
+
+    const confirmationLinks = await card
+      .locator('a')
+      .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));
+    expect(
+      assertNonEmptySubjects(confirmationLinks, 'contact links in the confirmation card'),
+      'the confirmation card does not offer the two shipped contacts',
+    ).toEqual([...CONFIRMATION_DESTINATIONS]);
+
+    // KF5-5: focus moves to the confirmation heading, which is a script-focus destination.
+    const landed = await focus.observe(page, 'KF5-5');
+    expect(landed.isBody, 'focus landed on the document body after the success transition').toBe(false);
+    expect(landed.tag, 'the success transition did not focus the confirmation heading').toBe('H3');
+    expect(landed.text, 'the focused element is not the confirmation heading').toBe(CONFIRMATION_HEADING);
+    expect(landed.tabIndexAttribute, 'the confirmation heading is not a script-focus target').toBe('-1');
+
+    const indicator = await readScriptFocusIndicator(page.getByRole('heading', { name: CONFIRMATION_HEADING }));
+    expect(
+      indicator.paintedByFocus,
+      `the confirmation heading paints no indicator on scripted focus: ${JSON.stringify(indicator)}`,
+    ).toBe(true);
+
+    /*
+     * The sent announcement. It reports A BROWSER-OBSERVABLE EVENT — this page saw the provider
+     * accept the request — and it is NEVER a delivery claim. Nothing here observes a mailbox, and
+     * no reading in this file may be cited as evidence that one received anything. Delivery is
+     * established by the mail-chain record, not by this assertion.
+     */
+    const regions = await assertStatusInvariants(page, STATUS.succeeded, 'success');
+
+    expect(focus.bodyFocusCount, 'transitions after which focus was on the document body').toBe(0);
+
+    recordEvidence(EVIDENCE.states, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'success',
+        project: 'preview',
+        formElements: await page.locator('form').count(),
+        confirmationHeading: CONFIRMATION_HEADING,
+        confirmationBody: CONFIRMATION_BODY,
+        followUpPrompt: FOLLOW_UP_PROMPT,
+        confirmationLinks,
+        statusRegionText: submissionRegions(regions)[0].text,
+        statusRegionsInDocument: regions.length,
+        focusDestination: `${landed.tag} tabindex=${landed.tabIndexAttribute} "${landed.text}"`,
+        scriptFocusIndicator: indicator,
+        requestCount: provider.attempts.length,
+        submitEnabled: '<absent: the submit control was replaced with the confirmation card>',
+        submitLabel: '<absent: the submit control was replaced with the confirmation card>',
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 success row',
+        target: `preview (${surface.id})`,
+        claimBoundary:
+          'the sent announcement is a browser-observable claim that the provider accepted the request; it is not a delivery claim and must never be recorded as one',
+      },
+    });
+  });
+
+  test('transport failure: the recovery panel takes focus, the retry is offered, and the visitor keeps every answer', async ({
+    page,
+  }, testInfo) => {
+    const surface = requirePreview(testInfo);
+    const focus = focusLog();
+    const provider = await routeProvider(page, async (route) => {
+      await route.abort('failed');
+    });
+
+    await openForm(page, surface);
+    await fillValidly(page, DISTINCTIVE_ANSWERS);
+    const before = await readValues(page);
+    await submitButton(page).click();
+
+    const fallback = page.getByRole('heading', { name: FALLBACK_HEADING });
+    await expect(fallback, 'the recovery panel did not render').toBeVisible({ timeout: 30_000 });
+
+    const panel = page.locator(`div:has(> h3:text-is("${FALLBACK_HEADING}"))`).first();
+    await expect(
+      panel.getByText(FAILED_BODY, { exact: true }),
+      'the failure body copy is not the shipped sentence',
+    ).toHaveCount(1);
+    await expect(
+      panel.getByRole('button', { name: RETRY_LABEL }),
+      'a transport failure offered no retry, though repeating it could succeed',
+    ).toHaveCount(1);
+
+    const panelLinks = await panel
+      .locator('a')
+      .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));
+    expect(
+      assertNonEmptySubjects(panelLinks, 'direct-contact links in the recovery panel'),
+      'the recovery panel does not offer the three shipped direct contacts',
+    ).toEqual([...FALLBACK_DESTINATIONS]);
+
+    // The form remains mounted and editable, and every answer is still there.
+    await expect(page.locator('form'), 'the form was unmounted by a transport failure').toHaveCount(1);
+    await expect(page.locator(`#${qid('name')}`), 'the form is not editable after a failure').toBeEditable();
+    const after = await readValues(page);
+    expect(after, 'the visitor lost answers to a transport failure').toEqual(before);
+    expect(after.organization, 'the distinctive organization answer was not retained').toBe(
+      DISTINCTIVE_ANSWERS.organization,
+    );
+    expect(after.message, 'the distinctive message answer was not retained').toBe(
+      DISTINCTIVE_ANSWERS.message,
+    );
+
+    const landed = await focus.observe(page, 'KF5-6');
+    expect(landed.isBody, 'focus landed on the document body after the failure transition').toBe(false);
+    expect(landed.text, 'the failure transition did not focus the recovery heading').toBe(FALLBACK_HEADING);
+    expect(landed.tabIndexAttribute, 'the recovery heading is not a script-focus target').toBe('-1');
+
+    const indicator = await readScriptFocusIndicator(page.getByRole('heading', { name: FALLBACK_HEADING }));
+    expect(
+      indicator.paintedByFocus,
+      `the recovery heading paints no indicator on scripted focus: ${JSON.stringify(indicator)}`,
+    ).toBe(true);
+
+    const regions = await assertStatusInvariants(page, STATUS.failed, 'transport failure');
+    expect(focus.bodyFocusCount, 'transitions after which focus was on the document body').toBe(0);
+
+    recordEvidence(EVIDENCE.states, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'transport failure',
+        project: 'preview',
+        submitEnabled: await submitButton(page).isEnabled(),
+        submitLabel: (await submitButton(page).innerText()).trim(),
+        statusRegionText: submissionRegions(regions)[0].text,
+        statusRegionsInDocument: regions.length,
+        fallbackBody: FAILED_BODY,
+        retryControls: await panel.getByRole('button', { name: RETRY_LABEL }).count(),
+        panelLinks,
+        formElements: await page.locator('form').count(),
+        valuesBefore: before,
+        valuesAfter: after,
+        focusDestination: `${landed.tag} tabindex=${landed.tabIndexAttribute} "${landed.text}"`,
+        scriptFocusIndicator: indicator,
+        requestCount: provider.attempts.length,
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 failed row',
+        target: `preview (${surface.id})`,
+        method: 'the endpoint routed to an aborted response',
+      },
+    });
+  });
+
+  test('blocked: the same panel with no retry, because a blocked submission is deterministic', async ({
+    page,
+  }, testInfo) => {
+    const surface = requirePreview(testInfo);
+    const focus = focusLog();
+    const provider = await routeProvider(page, abortRoute);
+
+    /*
+     * Force the serialisation to fail, in the browser, before any transport state is entered.
+     *
+     * The shipped code assembles the request body OUTSIDE its transport `try`, precisely so a
+     * product misconfiguration is not reported as an email-provider failure behind a retry that
+     * could never succeed. The patch below throws only for the submission body — identified by the
+     * provider option every such body carries — so nothing else on the page is affected.
+     */
+    await page.addInitScript(() => {
+      const native = JSON.stringify;
+      const patched = (value: unknown, ...rest: unknown[]): string => {
+        if (
+          value !== null &&
+          typeof value === 'object' &&
+          Object.prototype.hasOwnProperty.call(value, '_subject')
+        ) {
+          throw new TypeError('05-12: serialisation forced to fail');
+        }
+        return (native as unknown as (...args: unknown[]) => string)(value, ...rest);
+      };
+      (JSON as unknown as { stringify: unknown }).stringify = patched;
+    });
+
+    await openForm(page, surface);
+    await fillValidly(page, DISTINCTIVE_ANSWERS);
+    const before = await readValues(page);
+    await submitButton(page).click();
+
+    const fallback = page.getByRole('heading', { name: FALLBACK_HEADING });
+    await expect(fallback, 'the recovery panel did not render for a blocked submission').toBeVisible({
+      timeout: 30_000,
+    });
+
+    const panel = page.locator(`div:has(> h3:text-is("${FALLBACK_HEADING}"))`).first();
+    await expect(
+      panel.getByText(BLOCKED_BODY, { exact: true }),
+      'the blocked body copy is not the shipped sentence, or it borrowed the provider-naming one',
+    ).toHaveCount(1);
+
+    /*
+     * The ABSENCE of the retry control, asserted rather than left unstated. A blocked submission is
+     * deterministic: the cause is this page's own inability to assemble the request, so repeating
+     * the attempt would fail identically. Offering a retry would be a lie told to a visitor who has
+     * already typed their enquiry, and asserting the absence is what makes a future change that
+     * offers one redden this run instead of shipping quietly.
+     */
+    await expect(
+      page.getByRole('button', { name: RETRY_LABEL }),
+      'the blocked state offered a retry, which could only ever fail again',
+    ).toHaveCount(0);
+
+    const panelLinks = await panel
+      .locator('a')
+      .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));
+    expect(panelLinks, 'the blocked panel does not offer the three shipped direct contacts').toEqual([
+      ...FALLBACK_DESTINATIONS,
+    ]);
+
+    await expect(page.locator('form'), 'the form was unmounted by a blocked submission').toHaveCount(1);
+    const after = await readValues(page);
+    expect(after, 'the visitor lost answers to a blocked submission').toEqual(before);
+
+    const landed = await focus.observe(page, 'KF5-6');
+    expect(landed.isBody, 'focus landed on the document body after the blocked transition').toBe(false);
+    expect(landed.text, 'the blocked transition did not focus the recovery heading').toBe(FALLBACK_HEADING);
+
+    const indicator = await readScriptFocusIndicator(page.getByRole('heading', { name: FALLBACK_HEADING }));
+    expect(
+      indicator.paintedByFocus,
+      `the recovery heading paints no indicator on scripted focus after a blocked submission: ${JSON.stringify(indicator)}`,
+    ).toBe(true);
+
+    const regions = await assertStatusInvariants(page, STATUS.blocked, 'blocked');
+
+    // Nothing was sent, and that is the defining fact of this state rather than a side effect.
+    expect(provider.attempts, 'a blocked submission reached the provider').toEqual([]);
+    expect(focus.bodyFocusCount, 'transitions after which focus was on the document body').toBe(0);
+
+    recordEvidence(EVIDENCE.states, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'blocked',
+        project: 'preview',
+        submitEnabled: await submitButton(page).isEnabled(),
+        submitLabel: (await submitButton(page).innerText()).trim(),
+        statusRegionText: submissionRegions(regions)[0].text,
+        statusRegionsInDocument: regions.length,
+        blockedBody: BLOCKED_BODY,
+        retryControls: await page.getByRole('button', { name: RETRY_LABEL }).count(),
+        panelLinks,
+        formElements: await page.locator('form').count(),
+        valuesBefore: before,
+        valuesAfter: after,
+        focusDestination: `${landed.tag} tabindex=${landed.tabIndexAttribute} "${landed.text}"`,
+        scriptFocusIndicator: indicator,
+        requestCount: provider.attempts.length,
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 blocked row',
+        target: `preview (${surface.id})`,
+        method:
+          'JSON.stringify patched in the browser to throw for the submission body only, so the page refuses to start a submission it cannot assemble',
+      },
+    });
+
+    recordEvidence(EVIDENCE.requests, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        state: 'blocked',
+        submissionsAttempted: 1,
+        requestsIssued: provider.attempts.length,
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-1 blocked row',
+        target: `preview (${surface.id})`,
+        note: 'a blocked submission is defined by no request being made; the zero is the measurement',
+      },
+    });
+  });
+
+  test('FS-2: the status region survives every transition, holds one message at a time, and announces in the specified order', async ({
+    page,
+  }, testInfo) => {
+    const surface = requirePreview(testInfo);
+
+    /**
+     * One handler, three behaviours. Re-routing mid-test would leave two handlers racing for the
+     * same pattern; a mode the handler reads keeps the interception single and its order explicit.
+     */
+    const mode = { current: 'abort' as 'abort' | 'delay' };
+    const provider = await routeProvider(page, async (route) => {
+      if (mode.current === 'delay') {
+        await new Promise((resolve) => setTimeout(resolve, 4_000));
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: { 'access-control-allow-origin': '*' },
+          body: JSON.stringify({ success: 'true' }),
+        });
+        return;
+      }
+      await route.abort('failed');
+    });
+
+    await openForm(page, surface);
+
+    const timeline: { at: string; regionsInDocument: number; submissionRegions: number; text: string }[] = [];
+    const capture = async (at: string, expected: string) => {
+      const regions = await assertStatusInvariants(page, expected, at);
+      timeline.push({
+        at,
+        regionsInDocument: regions.length,
+        submissionRegions: submissionRegions(regions).length,
+        text: submissionRegions(regions)[0].text,
+      });
+    };
+
+    await capture('first render', STATUS.idle);
+
+    await fillValidly(page);
+    await capture('filled, before any submission', STATUS.idle);
+
+    await submitButton(page).click();
+    await expect(page.getByRole('heading', { name: FALLBACK_HEADING })).toBeVisible({ timeout: 30_000 });
+    await capture('after a transport failure', STATUS.failed);
+
+    /*
+     * Precedence, part one: a requiredness change outranks an already-read terminal message. The
+     * form stays mounted and editable after a failure, so a stale "we couldn't send" must never
+     * suppress a live announcement about a control the visitor just changed.
+     */
+    const trigger = PHONE_RULE.triggering[1];
+    await page.selectOption(`#${qid(PHONE_RULE.control)}`, trigger);
+    await capture('requiredness change after a terminal message', PHONE_RULE.announcement(trigger));
+
+    /*
+     * Precedence, part two: the submitting announcement outranks everything, including the
+     * requiredness sentence that is holding the region at this moment.
+     */
+    mode.current = 'delay';
+    await page.fill(`#${qid('phone')}`, '+254 702 188 044');
+    await submitButton(page).click();
+    await capture('submitting, with a requiredness sentence outstanding', STATUS.submitting);
+
+    await expect(page.getByRole('heading', { name: CONFIRMATION_HEADING })).toBeVisible({ timeout: 30_000 });
+    await capture('after success, with the form card replaced', STATUS.succeeded);
+
+    /*
+     * The region outlived the card that was replaced. That is the whole reason it is mounted
+     * outside the form: a region inside the card would have unmounted at the exact moment it needed
+     * to announce.
+     */
+    const finalRegions = await readStatusRegions(page);
+    expect(submissionRegions(finalRegions).length, 'the submission region did not survive the card replacement').toBe(1);
+    expect(finalRegions.filter((region) => region.insideForm).length, 'a form-scoped status region survived the form').toBe(0);
+
+    for (const entry of timeline) {
+      expect(entry.submissionRegions, `${entry.at}: submission status regions`).toBe(1);
+    }
+
+    recordEvidence(EVIDENCE.statusRegion, {
+      surface: surface.id,
+      viewport: DESKTOP,
+      measured: {
+        timeline,
+        transitionsObserved: timeline.length,
+        submissionRegionsPerTransition: timeline.map((entry) => entry.submissionRegions),
+        documentRegionsPerTransition: timeline.map((entry) => entry.regionsInDocument),
+        requestCount: provider.attempts.length,
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC FS-2',
+        target: `preview (${surface.id})`,
+        observationFsO1:
+          'the document carries two role="status" regions in every state that renders the form: the submission region outside the form card, and the measurement disclosure\'s clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2\'s "exactly one" is true of the submission region and false of the document.',
       },
     });
   });
