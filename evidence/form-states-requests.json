@@ -41,5 +41,91 @@
       "target": "preview (S5)",
       "note": "a blocked submission is defined by no request being made; the zero is the measurement"
     }
+  },
+  {
+    "recordedAt": "2026-09-12T19:13:23.034Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "in-flight",
+      "delayMs": 4000,
+      "submissionsAttempted": 2,
+      "requestsDuringWindow": 1,
+      "requestsAfterSettling": 1,
+      "requestMethods": [
+        "POST"
+      ]
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 in-flight row",
+      "target": "preview (S5)",
+      "method": "the endpoint routed to a delayed response; the second submission issued through form.requestSubmit() because the submit control is disabled"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T19:13:44.545Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "blocked",
+      "submissionsAttempted": 1,
+      "requestsIssued": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 blocked row",
+      "target": "preview (S5)",
+      "note": "a blocked submission is defined by no request being made; the zero is the measurement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T19:18:15.023Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "in-flight",
+      "delayMs": 4000,
+      "submissionsAttempted": 2,
+      "requestsDuringWindow": 1,
+      "requestsAfterSettling": 1,
+      "requestMethods": [
+        "POST"
+      ]
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 in-flight row",
+      "target": "preview (S5)",
+      "method": "the endpoint routed to a delayed response; the second submission issued through form.requestSubmit() because the submit control is disabled"
+    }
+  },
+  {
+    "recordedAt": "2026-09-12T19:18:32.016Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "blocked",
+      "submissionsAttempted": 1,
+      "requestsIssued": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 blocked row",
+      "target": "preview (S5)",
+      "note": "a blocked submission is defined by no request being made; the zero is the measurement"
+    }
   }
 ]

@@ -131,6 +131,17 @@ const TIMEOUT_MS = 180_000;
 /** The desktop width every DOM-shaped reading in this file is taken at (D-09's 1280 entry). */
 const DESKTOP = { width: 1280, height: 1024 } as const;
 
+/**
+ * D-09's narrowest supported product width, where the held-out option-label item lives.
+ *
+ * A native `<select>` popup is rendered outside the document's layout, so no per-element viewport
+ * sweep can see inside it. That is why the item below is a backstop rather than an assertion.
+ */
+const NARROWEST = { width: 360, height: 740 } as const;
+
+/** The five closed option lists, in DOM order (`src/products/haoo.ts:429-519`). */
+const OPTION_LIST_FIELDS = ['preferredChannel', 'role', 'portfolioBand', 'county', 'timeframe'] as const;
+
 /** Evidence file names, one per measurement family. */
 const EVIDENCE = {
   states: 'form-states',
@@ -558,7 +569,11 @@ async function abortRoute(route: import('@playwright/test').Route): Promise<void
   await route.abort('blockedbyclient');
 }
 
-async function openForm(page: Page, surface: Surface, viewport = DESKTOP): Promise<void> {
+async function openForm(
+  page: Page,
+  surface: Surface,
+  viewport: { readonly width: number; readonly height: number } = DESKTOP,
+): Promise<void> {
   await page.setViewportSize(viewport);
   const response = await page.goto(surface.path ?? surface.url);
   expect(response?.status(), `unexpected status for ${surface.url}`).toBe(200);
@@ -842,6 +857,9 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
         submitEnabled: await submitButton(page).isEnabled(),
         submitLabel: (await submitButton(page).innerText()).trim(),
         statusRegionText: submissionRegions(await readStatusRegions(page))[0].text,
+        // Counts, not a verdict: the whole document, and the submission region FS-2 is about.
+        statusRegionsInDocument: (await readStatusRegions(page)).length,
+        submissionStatusRegions: submissionRegions(await readStatusRegions(page)).length,
         summaryHeading: (await summary.getByRole('heading').first().innerText()).trim(),
         summaryItems: links,
         markedControls: controls,
@@ -1101,6 +1119,8 @@ test.describe('FS-1 — the four states FS-0 confines to the local preview mirro
     const honeypotDisabled = disabledFlags._honey;
 
     await assertStatusInvariants(page, STATUS.submitting, 'in-flight');
+    // Read inside the window, before the second attempt, so the counts belong to the in-flight state.
+    const inFlightRegions = await readStatusRegions(page);
 
     /*
      * The second submission, issued the only way a visitor's browser still could: the submit
@@ -1154,6 +1174,8 @@ test.describe('FS-1 — the four states FS-0 confines to the local preview mirro
         submitEnabled: false,
         submitLabel: SUBMITTING_LABEL,
         statusRegionText: STATUS.submitting,
+        statusRegionsInDocument: inFlightRegions.length,
+        submissionStatusRegions: submissionRegions(inFlightRegions).length,
         disabledFieldControls: FIELDS.filter((field) => disabledFlags[field.name] === true).length,
         fieldControlCount: FIELDS.length,
         honeypotDisabled,
@@ -1581,6 +1603,121 @@ test.describe('FS-1 — the four states FS-0 confines to the local preview mirro
         target: `preview (${surface.id})`,
         observationFsO1:
           'the document carries two role="status" regions in every state that renders the form: the submission region outside the form card, and the measurement disclosure\'s clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2\'s "exactly one" is true of the submission region and false of the document.',
+      },
+    });
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* The held-out visual item — measured inputs, and deliberately no verdict                       */
+/* ------------------------------------------------------------------------------------------- */
+
+/**
+ * The backstop item from `05-UI-SPEC.md` § UI Considerations: long option labels in the
+ * qualification selects at the narrowest supported width.
+ *
+ * **This test asserts nothing about readability, and that is the point.** A native `<select>`
+ * clips rather than reflows, and its open popup is rendered outside the document's layout — the
+ * per-element viewport sweep (VC-1b) cannot see into it, and neither can anything here. An
+ * assertion written anyway would be one of two things: vacuous, because it would measure the closed
+ * control rather than the open list, or a fake judgement, because it would pass on output a human
+ * would call unreadable. Either would be worse than no assertion, because either would report a
+ * pass where nobody looked.
+ *
+ * What it does instead is take the three measurements a human reviewer needs — how wide the control
+ * renders, how long the longest label in each list is, and what that label says — and record them.
+ * At verification time the item has no explicit evidence of conformance and therefore routes to
+ * human judgement rather than passing silently.
+ *
+ * The placeholder option is measured SEPARATELY from the closed list's own labels. It is authored
+ * by the form rather than by the option data, it is the string the control displays when nothing is
+ * chosen, and on three of the five lists it happens to be longer than any real option — folding it
+ * into the maximum would report the form's own prompt as if it were product data.
+ */
+test.describe('Backstop inputs — long option labels at the narrowest supported width', () => {
+  test.describe.configure({ timeout: TIMEOUT_MS });
+
+  test('records the rendered control width and the longest label per option list, and judges neither', async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'live',
+      'the held-out item is a judgement about the deployed page, so its inputs are measured on the live target',
+    );
+    test.setTimeout(TIMEOUT_MS);
+
+    const surface = SURFACES.S1;
+    const provider = await routeProvider(page, abortRoute);
+
+    await openForm(page, surface, NARROWEST);
+
+    const lists = await page.evaluate(
+      (entries) =>
+        entries.map(([name, id]) => {
+          const control = document.getElementById(id) as HTMLSelectElement | null;
+          if (control === null) {
+            throw new Error(`option list '${name}' is not on the page`);
+          }
+
+          const box = control.getBoundingClientRect();
+          const options = Array.from(control.options);
+          // The placeholder carries an empty value; every real option's value is its own label.
+          const placeholder = options.find((option) => option.value === '')?.text ?? '';
+          const labels = options
+            .filter((option) => option.value !== '')
+            .map((option) => option.text);
+          const longest = labels.reduce(
+            (winner, candidate) => (candidate.length > winner.length ? candidate : winner),
+            labels[0] ?? '',
+          );
+
+          return {
+            field: name,
+            controlWidthCssPx: Math.round(box.width * 100) / 100,
+            controlHeightCssPx: Math.round(box.height * 100) / 100,
+            optionCount: labels.length,
+            longestLabel: longest,
+            longestLabelCharacters: longest.length,
+            placeholderLabel: placeholder,
+            placeholderCharacters: placeholder.length,
+          };
+        }),
+      OPTION_LIST_FIELDS.map((name) => [name, qid(name)] as const),
+    );
+
+    /*
+     * The only assertions here are vacuity guards: that five lists were found, and that each one
+     * yielded a label to measure. A recording run over an empty subject set would produce an
+     * evidence file full of nothing and a green tick beside it.
+     */
+    assertNonEmptySubjects(lists, 'option lists at the narrowest supported width');
+    expect(lists.length, 'the closed list of option lists changed shape').toBe(
+      OPTION_LIST_FIELDS.length,
+    );
+    for (const list of lists) {
+      expect(list.optionCount, `${list.field}: options available to measure`).toBeGreaterThan(0);
+      expect(list.longestLabel.length, `${list.field}: the longest label is empty`).toBeGreaterThan(0);
+      expect(list.controlWidthCssPx, `${list.field}: the control rendered with no width`).toBeGreaterThan(0);
+    }
+
+    expect(provider.attempts, 'measuring the option lists reached the provider').toEqual([]);
+
+    recordEvidence(EVIDENCE.optionLabels, {
+      surface: surface.id,
+      viewport: NARROWEST,
+      measured: {
+        lists,
+        widestLabelCharacters: Math.max(...lists.map((list) => list.longestLabelCharacters)),
+        controlWidthsCssPx: lists.map((list) => list.controlWidthCssPx),
+      },
+      detail: {
+        plan: '05-12',
+        contract: 'UI-SPEC § UI Considerations, the 360 px option-label backstop row',
+        target: `live (${surface.id})`,
+        heldOut:
+          'held out for human judgement: a native select clips rather than reflows and its open popup lies outside the document layout, so no assertion here could settle readability. These are the measured inputs to that judgement, and this record is NOT a pass.',
+        method:
+          'the closed control measured with getBoundingClientRect; the label set read from the select options, with the form-authored placeholder measured separately from the product option data',
       },
     });
   });
