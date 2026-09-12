@@ -226,21 +226,23 @@ Tree disjointness audit passed.
 
 HAOO `npm run verify:disjoint`: exit 0. ZERO-PAPER HUB `npm run verify:disjoint`: exit 0.
 
-### The observed CI run: NOT YET OBSERVED
+### The observed CI run: OBSERVED 2026-09-12
 
-This plan could not push, so no run of this workflow exists, and none is implied here. The orchestrator
-fills in the following after the push:
+This plan could not push. On the owner's decision the orchestrator pushed both repositories together
+after the plan landed, in the order measured above: ZERO-PAPER HUB `c5b76cd..3525f6d` first (its
+`Deploy ZERO-PAPERHUB` run `34714952939` concluded `success` in 44s), then HAOO `c39cc5a..ea538c0`.
+The push to HAOO triggered the first run of this workflow. Read from the run with `gh run view`:
 
 | Field | Value |
 |---|---|
-| Run identifier | _pending: orchestrator, after the push_ |
-| Head SHA (HAOO) | _pending_ |
-| Sibling SHA printed by the clone step | _pending_ |
-| Conclusion | _pending_ |
-| Verbatim `verify:disjoint` success line from the CI log | _pending_ |
-| `cmp` step result | _pending_ |
+| Run identifier | `34715004118` (workflow `Verify tree disjointness`) |
+| Head SHA (HAOO) | `ea538c0a171898c662deed0827478934f11c450c` |
+| Sibling SHA printed by the clone step | `3525f6d4d7bb3349015e3e238e07b6e07c6b88c5`, the post-push tip of ZERO-PAPER HUB `main`, so the clone picked up the new allowlist |
+| Conclusion | `success`; job `disjoint` `success`, all 7 run steps `success` |
+| Verbatim `verify:disjoint` success line from the CI log | `Tree disjointness audit passed.`, then `shared paths: 26`, `allowlist entries: 26`, `allowlist subtracted: 26`, `violations: 0` (2026-09-12T19:43:52Z) |
+| `cmp` step result | step 7 `Compare the two copies of the shared allowlist` concluded `success`. `cmp` prints nothing when the files match, so the result comes from the step conclusion, not from log output |
 
-**The spot-checked fallback does not apply yet.** Locally, the anonymous clone is feasible, as measured
+**The spot-checked fallback was not needed.** The first run concluded `success`, so SPLT-01 is continuously enforced on every HAOO push, within the coverage gap recorded above. Locally, the anonymous clone is feasible, as measured
 above. If the first run concludes failure for an environmental reason the workflow cannot fix, record
 here that **SPLT-01 is spot-checked rather than continuously enforced**, together with the measured
 reason. Do not add a way for the job to pass on error.

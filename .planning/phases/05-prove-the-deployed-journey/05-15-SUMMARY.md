@@ -92,10 +92,10 @@ coverage:
         ref: "Task 3 automated verify: no continue-on-error, verify:disjoint and git clone present; house action/Node values match deploy.yml; YAML parses"
         status: pass
       - kind: other
-        ref: "first GitHub Actions run of verify-split.yml, which cannot exist before the orchestrator's push"
-        status: unknown
-    human_judgment: true
-    rationale: "No CI run can be observed before the push, and the push belongs to the orchestrator. The run identifier, conclusion and verbatim CI success line are left pending in 05-EVIDENCE-GATES.md section 4. If the run fails for an environmental reason, the spot-checked fallback has to be recorded instead."
+        ref: "first GitHub Actions run of verify-split.yml: run 34715004118 on HAOO ea538c0 against ZERO-PAPER HUB 3525f6d, conclusion success; verify:disjoint 26 shared / 26 allowlist / 26 subtracted / 0 violations; cmp step success (05-EVIDENCE-GATES.md section 4)"
+        status: pass
+    human_judgment: false
+    rationale: "No CI run could be observed during execution, because the push belongs to the orchestrator. After the plan landed, the orchestrator pushed ZERO-PAPER HUB first and then HAOO, and read the first run's step conclusions and log lines on 2026-09-12. The spot-checked fallback was not needed."
 
 duration: 12min
 completed: 2026-09-12
@@ -182,7 +182,7 @@ status: complete
 
 ## Issues Encountered
 
-- **No CI run could be observed.** This plan could not push, so the acceptance criterion "a run of the workflow has been observed" is still open. Its fields are left as _pending_ in `05-EVIDENCE-GATES.md` §4 for the orchestrator. The spot-checked fallback does not apply: the anonymous clone was measured feasible locally (exit 0, `main` at `c5b76cd`, no credential helper).
+- **No CI run could be observed during execution.** This plan could not push, so the acceptance criterion "a run of the workflow has been observed" was left open. **Closed after the plan landed (2026-09-12):** the orchestrator pushed ZERO-PAPER HUB first and then HAOO, and run `34715004118` concluded `success`. It audited HAOO `ea538c0` against ZERO-PAPER HUB `3525f6d` with 26 shared / 26 allowlist / 26 subtracted / 0 violations, and the `cmp` step concluded `success`. The fields are filled in at `05-EVIDENCE-GATES.md` §4. Its fields are left as _pending_ in `05-EVIDENCE-GATES.md` §4 for the orchestrator. The spot-checked fallback does not apply: the anonymous clone was measured feasible locally (exit 0, `main` at `c5b76cd`, no credential helper).
 - **G-1, handed to 05-14.** The auditor exits 0 when `allowlist subtracted` is less than `allowlist entries`, meaning an entry is no longer shared. The new `cmp` step catches the case where the two lists disagree. It does not catch a stale entry that both lists still carry. Closing that means changing the byte-identical auditor in both repositories, so it is recorded here and not changed.
 
 ## Gate Baseline
@@ -201,7 +201,7 @@ None.
 
 ## Next Phase Readiness
 
-- **For the orchestrator:** push **ZERO-PAPER HUB first** (its `main` is 3 ahead: `83cb386`, `dfdb2e9`, `3525f6d`; the push deploys `zero-paperhub.com`), **then HAOO** (14 ahead of `c39cc5a`). The HAOO push triggers both `Deploy HAOO` and `Verify tree disjointness`. Then fill in the pending run fields in `05-EVIDENCE-GATES.md` §4.
+- **For the orchestrator:** push **ZERO-PAPER HUB first** (its `main` is 3 ahead: `83cb386`, `dfdb2e9`, `3525f6d`; the push deploys `zero-paperhub.com`), **then HAOO** (14 ahead of `c39cc5a`). The HAOO push triggers both `Deploy HAOO` and `Verify tree disjointness`. Then fill in the pending run fields in `05-EVIDENCE-GATES.md` §4. **Done 2026-09-12:** both pushes completed in that order, `Deploy ZERO-PAPERHUB` run `34714952939` and `Deploy HAOO` run `34715004127` both concluded `success`, and the §4 fields are filled in from run `34715004118`.
 - The STATE.md blocker "npm run test:phase1:red exits 1 in BOTH repositories" is resolved.
 - QUAL-05 is not marked complete: `requirements.ready-ids` reports 0 of 1 ready, because sibling plans declaring it are still open.
 
