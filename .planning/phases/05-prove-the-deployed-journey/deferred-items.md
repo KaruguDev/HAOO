@@ -46,3 +46,27 @@ came from and why it is recorded here rather than fixed.
   (`src/test/build-output.test.ts`) and `[phase1-red:products]` (`src/test/products-section.test.tsx:35`).
   Measured on 2026-09-12T20:56:44Z: the live stylesheet `/assets/main-CgNg8OQE.css` carries 2 such rule(s): `.[phase1-red:build]`, `.[phase1-red:products]`. A fix there is a
   ZERO-PAPER HUB commit, which 05-CONTEXT D-03 allows only when evidence forces it.
+
+## L2-O1: the qualification form shows its sent state when FormSubmit answers `"success":"false"`
+
+- **Recorded by:** plan 05-06, Task 2, from the single activation-trigger submission sent on
+  2026-09-13 at 00:30:34.768Z (`05-EVIDENCE-MAIL.md`, Link 2).
+- **What it is:** FormSubmit answered the live POST to `https://formsubmit.co/ajax/info@haoo.online`
+  with HTTP 200 and the body
+  `{"success":"false","message":"This form needs Activation. We've sent you an email containing an 'Activate Form' link. Just click it and your form will be actived!"}`.
+  The shipped form rendered the confirmation card, focused `Your details are on their way`, and set
+  the status region to `Your details were sent.`
+- **Where it comes from:** `src/components/QualifyForm.tsx` sets the terminal state from
+  `response.ok` alone and never reads the provider body, by design, so a provider body change
+  cannot make the page claim a send. That design also means an HTTP 200 that FormSubmit uses to
+  refuse delivery shows the visitor the sent state.
+- **Effect today:** once the endpoint is activated, FormSubmit is expected to answer
+  `"success":"true"` and the two agree. Any later deactivation, or a FormSubmit refusal reported
+  with an HTTP 200, would show a real prospect the sent state for a lead that was not delivered.
+- **Why it is not fixed in this phase:** it is a change to `src/`, which is outside every
+  remaining Phase 5 plan boundary. It would also need its own deploy and a hermetic test for the
+  refusal body.
+- **What a fix involves:** decide whether the page should read FormSubmit's `success` field (a
+  provider-coupled contract the current design deliberately avoids) or whether the owner report and
+  the mail chain are the accepted detection path. If the page changes, add a preview-project case
+  that fulfils `200 {"success":"false"}` and asserts the failure state.

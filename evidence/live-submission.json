@@ -1,0 +1,93 @@
+[
+  {
+    "recordedAt": "2026-09-13T00:30:34.765Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "phase": "marker fixed, before the submit control was activated",
+      "purpose": "ENDPOINT-ACTIVATION",
+      "marker": "HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a",
+      "markerGeneratedAt": "2026-09-13T00:30:33.631Z",
+      "markerReadBackFromVisibleControl": true,
+      "providerRequestsSoFar": 0
+    },
+    "detail": {
+      "plan": "05-06",
+      "markerSource": "built at run time by buildMarker"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T00:30:40.531Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "phase": "after the single activation of the submit control",
+      "purpose": "ENDPOINT-ACTIVATION",
+      "marker": "HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a",
+      "sentAt": "2026-09-13T00:30:34.768Z",
+      "submitActivations": 1,
+      "providerPostCount": 1,
+      "providerRequests": [
+        {
+          "method": "POST",
+          "url": "https://formsubmit.co/ajax/info@haoo.online",
+          "bodyCarriesMarker": true
+        }
+      ],
+      "providerFailures": [],
+      "requestUrl": "https://formsubmit.co/ajax/info@haoo.online",
+      "responseStatus": 200,
+      "responseStatusText": "",
+      "responseContentType": "text/html; charset=UTF-8",
+      "responseBody": "{\"success\":\"false\",\"message\":\"This form needs Activation. We've sent you an email containing an 'Activate Form' link. Just click it and your form will be actived!\"}",
+      "terminalHeading": "Your details are on their way",
+      "focusedElement": "H3 \"Your details are on their way\"",
+      "submissionRegionTexts": [
+        "Your details were sent."
+      ],
+      "statusRegionsInDocument": 1,
+      "formElementsAfter": 0,
+      "navigatorWebdriver": true,
+      "ingestionRequests": [],
+      "challengePlatformRequests": 3,
+      "formControlNamesBeforeSend": [
+        "_honey",
+        "name",
+        "email",
+        "preferredChannel",
+        "phone",
+        "role",
+        "organization",
+        "portfolioBand",
+        "county",
+        "timeframe",
+        "message"
+      ],
+      "chosenOptions": {
+        "preferredChannel": "Email",
+        "role": "Landlord",
+        "portfolioBand": "1–5 units",
+        "county": "Mombasa",
+        "timeframe": "Ready now"
+      },
+      "bundleSources": [
+        "/assets/haoo-C1OXjuEM.js"
+      ]
+    },
+    "detail": {
+      "plan": "05-06",
+      "target": "live (https://www.haoo.online/)",
+      "ingestionOrigins": [
+        "https://us.i.posthog.com"
+      ],
+      "claimBoundary": "the confirmation state is a browser-observable claim that the provider accepted the request; it is not a delivery or activation claim and must never be recorded as one",
+      "challengePlatformNote": "O-2: Cloudflare JavaScript Detections requests are counted as observed; they are not submissions"
+    }
+  }
+]

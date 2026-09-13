@@ -671,14 +671,139 @@ published exchanger, and link 2 (plan 05-06) can be attempted.
 
 ## Link 2 — Activation
 
-**Status: NOT STARTED.** Owned by plan **05-06**, which appends here.
+**Status: AWAITING OWNER CONFIRMATION** — one activation-trigger submission was sent from the live page at `2026-09-13T00:30:34.768Z` carrying `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a`. The browser observed the endpoint accept the request. Whether the activation mail arrived, which folder it landed in, and the endpoint's state after the link is clicked are the owner's to report (Task 3), and are not recorded here yet.
 
-Was blocked on link 1, which reads CONFIRMED as of `2026-09-12T21:03:51Z`. Plan 05-06 re-measures MX before relying on it (see *Restart rule*). FormSubmit's activation confirmation for `https://formsubmit.co/ajax/info@haoo.online`
-is emailed to `info@haoo.online`, so with no published exchanger there is no way to receive it and
+Status history: **NOT STARTED** until `2026-09-13T00:30:34Z` · **AWAITING OWNER CONFIRMATION** from `2026-09-13T00:30:34.768Z` (plan 05-06 Task 2).
+
+Was blocked on link 1, which reads CONFIRMED as of `2026-09-12T21:03:51Z`. FormSubmit's activation confirmation for `https://formsubmit.co/ajax/info@haoo.online`
+is emailed to `info@haoo.online`, so with no published exchanger there was no way to receive it and
 therefore no way to activate the endpoint.
 
-To be recorded when taken: that the activation mail was received and confirmed, the endpoint's
-resulting state, and the ISO-8601 UTC timestamp of each observation.
+### Owner-reported precondition: the mailbox exists
+
+Asked directly before the send, the owner reported that `info@haoo.online` exists in their Namecheap
+Private Email account and that they can log in to read its inbox and its spam folder. This is
+**owner-reported**, not measured: nothing in this repository can observe the mailbox.
+
+### MX re-measured before relying on link 1 (*Restart rule*)
+
+Link 1's recorded value was not relied on. MX was measured fresh twice by plan 05-06, with
+`DiG 9.18.39-0ubuntu0.24.04.7-Ubuntu`, from this workstation's local resolver and from `8.8.8.8`:
+
+| When (UTC) | Why | `dig +short MX haoo.online` (local), exit | `dig +short MX haoo.online @8.8.8.8`, exit |
+|---|---|---|---|
+| `2026-09-13T00:15:07Z` | Task 1 precondition | `10 mx2.privateemail.com.` / `10 mx1.privateemail.com.`, exit 0 | `10 mx1.privateemail.com.` / `10 mx2.privateemail.com.`, exit 0 |
+| `2026-09-13T00:30:30Z` | Immediately before the send; the send command was gated on both answers naming both hosts | `10 mx1.privateemail.com.` / `10 mx2.privateemail.com.`, exit 0 | `10 mx2.privateemail.com.` / `10 mx1.privateemail.com.`, exit 0 |
+
+Order within an answer varies between queries; both hosts at preference 10 appeared in all four answers.
+
+### The mechanism, and proof it sends nothing by default
+
+`e2e/live-submission.e2e.ts` (commit `9a2b00d`) is the only spec that lets a request reach the form
+provider. Its whole describe block is skipped unless `HAOO_SEND_LIVE_SUBMISSION` is non-empty. When
+armed it also requires `HAOO_LIVE_SUBMISSION_PURPOSE`, runs on the `live` project only, pins retries
+to 0 (overriding the `live` project's `retries: 2`), and refuses to start on a retry or repeat index.
+
+Unarmed runs, flag unset, measured:
+
+| Run (UTC) | Command | Exit | This spec's reported status | Totals |
+|---|---|---|---|---|
+| between `00:15:07Z` and `00:19:27Z` (not timestamped individually) | `npx playwright test --project=live e2e/live-submission.e2e.ts` | 0 | skipped | 1 skipped |
+| between `00:15:07Z` and `00:19:27Z` (not timestamped individually) | `npx playwright test --project=preview e2e/live-submission.e2e.ts` | 0 | skipped | 1 skipped |
+| `00:19:27Z`–`00:23:07Z` | `npm run test:e2e:live` | 0 | skipped (list reporter, test 31) | 128 passed, 14 skipped |
+| `00:24:09Z`–`00:27:57Z` | The plan's Task 1 verify chain (typecheck, lint, `npm run test:e2e:live`) | 0 each | JSON reporter: `status: "skipped"`, `expectedStatus: "skipped"`, one result at `retry: 0`, skip annotation `HAOO_SEND_LIVE_SUBMISSION is unset: this spec sends real mail to info@haoo.online and is inert by default` | 128 expected, 14 skipped, 0 unexpected, 0 flaky |
+
+After each unarmed run `evidence/live-submission.json` did not exist. That file is written only from
+inside the test body, so its absence shows the body never ran. In each of the two full live runs, the
+specs that drive the form on live route `formsubmit.co` to abort. Each run wrote four live records
+carrying `providerAttemptCount` (three in `evidence/form-states.json`, one in
+`evidence/keyboard-script-focus.json`, S1), and all eight read `0`. Those appended records were
+restored to HEAD after being read, because a guard-proof run must not replace other plans' committed
+evidence. The test title as reported:
+`[live] › e2e/live-submission.e2e.ts:236:3 › LIVE SUBMISSION — one real submission through the shipped form on the live origin › sends exactly one marked submission and records what the browser observed`.
+
+### The single activation-trigger submission — what the browser observed
+
+One armed run, started `2026-09-13T00:30:30.546Z`, ended `00:30:40.659Z`, exit 0:
+
+`HAOO_SEND_LIVE_SUBMISSION=1 HAOO_LIVE_SUBMISSION_PURPOSE=ENDPOINT-ACTIVATION npx playwright test --project=live e2e/live-submission.e2e.ts --retries=0 --workers=1 --reporter=list`
+
+It was not retried and no other armed run was made. Values below are transcribed from
+`evidence/live-submission.json` (two records) and the run's own output line.
+
+| Reading | Value |
+|---|---|
+| Marker, generated and sent | `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` |
+| Marker generated at | `2026-09-13T00:30:33.631Z` |
+| Marker written to `evidence/live-submission.json`, before the submit control was activated | `2026-09-13T00:30:34.765Z` (provider requests at that moment: 0) |
+| Submission sent at (submit control activated) | `2026-09-13T00:30:34.768Z` |
+| Submissions sent in this run | **1** (submit activations: 1; provider POST requests: 1) |
+| Endpoint the browser posted to, verbatim | `https://formsubmit.co/ajax/info@haoo.online` |
+| Request method | `POST` |
+| Posted body contained the marker | the marker string was found in the request body |
+| Provider request failures | none recorded (empty list) |
+| HTTP response status | `200` (status text empty) |
+| Response `content-type` | `text/html; charset=UTF-8` |
+| Response body, verbatim | `{"success":"false","message":"This form needs Activation. We've sent you an email containing an 'Activate Form' link. Just click it and your form will be actived!"}` |
+| Confirmation heading rendered | `Your details are on their way` |
+| Focused element after the transition | `H3 "Your details are on their way"` |
+| Submission status-region text | `Your details were sent.` |
+| `<form>` elements after the transition | 0 |
+| `role="status"` regions in the document after | 1 |
+| Page | `https://www.haoo.online/`, bundle `/assets/haoo-C1OXjuEM.js`, viewport 1280×1024 |
+| `navigator.webdriver` | `true` (the flag the shipped `posthog-js` bot filter drops events on) |
+| Requests to the analytics ingestion origin `https://us.i.posthog.com` | **0** (empty list) |
+| Cloudflare `/cdn-cgi/challenge-platform/` requests (O-2) | 3 (observed; not submissions; not counted as sends) |
+
+What the visitor-visible form carried. The marker was typed into the shipped `Anything else we should
+know?` control, and before sending, the control's value read back containing the marker:
+`This is an automated release verification sent by the HAOO release process. It is not an enquiry and needs no reply. Marker: HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a`.
+Full name `HAOO Release Verification`; email `info@haoo.online` (the mailbox under test, so no address
+outside the owner's control entered the submission); channel `Email`; the remaining required selects
+took their first non-placeholder option (`Landlord`, `1–5 units`, `Mombasa`, `Ready now`). The controls
+present before sending were the shipped eleven (`_honey`, `name`, `email`, `preferredChannel`, `phone`,
+`role`, `organization`, `portfolioBand`, `county`, `timeframe`, `message`); none was added or hidden.
+
+Funnel counts: because `navigator.webdriver` read `true` and zero requests reached the ingestion
+origin during the run, this submission did not enter the owner's PostHog funnel counts.
+
+### What this evidence does and does not prove
+
+The browser observed the endpoint **accept the request**: one POST, an HTTP 200, and the page's
+confirmation state. That is not the same as mail arriving, and it is not activation. The provider's own
+response body says the form is **not yet activated** and that an activation link was emailed. Whether
+that email reached `info@haoo.online`, which folder it landed in, and what state the endpoint is in
+after the link is clicked can only come from the owner's mailbox report. Link 2 therefore stays
+**AWAITING OWNER CONFIRMATION**, not CONFIRMED.
+
+**Observation L2-O1 — recorded, not acted on in this phase.** The shipped form rendered `Your details
+were sent.` and the confirmation card for a response whose body reads `"success":"false"`.
+`QualifyForm.tsx` takes its terminal state from the HTTP status alone (`response.ok`) and never reads the
+body, by design. Against an unactivated endpoint that design shows a visitor the sent state for a
+submission FormSubmit did not deliver. This is a browser-observable fact about the shipped code, measured
+here; changing `src/` is outside this plan.
+
+### Standing count of live submissions in Phase 5
+
+Exactly **two** live submissions are sent in the whole of Phase 5:
+
+1. this activation trigger (`HAOO-ENDPOINT-ACTIVATION-…`, plan 05-06), **sent**, count 1;
+2. the tagged release submission (`HAOO-RELEASE-VERIFICATION-…`, plan 05-16), not yet sent.
+
+**Amendment to the UI design contract.** `05-UI-SPEC.md` §FS-3 speaks of *"the single live success
+run"*. That expectation is amended here to **two** live success runs rather than being quietly exceeded.
+The reason is that FormSubmit does not deliver the submission that triggers activation. It only mails
+the activation link. A single submission therefore cannot both activate the endpoint and prove delivery,
+and D-11's ordering needs one of each. Each carries a distinct marker prefix and its own timestamp, so
+the two are distinguishable in the mailbox and in this record.
+
+### Owner's mailbox report — pending (Task 3)
+
+To be transcribed verbatim from the owner, not summarised: the date and time the activation message
+was received as the mailbox shows it; the folder, **inbox or spam** (a spam arrival is recorded as spam);
+the sender address; and the page text after clicking the activation link. Or, if none arrived, the words
+"no activation mail" and how long the owner waited. The endpoint's state after activation will be
+recorded as its own claim, separate from any later delivery.
 
 ---
 
