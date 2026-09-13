@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
-status: executing
-stopped_at: Completed 05-16-PLAN.md
-last_updated: "2026-09-13T08:15:10.766Z"
+status: verifying
+stopped_at: Completed 05-17-PLAN.md
+last_updated: "2026-09-13T08:49:57.475Z"
 last_activity: 2026-09-13
-last_activity_desc: 05-06 complete, link 2 (activation) confirmed on the owner report, 05-16 next
-state_head: 2bf6d28f009595e4520b3e979763569505d40bf0
+last_activity_desc: 05-17 complete, phase 05 ready for verification; Kenya DPA sign-off accepted risk, outstanding
+state_head: 0f242f3e8f83510a883f0056a18622046a2578a1
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 69
+  completed_plans: 70
   percent: 43
 ---
 
@@ -27,13 +27,19 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 17 of 17 (05-16 next; 15 plans summarised; 05-16 and 05-17 remain)
+Phase: 05 (Prove the Deployed Journey): all plans executed, ready for verification
+Plan: 17 of 17 (all 17 plans summarised; 05-17, the phase close, completed 2026-09-13)
 Total Plans in Phase: 17
-Status: Ready to execute
-Last activity: 2026-09-13 — 05-06 complete. Link 2 (activation) of LEAD-07 is CONFIRMED on the owner report ("activated form submit and received 3 submissions"), corroborated by delivery of the marked activation-trigger submission at 00:33:02 +0000; folder, full sender and post-click page text not stated. Exactly 1 live submission sent (HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a). Link 3 (delivery, 05-16) next
+Status: Phase complete — ready for verification (/gsd-verify-work 05)
+Last activity: 2026-09-13 — 05-17 complete.
+- **Gates:** 13 enumerated commands exit 0 across both repositories (HAOO 688 tests / 10 files, ZERO-PAPER HUB 32 / 3).
+- **Evidence pass:** live 141/128/13 and preview 141/33/108, exit 0, against deploy 2d45e5f.
+- **Owner dispositions:** D-18 items 3 and 4 accepted (orchestrator-drafted at the owner's request, approved as written). The Kenya DPA 2019 sign-off stays outstanding and is carried beyond Phase 5.
+- **Records:** Phase 4 contract reconciled; statuses set from evidence; 05-EVIDENCE.md written.
+- **Owed to verification:** option labels, E1, E3, FS-O1.
+- **Nothing pushed:** HAOO local main is ahead of origin by docs/evidence commits only.
 
-Progress: 43/46 plans ([████░░░░░░] 43%)
+Progress: 70/73 plans summarised across the milestone; 3 of 7 phases complete ([████░░░░░░] 43%)
 
 ## Performance Metrics
 
@@ -111,6 +117,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P02 | 10 min | 3 tasks | 2 files |
 | Phase 05 P06 | 28 min | 3 tasks | 5 files |
 | Phase 05 P16 | about 7h elapsed (about 10 min active, rest at owner checkpoint) | 3 tasks | 4 files |
+| Phase 05 P17 | about 31 min active, plus the owner checkpoint | 3 tasks | 42 files |
 
 ## Accumulated Context
 
@@ -265,6 +272,12 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-06: e2e/live-submission.e2e.ts is the only mechanism for live submissions; inert unless HAOO_SEND_LIVE_SUBMISSION is set, needs HAOO_LIVE_SUBMISSION_PURPOSE, live project only, retries pinned to 0 and refuses a retry or repeat index. Exactly 1 live submission sent by 05-06; 05-16 sends the second and last.
 - [Phase 05]: 05-16: LEAD-07 link 3 CONFIRMED on the owner's report; marker HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d arrived in the info@haoo.online inbox at Today 04:11 local (01:11 UTC); full sender and subject not stated
 - [Phase 05]: 05-16: the Playwright-driven tagged send was not captured by PostHog (webdriver true, 0 ingestion requests), contradicting 05-EVIDENCE-HARNESS section 4's one-known-inclusion premise
+- [Phase 05]: 05-17: the final evidence pass's appended records were committed (6be6575), not restored, because the latest committed keyboard and viewport records still measured the pre-F1-LIVE page; evidence/axe-baseline.json was restored to HEAD (upsert replaced 11 of 11 entries identical apart from timestamps)
+- [Phase 05]: 05-17: D-18 item 3, Kenya DPA 2019 sign-off, dispositioned accepted by the owner 2026-09-13 (owner-accepted, orchestrator-drafted at the owner's request, approved as written). Accepted risk, NOT resolved: no legal review, no compliance determination; the sign-off stays outstanding and is carried beyond Phase 5
+- [Phase 05]: 05-17: D-18 item 4, haoo.online certificate provenance (D34), dispositioned accepted by the owner 2026-09-13, same provenance. Edge YE2 06D56404... (2026-09-09 to 2026-12-08); origin still YR2 0609A517... (2026-09-03 to 2026-12-02); Cloudflare SSL mode and platform rotation unknown
+- [Phase 05]: 05-17: LEAD-07 Complete, re-derived from 05-EVIDENCE-MAIL.md; QUAL-01, QUAL-02, QUAL-03 and QUAL-05 Complete (qualified), each naming what was not proven with successor /gsd-verify-work 05 (option labels, E1, E3 held out; KB-O2; FS-O1)
+- [Phase 05]: 05-17: O-1 and AG-O1 closed by the formal live readings of 2026-09-13 (S4 1 edge script, the CF-JSD-1 bootstrap, 0 beacon; S1 loads only haoo-CHYRGEim.js)
+- [Phase 05]: 05-17: gates 13 of 13 exit 0 across both repositories (HAOO 688/10, ZPH 32/3); live 141/128/13 and preview 141/33/108 exit 0 against deploy 2d45e5f; leftover-worktree blocker closed by re-measurement; both 04-UI-SPEC contradictions reconciled with a dated amendment note
 
 ### Pending Todos
 
@@ -323,6 +336,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-13T08:15:10.587Z
-Stopped at: Completed 05-16-PLAN.md
+Last session: 2026-09-13T08:49:57.117Z
+Stopped at: Completed 05-17-PLAN.md
 Resume file: None
