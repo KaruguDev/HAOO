@@ -39,8 +39,9 @@ export interface EvidenceInput {
   readonly viewport?: EvidenceViewport | null;
   /**
    * The measured value or values. Either a scalar reading or, more usually, a record of named
-   * readings. Every value in it is checked: a record whose values are all pass marks is
-   * refused exactly as a bare `'passed'` is.
+   * readings. Every value in it is checked, at any depth — inside arrays and nested records as
+   * well as at the top level: a pass mark anywhere is refused exactly as a bare `'passed'` is.
+   * Record an attribute reading through `attributeReading`, never as a bare `"true"`.
    */
   readonly measured: unknown;
   /** Free-form context: rule ids, tag lists, engine versions, URLs, node targets. */
@@ -62,6 +63,45 @@ function isPassMark(value: unknown): boolean {
     typeof value === 'string' &&
     PASS_MARKS.includes(value.trim().toLowerCase() as (typeof PASS_MARKS)[number])
   );
+}
+
+/**
+ * The first pass-mark string anywhere inside `value`, with its path, or `null` when there is none.
+ *
+ * Walks arrays and nested records, not only the top level: callers record structures
+ * (`focus.rows`, `readings`, `disclosure`), and a refusal that stopped at the first level would let
+ * `{ rows: [{ outcome: 'ok' }] }` reach committed evidence untouched (review WR-04).
+ */
+function findPassMark(value: unknown, path: string): { path: string; value: string } | null {
+  if (isPassMark(value)) return { path, value: String(value) };
+  if (Array.isArray(value)) {
+    for (const [index, item] of value.entries()) {
+      const hit = findPassMark(item, `${path}[${index}]`);
+      if (hit !== null) return hit;
+    }
+  } else if (value !== null && typeof value === 'object') {
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      const hit = findPassMark(item, `${path}.${key}`);
+      if (hit !== null) return hit;
+    }
+  }
+  return null;
+}
+
+/**
+ * An HTML attribute reading, in a form the pass-mark refusal can tell apart from a verdict.
+ *
+ * Boolean-valued ARIA attributes read back as the strings `"true"` and `"false"`. Those are
+ * measurements, but a bare `"true"` is indistinguishable from a pass mark once the refusal walks
+ * nested values. So the reading is recorded WITH its attribute name — `aria-invalid="true"` — and
+ * an absent attribute as `aria-invalid absent`, because `getAttribute` returning `null` is its own
+ * reading and must not collapse into `"false"`.
+ *
+ * Records written before this form existed carry the bare string (`"ariaInvalid": "true"`). They
+ * are historical measurements and are left as they were taken; this form applies from the next run.
+ */
+export function attributeReading(attribute: string, value: string | null): string {
+  return value === null ? `${attribute} absent` : `${attribute}="${value}"`;
 }
 
 /**
@@ -102,13 +142,16 @@ function assertMeasured(name: string, measured: unknown): void {
             'Record the reading, or leave the key out and say why in `detail`.',
         );
       }
-      if (isPassMark(value)) {
-        throw new Error(
-          `evidence '${name}': refused measured.${key} = '${String(value)}'. A pass mark is a ` +
-            'conclusion, not a measurement — record what the instrument read.',
-        );
-      }
     }
+  }
+
+  const passMark = findPassMark(measured, 'measured');
+  if (passMark !== null) {
+    throw new Error(
+      `evidence '${name}': refused ${passMark.path} = '${passMark.value}'. A pass mark is a ` +
+        'conclusion, not a measurement — record what the instrument read (an attribute reading ' +
+        'goes through attributeReading).',
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 
-import { recordEvidence } from './fixtures/evidence';
+import { attributeReading, recordEvidence } from './fixtures/evidence';
 import { SURFACES, assertNonEmptySubjects, type Surface } from './fixtures/surfaces';
 
 /**
@@ -768,7 +768,7 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
 
     // Each invalid control is marked, and points at its own message. `aria-describedby` is checked
     // for INCLUSION, not equality: a field may legitimately describe itself with more than one node.
-    const controls: Record<string, { ariaInvalid: string | null; describedBy: string | null; errorText: string }> = {};
+    const controls: Record<string, { ariaInvalid: string; describedBy: string | null; errorText: string }> = {};
     for (const field of REQUIRED_WHEN_EMPTY) {
       const control = page.locator(`#${qid(field.name)}`);
       const ariaInvalid = await control.getAttribute('aria-invalid');
@@ -785,7 +785,12 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
         `${ERROR_PREFIX}${field.requiredMessage}`,
       );
 
-      controls[field.name] = { ariaInvalid, describedBy, errorText };
+      // Recorded with its attribute name, so the reading is not mistaken for a pass mark.
+      controls[field.name] = {
+        ariaInvalid: attributeReading('aria-invalid', ariaInvalid),
+        describedBy,
+        errorText,
+      };
     }
 
     // KF5-1: focus lands on the error-summary container, which is the element WRAPPING the alert.
@@ -909,11 +914,13 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
 
     const beforeSelection = {
       nativeRequired: await phone.evaluate((element) => (element as HTMLInputElement).required),
-      ariaRequired: await phone.getAttribute('aria-required'),
+      ariaRequired: attributeReading('aria-required', await phone.getAttribute('aria-required')),
       derivedLabel: (await phoneLabel.innerText()).replace(/\s+/gu, ' ').trim(),
     };
     expect(beforeSelection.nativeRequired, 'phone is required before a channel is chosen').toBe(false);
-    expect(beforeSelection.ariaRequired, 'phone aria-required before a channel is chosen').toBe('false');
+    expect(beforeSelection.ariaRequired, 'phone aria-required before a channel is chosen').toBe(
+      'aria-required="false"',
+    );
     expect(beforeSelection.derivedLabel, 'the optional suffix is missing from the label').toBe(
       'Phone number (optional)',
     );
@@ -923,11 +930,11 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
 
     const afterSelection = {
       nativeRequired: await phone.evaluate((element) => (element as HTMLInputElement).required),
-      ariaRequired: await phone.getAttribute('aria-required'),
+      ariaRequired: attributeReading('aria-required', await phone.getAttribute('aria-required')),
       derivedLabel: (await phoneLabel.innerText()).replace(/\s+/gu, ' ').trim(),
     };
     expect(afterSelection.nativeRequired, 'the native required attribute did not follow the rule').toBe(true);
-    expect(afterSelection.ariaRequired, 'aria-required did not follow the rule').toBe('true');
+    expect(afterSelection.ariaRequired, 'aria-required did not follow the rule').toBe('aria-required="true"');
     expect(afterSelection.derivedLabel, 'the derived label still says optional').toBe('Phone number');
 
     // The requiredness change announces through the one status region, naming the chosen channel.
@@ -947,7 +954,7 @@ test.describe('FS-1 — the two states a visitor reaches without any request bei
     await page.selectOption(`#${qid(PHONE_RULE.control)}`, PHONE_RULE.neutral);
     const afterReversal = {
       nativeRequired: await phone.evaluate((element) => (element as HTMLInputElement).required),
-      ariaRequired: await phone.getAttribute('aria-required'),
+      ariaRequired: attributeReading('aria-required', await phone.getAttribute('aria-required')),
       derivedLabel: (await phoneLabel.innerText()).replace(/\s+/gu, ' ').trim(),
     };
     expect(afterReversal.nativeRequired, 'the neutral channel left phone required').toBe(false);

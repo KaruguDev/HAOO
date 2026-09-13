@@ -1,7 +1,7 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 import { PRODUCTS_REGION_SELECTOR } from './fixtures/axe';
-import { recordEvidence } from './fixtures/evidence';
+import { attributeReading, recordEvidence } from './fixtures/evidence';
 import {
   OVERFLOW_TOLERANCE_PX,
   collectViewportEscapees,
@@ -535,7 +535,8 @@ for (const viewport of WIDTHS) {
           const opener = await measureOpener(toggle);
 
           const readState = async () => ({
-            ariaExpanded: (await toggle.getAttribute('aria-expanded')) ?? '',
+            // Recorded with its attribute name, so the reading is not mistaken for a pass mark.
+            ariaExpanded: attributeReading('aria-expanded', await toggle.getAttribute('aria-expanded')),
             toggleName: ((await toggle.getAttribute('aria-label')) ?? '').trim(),
             controlledExists: (await controlled.count()) === 1,
             controlledHiddenAttribute: (await controlled.getAttribute('hidden')) !== null,
@@ -645,7 +646,7 @@ for (const viewport of WIDTHS) {
 
           // The four readings flip together, and flip back together.
           expect(before, 'initial state').toEqual({
-            ariaExpanded: 'false',
+            ariaExpanded: 'aria-expanded="false"',
             toggleName: before.toggleName,
             controlledExists: true,
             controlledHiddenAttribute: true,
@@ -653,7 +654,7 @@ for (const viewport of WIDTHS) {
           });
           expect(before.toggleName.length, 'the toggle has an empty accessible name').toBeGreaterThan(0);
           expect(afterOpen, 'state after the first activation').toEqual({
-            ariaExpanded: 'true',
+            ariaExpanded: 'aria-expanded="true"',
             toggleName: afterOpen.toggleName,
             controlledExists: true,
             controlledHiddenAttribute: false,
