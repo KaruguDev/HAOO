@@ -345,7 +345,7 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
 
 **Plans**: 17/18 plans executed
 
-- [ ] 05-EVIDENCE-PLANNING-HOME.md
+- [ ] 05-EVIDENCE-RECORD-HOME.md
 
 *Execution rule (plan 05-01, D-01/D-04): every Phase 5 plan runs with the **HAOO checkout** as the
 working directory and reaches ZERO-PAPER HUB as the sibling `../ZERO-PAPERHUB`. Exactly one checkout

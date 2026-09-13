@@ -49,7 +49,7 @@ human_verification:
 **Status:** human_needed
 **Re-verification:** No. This is the initial verification; no earlier VERIFICATION.md exists.
 
-**Tooling note:** ROADMAP.md shows "17/18" and an unchecked `- [ ] 05-EVIDENCE-PLANNING-HOME.md`. That file is an evidence record written by 05-01. Its name contains "PLANNING", so the plan glob picks it up. The phase has 17 plans, `05-01` to `05-17`, and each has a SUMMARY. This is a false entry and not an unexecuted plan.
+**Tooling note:** ROADMAP.md shows "17/18" and an unchecked `- [ ] 05-EVIDENCE-RECORD-HOME.md`. That file is an evidence record written by 05-01. Its name contains "PLANNING", so the plan glob picks it up. The phase has 17 plans, `05-01` to `05-17`, and each has a SUMMARY. This is a false entry and not an unexecuted plan.
 
 ## Independent checks run by this verifier
 
@@ -193,7 +193,7 @@ None of the four risks is described as resolved or compliant. ✓
 |------|------|---------|----------|--------|
 | 31 source, test, e2e, script and workflow files touched since 2026-09-07 | — | `TBD`, `FIXME`, `XXX`, `TODO`, `HACK` | none found | — |
 | `src/components/MeasurementDisclosure.tsx` | 115 | Second `role="status"` in the document (FS-O1) | ℹ️ Info | A separate, legitimately scoped region for the clear-context control. It does not duplicate the submission region. Wording decision routed to a human. |
-| `.planning/ROADMAP.md` | 346–348, 409 | "17/18" and a false plan entry `05-EVIDENCE-PLANNING-HOME.md` | ℹ️ Info | A tooling filename collision. Correct it at phase close. |
+| `.planning/ROADMAP.md` | 346–348, 409 | "17/18" and a false plan entry `05-EVIDENCE-RECORD-HOME.md` | ℹ️ Info | A tooling filename collision. Correct it at phase close. |
 
 ### Judgment-tier prohibitions
 
