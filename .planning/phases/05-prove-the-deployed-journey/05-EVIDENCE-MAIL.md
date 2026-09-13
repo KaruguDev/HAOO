@@ -10,7 +10,7 @@ are three distinct facts, and this file keeps them three distinct claims (05-CON
 |---|---|---|---|
 | 1 — MX | `haoo.online` publishes MX records naming the two PrivateEmail hosts, answering from two independent resolvers | **CONFIRMED** (`2026-09-12T21:03:51Z`; re-measured `2026-09-13T00:06:36Z`) | 05-02 (this plan) |
 | 2 — Activation | FormSubmit's activation confirmation for `info@haoo.online` was received and confirmed; the endpoint's state is recorded | **CONFIRMED** on the owner's report (`2026-09-13`, "activated form submit"), corroborated by delivery of the marked activation-trigger submission at `00:33:02 +0000`; folder, full sender and post-click page text not stated | 05-06 |
-| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **NOT STARTED** | 05-16 |
+| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **MARKER RECORDED, NOT YET SENT** (`HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, generated `2026-09-13T01:10:59.543Z`) | 05-16 |
 
 Why three and not one: FormSubmit's activation confirmation is emailed **to the very mailbox under
 test**. Collapsing the chain into a single pass/fail would report *"mail did not arrive"* without
@@ -895,9 +895,33 @@ pending, in the owner's words *"that bit is still pening"* [owner's correction: 
 
 ## Link 3 — Delivery
 
-**Status: NOT STARTED.** Owned by plan **05-16**, which appends here.
+**Status: MARKER RECORDED, NOT YET SENT** (plan 05-16 Task 1, from `2026-09-13T01:10:59.543Z`). Owned by plan **05-16**, which appends here.
 
-Blocked on link 2. A tagged submission sent through an unactivated endpoint proves nothing about
+Status history: **NOT STARTED** until `2026-09-13T01:10:59.543Z` · **MARKER RECORDED, NOT YET SENT** from `2026-09-13T01:10:59.543Z`.
+
+### The release-verification marker, fixed before sending (D-12)
+
+This marker is written and committed **before** the submission is armed, so the message the owner
+searches for is provably the message this plan sent (threat T-05-76). The send record below must
+carry this exact string; a run that carries any other marker is not this plan's send.
+
+| Reading | Value |
+|---|---|
+| Marker | `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` |
+| Generated at | `2026-09-13T01:10:59.543Z` |
+| How generated | `node:crypto` `randomBytes(4)` hex suffix and the UTC instant to the second, the same expression as `buildMarker` in `e2e/live-submission.e2e.ts`. `buildMarker` could not be called directly: importing the spec module outside the Playwright runner throws `Playwright Test did not expect test.describe() to be called here`. |
+| Checked against `MARKER_PATTERN` and the `RELEASE-VERIFICATION` purpose tail | both matched at generation; the armed spec re-checks it with `markerHasPurpose` and refuses to send a mismatch |
+| How it reaches the send | `HAOO_LIVE_SUBMISSION_MARKER`, read by the spec before navigation |
+| Submissions sent carrying it at the time of writing | 0 |
+
+**MX re-measured before the send (*Restart rule*).** `DiG 9.18.39-0ubuntu0.24.04.7-Ubuntu`, at
+`2026-09-13T01:10:38Z`: `dig +short MX haoo.online` (local) returned `10 mx1.privateemail.com.` /
+`10 mx2.privateemail.com.`, exit 0; `dig +short MX haoo.online @8.8.8.8` returned
+`10 mx1.privateemail.com.` / `10 mx2.privateemail.com.`, exit 0. A further measurement is taken
+immediately before the send and gates it. At `2026-09-13T01:10:45Z` `https://www.haoo.online/`
+answered HTTP 200 and referenced `/assets/haoo-CHYRGEim.js`, the L2-O1-fixed bundle.
+
+Was blocked on link 2. A tagged submission sent through an unactivated endpoint proves nothing about
 delivery, which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.
 
 To be recorded when taken, per **D-13**: the unique release-verification tag (fixed *before* sending,
