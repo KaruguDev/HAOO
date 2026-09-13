@@ -47,7 +47,7 @@ describe('Phase 1 centralized HAOO content contracts', () => {
   });
 
   it('uses uppercase ZERO-PAPER HUB in every parent-brand datum', () => {
-    expect(HAOO_PRODUCT.relationship).toBe('A ZERO-PAPER HUB product');
+    expect(HAOO_PRODUCT.relationship).toBe('A ZERO-PAPER HUB Product');
     expect(HAOO_PRODUCT.relationship).not.toMatch(/Zero-Paper Hub|Zero-Paper HUB|Zero Paper Hub/);
   });
 

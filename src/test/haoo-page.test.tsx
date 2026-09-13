@@ -36,7 +36,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       level: 1,
       name: 'Run the business—not the paperwork.',
     })).toBeTruthy();
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByText(/For landlords and property managers/)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' })).toBeTruthy();
   });
@@ -364,7 +364,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(screen.queryAllByRole('img')).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 1, name: HAOO_PRODUCT.outcome })).toBeTruthy();
     expect(screen.getByText(HAOO_PRODUCT.audienceLead)).toBeTruthy();
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByText(HAOO_PRODUCT.marketClaim)).toBeTruthy();
     for (const [name, href] of ONBOARDING_LINKS) {
       const links = screen.getAllByRole('link', { name });
@@ -408,7 +408,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(menu.getAttribute('aria-expanded')).toBe('false');
 
     expect(screen.getAllByRole('region', { name: /onboarding choices/i })).toHaveLength(3);
-    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.queryAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(0);
 
     const banner = screen.getByRole('banner');
@@ -451,10 +451,10 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
     }
 
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     // Owner decision 2026-09-13: the hero no longer repeats the bare product name; the header logo carries it.
     expect(within(screen.getByRole('main')).queryAllByText('HAOO')).toHaveLength(0);
-    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' }).className).toContain('z-[60]');
   });
 

@@ -974,7 +974,7 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(paragraphs.filter((paragraph) => paragraph.textContent ===
       copyrightLine(HAOO_PRODUCT.name, new Date().getFullYear()))).toHaveLength(1);
     const contactLine = paragraphs.filter((paragraph) =>
-      (paragraph.textContent ?? '').includes(`${HAOO_PRODUCT.name} is a ZERO-PAPER HUB product`));
+      (paragraph.textContent ?? '').includes(`${HAOO_PRODUCT.name} is a ZERO-PAPER HUB Product`));
     expect(contactLine).toHaveLength(1);
     expect(contactLine[0].contains(links[7])).toBe(true);
     expect(contactLine[0].contains(links[8])).toBe(true);

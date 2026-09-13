@@ -178,7 +178,7 @@ export function brochureFallbackBody(productName: string) {
 }
 
 export function parentRelationshipLine(productName: string) {
-  return `${requireIdentity(productName, 'name')} is a ZERO-PAPER HUB product`;
+  return `${requireIdentity(productName, 'name')} is a ZERO-PAPER HUB Product`;
 }
 
 export function contentAnchorId(slug: string) {

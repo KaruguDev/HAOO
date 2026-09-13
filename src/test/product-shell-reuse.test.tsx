@@ -67,7 +67,7 @@ function syntheticProduct(
   return {
     slug: 'zenith',
     name: 'ZENITH',
-    relationship: 'A ZERO-PAPER HUB product',
+    relationship: 'A ZERO-PAPER HUB Product',
     outcome: 'Keep every operation in view.',
     audienceLead: 'For teams coordinating a growing service operation.',
     audiences: ['Operators'],
@@ -225,7 +225,7 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(screen.getByRole('heading', { name: product.benefitHeading })).toBeTruthy();
     expect(screen.getByRole('region', { name: product.journeyHeading })).toBeTruthy();
     expect(screen.getByText(/complete ZENITH explanation/)).toBeTruthy();
-    expect(screen.getByText('ZENITH is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('ZENITH is a ZERO-PAPER HUB Product')).toBeTruthy();
     expect(container.textContent).not.toContain('HAOO');
     expect(container.textContent).not.toContain('The paperwork problem');
     expect(container.textContent).not.toContain('Less chasing. More control.');
@@ -248,7 +248,7 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(brochureFallbackBody('HAOO')).toBe(
       'You can still open the HAOO brochure in a new tab or download the PDF.',
     );
-    expect(parentRelationshipLine('HAOO')).toBe('HAOO is a ZERO-PAPER HUB product');
+    expect(parentRelationshipLine('HAOO')).toBe('HAOO is a ZERO-PAPER HUB Product');
     expect(productHomeLinkLabel('HAOO')).toBe('HAOO home');
     expect(copyrightLine('HAOO', 2026)).toBe('\u00A9 2026 HAOO. All rights reserved.');
     expect(qualifyEntryPointLabel('HAOO')).toBe('Send your details instead');

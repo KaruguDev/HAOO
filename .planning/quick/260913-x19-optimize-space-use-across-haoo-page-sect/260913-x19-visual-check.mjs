@@ -14,7 +14,7 @@
  * event leaves the machine. The route is a host allowlist on purpose: a `/posthog/` URL pattern
  * would also block the site's own posthog-sdk asset chunk and blank the page.
  */
-/* global document, window, getComputedStyle, navigator -- page.evaluate callbacks run in the browser */
+/* global document, window, getComputedStyle -- page.evaluate callbacks run in the browser */
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -668,6 +668,35 @@ async function pdfProbe(browser) {
   readings.pdfProbe = rows;
 }
 
+/* ------------------------------------------------------------------ 10. relationship wording */
+
+async function relationshipWording(browser) {
+  const HERO = 'A ZERO-PAPER HUB Product';
+  const FOOTER = 'HAOO is a ZERO-PAPER HUB Product';
+  const NOSCRIPT = 'HAOO is a ZERO-PAPER HUB Product.';
+  const { context, page } = await openPage(browser, VIEWPORTS[1440]);
+  const reading = await page.evaluate(() => {
+    const h1 = document.querySelector('main section h1');
+    const heroParagraphs = Array.from(h1.parentElement.querySelectorAll('p')).map((p) => p.textContent.trim());
+    return {
+      heroRelationship: heroParagraphs[0] ?? null,
+      footerText: document.querySelector('footer').textContent.replace(/\s+/g, ' ').trim(),
+    };
+  });
+  await context.close();
+  const html = await (await fetch(`${BASE}/`)).text();
+  const noscriptBlocks = Array.from(html.matchAll(/<noscript>([\s\S]*?)<\/noscript>/g)).map((m) => m[1]);
+  readings.relationshipWording = {
+    heroRelationship: reading.heroRelationship,
+    footerContainsSentence: reading.footerText.includes(FOOTER),
+    noscriptContainsSentence: noscriptBlocks.some((block) => block.includes(NOSCRIPT)),
+    noscriptBlocks: noscriptBlocks.length,
+  };
+  if (reading.heroRelationship !== HERO) failures.push(`relationship: hero reads "${reading.heroRelationship}", expected "${HERO}"`);
+  if (!reading.footerText.includes(FOOTER)) failures.push(`relationship: footer does not contain "${FOOTER}"`);
+  if (!readings.relationshipWording.noscriptContainsSentence) failures.push(`relationship: served HTML has no noscript containing "${NOSCRIPT}"`);
+}
+
 /* ------------------------------------------------------------------ main */
 
 let preview = null;
@@ -685,6 +714,7 @@ try {
   await onboardingDeadSpace(browser);
   await contrastAndTargets(browser);
   await pdfProbe(browser);
+  await relationshipWording(browser);
 } catch (error) {
   failures.push(`script error: ${error instanceof Error ? error.stack : String(error)}`);
 } finally {
