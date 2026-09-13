@@ -53,6 +53,16 @@ export interface InstalledVendorPostHogClient extends VendorPostHogClient {
   capturedEvents(): readonly string[];
   /** Every payload the configured `before_send` returned, in call order. */
   deliveredPayloads(): readonly VendorCaptureResult[];
+  /**
+   * Run one of the SDK's automatic capture channels, gated the way the SDK gates it.
+   *
+   * A no-op before `init`. `$pageview` runs only when the merged `capture_pageview` is
+   * truthy; `$pageleave` runs only when the merged `capture_pageleave` is literal `true`,
+   * or is `'if_capture_pageview'` with a truthy `capture_pageview`. When it runs, it takes
+   * exactly the `capture` path: recorded in `capturedEvents`, passed through the merged
+   * `before_send`, and recorded in `deliveredPayloads` when not dropped.
+   */
+  simulateAutomaticCapture(event: '$pageview' | '$pageleave'): void;
 }
 
 /**
@@ -72,7 +82,7 @@ export interface InstalledVendorPostHogClient extends VendorPostHogClient {
  * `measurement.test.ts` asserts the two sets agree so a key added to the lockdown
  * without a default fails loudly instead of silently reintroducing the gap.
  *
- * Six keys remain vacuous no matter what this map says, because the vendor's own
+ * Seven keys remain vacuous no matter what this map says, because the vendor's own
  * default already equals what the lockdown sends. They are named in
  * `VACUOUS_BY_VENDOR_AGREEMENT` below rather than papered over.
  */
@@ -88,7 +98,12 @@ export const VENDOR_DOCUMENTED_DEFAULTS: VendorPostHogConfig = {
   defaults: 'unset',
   autocapture: true,
   rageclick: true,
-  capture_pageview: true,
+  // Date-gated. The default builder reads
+  // `capture_pageview:!t||"2025-05-24">t||"history_change"`, and `'unset'` sorts above
+  // the date literal, so `"2025-05-24" > 'unset'` is false and the resolved default is the
+  // string `'history_change'`, not `true`. The earlier `true` here understated what the
+  // lockdown's literal `true` has to overcome.
+  capture_pageview: 'history_change',
   capture_pageleave: 'if_capture_pageview',
   capture_heatmaps: undefined,
   capture_exceptions: undefined,
@@ -122,13 +137,16 @@ export const VENDOR_DOCUMENTED_DEFAULTS: VendorPostHogConfig = {
   advanced_disable_toolbar_metrics: false,
   disable_external_dependency_loading: false,
   opt_in_site_apps: false,
+  // Absent from the vendor's defaults object entirely, so the resolved default is
+  // `undefined`. Cookieless mode is opt-in only.
+  cookieless_mode: undefined,
   before_send: undefined,
 };
 
 /**
  * The keys whose vendor default already equals the value this project locks.
  *
- * Naming them is the honest completion of the premise above. For these six the readback
+ * Naming them is the honest completion of the premise above. For these seven the readback
  * cannot prove the adapter supplied anything — the object would equal itself whether or
  * not it did — and no fixture can change that, because the agreement is the vendor's,
  * not the fixture's. What still covers them is the per-key hostile table in
@@ -154,33 +172,90 @@ export const VACUOUS_BY_VENDOR_AGREEMENT = [
   'custom_campaign_params',
   'ui_host',
   'opt_in_site_apps',
+  // The vendor default is already `true`, so the readback cannot prove the adapter
+  // supplied it. The hostile table in `measurement.test.ts` still forces it to `false`
+  // and requires a refusal.
+  'save_referrer',
 ] as const;
 
+/** Used when the test environment exposes no address to read. */
+const FALLBACK_CURRENT_URL = 'https://www.haoo.online/?ref=fixture#products';
+
+function ambientCurrentUrl(): string {
+  const href: unknown = (globalThis as { location?: { href?: unknown } }).location?.href;
+  return typeof href === 'string' ? href : FALLBACK_CURRENT_URL;
+}
+
 /**
- * The keys the vendor's own transport requires, carried inside `properties`.
+ * The payload a `posthog-js@1.425.1` capture carries under `cookieless_mode: 'always'`.
  *
- * A stub whose captured payload arrived already reduced to bare-name form would prove
- * nothing about a chokepoint. The payload assembled below therefore carries both the
- * transport keys and the kind of ambient enrichment a real capture appends, so a
- * chokepoint that strips nothing is visible in `deliveredPayloads()`.
+ * A stub whose captured payload arrived already reduced would prove nothing about a
+ * chokepoint. The payload assembled below therefore carries three groups:
+ *
+ * - the cookieless transport keys: the `$posthog_cookieless` sentinel in place of a
+ *   per-browser distinct id, `$process_person_profile: false` and `$cookieless_mode: true`;
+ * - ambient enrichment the reducer is expected to keep in reduced form: the current
+ *   address (read from the test environment, so a query string and fragment set by a test
+ *   reach the chokepoint), the referrer with a query string, and browser, device and
+ *   library properties;
+ * - enrichment the reducer must strip: the IP, a null device id, a click identifier, raw
+ *   campaign values the SDK read for itself, a search keyword and engine, the page title,
+ *   the initial person info and a `$set_once` object on the envelope.
+ *
+ * A chokepoint that strips nothing is therefore visible in `deliveredPayloads()`.
  */
 function assembleVendorPayload(
   event: string,
   token: string,
   ordinal: number,
 ): VendorCaptureResult {
-  return {
+  const currentUrl = ambientCurrentUrl();
+  let host = 'www.haoo.online';
+  let pathname = '/';
+  try {
+    const parsed = new URL(currentUrl);
+    host = parsed.host;
+    pathname = parsed.pathname;
+  } catch {
+    // The fallback host and path stand.
+  }
+
+  const payload: VendorCaptureResult & { $set_once: Record<string, unknown> } = {
     uuid: `vendor-fixture-${ordinal}`,
     event,
     properties: {
       token,
-      distinct_id: `vendor-fixture-distinct-${ordinal}`,
+      distinct_id: '$posthog_cookieless',
       $process_person_profile: false,
-      $current_url: 'https://www.haoo.online/',
-      $referrer: 'https://search.example/',
+      $cookieless_mode: true,
+      $current_url: currentUrl,
+      $host: host,
+      $pathname: pathname,
+      $referrer: 'https://search.example/results?q=private+words',
+      $referring_domain: 'search.example',
+      $raw_user_agent: 'Mozilla/5.0 (X11; Linux x86_64) VendorFixture/1.0',
+      $browser: 'Chrome',
+      $os: 'Linux',
+      $device_type: 'Desktop',
+      $timezone: 'Africa/Nairobi',
       $lib: 'web',
+      $lib_version: '1.425.1',
+      $insert_id: `vendor-fixture-insert-${ordinal}`,
+      $time: 1789300000 + ordinal,
+      $ip: '203.0.113.7',
+      $device_id: null,
+      gclid: 'fixture-click-identifier',
+      utm_term: 'fixture-term',
+      utm_source: 'raw-sdk-value',
+      ph_keyword: 'private words',
+      $search_engine: 'search.example',
+      title: 'HAOO fixture page title',
+      $initial_person_info: { r: 'https://search.example/', u: currentUrl },
     },
+    $set_once: { $initial_referrer: 'https://search.example/' },
   };
+
+  return payload;
 }
 
 /**
@@ -196,7 +271,7 @@ function assembleVendorPayload(
  * which keeps the shape it declares independent of the shape the adapter declares. It
  * pins shape agreement only, not vendor behaviour: this file is a transcription of
  * documentation, so it is not evidence about what the real SDK does at runtime. The live
- * confirmation that one visitor action produces exactly one name-only event is the human
+ * confirmation that one visitor action produces exactly one event is the human
  * gate recorded in
  * `.planning/phases/04.1-migrate-measurement-from-plausible-to-posthog/04.1-USER-SETUP.md`.
  *
@@ -217,6 +292,7 @@ export function createPostHogVendorClient(
   let initializedConfig: VendorPostHogConfig | null = null;
   const capturedEvents: string[] = [];
   const deliveredPayloads: VendorCaptureResult[] = [];
+  let activeCapture: ((event: string) => void) | null = null;
 
   const client: InstalledVendorPostHogClient = {
     init(token: string, config: Record<string, unknown> = {}) {
@@ -229,22 +305,26 @@ export function createPostHogVendorClient(
       initializedToken = token;
       initializedConfig = merged;
 
+      const capture = (event: string) => {
+        capturedEvents.push(event);
+
+        const beforeSend = merged.before_send;
+        const payload = assembleVendorPayload(event, token, capturedEvents.length);
+        const delivered =
+          typeof beforeSend === 'function'
+            ? (beforeSend as VendorBeforeSend)(payload)
+            : payload;
+
+        if (delivered !== null) {
+          deliveredPayloads.push(delivered);
+        }
+      };
+
+      activeCapture = capture;
+
       const instance: VendorPostHogInstance = {
         config: merged,
-        capture(event: string) {
-          capturedEvents.push(event);
-
-          const beforeSend = merged.before_send;
-          const payload = assembleVendorPayload(event, token, capturedEvents.length);
-          const delivered =
-            typeof beforeSend === 'function'
-              ? (beforeSend as VendorBeforeSend)(payload)
-              : payload;
-
-          if (delivered !== null) {
-            deliveredPayloads.push(delivered);
-          }
-        },
+        capture,
       };
 
       return instance;
@@ -253,6 +333,26 @@ export function createPostHogVendorClient(
     initializedConfig: () => initializedConfig,
     capturedEvents: () => capturedEvents,
     deliveredPayloads: () => deliveredPayloads,
+    /**
+     * A transcription of the SDK's automatic `$pageview` and `$pageleave` channels, not
+     * evidence of vendor behaviour. The gates copy `posthog-js@1.425.1`: the initial
+     * pageview is scheduled only when `this.config.capture_pageview` is truthy, and
+     * `uu(){return!0===this.config.capture_pageleave||"if_capture_pageview"===
+     * this.config.capture_pageleave&&!!this.config.capture_pageview}` decides the page
+     * exit event.
+     */
+    simulateAutomaticCapture: (event: '$pageview' | '$pageleave') => {
+      if (activeCapture === null || initializedConfig === null) return;
+
+      const pageview = initializedConfig.capture_pageview;
+      const pageleave = initializedConfig.capture_pageleave;
+      const runs =
+        event === '$pageview'
+          ? Boolean(pageview)
+          : pageleave === true || (pageleave === 'if_capture_pageview' && Boolean(pageview));
+
+      if (runs) activeCapture(event);
+    },
   };
 
   return client;
@@ -303,6 +403,7 @@ export function createLoadedOncePostHogVendorClient(
     initializedConfig: loaded.initializedConfig,
     capturedEvents: loaded.capturedEvents,
     deliveredPayloads: loaded.deliveredPayloads,
+    simulateAutomaticCapture: loaded.simulateAutomaticCapture,
     initCallCount: () => initCalls,
   };
 }

@@ -320,11 +320,14 @@ export function createMeasurement<const EventName extends string>(
     campaign = readCampaign(adapters);
 
     // Campaign parameters are normalized and removed before the provider is
-    // initialized, so automatic capture cannot race ahead of address-bar cleanup. An
-    // injected sink remains authoritative for tests and alternate adapters.
+    // initialized, so automatic capture cannot race ahead of address-bar cleanup: the
+    // SDK's first automatic `$pageview` fires after `init` and sees a clean address bar.
+    // The normalized record is handed to the adapter and is the only campaign data
+    // PostHog receives; the SDK's own campaign reader stays off (quick task 260913-p4u).
+    // An injected sink remains authoritative for tests and alternate adapters.
     if (eventSink === undefined) {
       try {
-        eventSink = createPostHogEventSink(config, adapters.providerAdapters);
+        eventSink = createPostHogEventSink(config, adapters.providerAdapters, campaign);
       } catch {
         // Defence in depth, and the specific defect Phase 4 verification recorded as
         // gap 1: this is the one provider call in this file, it runs inside the product
