@@ -34,6 +34,12 @@ const NEW_TAB_DISCLOSURE = 'Opening the brochure leaves this page in a new brows
 const focusClasses =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
 const surfaceClasses = 'rounded-2xl border border-[#DFE4F0] bg-[#E9EDFF] p-6 text-[#18275F]';
+/**
+ * The object child fallback fills the embed frame as one centred card, so a browser without a
+ * PDF viewer shows no empty strip below it. The object already draws the 1px border (260913-x19).
+ */
+const objectFallbackClasses =
+  'flex h-full flex-col justify-center rounded-2xl bg-[#E9EDFF] p-6 text-[#18275F] md:p-8';
 
 export default function BrochurePanel({
   brochure,
@@ -143,7 +149,7 @@ export default function BrochurePanel({
             onLoad={handleObjectLoad}
             className="aspect-[1287/909] w-full rounded-2xl border border-[#DFE4F0] bg-white"
           >
-            <div className={surfaceClasses}>
+            <div className={objectFallbackClasses}>
               <h3 className="mb-2 text-[28px] font-semibold leading-[1.2]">{FALLBACK_HEADING}</h3>
               <p className="text-base font-normal leading-6 text-[#5F6B84]">{brochureFallbackBody(productName)}</p>
             </div>

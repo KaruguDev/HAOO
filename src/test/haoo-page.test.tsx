@@ -528,6 +528,81 @@ describe('Quick task 260913-vbl headline weights (OD-2)', () => {
   });
 });
 
+describe('Quick task 260913-x19 space use', () => {
+  function classTokens(element: Element | null) {
+    return (element?.getAttribute('class') ?? '').split(/\s+/);
+  }
+
+  it('renders the rental journey as a responsive stepper with decorative connectors between steps', () => {
+    renderPage();
+
+    const journey = screen.getByRole('region', { name: 'Rental journey' });
+    const lists = journey.querySelectorAll('ol');
+    expect(lists).toHaveLength(1);
+    expect(classTokens(lists[0])).toEqual(expect.arrayContaining(['md:grid-cols-2', 'lg:grid-cols-4']));
+
+    const steps = Array.from(lists[0].children);
+    expect(steps).toHaveLength(HAOO_PRODUCT.journey.length);
+    for (const [index, step] of steps.entries()) {
+      const { title, description } = HAOO_PRODUCT.journey[index];
+      expect(step.tagName).toBe('LI');
+      expect(step.querySelector('h3')?.textContent, title).toBe(title);
+      expect(step.textContent, title).toContain(description);
+    }
+
+    const connectors = Array.from(journey.querySelectorAll('li [aria-hidden="true"]'))
+      .filter((element) => element.textContent === '');
+    expect(connectors).toHaveLength(HAOO_PRODUCT.journey.length - 1);
+    expect(steps.at(-1)?.contains(connectors.at(-1) ?? null)).toBe(false);
+    expect(journey.textContent).toBe(HAOO_PRODUCT.journey
+      .map(({ title, description }, index) => `${index + 1}${title}${description}`)
+      .join(''));
+  });
+
+  it('steps capability and journey titles down one size while section and benefit headings keep 28px', () => {
+    renderPage();
+
+    for (const name of [
+      ...HAOO_PRODUCT.capabilities.map(({ title }) => title),
+      ...HAOO_PRODUCT.journey.map(({ title }) => title),
+    ]) {
+      const tokens = classTokens(screen.getByRole('heading', { level: 3, name }));
+      expect(tokens, name).toEqual(expect.arrayContaining(['font-bold', 'text-lg', 'md:text-xl']));
+      expect(tokens, name).not.toContain('text-[28px]');
+    }
+    for (const heading of screen.getAllByRole('heading', { level: 2 })) {
+      expect(classTokens(heading), heading.textContent ?? '')
+        .toEqual(expect.arrayContaining(['text-[28px]', 'font-extrabold']));
+    }
+    for (const name of [HAOO_PRODUCT.painHeading, HAOO_PRODUCT.benefitHeading]) {
+      expect(classTokens(screen.getByRole('heading', { level: 3, name })), name).toContain('text-[28px]');
+    }
+  });
+
+  it('top-aligns the onboarding choice cards in all three placements', () => {
+    renderPage();
+
+    const placements = screen.getAllByRole('region', { name: /onboarding choices/i });
+    expect(placements).toHaveLength(3);
+    for (const placement of placements) {
+      expect(classTokens(placement), placement.getAttribute('aria-label') ?? '').toContain('lg:items-start');
+    }
+  });
+
+  it('lets the brochure object fallback fill the embed frame as one centred card', () => {
+    renderPage();
+
+    const pdfObject = brochureRegion().querySelector('object[type="application/pdf"]');
+    const fallback = pdfObject?.firstElementChild ?? null;
+    expect(classTokens(fallback)).toEqual(expect.arrayContaining(['h-full', 'justify-center']));
+    expect(fallback?.textContent).toContain(FALLBACK_HEADING);
+    expect(fallback?.textContent).toContain(FALLBACK_BODY);
+
+    const previewImage = brochureRegion().querySelector('img');
+    expect(classTokens(previewImage?.parentElement ?? null)).toEqual(['lg:hidden']);
+  });
+});
+
 describe('Phase 2 written-enquiry entry points', () => {
   it('exposes one entry link per onboarding placement, all targeting the single qualify section', () => {
     const { container } = renderPage();

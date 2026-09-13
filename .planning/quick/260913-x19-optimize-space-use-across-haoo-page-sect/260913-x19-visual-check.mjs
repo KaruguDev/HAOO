@@ -16,10 +16,11 @@
  */
 /* global document, window, getComputedStyle, navigator -- page.evaluate callbacks run in the browser */
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../../..');
@@ -33,6 +34,7 @@ const SECTION_HREFS = ['#benefits', '#capabilities', '#brochure', '#qualify', '#
 const MOBILE_NAV = '#haoo-mobile-navigation';
 const DESKTOP_NAV = 'header nav:not([id])';
 const TOGGLE = `button[aria-controls="haoo-mobile-navigation"]`;
+const ONBOARDING_REGIONS = 'section[aria-label$="onboarding choices"]';
 const JOURNEY_HEADING = 'Rental journey';
 /** The #qualify split breakpoint that shipped (PD-3). */
 const QUALIFY_SPLIT = 'xl';
@@ -188,7 +190,11 @@ async function heightsAndShots(browser, { shotIds = SECTIONS.map((s) => s.id) } 
     await page.addStyleTag({ content: 'header { visibility: hidden !important; }' });
     for (const section of SECTIONS.filter((s) => shotIds.includes(s.id))) {
       const locator = page.locator(`[data-vc="${section.id}"]`);
-      await locator.scrollIntoViewIfNeeded();
+      // Section top at the viewport top, so sticky content is captured at its unscrolled position.
+      await page.evaluate((id) => {
+        const el = document.querySelector(`[data-vc="${id}"]`);
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+      }, section.id);
       await page.waitForTimeout(300);
       const name = `${width}-${section.id}.png`;
       await locator.screenshot({ path: join(SHOTS, name) });
@@ -473,6 +479,195 @@ async function anchoredHeadings(browser) {
   readings.anchoredHeadings = results;
 }
 
+/* ------------------------------------------------------------------ 6. journey stepper and titles */
+
+async function journeyAndTitles(browser) {
+  const rows = [];
+  const expectedRows = { 1440: 1, 1280: 1, 1024: 1, 768: 2, 390: 4, 320: 4 };
+
+  for (const width of [1440, 1280, 1024, 768, 390, 320]) {
+    const { context, page } = await openPage(browser, VIEWPORTS[width]);
+    const reading = await page.evaluate(() => {
+      const journey = document.querySelector('[data-vc="s04"]');
+      const items = Array.from(journey.querySelectorAll('ol > li'));
+      const tops = [];
+      for (const item of items) {
+        const top = item.getBoundingClientRect().top;
+        if (!tops.some((t) => Math.abs(t - top) <= 2)) tops.push(top);
+      }
+      const connectors = Array.from(journey.querySelectorAll('li [aria-hidden="true"]'))
+        .filter((el) => el.textContent === '');
+      const size = (el) => getComputedStyle(el).fontSize;
+      return {
+        rows: tops.length,
+        // Title tops within each visual row: a stretched li must not push shorter steps' titles down.
+        titleTopSpreadPerRow: tops.map((rowTop) => {
+          const titleTops = items.filter((li) => Math.abs(li.getBoundingClientRect().top - rowTop) <= 2)
+            .map((li) => li.querySelector('h3').getBoundingClientRect().top);
+          return Math.round((Math.max(...titleTops) - Math.min(...titleTops)) * 100) / 100;
+        }),
+        connectorsVisible: connectors.filter((el) => el.getBoundingClientRect().width > 0).length,
+        connectorWidths: connectors.map((el) => Math.round(el.getBoundingClientRect().width)),
+        capabilityTitleSizes: [...new Set(Array.from(document.querySelectorAll('#capabilities li h3')).map(size))],
+        journeyTitleSizes: [...new Set(items.map((li) => size(li.querySelector('h3'))))],
+        h2Sizes: [...new Set(Array.from(document.querySelectorAll('h2')).map(size))],
+        benefitH3Sizes: [...new Set(Array.from(document.querySelectorAll('#benefits h3')).map(size))],
+      };
+    });
+    rows.push({ width, ...reading });
+    if (reading.rows !== expectedRows[width]) failures.push(`journey rows ${width}: ${reading.rows}, expected ${expectedRows[width]}`);
+    for (const spread of reading.titleTopSpreadPerRow) {
+      if (spread > 1) failures.push(`journey title alignment ${width}: step title tops in one row differ by ${spread}px`);
+    }
+    const expectedConnectors = width >= 1024 ? 3 : 0;
+    if (reading.connectorsVisible !== expectedConnectors) failures.push(`journey connectors ${width}: ${reading.connectorsVisible} visible, expected ${expectedConnectors}`);
+    const titleSize = width >= 768 ? '20px' : '18px';
+    for (const [label, sizes] of [['capability', reading.capabilityTitleSizes], ['journey', reading.journeyTitleSizes]]) {
+      if (sizes.length !== 1 || sizes[0] !== titleSize) failures.push(`title size ${width}: ${label} h3 ${sizes.join('/')}, expected ${titleSize}`);
+    }
+    if (reading.h2Sizes.length !== 1 || reading.h2Sizes[0] !== '28px') failures.push(`title size ${width}: section h2 ${reading.h2Sizes.join('/')}, expected 28px`);
+    await context.close();
+  }
+
+  readings.journeyAndTitles = rows;
+}
+
+/* ------------------------------------------------------------------ 7. onboarding dead space */
+
+async function onboardingDeadSpace(browser) {
+  const rows = [];
+  for (const width of [1440, 1024]) {
+    const { context, page } = await openPage(browser, VIEWPORTS[width]);
+    const reading = await page.evaluate((selector) => Array.from(document.querySelectorAll(selector)).map((region) => ({
+      region: region.getAttribute('aria-label'),
+      cards: Array.from(region.children).map((card) => {
+        const last = card.lastElementChild;
+        const deadSpace = card.getBoundingClientRect().bottom
+          - (last.getBoundingClientRect().bottom + Number.parseFloat(getComputedStyle(card).paddingBottom));
+        return {
+          heading: card.querySelector('h2')?.textContent,
+          height: Math.round(card.getBoundingClientRect().height),
+          deadSpace: Math.round(deadSpace * 100) / 100,
+        };
+      }),
+    })), ONBOARDING_REGIONS);
+    rows.push({ width, regions: reading });
+    if (reading.length !== 3) failures.push(`onboarding ${width}: ${reading.length} regions, expected 3`);
+    for (const region of reading) {
+      for (const card of region.cards) {
+        if (card.deadSpace > 4) failures.push(`onboarding dead space ${width}: "${card.heading}" in ${region.region} has ${card.deadSpace}px`);
+      }
+    }
+    await context.close();
+  }
+  readings.onboardingDeadSpace = rows;
+}
+
+/* ------------------------------------------------------------------ 8. axe color-contrast and targets */
+
+async function contrastAndTargets(browser) {
+  const scans = [];
+  const targets = [];
+  for (const width of [1440, 390]) {
+    const { context, page } = await openPage(browser, VIEWPORTS[width]);
+    // Walk the page once so lazy media and reveal states are settled before axe reads colours.
+    const total = await page.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = 0; y < total; y += VIEWPORTS[width].height) await scrollTo(page, y);
+    const result = await new AxeBuilder({ page })
+      .options({ runOnly: { type: 'rule', values: ['color-contrast'] } })
+      .include('[data-vc="s04"]')
+      .include(ONBOARDING_REGIONS)
+      .include('#brochure')
+      .include('#qualify')
+      .analyze();
+    scans.push({
+      width,
+      violations: result.violations.length,
+      violationNodes: result.violations.flatMap((v) => v.nodes.map((n) => `${n.target.join(' ')}: ${n.failureSummary?.split('\n').slice(0, 2).join(' ')}`)),
+      incomplete: result.incomplete.flatMap((v) => v.nodes.map((n) => n.target.join(' '))).length,
+    });
+    if (result.violations.length > 0) {
+      failures.push(`axe color-contrast ${width}: ${result.violations.flatMap((v) => v.nodes).length} node(s): ${scans.at(-1).violationNodes.join(' | ')}`);
+    }
+
+    const reading = await page.evaluate((selector) => {
+      const scopes = [...document.querySelectorAll(selector), document.getElementById('brochure'), document.querySelector('#qualify form')];
+      const visible = (el) => {
+        const rect = el.getBoundingClientRect();
+        const closed = el.closest('details:not([open])');
+        const inClosed = closed && el !== closed.querySelector(':scope > summary');
+        return rect.width > 0 && rect.height > 0 && !inClosed && !el.closest('[aria-hidden="true"]') && getComputedStyle(el).visibility !== 'hidden';
+      };
+      const describe = (el) => `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent).trim().slice(0, 40)}"`;
+      const actions = scopes.flatMap((scope) => Array.from(scope.querySelectorAll('a, button, summary'))).filter(visible)
+        .map((el) => ({ name: describe(el), height: Math.round(el.getBoundingClientRect().height * 100) / 100 }));
+      const fields = Array.from(document.querySelectorAll('#qualify form select, #qualify form input, #qualify form textarea')).filter(visible)
+        .map((el) => ({ name: el.id || el.name, height: Math.round(el.getBoundingClientRect().height * 100) / 100 }));
+      return { actions, fields };
+    }, ONBOARDING_REGIONS);
+    targets.push({ width, ...reading });
+    for (const action of reading.actions) {
+      if (action.height < 44) failures.push(`target ${width}: ${action.name} is ${action.height}px tall`);
+    }
+    await context.close();
+  }
+  readings.axeColorContrast = scans;
+  readings.targets = targets;
+}
+
+/* ------------------------------------------------------------------ 9. brochure PDF probe */
+
+async function pdfProbe(browser) {
+  const probes = [{ label: 'playwright headless shell', browser, owned: false }];
+  if (process.env.DISPLAY) {
+    try {
+      probes.push({ label: 'playwright chromium headed', browser: await chromium.launch({ headless: false }), owned: true });
+    } catch (error) {
+      observations.push(`pdfProbe: headed Playwright Chromium failed to launch: ${String(error).split('\n')[0]}`);
+    }
+  } else {
+    observations.push('pdfProbe: DISPLAY unset, headed Playwright Chromium not probed');
+  }
+  if (existsSync('/snap/bin/chromium')) {
+    try {
+      probes.push({ label: '/snap/bin/chromium headed', browser: await chromium.launch({ headless: false, executablePath: '/snap/bin/chromium' }), owned: true });
+    } catch (error) {
+      observations.push(`pdfProbe: /snap/bin/chromium failed to launch: ${String(error).split('\n')[0]}`);
+    }
+  }
+
+  const rows = [];
+  for (const probe of probes) {
+    const context = await newRoutedContext(probe.browser, VIEWPORTS[1440]);
+    try {
+      const page = await context.newPage();
+      await page.goto(`${BASE}/#brochure`, { waitUntil: 'load' });
+      await page.locator('#brochure object').scrollIntoViewIfNeeded();
+      await page.waitForTimeout(2000);
+      const reading = await page.evaluate(() => {
+        const object = document.querySelector('#brochure object[type="application/pdf"]');
+        const fallback = object.firstElementChild;
+        return {
+          userAgent: navigator.userAgent.replace(/.*(Headless)?Chrome\/(\S+).*/, (m, h, v) => `${h ? 'HeadlessChrome' : 'Chrome'}/${v}`),
+          pdfViewerEnabled: navigator.pdfViewerEnabled,
+          objectClientHeight: object.clientHeight,
+          fallbackOffsetHeight: fallback.offsetHeight,
+        };
+      });
+      rows.push({ browser: probe.label, ...reading });
+      if (reading.fallbackOffsetHeight > 0 && reading.objectClientHeight - reading.fallbackOffsetHeight > 2) {
+        failures.push(`brochure fallback (${probe.label}): object ${reading.objectClientHeight}px, fallback ${reading.fallbackOffsetHeight}px leaves a ${reading.objectClientHeight - reading.fallbackOffsetHeight}px strip`);
+      }
+    } catch (error) {
+      observations.push(`pdfProbe: ${probe.label} could not be measured: ${String(error).split('\n')[0]}`);
+    } finally {
+      await context.close();
+      if (probe.owned) await probe.browser.close();
+    }
+  }
+  readings.pdfProbe = rows;
+}
+
 /* ------------------------------------------------------------------ main */
 
 let preview = null;
@@ -486,6 +681,10 @@ try {
   await errorSummaryOrder(browser);
   await stickyColumn(browser);
   await anchoredHeadings(browser);
+  await journeyAndTitles(browser);
+  await onboardingDeadSpace(browser);
+  await contrastAndTargets(browser);
+  await pdfProbe(browser);
 } catch (error) {
   failures.push(`script error: ${error instanceof Error ? error.stack : String(error)}`);
 } finally {

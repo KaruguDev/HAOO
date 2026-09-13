@@ -38,6 +38,8 @@ const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
 const sectionHeadingClasses = 'text-[28px] font-extrabold leading-[1.2]';
 const headingClasses = 'text-[28px] font-bold leading-[1.2]';
 const bodyClasses = 'text-base font-normal leading-6 text-[#5F6B84]';
+/** Capability card and journey step titles: one size below the 28px headings (260913-x19). */
+const stepTitleClasses = 'text-lg font-bold leading-[1.3] md:text-xl';
 const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
   payments: Wallet,
   properties: Building2,
@@ -190,7 +192,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                     <span className="mb-4 inline-flex size-11 items-center justify-center rounded-lg bg-[#4054C6] text-white">
                       <Icon aria-hidden="true" size={20} />
                     </span>
-                    <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                    <h3 className={`mb-2 ${stepTitleClasses}`}>{title}</h3>
                     <p className={bodyClasses}>{description}</p>
                   </li>
                 );
@@ -206,9 +208,17 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           <div className={containerClasses}>
             <h2 className={sectionHeadingClasses}>{product.journeyHeading}</h2>
             <section aria-label={product.journeyHeading} className="mt-6">
-              <ol className="grid max-w-[680px] list-none gap-6 p-0">
+              {/* A vertical list below md, 2x2 at md and a four-column stepper at lg (260913-x19). */}
+              <ol className="grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
                 {product.journey.map(({ title, description }, index) => (
-                  <li key={title} className="grid grid-cols-[44px_1fr] gap-4">
+                  <li key={title} className="relative grid grid-cols-[44px_1fr] content-start gap-4 md:grid-cols-1 md:gap-3">
+                    {index < product.journey.length - 1 ? (
+                      // Decorative connector: 12px past this circle to 12px before the next one.
+                      <span
+                        aria-hidden="true"
+                        className="absolute -right-5 left-14 top-[21px] hidden h-0.5 bg-[#DFE4F0] lg:block"
+                      />
+                    ) : null}
                     <span
                       aria-hidden="true"
                       className="flex size-11 items-center justify-center rounded-full bg-[#4054C6] text-sm font-semibold leading-[1.4] text-white"
@@ -216,14 +226,14 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                       {index + 1}
                     </span>
                     <div>
-                      <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                      <h3 className={`mb-2 ${stepTitleClasses}`}>{title}</h3>
                       <p className={bodyClasses}>{description}</p>
                     </div>
                   </li>
                 ))}
               </ol>
             </section>
-            <p className={`mt-8 max-w-[680px] ${bodyClasses}`}>{product.marketClaim}</p>
+            <p className={`mt-8 ${bodyClasses}`}>{product.marketClaim}</p>
           </div>
         </section>
 
