@@ -319,6 +319,67 @@ plan 05-14 alongside review item R-1**, which also concerns this document.
 
 **Owner decision, 2026-09-12 (05-14):** the owner will turn off Cloudflare Web Analytics auto-injection for zero-paperhub.com themselves, as a Cloudflare dashboard action outside both repositories. Owner-decided; owner action done (reported 2026-09-12); beacon measured absent by the orchestrator at 2026-09-12T20:31:04Z (Chromium via @playwright/test, JavaScript enabled, the haoo.online refresh target blocked: HTTP 200, cf-cache-status DYNAMIC, 0 requests to cloudflareinsights.com during load plus 3 s, beacon.min.js not referenced, 1 script tag in the served HTML, and plain curl also 1); formal closure still on 05-17's final live run. The one remaining script is the inline Cloudflare bot-management bootstrap 05-11 already recorded: it is not measurement, and 05-11's spec already asserts 0 non-Cloudflare scripts. Whether a bot-management bootstrap sits within D-12's zero-script intent is recorded for 05-17 and phase verification, not decided here. No spec in 05-14 asserts the beacon's absence.
 
+### CF-JSD-1 — Cloudflare JavaScript Detections on both zones: an owner-accepted Free-plan limit
+
+Recorded by the orchestrator, 2026-09-13. Called "O-2" in the orchestrator's conversation with the
+owner. Renamed here because this file's O-2 already names the P5/P6 finding below.
+
+**What is served.** Both Cloudflare zones inject Cloudflare's JavaScript Detections bootstrap into the
+documents they serve. That is the inline `window.__CF$cv$params` script O-1 lists as script 1.
+
+| Page | Inline script in served HTML | Edge requests during load plus 4 s |
+|---|---|---|
+| `https://www.haoo.online/` (S1) | 1 | 3: `GET /cdn-cgi/challenge-platform/scripts/jsd/main.js`, `GET /cdn-cgi/challenge-platform/h/g/scripts/jsd/330e41bb475c/main.js`, `POST /cdn-cgi/challenge-platform/h/g/jsd/oneshot/330e41bb475c/…` |
+| `https://www.zero-paperhub.com/products/haoo/` (S4) | 1 | 1: `GET /cdn-cgi/challenge-platform/scripts/jsd/main.js` |
+
+The injection on S1 was first recorded by the orchestrator at `2026-09-12T20:34:28Z`. Neither
+repository ships this script.
+
+**What the owner changed, and what did not change.** Each probe is a Chromium load through
+`@playwright/test`, two runs per page, with the `haoo.online` refresh target blocked on S4.
+1. Web Analytics was turned off for `zero-paperhub.com` (reported 2026-09-12). That removed the O-1
+   beacon. It did not remove this script.
+2. Bot Fight Mode was turned off on both zones (reported 2026-09-12, around 21:00Z). Probes at
+   `2026-09-12T21:01:36Z`, then a 12-round watch from `21:02:30Z` to `21:15:20Z`, then
+   `2026-09-13T00:05:10Z`, `00:09:05Z`, `00:16:15Z` and `00:18:41Z`: every run read S1 inline 1 with
+   3 requests, and S4 inline 1 with 1 request.
+3. Continuous script monitoring was turned off on both zones (reported 2026-09-13). The probe at
+   `2026-09-13T00:29:37Z` read the same values, with no other `/cdn-cgi/` request on either page.
+   Script monitoring was not the source. Whether to turn it back on is the owner's call.
+
+On the Free plan, searching the zone's Security → Settings for "javascript" returns two settings,
+Continuous script monitoring and Replace insecure JavaScript libraries. There is no JavaScript
+detections setting (owner's dashboard screenshots, 2026-09-13).
+
+**What Cloudflare documents.** From
+`https://developers.cloudflare.com/bots/additional-configurations/javascript-detections/`, fetched
+2026-09-13: *"For Bot Fight Mode customers, JavaScript Detections is automatically enabled and cannot
+be disabled."* and *"For Super Bot Fight Mode and Bot Management for Enterprise customers, JavaScript
+Detections is optional."* The documentation does not say what persists after Bot Fight Mode is turned
+off. That this Free-plan zone cannot remove the script from the dashboard is an **inference** from
+those two sentences plus the measurements above. No single document states it for this setup.
+
+**Owner decision, 2026-09-13:** accept it as a Free-plan platform limit. The owner was offered three
+alternatives and did not take them:
+- upgrading the zones to Pro, where Super Bot Fight Mode makes JavaScript detections optional
+- taking both sites off the Cloudflare proxy (DNS-only)
+- leaving it open for 05-17
+
+**What this means for 05-17 and phase verification.**
+- The served pages carrying this one Cloudflare bot-management script is an **owner-accepted
+  platform limit, not a defect** in either repository's markup.
+- 05-11's spec already asserts that no script lacking the Cloudflare edge signature is served on S4,
+  so any script a human adds is still caught.
+- This decision settles, for this bootstrap specifically, the question O-1 left open: whether a
+  bot-management script sits within D-12's zero-script intent for S4.
+- It does not cover the Web Analytics beacon. O-1's closure is still 05-17's re-measurement that the
+  beacon is absent.
+- The script is served same-origin and is not in the path of the qualification form's cross-origin
+  POST to `formsubmit.co`.
+- **AG-O1** (`05-EVIDENCE-AXE.md` §9.7), for the record: every orchestrator probe of S1 from
+  `2026-09-12T20:34:28Z` onward saw 0 requests to `cloudflareinsights.com`. That is consistent with
+  Web Analytics being off for `haoo.online` too. 05-17's live run is still the formal reading.
+
 ### O-2 — P5 and P6 ship three elements under their listed names, not the four the closed list declares
 
 **Surface:** S1. **Owner:** this phase's fixture layer. **Measured:** 2026-09-12, and previously by
