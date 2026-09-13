@@ -1153,6 +1153,19 @@ test.describe('Reachability — out of band, redirects not followed, status trea
  */
 const ANALYTICS_ORIGINS = APPROVED_ANALYTICS_HOSTS.map((host) => new URL(host.origin).hostname);
 
+/**
+ * The provider's registrable domain for each approved ingestion origin — `posthog.com` for
+ * `us.i.posthog.com` — which is what the block below matches, exactly or as a dot-suffix.
+ *
+ * Matching the ingestion hostname as a suffix did not reach the provider's SIBLING hosts: the
+ * assets and remote-configuration host `us-assets.i.posthog.com` does not end with
+ * `us.i.posthog.com` (review WR-05). The last two labels are the registrable domain for every
+ * origin in the approved list today; a public-suffix domain such as `co.uk` would need more.
+ */
+const ANALYTICS_BLOCK_DOMAINS = ANALYTICS_ORIGINS.map((hostname) =>
+  hostname.split('.').slice(-2).join('.'),
+);
+
 /** P1-P8: every primary action the HAOO page carries. */
 const S1_ACTION_IDS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'] as const;
 
@@ -1171,13 +1184,16 @@ test.describe('The HAOO journey with the analytics ingestion origin blocked', ()
      * unreachable. "Should be unaffected" is a design claim; this test converts it into a
      * measurement (T-05-52).
      *
-     * The block is by HOSTNAME SUFFIX rather than by an exact URL: the provider serves ingestion,
-     * assets and remote configuration from sibling subdomains, and an exact-URL route would let
-     * the ones it did not name through.
+     * The block is by REGISTRABLE DOMAIN rather than by an exact URL or the ingestion hostname: the
+     * provider serves ingestion, assets and remote configuration from sibling subdomains, and a
+     * narrower match would let the ones it did not name through.
      */
     const blockedRequests: string[] = [];
     await page.route(
-      (url) => ANALYTICS_ORIGINS.some((hostname) => url.hostname.endsWith(hostname)),
+      (url) =>
+        ANALYTICS_BLOCK_DOMAINS.some(
+          (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`),
+        ),
       (route) => {
         blockedRequests.push(route.request().url());
         return route.abort('blockedbyclient');
@@ -1269,7 +1285,7 @@ test.describe('The HAOO journey with the analytics ingestion origin blocked', ()
       measured: {
         analyticsRequestsBlocked: blockedRequests.length,
         blockedRequestUrls: blockedRequests,
-        blockedHostnameSuffixes: ANALYTICS_ORIGINS,
+        blockedHostnameSuffixes: ANALYTICS_BLOCK_DOMAINS,
         deployedBundle: bundleUrl,
         bundleMentionsIngestionOrigin,
         topLevelHeadings: topLevel.map((heading) => heading.text),
