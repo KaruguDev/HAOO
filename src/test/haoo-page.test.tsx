@@ -326,6 +326,10 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     const logo = banner.querySelector('img[src="/brochure/haoo-logo.png"]');
     expect(logo).not.toBeNull();
     expect(screen.getByRole('main').querySelector('img[src="/brochure/haoo-logo.png"]')).toBeNull();
+    // Quick task 260913-vbl: two placements, the header home link and the footer home link.
+    expect(screen.getByRole('contentinfo').querySelector('img[src="/brochure/haoo-logo.png"]'))
+      .not.toBeNull();
+    expect(document.querySelectorAll('img[src="/brochure/haoo-logo.png"]')).toHaveLength(2);
     expect(logo!.getAttribute('alt')).toBe('');
     expect(logo!.getAttribute('width')).toBe('362');
     expect(logo!.getAttribute('height')).toBe('176');
@@ -499,6 +503,30 @@ describe('Phase 1 semantic HAOO page contracts', () => {
   });
 });
 
+describe('Quick task 260913-vbl headline weights (OD-2)', () => {
+  it('renders the h1 at 900, every h2 at 800 and the ProductPage h3s at 700', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { level: 1 }).className).toContain('font-black');
+
+    const sectionHeadings = screen.getAllByRole('heading', { level: 2 });
+    expect(sectionHeadings.length).toBeGreaterThan(0);
+    for (const heading of sectionHeadings) {
+      expect(heading.className, heading.textContent ?? '').toContain('font-extrabold');
+    }
+
+    const pageH3Names = [
+      HAOO_PRODUCT.painHeading,
+      HAOO_PRODUCT.benefitHeading,
+      ...HAOO_PRODUCT.capabilities.map(({ title }) => title),
+      ...HAOO_PRODUCT.journey.map(({ title }) => title),
+    ];
+    for (const name of pageH3Names) {
+      expect(screen.getByRole('heading', { level: 3, name }).className, name).toContain('font-bold');
+    }
+  });
+});
+
 describe('Phase 2 written-enquiry entry points', () => {
   it('exposes one entry link per onboarding placement, all targeting the single qualify section', () => {
     const { container } = renderPage();
@@ -575,7 +603,8 @@ describe('Phase 2 product navigation', () => {
     const navLinks = Array.from(container.querySelectorAll('nav a[href="#qualify"]'));
     expect(navLinks).toHaveLength(2);
     expect(container.querySelectorAll('[id="qualify"]')).toHaveLength(1);
-    expect(container.querySelectorAll('a[href="#qualify"]')).toHaveLength(5);
+    // Quick task 260913-vbl (OD-3): the footer link group adds a sixth `#qualify` link.
+    expect(container.querySelectorAll('a[href="#qualify"]')).toHaveLength(6);
   });
 
   it('keeps every navigation destination an in-page fragment of an existing section', () => {

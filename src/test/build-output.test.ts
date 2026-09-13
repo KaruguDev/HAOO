@@ -656,6 +656,36 @@ describe('Phase 1 static build contracts', () => {
     }
   });
 
+  /**
+   * Quick task 260913-vbl (OD-2). Browsers silently ignore an `@import` that follows any other
+   * rule, so the webfont import must stay the first line of the source stylesheet AND the first
+   * thing in the emitted stylesheet. One `family=` occurrence proves no second font rides along.
+   */
+  it('loads Noto Sans from a first-line import in the source and the built stylesheet', () => {
+    const source = readFileSync(resolve(ROOT, 'src/index.css'), 'utf8');
+    const firstLine = source.split('\n').find((line) => line.trim() !== '') ?? '';
+
+    expect(firstLine.startsWith(
+      "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap')",
+    )).toBe(true);
+    expect(source).toMatch(/body\s*\{[^}]*font-family:\s*'Noto Sans', system-ui, sans-serif;/);
+
+    const stylesheets = listFiles(resolve(DIST, 'assets')).filter((file) => file.endsWith('.css'));
+    expect(stylesheets.length).toBeGreaterThan(0);
+    for (const file of stylesheets) {
+      const built = readFileSync(file, 'utf8').trim();
+
+      // Vite minifies `@import url('…')` to `@import"…";` and hoists it to the very start.
+      expect(built.startsWith(
+        '@import"https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap";',
+      ), relative(ROOT, file)).toBe(true);
+      expect(built).toContain('family=Noto+Sans');
+      expect(built).toContain('display=swap');
+      expect(built.match(/family=/g) ?? []).toHaveLength(1);
+      expect(built).not.toMatch(/\bInter\b/);
+    }
+  });
+
   it('publishes the supplied social/preview image referenced by the product metadata', () => {
     expect(existsSync(PUBLIC_PREVIEW)).toBe(true);
     expect(sha256(PUBLIC_PREVIEW)).toBe(PREVIEW_SHA256);

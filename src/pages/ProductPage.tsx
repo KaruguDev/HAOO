@@ -13,10 +13,13 @@ import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
 import QualifyForm from '../components/QualifyForm';
 import {
+  PRODUCT_SECTION_LINKS,
   brochureLead,
   contentAnchorId,
+  copyrightLine,
   measurementDisclosureId,
   parentRelationshipLine,
+  productHomeLinkLabel,
   skipToContentLabel,
 } from '../products/copy';
 import { formatEngagementSummary } from '../products/engagement-summary';
@@ -32,7 +35,8 @@ interface ProductPageProps {
 }
 
 const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
-const headingClasses = 'text-[28px] font-semibold leading-[1.2]';
+const sectionHeadingClasses = 'text-[28px] font-extrabold leading-[1.2]';
+const headingClasses = 'text-[28px] font-bold leading-[1.2]';
 const bodyClasses = 'text-base font-normal leading-6 text-[#5F6B84]';
 const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
   payments: Wallet,
@@ -46,7 +50,12 @@ const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
 /** Locked UI-SPEC sub-lead framing the form as an alternative to chatting, never a gate. */
 const QUALIFY_SUB_LEAD =
   "Prefer writing to chatting? Share a few details and we'll reply with the onboarding path that fits your portfolio. This is not a sign-up \u2014 you can still start on your own at any time.";
-const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4054C6] focus-visible:ring-offset-2';
+/*
+ * Footer surface is navy #0F1A45. Each ring colour sits with its own offset colour in ONE plain
+ * literal, so the focus-contrast gate measures white on #0F1A45 (about 16:1).
+ */
+const footerLinkClasses = 'inline-flex min-h-11 items-center rounded-lg px-2 text-[#DBE2FF] hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1A45]';
+const footerLogoLinkClasses = 'inline-flex min-h-11 items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1A45]';
 
 export default function ProductPage({ product, measurementAdapters }: ProductPageProps) {
   const mainContentId = contentAnchorId(product.slug);
@@ -103,7 +112,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               <div className="max-w-[620px]">
                 <p className="mb-4 text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
                 <p className="mb-2 text-sm font-semibold leading-[1.4]">{product.name}</p>
-                <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
+                <h1 className="mb-6 text-[40px] font-black leading-[1.1] tracking-tight">{product.outcome}</h1>
                 <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
               </div>
               <OnboardingChoices
@@ -131,7 +140,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section aria-labelledby="audiences-heading" className="border-b border-[#DFE4F0] bg-white py-10">
           <div className={containerClasses}>
-            <h2 id="audiences-heading" className={headingClasses}>Who {product.name} supports</h2>
+            <h2 id="audiences-heading" className={sectionHeadingClasses}>Who {product.name} supports</h2>
             <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4">
               {product.audiences.map((audience) => (
                 <li
@@ -147,7 +156,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section id="benefits" aria-label="Benefits" className="scroll-mt-4 py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>Benefits</h2>
+            <h2 className={sectionHeadingClasses}>Benefits</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8">
               <div className="max-w-[680px]">
                 <h3 className={`mb-4 ${headingClasses}`}>{product.painHeading}</h3>
@@ -167,7 +176,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section id="capabilities" aria-label="Capabilities" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>Capabilities</h2>
+            <h2 className={sectionHeadingClasses}>Capabilities</h2>
             <ul className="mt-6 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
               {product.capabilities.map(({ title, description, icon }) => {
                 const Icon = CAPABILITY_ICONS[icon];
@@ -194,7 +203,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section className="py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>{product.journeyHeading}</h2>
+            <h2 className={sectionHeadingClasses}>{product.journeyHeading}</h2>
             <section aria-label={product.journeyHeading} className="mt-6">
               <ol className="grid max-w-[680px] list-none gap-6 p-0">
                 {product.journey.map(({ title, description }, index) => (
@@ -227,7 +236,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>Brochure</h2>
+            <h2 className={sectionHeadingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
             <BrochurePanel
               key={product.slug}
@@ -245,7 +254,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
         <section id="qualify" aria-label="Send your details" className="scroll-mt-4 py-12 md:py-16">
           <div className={containerClasses}>
-            <h2 className={headingClasses}>Send your details</h2>
+            <h2 className={sectionHeadingClasses}>Send your details</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
             <QualifyForm
@@ -278,19 +287,51 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
         </section>
       </main>
 
-      <footer className="border-t border-[#DFE4F0] bg-white py-6">
-        <div className={`${containerClasses} flex flex-col gap-4 text-sm font-semibold leading-[1.4] sm:flex-row sm:items-center sm:justify-between`}>
-          <p>{parentRelationshipLine(product.name)}</p>
-          <div className="flex flex-wrap gap-2">
-            <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
-            <a className={`${footerLinkClasses} text-[#4054C6]`} href={product.contacts.emailHref}>{product.contacts.email}</a>
-            <a
-              className={`${footerLinkClasses} text-[#4054C6]`}
-              href={`#${measurementDisclosureId(product.slug)}`}
-              onClick={handleMeasurementDisclosureLink}
-            >
-              How we measure this page
-            </a>
+      <footer className="bg-[#0F1A45] py-10 text-sm font-normal leading-[1.4] text-[#DBE2FF]">
+        <div className={containerClasses}>
+          <div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
+            {product.media.logo ? (
+              <a
+                href="#top"
+                aria-label={productHomeLinkLabel(product.name)}
+                className={footerLogoLinkClasses}
+              >
+                <img
+                  src={product.media.logo.href}
+                  alt={product.media.logo.alt}
+                  width={product.media.logo.width}
+                  height={product.media.logo.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-16 w-auto rounded-lg bg-white/95 object-contain p-1.5"
+                />
+              </a>
+            ) : null}
+            {/* A div, not a nav: semantics e2e allows one navigation landmark per state. */}
+            <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
+              {PRODUCT_SECTION_LINKS.map((link) => (
+                <a key={link.href} href={link.href} className={footerLinkClasses}>
+                  {link.label}
+                </a>
+              ))}
+              <a
+                className={footerLinkClasses}
+                href={`#${measurementDisclosureId(product.slug)}`}
+                onClick={handleMeasurementDisclosureLink}
+              >
+                How we measure this page
+              </a>
+            </div>
+            <p className="text-center md:text-right">{copyrightLine(product.name, new Date().getFullYear())}</p>
+          </div>
+          <div className="mt-8 border-t border-white/15 pt-6">
+            <p className="flex flex-wrap items-center justify-center gap-x-1 text-center">
+              <a className={footerLinkClasses} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
+              <span aria-hidden="true">{'\u00B7'}</span>
+              <a className={footerLinkClasses} href={product.contacts.emailHref}>{product.contacts.email}</a>
+              <span aria-hidden="true">{'\u00B7'}</span>
+              <span>{parentRelationshipLine(product.name)}</span>
+            </p>
           </div>
         </div>
       </footer>
