@@ -10,7 +10,11 @@ import {
   type PostHogClient,
   type PostHogScope,
 } from '../measurement/posthog';
-import { TRANSPORT_REQUIRED_PROPERTIES } from '../measurement/posthog-lockdown';
+import {
+  CAMPAIGN_PROPERTIES,
+  TRANSPORT_REQUIRED_PROPERTIES,
+  WEB_ANALYTICS_PROPERTIES,
+} from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
   HAOO_MEASUREMENT_EVENTS,
@@ -57,6 +61,42 @@ const APPROVED_COLLECTION_NOTICE =
 const CONTROLLER_HEADING = 'Who operates HAOO and receives this information';
 const CONTROLLER_NOTE =
   'HAOO is a product of ZERO-PAPER HUB, and ZERO-PAPER HUB decides how the information on this site is collected and used. Moving HAOO to its own web address does not change who operates it or who receives what you send. If you submit the qualification form, your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to ZERO-PAPER HUB.';
+
+/**
+ * The cookieless Web Analytics measurement wording, byte-exact, hand-typed once here.
+ *
+ * Replaced on 2026-09-13 under the owner's decision to enable cookieless PostHog Web
+ * Analytics (quick task 260913-p4u, OD-1 and OD-2). The executor drafted these strings
+ * under that decision to describe exactly what the reduced cookieless payload carries;
+ * they are owed an owner read before the next deploy and are NOT yet owner-approved.
+ * Product data is asserted against these bytes below.
+ *
+ * The processor note is the exception, pinned claim by claim rather than restated whole:
+ * the Phase 04.1 contract `asserts the approved copy from product data rather than a
+ * restated literal` keeps that sentence to one source, and this change does not weaken it.
+ * Each fragment below is one truthful claim the note must keep making.
+ */
+const MEASUREMENT_SIGNAL_BOUNDARY =
+  "Each of these signals, and each page visit and page exit, is sent with: this page's address without anything after a ? or #; the name of the site that sent you here; the browser, operating system, device type, language, time zone and screen size your browser reports; and any accepted campaign values. No form answers or contact details are attached.";
+const MEASUREMENT_CAMPAIGN_DESCRIPTION =
+  'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, sent with this page\'s signals to PostHog, and removed from the address bar after being read.';
+const MEASUREMENT_PROCESSOR_CLAIMS = [
+  'processed by PostHog in the United States',
+  'PostHog uses no cookies and saves nothing in this browser',
+  'an anonymous code calculated on its own servers from your IP address and browser details',
+  'that code changes every day',
+  'your approximate location, such as your country or city',
+  'never linked to your form answers',
+] as const;
+const MEASUREMENT_NEVER_COLLECTED = [
+  'Name, email address, phone number, or organization.',
+  'Message text.',
+  'Role, county, timeframe, or exact portfolio values.',
+  'Cookies, identifiers saved in this browser, or cross-site identifiers.',
+  'Raw click history.',
+  'Anything in the page address after a ? or #, apart from accepted campaign values.',
+  'Any form answer attached to an analytics event.',
+] as const;
 
 /**
  * UI-SPEC "Surface B — disclosure copy change", byte-exact. Contents item 4 is present
@@ -756,19 +796,34 @@ describe('Phase 3 HAOO measurement disclosure', () => {
       ),
     );
 
+    const { disclosure: measurementCopy } = HAOO_PRODUCT.measurement;
+    expect(measurementCopy.signalBoundary).toBe(MEASUREMENT_SIGNAL_BOUNDARY);
+    expect(measurementCopy.campaignDescription).toBe(MEASUREMENT_CAMPAIGN_DESCRIPTION);
+    for (const claim of MEASUREMENT_PROCESSOR_CLAIMS) {
+      expect(measurementCopy.processorNote, claim).toContain(claim);
+    }
+    expect(measurementCopy.neverCollected).toEqual([...MEASUREMENT_NEVER_COLLECTED]);
+    const neverCollectedItems = within(
+      disclosure.getByRole('region', { name: 'What we never collect for measurement' }),
+    ).getAllByRole('listitem');
+    expect(neverCollectedItems.map((item) => item.textContent))
+      .toEqual([...MEASUREMENT_NEVER_COLLECTED]);
+
     const disclosureText = details?.textContent ?? '';
     const orderedCopy = [
       'We use a closed list of page signals for aggregate product learning and keep a separate, small context record in this browser. The page works if analytics or browser storage is unavailable.',
       'Signals this page can count',
       ...SIGNAL_DISCLOSURES,
+      MEASUREMENT_SIGNAL_BOUNDARY,
       'What this browser remembers',
       'Whether this visit is first, returning, or frequent.',
       'Campaign information',
-      'utm_source',
+      MEASUREMENT_CAMPAIGN_DESCRIPTION,
       CONTROLLER_HEADING,
       CONTROLLER_NOTE,
+      measurementCopy.processorNote,
       'What we never collect for measurement',
-      'Name, email address, phone number, or organization.',
+      ...MEASUREMENT_NEVER_COLLECTED,
       ATTACHED_SUMMARY_HEADING,
       ATTACHED_SUMMARY_INTRO,
       ...ATTACHED_SUMMARY_CONTENTS,
@@ -1378,19 +1433,28 @@ describe('network payload regression', () => {
   /**
    * Property names that must never appear on the wire.
    *
-   * Redundant with the exact three-key assertion by construction — and deliberately so:
-   * if a future reducer ever grew the allowed set, this list names the specific channels
-   * (geo-IP, session, device, current URL, referrer, campaign, feature flags) that the
-   * privacy requirements forbid by name rather than by count.
+   * Since quick task 260913-p4u (owner decision 2026-09-13) the allowed set is a named
+   * allowlist — the cookieless transport keys plus `WEB_ANALYTICS_PROPERTIES` and
+   * `CAMPAIGN_PROPERTIES` — not a count. This list is redundant with that membership
+   * assertion by construction, and deliberately so: if a future reducer ever widened the
+   * allowlist, it names the channels the privacy requirements still forbid by name —
+   * geo-IP, the raw IP, a device identifier, the vendor's device property, feature flags,
+   * person-property writes, initial person info, click identifiers, the campaign keys that
+   * are never accepted, search keywords, the page title and scroll depth.
    */
   const FORBIDDEN_PROPERTY_PATTERNS = [
     /geoip/i,
-    /session/i,
-    /device/i,
-    /current_url/i,
-    /referrer/i,
-    /utm_|campaign/i,
+    /^\$ip$/,
+    /device_id/i,
+    /^\$device$/,
     /feature_flag|\$feature\//i,
+    /^\$set/,
+    /initial_/i,
+    /gclid|gclsrc|dclid|gbraid|wbraid|fbclid|msclkid|twclid|li_fat_id|mc_cid|igshid|ttclid/i,
+    /utm_content|utm_term/i,
+    /keyword|search_engine/i,
+    /^title$/,
+    /scroll|content_percentage|content-percentage/i,
   ] as const;
 
   interface JourneyRun {
@@ -1516,14 +1580,12 @@ describe('network payload regression', () => {
     return { client, searchAtProviderResolution, storageKeysBefore };
   }
 
-  /** Order-insensitive shape of what left the page: the name and its property key set. */
-  function payloadShape(payloads: readonly VendorCaptureResult[]): readonly string[] {
-    return payloads
-      .map((payload) => `${payload.event}:${Object.keys(payload.properties).join(',')}`)
-      .sort();
+  /** The delivered values as text, for proving no query string or fragment content left. */
+  function deliveredValues(payloads: readonly VendorCaptureResult[]): readonly string[] {
+    return payloads.flatMap((payload) => Object.values(payload.properties).map(String));
   }
 
-  it('puts exactly the ten allowlisted bare names on the wire and nothing else', async () => {
+  it('puts exactly the ten HAOO names on the wire from visitor actions and nothing else', async () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
     const payloads = client.deliveredPayloads();
 
@@ -1540,28 +1602,78 @@ describe('network payload regression', () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
     const beforeSend = client.initializedConfig()?.before_send as VendorBeforeSend;
 
-    for (const emitted of ['$pageview', '$pageleave', '$autocapture', '$rageclick', '$web_vitals']) {
+    // The full cookieless transport shape, so each drop below is caused by the name alone.
+    const cookielessProperties = () => ({
+      token: PROJECT_TOKEN,
+      distinct_id: '$posthog_cookieless',
+      $process_person_profile: false,
+      $cookieless_mode: true,
+    });
+
+    for (const emitted of [
+      '$autocapture',
+      '$rageclick',
+      '$web_vitals',
+      '$exception',
+      '$feature_flag_called',
+      '$identify',
+    ]) {
       expect(beforeSend({
         uuid: 'sdk-emitted-1',
         event: emitted,
-        properties: { token: PROJECT_TOKEN, distinct_id: 'd', $process_person_profile: false },
-      })).toBeNull();
+        properties: cookielessProperties(),
+      }), emitted).toBeNull();
     }
+    // The control: the identical shape under an admitted page event is delivered.
+    expect(beforeSend({
+      uuid: 'sdk-emitted-2',
+      event: '$pageview',
+      properties: cookielessProperties(),
+    })).not.toBeNull();
   });
 
-  it('carries exactly the three transport properties on every payload', async () => {
+  it('delivers exactly one automatic $pageview and one $pageleave beside the ten HAOO names', async () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
+    const fromVisitorActions = client.deliveredPayloads().length;
+
+    client.simulateAutomaticCapture('$pageview');
+    client.simulateAutomaticCapture('$pageleave');
+
     const payloads = client.deliveredPayloads();
+    expect(payloads.slice(fromVisitorActions).map((payload) => payload.event))
+      .toEqual(['$pageview', '$pageleave']);
+    expect(payloads.filter((payload) => payload.event === '$pageview')).toHaveLength(1);
+    expect(payloads.filter((payload) => payload.event === '$pageleave')).toHaveLength(1);
+    expect(new Set(payloads.map((payload) => payload.event)))
+      .toEqual(new Set([...HAOO_MEASUREMENT_EVENTS, '$pageview', '$pageleave']));
+  });
 
-    expect(payloads.length).toBeGreaterThanOrEqual(HAOO_MEASUREMENT_EVENTS.length);
+  it('carries the transport keys first and only allowlisted Web Analytics or campaign properties on every payload', async () => {
+    const { client } = await runConfiguredJourney('/products/haoo/');
+    client.simulateAutomaticCapture('$pageview');
+    client.simulateAutomaticCapture('$pageleave');
+    const payloads = client.deliveredPayloads();
+    const transportCount = TRANSPORT_REQUIRED_PROPERTIES.length;
+    const permitted: readonly string[] = [...WEB_ANALYTICS_PROPERTIES, ...CAMPAIGN_PROPERTIES];
+
+    expect(payloads.length).toBeGreaterThanOrEqual(HAOO_MEASUREMENT_EVENTS.length + 2);
     for (const payload of payloads) {
-      expect(Object.keys(payload.properties), payload.event)
+      const keys = Object.keys(payload.properties);
+      expect(keys.slice(0, transportCount), payload.event)
         .toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+      expect(payload.properties.distinct_id, payload.event).toBe('$posthog_cookieless');
+      expect(payload.properties.$cookieless_mode, payload.event).toBe(true);
+      expect(payload.properties.$process_person_profile, payload.event).toBe(false);
+      for (const key of keys.slice(transportCount)) {
+        expect(permitted, `${payload.event} carried ${key}`).toContain(key);
+      }
     }
   });
 
-  it('carries no geo-IP, session, device, URL, referrer, campaign or feature-flag property', async () => {
+  it('carries no geo-IP, IP, device-id, flag, person, click-id, search, title or scroll property', async () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
+    client.simulateAutomaticCapture('$pageview');
+    client.simulateAutomaticCapture('$pageleave');
     const keys = client.deliveredPayloads().flatMap((payload) => Object.keys(payload.properties));
 
     expect(keys.length).toBeGreaterThan(0);
@@ -1572,9 +1684,14 @@ describe('network payload regression', () => {
     }
   });
 
-  it('emits an identical payload shape when campaign parameters are on the address bar', async () => {
+  it('delivers accepted campaign values and no query-string or fragment content when campaign parameters are on the address bar', async () => {
     const plain = await runConfiguredJourney('/products/haoo/');
-    const plainShape = payloadShape(plain.client.deliveredPayloads());
+    plain.client.simulateAutomaticCapture('$pageview');
+    for (const payload of plain.client.deliveredPayloads()) {
+      for (const key of CAMPAIGN_PROPERTIES) {
+        expect(payload.properties, `${payload.event} ${key}`).not.toHaveProperty(key);
+      }
+    }
 
     cleanup();
     window.localStorage.clear();
@@ -1583,11 +1700,24 @@ describe('network payload regression', () => {
     const campaign = await runConfiguredJourney(
       '/products/haoo/?utm_source=partner&utm_medium=email&utm_campaign=launch&ref=news',
     );
+    campaign.client.simulateAutomaticCapture('$pageview');
+    const payloads = campaign.client.deliveredPayloads();
 
     // MEAS-06: the provider's own campaign capture is off, so the repository-side
     // normalization in the facade stays the only path by which a campaign value is ever
-    // observed — and none of it reaches the wire.
-    expect(payloadShape(campaign.client.deliveredPayloads())).toEqual(plainShape);
+    // observed. Since quick task 260913-p4u the accepted values travel on every delivered
+    // event, written by the lockdown reducer from that normalized record.
+    expect(payloads.length).toBeGreaterThan(HAOO_MEASUREMENT_EVENTS.length);
+    for (const payload of payloads) {
+      expect(payload.properties.utm_source, payload.event).toBe('partner');
+      expect(payload.properties.utm_medium, payload.event).toBe('email');
+      expect(payload.properties.utm_campaign, payload.event).toBe('launch');
+    }
+    for (const value of deliveredValues(payloads)) {
+      expect(value).not.toContain('ref=news');
+      expect(value).not.toContain('?');
+      expect(value).not.toContain('#');
+    }
     expect(window.location.search).toBe('?ref=news');
     // Sampled inside the provider slot getter: the address bar was already clean at the
     // instant the provider was resolved, so no payload can precede the cleanup.
@@ -1598,8 +1728,10 @@ describe('network payload regression', () => {
     const { client, storageKeysBefore } = await runConfiguredJourney('/products/haoo/');
 
     expect(storageKeysBefore).toEqual([]);
-    // MEAS-03: `persistence: 'memory'` and `disable_persistence: true` mean the provider
-    // writes nothing to the browser at all, so the only new key is this project's own.
+    // MEAS-03: `cookieless_mode: 'always'` forces the SDK's persistence off, and
+    // `persistence: 'memory'` with `disable_persistence: true` stay as defence in depth, so
+    // the provider writes nothing to the browser at all and the only new key is this
+    // project's own.
     expect(storageKeys()).toEqual([CONTEXT_KEY]);
     expect(window.sessionStorage.length).toBe(0);
     expect(document.cookie).toBe('');

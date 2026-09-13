@@ -1211,9 +1211,11 @@ test.describe('The HAOO journey with the analytics ingestion origin blocked', ()
     /*
      * A blocked-request count is ambiguous on its own: zero can mean "the facade held" or "there
      * was never anything to block". So the bundle is read as well, and the two readings together
-     * say which. `capture_pageview: false` is part of the lockdown, so a page LOAD is expected to
-     * issue no ingestion request even on a fully configured build — the bundle reference is what
-     * distinguishes a configured-but-quiet build from an unconfigured one.
+     * say which. Since 2026-09-13 (quick task 260913-p4u) `capture_pageview` is `true`, so a
+     * configured build issues a `$pageview` on load in a real browser. Under Playwright, though,
+     * posthog-js drops that traffic because `navigator.webdriver` is true, which tracer.e2e.ts
+     * asserts. A blocked-request count of 0 is therefore still the expected reading here, and the
+     * bundle reference is what distinguishes a configured-but-quiet build from an unconfigured one.
      */
     const bundleHref =
       (await page.locator('script[type="module"][src]').first().getAttribute('src')) ?? '';
@@ -1306,8 +1308,9 @@ test.describe('The HAOO journey with the analytics ingestion origin blocked', ()
         floorPx: MIN_PRIMARY_HIT_TARGET_PX,
         note:
           'A blocked-request count of 0 is a reading, not a gap, and the bundle reading beside it ' +
-          'is what makes the 0 interpretable. capture_pageview is false in the lockdown, so a page ' +
-          'load issues no ingestion request even on a configured build.',
+          'is what makes the 0 interpretable. Since 2026-09-13 capture_pageview is true, so a real ' +
+          'browser sends a $pageview on load, but posthog-js drops Playwright traffic because ' +
+          'navigator.webdriver is true (asserted in tracer.e2e.ts), so 0 is still expected here.',
       },
     });
 
