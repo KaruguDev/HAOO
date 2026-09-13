@@ -1,9 +1,9 @@
 ---
 phase: 05
 slug: prove-the-deployed-journey
-status: draft
+status: verified
 # threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate)
-threats_open: 2
+threats_open: 0
 asvs_level: 1
 created: 2026-09-13
 ---
@@ -12,7 +12,7 @@ created: 2026-09-13
 
 > Per-phase security contract: threat register, accepted risks, and audit trail.
 
-**Gate state: BLOCKED.** Two OPEN threats at or above `high` (T-05-21, T-05-23). Phase advancement is blocked until `threats_open: 0`. Owner decision 2026-09-13: fix both (via `/gsd-code-review 05 --fix`), then re-run `/gsd-secure-phase 05`.
+**Gate state: SECURED (re-audit 2026-09-13).** All 88 threats closed; `threats_open: 0`. The first audit (commit `038174b`) found 5 OPEN (2 blocking: T-05-21, T-05-23). On the owner's decision they were fixed through `/gsd-code-review 05 --fix` (8 commits, `243c5f4`…`3420278`, report `a2e0730`) and re-verified by `gsd-security-auditor`; a regression check on 20 closed threats sharing the edited files found none weakened.
 
 ---
 
@@ -86,9 +86,9 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | T-05-18 | Repudiation | the closed lists | high | mitigate | Every list carries a per-entry reason and a vacuity guard, so a list that matched nothing fails loudly rather than reporting a green run over an empty subject set | closed |
 | T-05-19 | Tampering | the axe rule set | high | mitigate | The tag list, the explicit rule and the per-URL disables live in one factory with reasons at the branch; no call site can quietly differ, and the composition behaviour was measure… | closed |
 | T-05-20 | Repudiation | the Products-surface finding | medium | mitigate | The surface is scoped by inclusion, never by disabling the bypass rule, so the underlying page-level finding stays visible and the scope stays correct after that finding is fixed | closed |
-| T-05-21 | Repudiation | the evidence record | high | mitigate | The recorder refuses an entry with no measured value or with a pass-mark string, so the record-measured-values discipline is enforced at the writer rather than by reviewer vigilan… | open |
+| T-05-21 | Repudiation | the evidence record | high | mitigate | The recorder refuses an entry with no measured value or with a pass-mark string, so the record-measured-values discipline is enforced at the writer rather than by reviewer vigilan… | closed (fixed `71c46b2`, `51a82c6`) |
 | T-05-22 | Information disclosure | `evidence/` in a public repository | low | accept | Records carry public URLs, rule ids, impacts, counts and box measurements — all inspectable on the public pages already | closed |
-| T-05-23 | Denial of service | the `info@haoo.online` mailbox | high | mitigate | The submitting spec is skipped unless an explicit environment flag is set, and the skipped-by-default behaviour is proven by a run before the spec is ever armed; the phase sends e… | open |
+| T-05-23 | Denial of service | the `info@haoo.online` mailbox | high | mitigate | The submitting spec is skipped unless an explicit environment flag is set, and the skipped-by-default behaviour is proven by a run before the spec is ever armed; the phase sends e… | closed (fixed `3f29af0`) |
 | T-05-24 | Tampering | the marker string crossing to a third party | medium | mitigate | The marker is restricted to uppercase letters, digits and hyphens with no free-form input, built from a UTC instant and a random suffix; ASVS V5 input-validation concern for a val… | closed |
 | T-05-25 | Spoofing | the submission endpoint | high | mitigate | The spec asserts the outgoing request URL is the https, host-pinned endpoint `resolveQualifyEndpoint` produces; a redirected or downgraded endpoint fails the run rather than silen… | closed |
 | T-05-26 | Repudiation | the activation claim | high | mitigate | Activation is a separate record from delivery, closed only by the owner's verbatim mailbox report at a `gate="blocking-human"` checkpoint; a browser-observable confirmation is exp… | closed |
@@ -96,7 +96,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | T-05-28 | Repudiation | the baseline scan's coverage | high | mitigate | Every surface is scanned in every reachable state, each recorded as its own entry with the state named, and the entry count is asserted; a default-state-only run cannot pass as fu… | closed |
 | T-05-29 | Tampering | the rule set applied | high | mitigate | Every scan goes through the single factory and the spec contains no locally-constructed builder; the tag list length is asserted per entry, so a silently narrowed run is caught by… | closed |
 | T-05-30 | Repudiation | suppression of an inconvenient finding | high | mitigate | The Products region is scoped rather than rule-disabled, the retired-path disables are a closed three-entry list with reasons, and the baseline records findings without failing on… | closed |
-| T-05-31 | Denial of service | live-site availability | low | accept | Retries are configured on the live project; an outage produces a recorded failure to re-run, not a false green, because the classification asserts against the machine record | open — below high threshold (non-blocking); accept rationale contradicted |
+| T-05-31 | Denial of service | live-site availability | low | accept | Retries are configured on the live project; an outage produces a recorded failure to re-run, not a false green, because the classification asserts against the machine record | closed (accept valid after `027ac5e`; scope: axe-gate) |
 | T-05-32 | Information disclosure | `evidence/axe-baseline.json` in a public repository | low | accept | Node targets and help text describe public markup already served to every visitor | closed |
 | T-05-33 | Repudiation | the overflow result | high | mitigate | Three separate assertions with the per-element sweep on the unmodified page as the load-bearing one; the two document readings carry distinct mode markers so a masked pass cannot … | closed |
 | T-05-34 | Repudiation | the primary-action result | medium | mitigate | The closed action list's vacuity guard runs before every assertion block, so a selector that matched nothing fails loudly rather than passing over an empty set | closed |
@@ -116,7 +116,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | T-05-48 | Spoofing | the retired-path document's destinations | high | mitigate | The refresh target, the canonical reference and the visible link destination are asserted equal to one another, so one edited target cannot split them and silently send visitors s… | closed |
 | T-05-49 | Tampering | the retired-path document gaining script | high | mitigate | The script-element count is asserted as exactly zero rather than as a maximum, so any script added to a document defined as minimal fails the run | closed (mitigation modified; see findings) |
 | T-05-50 | Information disclosure | redirect chains on the reachability probe | medium | mitigate | Redirects are not followed and any redirect target is recorded verbatim, so an unexpected redirect into a different flow is visible in the evidence rather than absorbed by a non-e… | closed |
-| T-05-51 | Denial of service | third-party host availability | medium | mitigate | An unavailable third-party host is recorded with its status and time and does not fail the run, while a missing or wrong-target link does — the two are distinguishable in the evid… | open — below high threshold (non-blocking) |
+| T-05-51 | Denial of service | third-party host availability | medium | mitigate | An unavailable third-party host is recorded with its status and time and does not fail the run, while a missing or wrong-target link does — the two are distinguishable in the evid… | closed (fixed `4305af7`) |
 | T-05-52 | Denial of service | analytics origin unavailable | high | mitigate | The journey is asserted to render and every primary action to stay operable with the ingestion origin blocked, converting the facade's fail-closed design claim into a measurement | closed |
 | T-05-53 | Repudiation | scheme-only destinations | medium | mitigate | Telephone, mailbox and messaging destinations are never fetched and are recorded as validated rather than reachable, so the evidence does not overclaim what was proven | closed |
 | T-05-54 | Denial of service | the `info@haoo.online` mailbox | high | mitigate | Every failure and terminal state is induced on the preview target with the endpoint routed; a project-name guard enforces it rather than convention, so no failure test can reach p… | closed |
@@ -145,7 +145,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | T-05-77 | Repudiation | a spam-folder arrival | high | mitigate | Recorded as spam and never normalised, with the deliverability follow-up named as deferred; the requirement counts it as a pass and the record still says which folder | closed |
 | T-05-78 | Information disclosure | mailbox content in a public repository | high | mitigate | The record is bounded to the marker, timestamp, folder, sender and subject; message bodies are excluded by the checkpoint's own instructions and asserted absent | closed |
 | T-05-79 | Tampering | the marker crossing to a third party | medium | mitigate | Restricted to uppercase letters, digits and hyphens, generated from a UTC instant and a random suffix, carried in a visitor-visible field with no hidden field invented | closed |
-| T-05-80 | Denial of service | duplicate submissions | medium | mitigate | Exactly one send; the message count is recorded as an integer and every marker sent in the phase is listed, so a retry is auditable rather than silently replacing the record | open — below high threshold (non-blocking) |
+| T-05-80 | Denial of service | duplicate submissions | medium | mitigate | Exactly one send; the message count is recorded as an integer and every marker sent in the phase is listed, so a retry is auditable rather than silently replacing the record | closed (via T-05-21 and T-05-23 fixes) |
 | T-05-81 | Repudiation | funnel-count contamination | medium | mitigate | The submission's analytics event is named in the record as the one known inclusion automated traffic does not produce, so the owner's counts carry a stated inclusion rather than a… | closed |
 | T-05-82 | Repudiation | the final live evidence claim | high | mitigate | The deployment run and its commit are confirmed to contain this phase's fixes before the live pass runs, and the task halts otherwise, so a live claim cannot be reported from a su… | closed |
 | T-05-83 | Repudiation | the gate table | high | mitigate | Every command is executed inside this plan and its exit code recorded; no result is carried forward from an earlier wave, and the enumeration is read from each manifest rather tha… | closed |
@@ -163,7 +163,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 
 ## Verification Findings (2026-09-13)
 
-### OPEN — blocking
+### Previously OPEN — blocking (closed in re-audit, see below)
 
 **T-05-21 (high) — the evidence recorder's refusal is top-level only, and writes are not crash-safe.**
 - WR-04: `e2e/fixtures/evidence.ts:89-111` skips arrays and never checks nested values. Committed evidence already carries 84 nested strings the writer would refuse at the top level (`"true"` under `ariaInvalid`/`ariaRequired` in `form-states.json` and `ariaExpanded` in `viewport-mobile-nav.json`) — attribute readings, not verdicts.
@@ -176,11 +176,26 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 - Guards that hold: the purpose variable, the live-only guard, retries pinned to 0, the proven unarmed skip (`05-EVIDENCE-MAIL.md:714-724`), and the recorded count of 2.
 - Smallest fix: arm only on an explicit value such as `=== '1'`; before clicking, refuse if `readEvidence('live-submission')` already records a send for this marker.
 
-### OPEN — non-blocking (below high)
+### Previously OPEN — non-blocking (closed in re-audit, see below)
 
 - **T-05-80 (medium)** — duplicate sends are neither prevented (WR-03) nor safely auditable (CR-02 can wipe the append-only record). Closed by the T-05-23 and T-05-21 fixes.
 - **T-05-51 (medium)** — `recovery.e2e.ts:1079` writes `disposition: 'reachable'` before the status assertion at `:1100` (every committed record reads 200 today). Fix: derive the disposition from `reading.status`.
 - **T-05-31 (low, accept)** — the rationale is contradicted: live runs retry twice (`playwright.config.ts:46`), no gate spec pins retries to 0, records carry no attempt number, so a serious finding seen once and gone on retry exits 0. The final pass recorded 0 flaky tests and 0 retries (`05-EVIDENCE-GATES.md:349-352`). Fix: `test.describe.configure({ retries: 0 })` in `axe-gate.e2e.ts` and `attempt: testInfo.retry` on records, or re-word and re-accept.
+
+
+### Re-audit 2026-09-13 — closures
+
+| Threat | Previous | New | Evidence |
+|--------|----------|-----|----------|
+| T-05-21 (high) | OPEN, blocking | CLOSED | `51a82c6`: `e2e/fixtures/evidence.ts:75-89` walks nested arrays and objects for pass marks, applied to the whole measured value at `:148-155`, checked before write (`:224`); aria readings recorded through `attributeReading` (`:103-105`) at `form-states.e2e.ts:790,917,933,957` and `viewport.e2e.ts:539` — the 84 committed bare `"true"` strings all came from those producers. `71c46b2`: `readEvidence` treats only a missing file as empty and rethrows other errors (`:195-205`); `writeFileAtomically` writes a temp file and renames it (`:182-192`), used by both writers (`:235`, `axe-baseline.e2e.ts:381`); `readBaseline` strict (`:334-341`). |
+| T-05-23 (high) | OPEN, blocking | CLOSED | `3f29af0`: arms only on exactly `1` (`live-submission.e2e.ts:127,139`), describe skips otherwise (`:262-265`); guard 5 (`:236-246`, run at `:297-305`) refuses any marker already recorded, before navigation (`:340`) and before the click (`:426`); the marker record is written before the click (`:403-415`); guards 1–4 intact. Both committed markers would be refused. Verified by reading the code only — never run armed. |
+| T-05-80 (medium) | OPEN | CLOSED | Both dependencies closed; records carry integer send counts and name their marker; a read error or interrupted write can no longer wipe the append-only record. |
+| T-05-51 (medium) | OPEN | CLOSED | `4305af7`: `recovery.e2e.ts:1081-1082` derives the disposition from `reading.status` (`reachable` only on 200). |
+| T-05-31 (low, accept) | OPEN, rationale contradicted | CLOSED | `027ac5e`: `axe-gate.e2e.ts:304` `retries: 0`, `:235` records `attempt`; records written before assertions (`:216-247`, asserts `:256-281`). Valid for the gate; other live specs out of this threat's component. |
+
+**Regression check (20 closed threats sharing edited files): none weakened.** T-05-49, T-05-50, T-05-53, T-05-54, T-05-55, T-05-57, T-05-65, T-05-66, T-05-28, T-05-29, T-05-24, T-05-25, T-05-79, T-05-33, T-05-34, T-05-43…T-05-46 (now live-project only via `requireLive`, `semantics.e2e.ts:71-77`), T-05-18, T-05-19 and T-05-12 hold; T-05-52 is stronger (`3420278` blocks `posthog.com` exactly or as a dot-suffix, `recovery.e2e.ts:1165-1167`). `e2e/fixtures/axe.ts`, `vitest.config.ts`, `package.json` and every fixture except `evidence.ts` are byte-unchanged since `038174b`.
+
+**Orchestrator measurements before the re-audit:** `npm run typecheck` 0, `npm run lint` 0, `npm test` 0 (10 files, 688 tests), `npm run verify:disjoint` 0 (26/26/0), `npm run test:phase1:contracts` 0; `git diff --stat 038174b..HEAD` empty for `src/` and `evidence/`; `evidence/live-submission.json` still 4 records for 2 sends; working tree clean.
 
 ### Rulings on code-review cross-references
 
@@ -191,6 +206,16 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 - **T-05-52: holds; WR-05 has no bearing.** `src/measurement/posthog-lockdown.ts:116-119` disables flags and external dependency loading, so nothing loads from the unblocked sibling hosts.
 
 ### Unregistered flags (warnings, not counted)
+
+*Re-audit 2026-09-13 additions:*
+- **Concurrent writers (CR-02 residual):** two processes writing the same evidence file at once can still lose one appended record (no lock; only the comment at `evidence.ts:178-180`). Safe for a single `--project` run; at risk with a bare `npx playwright test` (both projects) or two simultaneous runs, for files both projects write (`axe-gate.json`, `axe-baseline.json`, `form-states*.json`, `motion-*`). Smallest fix: a lock file (`openSync(path + '.lock', 'wx')` with a bounded retry) around read-modify-write in `recordEvidence` and `upsertEntry`.
+- **Committed preview-run semantics records:** `evidence/semantics-headings.json` (3) and `evidence/semantics-landmarks.json` (2) from 2026-09-13T08:25–08:26 are labelled S1 with no project field. `requireLive` prevents new ones; annotating or removing these is the owner's decision.
+- **Limits of the T-05-23 hardening:** guard 5 checks the marker only — an armed run with no supplied marker builds a fresh one (`:156`) and would send; the guard does nothing if `evidence/live-submission.json` is missing; two simultaneous armed runs with the same marker both pass it. "Exactly two sends" therefore rests on deliberate arming plus the record. Hardening: refuse when any record with the same `purpose` exists, unless a separate override is set.
+- **T-05-31 scope:** keyboard, viewport, semantics, recovery, zoom-motion, tracer and the live-permitted form-states tests still retry twice (`playwright.config.ts:46`) with no attempt marker.
+- **Baseline writer:** `upsertEntry` writes axe output without calling `assertMeasured` (dates from 05-07; typed axe output).
+- **Cleared:** the earlier "CR-01 surface" flag is resolved by `243c5f4`.
+
+*From the first audit:*
 
 - **AG-O1 / CF-JSD-1 on S1:** no threat ID covers edge-injected script on `www.haoo.online` (T-05-49 is S4 only). The Web Analytics beacon reads absent; the JavaScript Detections bootstrap (3 edge requests per load on S1) is owner-accepted as CF-JSD-1 but has no S1 threat mapping.
 - **CR-01 surface:** the Playwright `preview` gate is not hermetic — `semantics.e2e.ts` has no project guard, runs against production (`05-EVIDENCE-GATES.md:360`), drives the live form without the provider route, and its preview-run S1 records are indistinguishable from live ones.
@@ -206,7 +231,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | AR-05-03 | T-05-15 | No `target="_blank"` was added; the one new-tab link keeps opener protection | 05-04-PLAN | 2026-09-07 |
 | AR-05-04 | T-05-17 | The preflight file holds source locations, ratios and rule references, all already public | 05-04-PLAN | 2026-09-07 |
 | AR-05-05 | T-05-22 | Records hold public URLs, rule ids, impacts, counts and boxes | 05-05-PLAN | 2026-09-07 |
-| AR-05-06 | T-05-31 | Retries run on the live project, and an outage yields a recorded failure, not a false green. **Contradicted by review finding WR-01 (a retry can turn an intermittent serious axe finding green); not a valid closure until fixed or re-worded. Recorded here as OPEN, non-blocking.** | 05-07-PLAN | 2026-09-07 |
+| AR-05-06 | T-05-31 | Retries run on the live project, and an outage yields a recorded failure, not a false green. *Re-audit 2026-09-13:* the rationale was contradicted by review finding WR-01 and is now true for the gate — `027ac5e` sets `retries: 0` for `axe-gate.e2e.ts` (`:304`) and records `attempt` (`:235`), with records written before assertions, so an outage turns the gate red and never green on a retry. Scope: axe-gate only; other live specs still retry twice (warning below). Valid closure. | 05-07-PLAN | 2026-09-07 |
 | AR-05-07 | T-05-32 | Node targets and help text describe public markup | 05-07-PLAN | 2026-09-07 |
 | AR-05-08 | T-05-37 | Box geometry and public names | 05-08-PLAN | 2026-09-07 |
 | AR-05-09 | T-05-42 | Public names and computed styles | 05-09-PLAN | 2026-09-07 |
@@ -223,6 +248,15 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-09-13 | 88 | 83 | 5 (2 blocking) | gsd-security-auditor (ASVS L1, block_on high); SECURITY.md written by the orchestrator |
+| 2026-09-13 (re-audit) | 88 | 88 | 0 | gsd-security-auditor (ASVS L1, block_on high) after `/gsd-code-review 05 --fix`; SECURITY.md updated by the orchestrator |
+
+## Security Audit 2026-09-13 (re-audit)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 88 |
+| Closed | 88 |
+| Open | 0 |
 
 ---
 
@@ -230,7 +264,7 @@ Built from the `<threat_model>` blocks of all 17 plans (register authored at pla
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [ ] `threats_open: 0` confirmed
-- [ ] `status: verified` set in frontmatter
+- [x] `threats_open: 0` confirmed
+- [x] `status: verified` set in frontmatter
 
-**Approval:** pending — blocked on T-05-21 and T-05-23
+**Approval:** verified 2026-09-13 (re-audit: 88/88 closed, threats_open: 0)
