@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 28
+open_count: 29
 waived_count: 1
 fixed_count: 7
-total_count: 36
-last_updated: 2026-09-13T00:46:50.371Z
+total_count: 37
+last_updated: 2026-09-13T00:50:19.886Z
 ---
 
 # Broken Windows Ledger
@@ -51,6 +51,7 @@ last_updated: 2026-09-13T00:46:50.371Z
 | 34 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-1: the live HAOO capability card still translates on hover under prefers-reduced-motion. Fixed in 65a612a; held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.790Z | 2026-09-12T20:54:15.895Z |
 | 35 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-2: live html computes scroll-behavior smooth under prefers-reduced-motion. Fixed in 65a612a (src/index.css); held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.951Z | 2026-09-12T20:54:16.088Z |
 | 36 | 05 | deviation | .planning/phases/05-prove-the-deployed-journey/05-02-PLAN.md | 208 | 05-02 task 3 automated check exits 1 on its A clause: dig +short A haoo.online returns 2 Cloudflare proxy addresses, not the 4 GitHub Pages addresses, since the zone moved to Cloudflare; MX clauses exit 0. T-05-06 intent (site serving) measured by curl in 05-EVIDENCE-MAIL.md | waived | Owner decision 2026-09-13: 05-02 task 3 clause 4 amended from a four-address A-record count to 'site still serves' (apex 301 to www, www 200 with the HAOO bundle), after haoo.online moved behind the Cloudflare proxy. Amended check exit 0 at 2026-09-13T00:15:46Z (commit 18a5223). | 2026-09-13T00:10:10.640Z | 2026-09-13T00:46:50.371Z |
+| 37 | 05 | unmet-truth | src/components/QualifyForm.tsx | 358 | L2-O1 (05-06): the qualification form sets its terminal state from response.ok alone, so an HTTP 200 whose FormSubmit body reads "success":"false" renders 'Your details were sent.' (measured live 2026-09-13T00:30:34.768Z, before activation). A rejected submission is reported to the visitor as sent. Owner decision 2026-09-13: fix now, deploy, then run 05-16. | open |  | 2026-09-13T00:50:19.886Z |  |
 
 ````json
 [
@@ -485,6 +486,18 @@ last_updated: 2026-09-13T00:46:50.371Z
     "reason": "Owner decision 2026-09-13: 05-02 task 3 clause 4 amended from a four-address A-record count to 'site still serves' (apex 301 to www, www 200 with the HAOO bundle), after haoo.online moved behind the Cloudflare proxy. Amended check exit 0 at 2026-09-13T00:15:46Z (commit 18a5223).",
     "recorded_at": "2026-09-13T00:10:10.640Z",
     "resolved_at": "2026-09-13T00:46:50.371Z"
+  },
+  {
+    "id": 37,
+    "kind": "unmet-truth",
+    "phase": "05",
+    "file": "src/components/QualifyForm.tsx",
+    "line": 358,
+    "description": "L2-O1 (05-06): the qualification form sets its terminal state from response.ok alone, so an HTTP 200 whose FormSubmit body reads \"success\":\"false\" renders 'Your details were sent.' (measured live 2026-09-13T00:30:34.768Z, before activation). A rejected submission is reported to the visitor as sent. Owner decision 2026-09-13: fix now, deploy, then run 05-16.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T00:50:19.886Z",
+    "resolved_at": null
   }
 ]
 ````
