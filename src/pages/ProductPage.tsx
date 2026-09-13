@@ -329,8 +329,9 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               <a className={footerLinkClasses} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
               <span aria-hidden="true">{'\u00B7'}</span>
               <a className={footerLinkClasses} href={product.contacts.emailHref}>{product.contacts.email}</a>
-              <span aria-hidden="true">{'\u00B7'}</span>
-              <span className="px-2">{parentRelationshipLine(product.name)}</span>
+              {/* Below sm the relationship sentence takes its own row, so no separator dangles at a wrap. */}
+              <span aria-hidden="true" className="hidden sm:inline">{'\u00B7'}</span>
+              <span className="basis-full px-2 sm:basis-auto">{parentRelationshipLine(product.name)}</span>
             </p>
           </div>
         </div>
