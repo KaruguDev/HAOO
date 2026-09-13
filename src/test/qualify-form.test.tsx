@@ -6,6 +6,7 @@ import QualifyForm from '../components/QualifyForm';
 import {
   assertEngagementSummaryLabel,
   buildSubmissionBody,
+  fullWidthFieldNames,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
   RESERVED_EMAIL_LABELS,
@@ -1312,6 +1313,111 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
         }
       }
     }
+  });
+
+  describe('paired field layout (quick task 260913-x19)', () => {
+    function groupFields(fieldNames: readonly string[]): QualifyField[] {
+      return fieldNames.map((name) => {
+        const field = QUALIFY.fields.find((candidate) => candidate.name === name);
+
+        if (!field) throw new Error(`unknown field ${name}`);
+
+        return field;
+      });
+    }
+
+    function syntheticFields(controls: readonly QualifyField['control'][]): QualifyField[] {
+      return controls.map((control, index) => ({
+        name: `field${index}`,
+        label: `Field ${index}`,
+        emailLabel: `Field ${index}`,
+        control,
+        required: false,
+        requiredMessage: `Enter field ${index}`,
+      }));
+    }
+
+    it('spans only fields that would otherwise sit alone in a row, and every textarea', () => {
+      expect(QUALIFY.groups.map((group) => [...fullWidthFieldNames(groupFields(group.fieldNames))]))
+        .toEqual([[], [], ['timeframe', 'message']]);
+
+      expect([...fullWidthFieldNames(syntheticFields(['text', 'text', 'text']))])
+        .toEqual(['field2']);
+      expect([...fullWidthFieldNames(syntheticFields(['text', 'text', 'text', 'text']))])
+        .toEqual([]);
+      expect([...fullWidthFieldNames(syntheticFields(['text', 'textarea', 'text']))])
+        .toEqual(['field0', 'field1', 'field2']);
+      expect([...fullWidthFieldNames(syntheticFields(['select']))]).toEqual(['field0']);
+    });
+
+    it('pairs fields in one grid per fieldset without changing DOM order', () => {
+      stubFetch(async () => providerAccepted());
+      renderPage();
+
+      const fieldsets = Array.from(qualifyForm().querySelectorAll('fieldset'));
+
+      expect(fieldsets).toHaveLength(QUALIFY.groups.length);
+      for (const [index, fieldset] of fieldsets.entries()) {
+        const group = QUALIFY.groups[index];
+        const fullWidth = fullWidthFieldNames(groupFields(group.fieldNames));
+
+        expect(fieldset.firstElementChild?.tagName, group.legend).toBe('LEGEND');
+
+        const grids = Array.from(fieldset.children).filter((child) => child.tagName === 'DIV');
+
+        expect(grids, group.legend).toHaveLength(1);
+        expect(grids[0].className.split(/\s+/)).toContain('md:grid-cols-2');
+
+        const wrappers = Array.from(grids[0].children);
+
+        expect(wrappers).toHaveLength(group.fieldNames.length);
+        for (const [fieldIndex, name] of group.fieldNames.entries()) {
+          const wrapper = wrappers[fieldIndex];
+
+          expect(wrapper.querySelector(`#${HAOO_PRODUCT.slug}-qualify-${name}`), name).not.toBeNull();
+          expect(wrapper.className.split(/\s+/).includes('md:col-span-2'), name)
+            .toBe(fullWidth.has(name));
+        }
+      }
+
+      const controlIds = Array.from(
+        qualifyForm().querySelectorAll('fieldset input, fieldset select, fieldset textarea'),
+      ).map((control) => control.id);
+
+      expect(controlIds).toEqual(
+        QUALIFY.groups.flatMap((group) => group.fieldNames)
+          .map((name) => `${HAOO_PRODUCT.slug}-qualify-${name}`),
+      );
+    });
+
+    it('keeps the collection note and measurement disclosure immediately above the submit control', () => {
+      stubFetch(async () => providerAccepted());
+      renderPage();
+
+      const form = qualifyForm();
+      const submit = submitControl();
+      const note = document.getElementById(DISCLOSURE_ID);
+      const details = submit.previousElementSibling;
+
+      expect(form.contains(note)).toBe(true);
+      expect(details?.tagName).toBe('DETAILS');
+      expect(details?.previousElementSibling).toBe(note);
+      expect(submit.getAttribute('aria-describedby')).toBe(DISCLOSURE_ID);
+    });
+
+    it('lets the form card, required-fields note and result panels fill their column', () => {
+      stubFetch(async () => providerAccepted());
+      renderPage();
+
+      const note = within(qualifySection()).getByText(REQUIRED_FIELDS_NOTE);
+
+      expect(qualifyForm().className).not.toContain('max-w-[560px]');
+      expect(note.className).not.toContain('max-w-[560px]');
+      for (const file of ['../components/QualifyForm.tsx', '../components/QualifyFallback.tsx']) {
+        expect(readFileSync(resolve(import.meta.dirname, file), 'utf8'), file)
+          .not.toContain('max-w-[560px]');
+      }
+    });
   });
 
   it('derives the optional label suffix from computed requiredness', () => {

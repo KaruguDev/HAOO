@@ -15,6 +15,7 @@ import QualifyFallback from './QualifyFallback';
 import MeasurementDisclosure from './MeasurementDisclosure';
 import {
   buildSubmissionBody,
+  fullWidthFieldNames,
   HONEYPOT_NAME,
   isFieldRequired,
   isProviderAcceptance,
@@ -448,12 +449,12 @@ export default function QualifyForm({
     );
   }
 
-  function renderField(field: QualifyField) {
+  function renderField(field: QualifyField, spansBothColumns: boolean) {
     const required = isFieldRequired(field, values);
     const message = errors[field.name];
 
     return (
-      <div key={field.name} className="mb-6 last:mb-0">
+      <div key={field.name} className={spansBothColumns ? 'md:col-span-2' : undefined}>
         <label
           htmlFor={fieldId(slug, field)}
           className="mb-1 block text-sm font-semibold leading-[1.4] text-[#18275F]"
@@ -493,9 +494,9 @@ export default function QualifyForm({
     notice !== '' && state !== 'submitting' ? notice : QUALIFY_STATUS_MESSAGES[state];
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 xl:mt-0">
       {state === 'succeeded' ? (
-        <div className="max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-[#E9EDFF] p-6 text-[#18275F] md:p-8">
+        <div className="rounded-2xl border border-[#DFE4F0] bg-[#E9EDFF] p-6 text-[#18275F] md:p-8">
           <h3
             ref={confirmationRef}
             tabIndex={-1}
@@ -524,7 +525,7 @@ export default function QualifyForm({
         </div>
       ) : (
         <>
-          <p className="mb-4 max-w-[560px] text-sm font-normal leading-[1.4] text-[#5F6B84]">
+          <p className="mb-4 text-sm font-normal leading-[1.4] text-[#5F6B84]">
             All fields are required unless marked optional.
           </p>
           <form
@@ -532,7 +533,7 @@ export default function QualifyForm({
             onSubmit={handleSubmit}
             onFocus={handleQualifyStart}
             onChange={handleQualifyStart}
-            className="relative max-w-[560px] rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
+            className="relative rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
           >
           <div
             aria-hidden="true"
@@ -576,18 +577,24 @@ export default function QualifyForm({
             </div>
           ) : null}
 
-          {qualify.groups.map((group) => (
-            <fieldset key={group.legend} className="mb-8 border-0 p-0 last:mb-0">
-              <legend className="mb-4 text-base font-semibold leading-6 text-[#18275F]">
-                {group.legend}
-              </legend>
-              {group.fieldNames.map((name) => {
-                const field = qualify.fields.find((candidate) => candidate.name === name);
+          {qualify.groups.map((group) => {
+            const fields = group.fieldNames
+              .map((name) => qualify.fields.find((candidate) => candidate.name === name))
+              .filter((field): field is QualifyField => field !== undefined);
+            const spanning = fullWidthFieldNames(fields);
 
-                return field ? renderField(field) : null;
-              })}
-            </fieldset>
-          ))}
+            return (
+              <fieldset key={group.legend} className="mb-8 border-0 p-0 last:mb-0">
+                <legend className="mb-4 text-base font-semibold leading-6 text-[#18275F]">
+                  {group.legend}
+                </legend>
+                {/* Paired from md by the product-generic rule; DOM order is visual order (260913-x19). */}
+                <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-5">
+                  {fields.map((field) => renderField(field, spanning.has(field.name)))}
+                </div>
+              </fieldset>
+            );
+          })}
 
             {qualify.collectionNote ? (
               <div
