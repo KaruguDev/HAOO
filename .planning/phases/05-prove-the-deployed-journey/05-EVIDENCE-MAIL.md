@@ -784,6 +784,18 @@ body, by design. Against an unactivated endpoint that design shows a visitor the
 submission FormSubmit did not deliver. This is a browser-observable fact about the shipped code, measured
 here; changing `src/` is outside this plan.
 
+**L2-O1: fixed in source, not yet deployed (2026-09-13).** The owner decided on 2026-09-13 to fix L2-O1
+before 05-16. Two commits carry the fix:
+- `a7675f4`: the tests, with the response body above, verbatim, as the regression input.
+- `e6cf694`, `fix(05): count a qualification send as succeeded only when FormSubmit accepts it (L2-O1)`.
+
+The form now ends in `succeeded` only when the response is OK and the body's `success` reads `'true'` or
+`true`. With the body above, the tests end in `We couldn't send your details.` with the form and its
+values still mounted. That reading comes from hermetic tests: nothing was sent to take it. The
+measurement above is unchanged and still describes the code the live site serves. Until the orchestrator
+deploys, the live site serves `/assets/haoo-C1OXjuEM.js`, which carries the old behaviour. 05-16's tagged
+submission runs after that deploy.
+
 ### Standing count of live submissions in Phase 5
 
 Exactly **two** live submissions are sent in the whole of Phase 5:

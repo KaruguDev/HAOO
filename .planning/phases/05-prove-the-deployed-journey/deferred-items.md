@@ -70,3 +70,43 @@ came from and why it is recorded here rather than fixed.
   provider-coupled contract the current design deliberately avoids) or whether the owner report and
   the mail chain are the accepted detection path. If the page changes, add a preview-project case
   that fulfils `200 {"success":"false"}` and asserts the failure state.
+- **Status: FIXED IN SOURCE on 2026-09-13, not yet deployed.** On 2026-09-13 the owner decided to fix
+  this before 05-16's tagged production submission. It is logged as WINDOWS.md #37 and was marked
+  `fixed` through `gsd-tools windows fixed 37`.
+  - **Decision taken:** the page reads FormSubmit's `success` field. A send ends in `succeeded` only
+    when `response.ok` holds AND `isProviderAcceptance(body)` in
+    `src/components/qualify-form.logic.ts` holds, meaning `success` is the string `'true'` or boolean
+    `true`, compared case-sensitively. A missing, unreadable or unexpected body ends in `failed`. The
+    earlier rationale (never read the body, so no body can claim a send) is kept in both code comments,
+    next to the measurement that reversed it.
+  - **RED, against the unfixed component.** Commit `a7675f4`,
+    `test(05): pin L2-O1, a provider body refusing the send must end in failed`. Running
+    `npx vitest run src/test/qualify-form.test.tsx src/test/measurement-page.test.tsx` gave
+    `Tests  5 failed | 125 passed (130)`:
+    - `reports a failure, never a send, when the provider answers HTTP 200 with "success":"false" (L2-O1)`:
+      `AssertionError: expected 'Your details were sent.' to be 'We couldn\'t send your details.' // Object.is equality`
+      (`src/test/qualify-form.test.tsx:778`). Its input is the live 05-06 body, verbatim.
+    - `reports a failure when the provider answers HTTP 200 with a body that cannot be read`: the same
+      assertion line (`:819`).
+    - `reports a failure when the provider answers HTTP 200 with a body that has no success field`: the
+      same assertion line (`:842`).
+    - `accepts a provider body only when it reports acceptance (L2-O1)`:
+      `TypeError: isProviderAcceptance is not a function` (`:1386`).
+    - `announces every submission state`, whose premise that the body "must never be read" was
+      rewritten into its opposite: `AssertionError: expected "spy" to be called 1 times, but got 0 times`
+      (`:690`).
+  - **GREEN.** Commit `e6cf694`,
+    `fix(05): count a qualification send as succeeded only when FormSubmit accepts it (L2-O1)`. Results:
+    - `npm run typecheck` 0, `npm run lint` 0
+    - `npm test` 0, with 688 tests in 10 files (684 before, plus the four new tests above)
+    - `npm run verify:disjoint` 0: 26 shared, 26 subtracted, 0 violations
+    - `npm run test:phase1:contracts` 0, `npm run build` 0
+  - **Preview e2e against the fixed build.** `npx playwright test --project=preview` on
+    `e2e/form-states.e2e.ts`, `e2e/axe-gate.e2e.ts` and `e2e/axe-baseline.e2e.ts` exited 0, and
+    Playwright reported `18 passed` and `15 skipped`. The skips are the live-only cases. No spec needed a
+    change, because every success mock already fulfils `{"success":"true"}`. The six evidence records
+    the run rewrote were restored to HEAD.
+  - **Not added:** an e2e preview case that fulfils `200 {"success":"false"}`. The refusal body is
+    covered hermetically by the unit and component tests above.
+  - **Still open until deploy:** the live site serves `/assets/haoo-C1OXjuEM.js`, which carries the old
+    behaviour. A local build of the fixed tree emits `dist/assets/haoo-DccNMFAD.js`.
