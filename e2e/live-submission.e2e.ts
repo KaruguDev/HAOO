@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { expect, test, type Request } from '@playwright/test';
 
 import { APPROVED_ANALYTICS_HOSTS } from '../config/approved-analytics-hosts';
-import { recordEvidence } from './fixtures/evidence';
+import { readEvidence, recordEvidence } from './fixtures/evidence';
 import { SURFACES } from './fixtures/surfaces';
 
 /**
@@ -18,9 +18,10 @@ import { SURFACES } from './fixtures/surfaces';
  * recorded with its own marker and timestamp.
  *
  * **The default state of this file is inert.** It skips unless `HAOO_SEND_LIVE_SUBMISSION` is set to
- * a non-empty value. A routine `npm run test:e2e` or `npm run test:e2e:live` therefore reports it as
- * skipped and sends nothing. The four further guards below exist because "armed" must mean one
- * deliberate send, not "armed, and then whatever the runner decides":
+ * exactly `1`. Any other value — unset, blank, `0`, `false` — leaves it skipped, so the usual ways of
+ * disarming a flag do disarm it. A routine `npm run test:e2e` or `npm run test:e2e:live` therefore
+ * reports it as skipped and sends nothing. The five further guards below exist because "armed" must
+ * mean one deliberate send, not "armed, and then whatever the runner decides":
  *
  *   1. The purpose must be named explicitly (`HAOO_LIVE_SUBMISSION_PURPOSE`), so an armed run cannot
  *      send a message whose marker says the wrong thing.
@@ -30,6 +31,9 @@ import { SURFACES } from './fixtures/surfaces';
  *      after a mid-flight failure would send a second (and third) real message.
  *   4. A run on a retry or repeat index refuses to start, so a `--retries` or `--repeat-each` flag on
  *      the command line cannot defeat guard 3.
+ *   5. A marker that already has any record in `evidence/live-submission.json` refuses to send, so a
+ *      person re-running a send command after a post-send failure cannot send a second real message
+ *      under the same marker. Guard 4 stops the runner repeating; this stops a person repeating.
  *
  * **What a confirmation may be recorded as.** The confirmation state is a BROWSER-OBSERVABLE claim:
  * this page saw the provider accept the request. It is never a delivery or activation claim. Those
@@ -113,8 +117,14 @@ export function markerHasPurpose(marker: string, purpose: MarkerPurpose): boolea
 /* The arming contract                                                                           */
 /* ------------------------------------------------------------------------------------------- */
 
-/** Unset or blank: the whole describe block is skipped and nothing is sent. */
+/** Anything other than exactly `ARM_VALUE`: the whole describe block is skipped and nothing is sent. */
 const ARM_FLAG = 'HAOO_SEND_LIVE_SUBMISSION';
+
+/**
+ * The one value that arms the spec — the value both recorded sends used (`05-EVIDENCE-MAIL.md`).
+ * A non-empty test would arm on `0` or `false`, the usual way to DISARM a flag (review WR-03).
+ */
+const ARM_VALUE = '1';
 
 /** Required when armed: one of the two purpose constants above, verbatim. */
 const PURPOSE_VARIABLE = 'HAOO_LIVE_SUBMISSION_PURPOSE';
@@ -126,7 +136,7 @@ const PURPOSE_VARIABLE = 'HAOO_LIVE_SUBMISSION_PURPOSE';
  */
 const MARKER_VARIABLE = 'HAOO_LIVE_SUBMISSION_MARKER';
 
-const ARMED = (process.env[ARM_FLAG] ?? '').trim() !== '';
+const ARMED = (process.env[ARM_FLAG] ?? '').trim() === ARM_VALUE;
 
 function readPurpose(): MarkerPurpose {
   const value = (process.env[PURPOSE_VARIABLE] ?? '').trim();
@@ -140,17 +150,21 @@ function readPurpose(): MarkerPurpose {
   return purpose;
 }
 
-function readOrBuildMarker(purpose: MarkerPurpose): { marker: string; source: string } {
+function readOrBuildMarker(purpose: MarkerPurpose): { marker: string; source: string; supplied: boolean } {
   const supplied = (process.env[MARKER_VARIABLE] ?? '').trim();
   if (supplied === '') {
-    return { marker: buildMarker(purpose), source: 'built at run time by buildMarker' };
+    return { marker: buildMarker(purpose), source: 'built at run time by buildMarker', supplied: false };
   }
   if (!markerHasPurpose(supplied, purpose)) {
     throw new Error(
       `${MARKER_VARIABLE}='${supplied}' is not a well-formed ${purpose} marker. Refusing to send.`,
     );
   }
-  return { marker: supplied, source: `supplied through ${MARKER_VARIABLE}, recorded before the run` };
+  return {
+    marker: supplied,
+    source: `supplied through ${MARKER_VARIABLE}, recorded before the run`,
+    supplied: true,
+  };
 }
 
 /* ------------------------------------------------------------------------------------------- */
@@ -211,6 +225,26 @@ const INGESTION_ORIGINS = APPROVED_ANALYTICS_HOSTS.map((host) => host.origin);
 /** O-2: Cloudflare JavaScript Detections. Recorded when observed; never counted as a submission. */
 const CHALLENGE_PATH = '/cdn-cgi/challenge-platform/';
 
+/**
+ * Guard 5: every record already written under this evidence name that carries `marker`.
+ *
+ * ANY record refuses the send, not only the after-send one. The marker-fixed record is written
+ * moments before the click, so a run that died between the click and the after-send record has
+ * already sent; its only trace is the marker-fixed record. A marker with no record has never been
+ * sent by this mechanism.
+ */
+function recordsForMarker(marker: string): readonly string[] {
+  return readEvidence(EVIDENCE_NAME)
+    .filter((record) => {
+      const measured = record.measured as { marker?: unknown } | null;
+      return typeof measured === 'object' && measured !== null && measured.marker === marker;
+    })
+    .map((record) => {
+      const phase = (record.measured as { phase?: unknown }).phase;
+      return `${record.recordedAt} (${String(phase)})`;
+    });
+}
+
 function isProviderRequest(request: Request): boolean {
   try {
     return new URL(request.url()).host === PROVIDER_HOST;
@@ -227,7 +261,7 @@ test.describe('LIVE SUBMISSION — one real submission through the shipped form 
   // The guard. Without the flag this block is skipped whole, and no request of any kind is made.
   test.skip(
     !ARMED,
-    `${ARM_FLAG} is unset: this spec sends real mail to info@haoo.online and is inert by default`,
+    `${ARM_FLAG} is not '${ARM_VALUE}': this spec sends real mail to info@haoo.online and is inert by default`,
   );
 
   // Guard 3: never retry a send, whatever the project default says.
@@ -252,9 +286,23 @@ test.describe('LIVE SUBMISSION — one real submission through the shipped form 
 
     // Guard 1, then the marker — both before any navigation.
     const purpose = readPurpose();
-    const markerGeneratedAt = new Date().toISOString();
-    const { marker, source: markerSource } = readOrBuildMarker(purpose);
+    const runStartedAt = new Date().toISOString();
+    const { marker, source: markerSource, supplied: markerSupplied } = readOrBuildMarker(purpose);
+    // A supplied marker was generated before this run; stamping the run time would misstate that.
+    const markerGeneratedAt = markerSupplied
+      ? `<supplied through ${MARKER_VARIABLE}; generated before the run>`
+      : runStartedAt;
     const message = `${NOT_AN_ENQUIRY} Marker: ${marker}`;
+
+    // Guard 5, before any navigation: a marker that already has a record may already have been sent.
+    const earlierRecords = recordsForMarker(marker);
+    if (earlierRecords.length > 0) {
+      throw new Error(
+        `refusing to send: marker ${marker} already has ${earlierRecords.length} record(s) in ` +
+          `evidence/${EVIDENCE_NAME}.json: ${earlierRecords.join('; ')}. A second send needs an ` +
+          'explicit, recorded decision and a new marker, not a re-run of the old command.',
+      );
+    }
 
     // Listeners before navigation, so nothing they exist to catch can be missed.
     const ingestionRequests: string[] = [];
