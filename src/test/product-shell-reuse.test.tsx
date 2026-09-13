@@ -9,10 +9,12 @@ import {
   brochureFallbackBody,
   brochureLead,
   contentAnchorId,
+  copyrightLine,
   mobileNavigationId,
   mobileSectionsNavLabel,
   navigationToggleLabel,
   parentRelationshipLine,
+  productHomeLinkLabel,
   qualifyEntryPointLabel,
   sectionsNavLabel,
   selfOnboardingActionLabel,
@@ -205,6 +207,9 @@ describe('Phase 1 product shell reuse contracts', () => {
     expect(screen.getByRole('link', { name: 'Skip to ZENITH content' }).getAttribute('href'))
       .toBe('#zenith-content');
     expect(screen.getByRole('navigation', { name: 'ZENITH sections' })).toBeTruthy();
+    const homeLinks = screen.getAllByRole('link', { name: 'ZENITH home' });
+    expect(homeLinks.length).toBeGreaterThan(0);
+    expect(homeLinks.every((link) => link.getAttribute('href') === '#top')).toBe(true);
     const toggle = screen.getByRole('button', { name: 'Open ZENITH navigation' });
     fireEvent.click(toggle);
     expect(screen.getByRole('navigation', { name: 'ZENITH mobile sections' })).toBeTruthy();
@@ -244,6 +249,8 @@ describe('Phase 1 product shell reuse contracts', () => {
       'You can still open the HAOO brochure in a new tab or download the PDF.',
     );
     expect(parentRelationshipLine('HAOO')).toBe('HAOO is a ZERO-PAPER HUB product');
+    expect(productHomeLinkLabel('HAOO')).toBe('HAOO home');
+    expect(copyrightLine('HAOO', 2026)).toBe('\u00A9 2026 HAOO. All rights reserved.');
     expect(qualifyEntryPointLabel('HAOO')).toBe('Send your details instead');
     expect(contentAnchorId('haoo')).toBe('haoo-content');
     expect(mobileNavigationId('haoo')).toBe('haoo-mobile-navigation');
@@ -260,12 +267,14 @@ describe('Phase 1 product shell reuse contracts', () => {
       brochureLead,
       brochureFallbackBody,
       parentRelationshipLine,
+      productHomeLinkLabel,
       qualifyEntryPointLabel,
     ];
 
     for (const builder of nameBuilders) {
       expect(() => builder('  ')).toThrow('Product name must not be empty');
     }
+    expect(() => copyrightLine('  ', 2026)).toThrow('Product name must not be empty');
     expect(() => navigationToggleLabel('', false)).toThrow('Product name must not be empty');
     expect(() => contentAnchorId('')).toThrow('Product slug must not be empty');
     expect(() => mobileNavigationId(' ')).toThrow('Product slug must not be empty');

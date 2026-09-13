@@ -12,6 +12,29 @@ export function requireIdentity(value: string, field: 'name' | 'slug') {
   return value;
 }
 
+/**
+ * The in-page section links, in page order. One list for every surface that renders them —
+ * the header's desktop and mobile navigation and the footer link group — so a section
+ * rename cannot land on one surface and not the others. Product-generic: no product name.
+ */
+export const PRODUCT_SECTION_LINKS = [
+  { label: 'Benefits', href: '#benefits' },
+  { label: 'Capabilities', href: '#capabilities' },
+  { label: 'Brochure', href: '#brochure' },
+  { label: 'Send details', href: '#qualify' },
+  { label: 'Onboarding', href: '#onboarding' },
+] as const;
+
+/** Accessible name of the logo link that returns to the top of the product page. */
+export function productHomeLinkLabel(productName: string) {
+  return `${requireIdentity(productName, 'name')} home`;
+}
+
+/** Footer copyright line. The year is passed in so the builder stays pure and pinnable. */
+export function copyrightLine(productName: string, year: number) {
+  return `\u00A9 ${year} ${requireIdentity(productName, 'name')}. All rights reserved.`;
+}
+
 export function skipToContentLabel(productName: string) {
   return `Skip to ${requireIdentity(productName, 'name')} content`;
 }

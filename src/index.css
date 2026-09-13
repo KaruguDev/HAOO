@@ -14,6 +14,22 @@
   }
 }
 
+/*
+ * The product header is fixed, 64-88 px tall once solid. Padding the scroll port keeps both
+ * fragment jumps and focus-driven scrolling clear of it (WCAG 2.4.11 Focus Not Obscured). This
+ * supersedes the Phase 01 "scroll-mt on the target, not scroll-padding-top on html" decision,
+ * whose reason — an html shared with a non-fixed parent-site header — ended at the 04.2 split.
+ */
+html {
+  scroll-padding-top: 5rem;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 6rem;
+  }
+}
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

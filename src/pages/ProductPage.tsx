@@ -89,33 +89,19 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">
-      <a href={`#${mainContentId}`} className="sr-only z-50 rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
+      <a href={`#${mainContentId}`} className="sr-only z-[60] rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
         {skipToContentLabel(product.name)}
       </a>
 
       <ProductHeader product={product} />
 
       <main id={mainContentId}>
-        <section className="bg-[#18275F] py-12 text-white md:py-16">
+        {/* Top padding clears the fixed transparent header (72/80/96/104 px at base/sm/md/lg). */}
+        <section className="bg-[#18275F] pb-12 pt-28 text-white sm:pt-32 md:pb-16 md:pt-36 lg:pt-40">
           <div className={`${containerClasses} grid gap-8 lg:grid-cols-3 lg:items-start`}>
             <div className="lg:col-span-2">
               <div className="max-w-[620px]">
-                <div className="mb-4 flex flex-wrap items-center gap-4">
-                  {product.media.logo ? (
-                    <span className="inline-flex items-center rounded-lg bg-white px-4 py-2">
-                      <img
-                        src={product.media.logo.href}
-                        alt={product.media.logo.alt}
-                        width={product.media.logo.width}
-                        height={product.media.logo.height}
-                        loading="eager"
-                        decoding="async"
-                        className="h-8 w-auto"
-                      />
-                    </span>
-                  ) : null}
-                  <p className="text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
-                </div>
+                <p className="mb-4 text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
                 <p className="mb-2 text-sm font-semibold leading-[1.4]">{product.name}</p>
                 <h1 className="mb-6 text-[40px] font-semibold leading-[1.1]">{product.outcome}</h1>
                 <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
@@ -305,7 +291,6 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             >
               How we measure this page
             </a>
-            <a className={`${footerLinkClasses} text-green-800`} href="https://www.zero-paperhub.com/">Back to ZERO-PAPER HUB</a>
           </div>
         </div>
       </footer>
