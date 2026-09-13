@@ -220,12 +220,15 @@ const JSDOM_PINNED_REGIONS = [
  * | 390 px, menu closed           | 0                  | —                      |
  * | 390 px, menu open             | 1                  | `HAOO mobile sections` |
  *
- * The desktop nav is `hidden … md:flex` (`ProductHeader.tsx:41`) so it is `display: none` below
+ * The desktop nav is `hidden … md:flex` (the `sectionsNavLabel` nav in `ProductHeader`) so it is `display: none` below
  * `md`; the mobile nav carries the `hidden` ATTRIBUTE until the toggle is pressed and `md:hidden`
- * above it (`ProductHeader.tsx:64`). Each is therefore in the accessibility tree in exactly one
+ * above it (the `mobileSectionsNavLabel` nav in `ProductHeader`). Each is therefore in the accessibility tree in exactly one
  * state. The honest contract, asserted below, is: across the three states the union of exposed
  * navigation names is exactly these two, they are distinct, and no state exposes more than one.
  * Measured on the live page 2026-09-12.
+ *
+ * Since quick task 260913-vbl (OD-3) the footer repeats the section links, but inside a plain
+ * `div` link group in `ProductPage`, not a `navigation` landmark, so these counts are unchanged.
  */
 const NAVIGATION_NAMES = {
   desktop: 'HAOO sections',
@@ -737,6 +740,11 @@ const EMBED_LABEL = 'HAOO brochure preview';
  *
  * Resolved destinations are compared, never raw attribute strings — `href="/"` and
  * `href="https://www.haoo.online/"` are the same destination and different strings.
+ *
+ * 2026-09-13, quick task 260913-vbl (OD-1, OD-3): no link names the parent site any more — both
+ * back links were removed, so D4 currently matches no link. It stays as a guard: any future link
+ * naming ZERO-PAPER HUB must resolve to it. D-07 visibility is now carried by the hero
+ * relationship line and the footer relationship sentence, which are text, not links.
  */
 const DESTINATION_PROMISES = [
   {
@@ -777,6 +785,9 @@ const DESTINATION_PROMISES = [
  */
 const UNMATCHED_DESTINATION_NAMES = [
   'Skip to HAOO content',
+  // Quick task 260913-vbl: the logo home link (#top) and the header CTA (#onboarding).
+  'HAOO home',
+  'Get started',
   'Benefits',
   'Capabilities',
   'Brochure',
@@ -796,9 +807,10 @@ const UNMATCHED_DESTINATION_NAMES = [
  *
  * Closed list, measured live on 2026-09-12, in the same discipline as every other list in this
  * phase: an entry is admitted for a stated reason, and the list is not widened to make a failing
- * run pass. Entries one through five are the mobile navigation's copies of the section links,
- * entry six is the navigation toggle (`md:hidden`), entry seven is the anti-spam honeypot, which
- * sits inside an `aria-hidden="true"` wrapper by design, and entry eight is the measurement
+ * run pass. Entries one through six are the mobile navigation panel's links — its copies of the
+ * five section links and, since quick task 260913-vbl, of the Get started CTA — entry seven is
+ * the navigation toggle (`md:hidden`), entry eight is the anti-spam honeypot, which
+ * sits inside an `aria-hidden="true"` wrapper by design, and entry nine is the measurement
  * disclosure's clear control, which lives inside a `<details>` element that ships collapsed
  * (`src/components/MeasurementDisclosure.tsx:28`; the label is `measurement.disclosure.clearLabel`
  * in `src/products/haoo.ts:351`).
@@ -809,6 +821,7 @@ const EXPECTED_UNEXPOSED_AT_DESKTOP = [
   'Brochure',
   'Send details',
   'Onboarding',
+  'Get started',
   'Open HAOO navigation',
   'Leave this field blank',
   'Clear what this page remembers',

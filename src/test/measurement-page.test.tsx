@@ -20,7 +20,7 @@ import {
   HAOO_MEASUREMENT_EVENTS,
   HAOO_PRODUCT,
 } from '../products/haoo';
-import { qualifyCollectionNotePageContext } from '../products/copy';
+import { copyrightLine, qualifyCollectionNotePageContext } from '../products/copy';
 import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
 import {
   createPostHogVendorClient,
@@ -915,9 +915,10 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     const measurementLink = within(footer).getByRole('link', {
       name: 'How we measure this page',
     });
-    const backLink = within(footer).getByRole('link', {
+    // Quick task 260913-vbl (OD-3): the footer carries no parent-site back link.
+    expect(within(footer).queryByRole('link', {
       name: 'Back to ZERO-PAPER HUB',
-    });
+    })).toBeNull();
     let defaultPrevented = true;
 
     measurementLink.addEventListener('click', (event) => {
@@ -927,7 +928,7 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     fireEvent.click(measurementLink);
 
     expect(measurementLink.getAttribute('href')).toBe('#haoo-measurement-disclosure');
-    expect(footerLinks.indexOf(measurementLink)).toBeLessThan(footerLinks.indexOf(backLink));
+    expect(footerLinks).toContain(measurementLink);
     expect(disclosure?.open).toBe(true);
     expect(defaultPrevented).toBe(false);
     expect(document.activeElement).not.toBe(disclosure);
@@ -935,6 +936,55 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(footer.querySelector('.flex.flex-wrap')).not.toBeNull();
     expect(measurementLink.className).toContain('min-h-11');
     expect(measurementLink.className).not.toMatch(/truncate|line-clamp|whitespace-nowrap/);
+  });
+
+  it('renders the navy ZERO-PAPER HUB-layout footer without a navigation landmark', () => {
+    render(<ProductPage product={HAOO_PRODUCT} />);
+
+    const footer = screen.getByRole('contentinfo');
+    expect(footer.className).toContain('bg-[#0F1A45]');
+    expect(within(footer).queryAllByRole('navigation')).toHaveLength(0);
+
+    const links = within(footer).getAllByRole('link');
+    expect(links.map((link) => [
+      link.getAttribute('aria-label') ?? link.textContent,
+      link.getAttribute('href'),
+    ])).toEqual([
+      [`${HAOO_PRODUCT.name} home`, '#top'],
+      ['Benefits', '#benefits'],
+      ['Capabilities', '#capabilities'],
+      ['Brochure', '#brochure'],
+      ['Send details', '#qualify'],
+      ['Onboarding', '#onboarding'],
+      ['How we measure this page', '#haoo-measurement-disclosure'],
+      ['+254 702 188 044', 'tel:+254702188044'],
+      ['info@haoo.online', 'mailto:info@haoo.online'],
+    ]);
+    expect(links[0].querySelector(`img[src="${HAOO_PRODUCT.media.logo?.href}"]`)).not.toBeNull();
+    const anchors = footer.querySelectorAll('a[href]');
+    expect(anchors[anchors.length - 1]).toBe(links[8]);
+
+    const group = footer.querySelector('.flex.flex-wrap');
+    expect(group?.tagName).toBe('DIV');
+    for (const link of links.slice(1, 7)) {
+      expect(link.parentElement).toBe(group);
+    }
+
+    const paragraphs = Array.from(footer.querySelectorAll('p'));
+    expect(paragraphs.filter((paragraph) => paragraph.textContent ===
+      copyrightLine(HAOO_PRODUCT.name, new Date().getFullYear()))).toHaveLength(1);
+    const contactLine = paragraphs.filter((paragraph) =>
+      (paragraph.textContent ?? '').includes(`${HAOO_PRODUCT.name} is a ZERO-PAPER HUB product`));
+    expect(contactLine).toHaveLength(1);
+    expect(contactLine[0].contains(links[7])).toBe(true);
+    expect(contactLine[0].contains(links[8])).toBe(true);
+    expect(contactLine[0].querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
+
+    for (const link of links) {
+      expect(link.className).toContain('min-h-11');
+      expect(link.className).toContain('focus-visible:ring-white');
+      expect(link.className).toContain('focus-visible:ring-offset-[#0F1A45]');
+    }
   });
 
   /**

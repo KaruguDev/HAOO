@@ -90,16 +90,21 @@ const EVIDENCE = {
 } as const;
 
 /*
- * The expected opening stops (UI-SPEC KF-1), quoted from the shipped markup:
- *   - the skip link label is `skipToContentLabel('HAOO')` (`src/products/copy.ts`), rendered by
- *     `src/pages/ProductPage.tsx:92-94`;
- *   - the parent-site link is `src/components/ProductHeader.tsx:32-37`;
- *   - the five section links are `PRODUCT_LINKS` in `ProductHeader.tsx:11-17`;
+ * The expected opening stops (UI-SPEC KF-1, re-pinned by quick task 260913-vbl), quoted from the
+ * shipped markup by identifier rather than line number:
+ *   - the skip link label is `skipToContentLabel('HAOO')` (`src/products/copy.ts`), rendered first
+ *     by `ProductPage` (`src/pages/ProductPage.tsx`);
+ *   - the logo home link is the first child of `ProductHeader` (`src/components/ProductHeader.tsx`),
+ *     named by `productHomeLinkLabel('HAOO')`; it replaced the parent-site back link (OD-1);
+ *   - the five section links are `PRODUCT_SECTION_LINKS` in `src/products/copy.ts`;
+ *   - the desktop call to action is `GET_STARTED_LABEL` in `ProductHeader.tsx`, after the sections,
+ *     rendered from `lg` (1024px) only;
  *   - the toggle's closed-state name is `navigationToggleLabel('HAOO', false)`;
  *   - the hero messaging and call actions are P4 and P5, read from the closed list.
  */
 const SKIP_LINK_NAME = 'Skip to HAOO content';
-const PARENT_LINK_NAME = 'Back to ZERO-PAPER HUB';
+const HOME_LINK_NAME = 'HAOO home';
+const CTA_NAME = 'Get started';
 const SECTION_LINK_NAMES = ['Benefits', 'Capabilities', 'Brochure', 'Send details', 'Onboarding'] as const;
 const NAV_TOGGLE_CLOSED_NAME = 'Open HAOO navigation';
 
@@ -133,11 +138,15 @@ interface ExpectedStop {
 function expectedOpeningStops(width: number): readonly ExpectedStop[] {
   const navigation: readonly ExpectedStop[] =
     width >= MD_BREAKPOINT_PX
-      ? SECTION_LINK_NAMES.map((name) => ({ tag: 'a', name }))
+      ? [
+          ...SECTION_LINK_NAMES.map((name) => ({ tag: 'a', name })),
+          // The desktop CTA is `hidden lg:inline-flex` (260913-vbl 768px fallback).
+          ...(width >= LG_BREAKPOINT_PX ? [{ tag: 'a', name: CTA_NAME }] : []),
+        ]
       : [{ tag: 'button', name: NAV_TOGGLE_CLOSED_NAME }];
   return [
     { tag: 'a', name: SKIP_LINK_NAME },
-    { tag: 'a', name: PARENT_LINK_NAME },
+    { tag: 'a', name: HOME_LINK_NAME },
     ...navigation,
     { tag: 'a', name: HERO_MESSAGE_NAME },
     { tag: 'a', name: HERO_CALL_NAME },
@@ -805,7 +814,7 @@ for (const viewport of WIDTHS) {
           project: testInfo.project.name,
           url: page.url(),
           viewportReason: viewport.reason,
-          layoutBranch: viewport.width >= MD_BREAKPOINT_PX ? 'desktop section links (md and up)' : 'navigation toggle (below md)',
+          layoutBranch: viewport.width >= MD_BREAKPOINT_PX ? 'desktop section links and Get started (md and up)' : 'navigation toggle (below md)',
           method: 'page.keyboard.press("Tab") from document start until document.activeElement is <body>',
           domIndexMeaning: 'index of the element in document.getElementsByTagName("*"), i.e. document order',
           reverseSampling: `Shift+Tab then Tab at the first stop, at every ${REVERSE_SAMPLE_STRIDE}th stop after it, and from outside the document after the exit`,

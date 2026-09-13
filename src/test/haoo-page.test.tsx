@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { HAOO_PRODUCT } from '../products/haoo';
 
@@ -49,10 +49,13 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       .map((section) => section.getAttribute('aria-label'))
       .filter((label) => expectedSections.includes(label ?? ''));
     expect(sections).toEqual(expectedSections);
-    expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })
-      .every((link) => link.getAttribute('href') === 'https://www.zero-paperhub.com/')).toBe(true);
+    // Quick task 260913-vbl (OD-1, OD-3): no parent-site back link renders anywhere. The
+    // ZERO-PAPER HUB relationship stays visible through the hero line and the footer sentence.
+    expect(screen.queryAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(0);
+    expect(document.querySelectorAll('a[href*="zero-paperhub"]')).toHaveLength(0);
+    const desktopNavigation = within(screen.getByRole('navigation', { name: 'HAOO sections' }));
     for (const sectionName of ['Benefits', 'Capabilities', 'Brochure', 'Onboarding']) {
-      expect(screen.getByRole('link', { name: sectionName })).toBeTruthy();
+      expect(desktopNavigation.getByRole('link', { name: sectionName })).toBeTruthy();
     }
   });
 
@@ -317,10 +320,16 @@ describe('Phase 1 semantic HAOO page contracts', () => {
   });
 
   it('publishes the exact supplied logo and hero media with reserved space', () => {
-    const { container } = renderPage();
+    renderPage();
 
-    const logo = container.querySelector('img[src="/brochure/haoo-logo.png"]');
+    const banner = screen.getByRole('banner');
+    const logo = banner.querySelector('img[src="/brochure/haoo-logo.png"]');
     expect(logo).not.toBeNull();
+    expect(screen.getByRole('main').querySelector('img[src="/brochure/haoo-logo.png"]')).toBeNull();
+    // Quick task 260913-vbl: two placements, the header home link and the footer home link.
+    expect(screen.getByRole('contentinfo').querySelector('img[src="/brochure/haoo-logo.png"]'))
+      .not.toBeNull();
+    expect(document.querySelectorAll('img[src="/brochure/haoo-logo.png"]')).toHaveLength(2);
     expect(logo!.getAttribute('alt')).toBe('');
     expect(logo!.getAttribute('width')).toBe('362');
     expect(logo!.getAttribute('height')).toBe('176');
@@ -400,7 +409,122 @@ describe('Phase 1 semantic HAOO page contracts', () => {
 
     expect(screen.getAllByRole('region', { name: /onboarding choices/i })).toHaveLength(3);
     expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
-    expect(screen.getAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(2);
+    expect(screen.queryAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(0);
+
+    const banner = screen.getByRole('banner');
+    const homeLinks = within(banner).getAllByRole('link', { name: 'HAOO home' });
+    expect(homeLinks).toHaveLength(1);
+    expect(homeLinks[0].getAttribute('href')).toBe('#top');
+    expect(homeLinks[0].querySelector('img[src="/brochure/haoo-logo.png"]')).not.toBeNull();
+    const desktop = within(screen.getByRole('navigation', { name: 'HAOO sections' }));
+    expect(desktop.getByRole('link', { name: 'Get started' }).getAttribute('href')).toBe('#onboarding');
+  });
+
+  it('renders the fixed ZERO-PAPER HUB-style header with a logo home link and a Get started CTA', () => {
+    renderPage();
+
+    const banner = screen.getByRole('banner');
+    expect(banner.className).toContain('fixed');
+    expect(banner.className).toContain('top-0');
+    expect(Array.from(banner.querySelectorAll('*'))
+      .some((node) => Array.from(node.childNodes)
+        .some((child) => child.nodeType === Node.TEXT_NODE && child.textContent?.trim() === 'HAOO')))
+      .toBe(false);
+
+    const desktopLinks = within(screen.getByRole('navigation', { name: 'HAOO sections' }))
+      .getAllByRole('link');
+    expect(desktopLinks.map((link) => link.textContent)).toEqual([...NAV_ORDER, 'Get started']);
+    const cta = desktopLinks[desktopLinks.length - 1];
+    expect(cta.getAttribute('href')).toBe('#onboarding');
+    expect(cta.className).toContain('rounded-full');
+    expect(cta.className).toContain('bg-[#4054C6]');
+
+    const menuNames = [...NAV_ORDER, 'Get started'];
+    for (const name of menuNames) {
+      const toggle = screen.getByRole('button', { name: 'Open HAOO navigation' });
+      fireEvent.click(toggle);
+      const mobile = screen.getByRole('navigation', { name: 'HAOO mobile sections' });
+      expect(within(mobile).getAllByRole('link').map((link) => link.textContent)).toEqual(menuNames);
+      const link = within(mobile).getByRole('link', { name });
+      if (name === 'Get started') expect(link.getAttribute('href')).toBe('#onboarding');
+      fireEvent.click(link);
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    }
+
+    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    // Owner decision 2026-09-13: the hero no longer repeats the bare product name; the header logo carries it.
+    expect(within(screen.getByRole('main')).queryAllByText('HAOO')).toHaveLength(0);
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Skip to HAOO content' }).className).toContain('z-[60]');
+  });
+
+  it('switches the header from transparent to solid on scroll and while the menu is open, with a passive listener', () => {
+    const addSpy = vi.spyOn(window, 'addEventListener');
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+    const setScrollY = (value: number) => {
+      Object.defineProperty(window, 'scrollY', { value, configurable: true });
+    };
+
+    try {
+      const { unmount } = renderPage();
+      const banner = screen.getByRole('banner');
+      const sectionLinks = () => within(screen.getByRole('navigation', { name: 'HAOO sections' }))
+        .getAllByRole('link')
+        .filter((link) => NAV_ORDER.includes(link.textContent ?? ''));
+
+      const scrollCall = addSpy.mock.calls.find(([type]) => type === 'scroll');
+      expect(scrollCall).toBeDefined();
+      expect(scrollCall![2]).toEqual({ passive: true });
+      const handler = scrollCall![1];
+
+      expect(banner.className).toContain('bg-transparent');
+      expect(sectionLinks().every((link) => link.className.includes('text-white/90'))).toBe(true);
+
+      act(() => setScrollY(120));
+      fireEvent.scroll(window);
+      expect(banner.className).toContain('bg-white');
+      expect(banner.className).toContain('shadow-md');
+      expect(sectionLinks().every((link) => link.className.includes('text-[#18275F]'))).toBe(true);
+
+      act(() => setScrollY(0));
+      fireEvent.scroll(window);
+      expect(banner.className).toContain('bg-transparent');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Open HAOO navigation' }));
+      expect(banner.className).toContain('bg-white');
+      expect(banner.className).not.toContain('bg-transparent');
+
+      unmount();
+      expect(removeSpy.mock.calls.some(([type, fn]) => type === 'scroll' && fn === handler)).toBe(true);
+    } finally {
+      setScrollY(0);
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    }
+  });
+});
+
+describe('Quick task 260913-vbl headline weights (OD-2)', () => {
+  it('renders the h1 at 900, every h2 at 800 and the ProductPage h3s at 700', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { level: 1 }).className).toContain('font-black');
+
+    const sectionHeadings = screen.getAllByRole('heading', { level: 2 });
+    expect(sectionHeadings.length).toBeGreaterThan(0);
+    for (const heading of sectionHeadings) {
+      expect(heading.className, heading.textContent ?? '').toContain('font-extrabold');
+    }
+
+    const pageH3Names = [
+      HAOO_PRODUCT.painHeading,
+      HAOO_PRODUCT.benefitHeading,
+      ...HAOO_PRODUCT.capabilities.map(({ title }) => title),
+      ...HAOO_PRODUCT.journey.map(({ title }) => title),
+    ];
+    for (const name of pageH3Names) {
+      expect(screen.getByRole('heading', { level: 3, name }).className, name).toContain('font-bold');
+    }
   });
 });
 
@@ -455,8 +579,9 @@ describe('Phase 2 product navigation', () => {
     renderPage();
 
     const desktop = screen.getByRole('navigation', { name: 'HAOO sections' });
+    // Quick task 260913-vbl (OD-1): the Get started CTA follows the five section links.
     expect(within(desktop).getAllByRole('link')
-      .map((link) => link.textContent)).toEqual(NAV_ORDER);
+      .map((link) => link.textContent)).toEqual([...NAV_ORDER, 'Get started']);
     expect(within(desktop).getByRole('link', { name: 'Send details' })
       .getAttribute('href')).toBe('#qualify');
   });
@@ -467,7 +592,7 @@ describe('Phase 2 product navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open HAOO navigation' }));
     const mobile = screen.getByRole('navigation', { name: 'HAOO mobile sections' });
     expect(within(mobile).getAllByRole('link')
-      .map((link) => link.textContent)).toEqual(NAV_ORDER);
+      .map((link) => link.textContent)).toEqual([...NAV_ORDER, 'Get started']);
     expect(within(mobile).getByRole('link', { name: 'Send details' })
       .getAttribute('href')).toBe('#qualify');
   });
@@ -479,7 +604,8 @@ describe('Phase 2 product navigation', () => {
     const navLinks = Array.from(container.querySelectorAll('nav a[href="#qualify"]'));
     expect(navLinks).toHaveLength(2);
     expect(container.querySelectorAll('[id="qualify"]')).toHaveLength(1);
-    expect(container.querySelectorAll('a[href="#qualify"]')).toHaveLength(5);
+    // Quick task 260913-vbl (OD-3): the footer link group adds a sixth `#qualify` link.
+    expect(container.querySelectorAll('a[href="#qualify"]')).toHaveLength(6);
   });
 
   it('keeps every navigation destination an in-page fragment of an existing section', () => {
