@@ -13,6 +13,7 @@ import {
   QUALIFY_SUBMIT_LABEL,
   QUALIFY_SUBMITTING_LABEL,
   QUALIFY_SUMMARY_HEADING,
+  isProviderAcceptance,
   validateQualifyValues,
 } from '../components/qualify-form.logic';
 import { CONTEXT_RECORD_KEYS, createMeasurement } from '../measurement';
@@ -207,6 +208,30 @@ function stubFetch(implementation: () => Promise<unknown>) {
   return spy;
 }
 
+/**
+ * A provider response that accepts the submission: HTTP 200 and FormSubmit's AJAX
+ * acceptance body, `{"success":"true"}`, as the endpoint answers once activated.
+ *
+ * Since L2-O1 the page ends in `succeeded` only when the provider body reports
+ * acceptance, so every mock that expects the sent state carries this body. `ok: true`
+ * alone is no longer a success, and a bare `{ ok: true }` mock would now end in `failed`.
+ */
+function providerAccepted() {
+  return { ok: true, json: async () => ({ success: 'true' }) };
+}
+
+/**
+ * The body FormSubmit returned with HTTP 200 to the live activation-trigger submission,
+ * verbatim, measured by plan 05-06 at 2026-09-13T00:30:34.768Z against the unactivated
+ * endpoint (`05-EVIDENCE-MAIL.md`, Link 2). The shipped form rendered the sent state for
+ * it. This is the L2-O1 regression input.
+ */
+const LIVE_ACTIVATION_REFUSAL_BODY = {
+  success: 'false',
+  message:
+    "This form needs Activation. We've sent you an email containing an 'Activate Form' link. Just click it and your form will be actived!",
+} as const;
+
 function parseRequest(spy: ReturnType<typeof vi.fn>) {
   const [url, init] = spy.mock.calls[0] as [string, RequestInit];
 
@@ -350,7 +375,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('collects a name and a usable contact method', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     const section = within(qualifySection());
@@ -444,7 +469,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('posts a readable, correctly-addressed payload', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillCompleteEnquiry();
@@ -508,7 +533,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     // the visitor legitimately chose not to answer.
     cleanup();
 
-    const requiredOnlySpy = stubFetch(async () => ({ ok: true }));
+    const requiredOnlySpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillValidEnquiry();
@@ -571,7 +596,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('renders every qualification option', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
 
     const section = within(qualifySection());
@@ -628,14 +653,17 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('announces every submission state', async () => {
-    // A provider body that throws when read proves the terminal state is derived from
-    // the response status alone.
-    const fetchSpy = stubFetch(async () => ({
-      ok: true,
-      json: () => {
-        throw new Error('the provider response body must never be read');
-      },
-    }));
+    // L2-O1 inverted this test's premise. It used to supply a body that threw when read,
+    // to prove the terminal state came from the HTTP status alone. The aim was that nothing
+    // a provider wrote could make this page claim a send. The live measurement of
+    // 2026-09-13T00:30:34.768Z (plan 05-06) showed that design doing exactly that:
+    // FormSubmit answered HTTP 200 with "success":"false" and the page announced
+    // "Your details were sent.". The aim is kept and the mechanism reversed. The body is
+    // read, and only an explicit acceptance in it ends in `succeeded`. A later provider
+    // body change can now cause a false failure, which the recovery panel makes visible
+    // and recoverable, but never a false send.
+    const readBody = vi.fn(async () => ({ success: 'true' }));
+    const fetchSpy = stubFetch(async () => ({ ok: true, json: readBody }));
 
     renderPage();
 
@@ -658,6 +686,8 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
       expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.succeeded),
     );
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+    // The acceptance was read from the provider body, once.
+    expect(readBody).toHaveBeenCalledTimes(1);
 
     // Success replaces the form so a second submission is unreachable, and focus moves
     // to the confirmation heading.
@@ -735,6 +765,89 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
     })).toHaveLength(1);
   });
 
+  it('reports a failure, never a send, when the provider answers HTTP 200 with "success":"false" (L2-O1)', async () => {
+    // L2-O1 regression. The live body, verbatim, that the shipped form reported as sent.
+    const readBody = vi.fn(async () => LIVE_ACTIVATION_REFUSAL_BODY);
+    const fetchSpy = stubFetch(async () => ({ ok: true, status: 200, json: readBody }));
+
+    renderPage();
+    fillCompleteEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() =>
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed),
+    );
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(readBody).toHaveBeenCalledTimes(1);
+    expect(statusRegion().textContent).not.toBe(QUALIFY_STATUS_MESSAGES.succeeded);
+
+    const section = within(qualifySection());
+
+    expect(section.queryByRole('heading', { name: 'Your details are on their way' }))
+      .toBeNull();
+    expect(qualifySection().querySelector('form')).not.toBeNull();
+
+    // Every answer survives, so the visitor loses nothing to the refusal.
+    for (const field of QUALIFY.fields) {
+      expect(
+        (section.getByLabelText(FIELD_LABELS[field.name]) as HTMLInputElement).value,
+        field.name,
+      ).toBe(COMPLETE_ENQUIRY[field.name]);
+    }
+
+    const failureHeading = section.getByRole('heading', {
+      name: "We couldn't send your details",
+    });
+
+    expect(document.activeElement).toBe(failureHeading);
+    expect(section.getAllByRole('button', { name: 'Try sending again' })).toHaveLength(1);
+  });
+
+  it('reports a failure when the provider answers HTTP 200 with a body that cannot be read', async () => {
+    const fetchSpy = stubFetch(async () => ({
+      ok: true,
+      json: async () => {
+        throw new SyntaxError('Unexpected token < in JSON at position 0');
+      },
+    }));
+
+    renderPage();
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() =>
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed),
+    );
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(within(qualifySection()).queryByRole('heading', {
+      name: 'Your details are on their way',
+    })).toBeNull();
+    expect(qualifySection().querySelector('form')).not.toBeNull();
+    expect(within(qualifySection()).getAllByRole('button', {
+      name: 'Try sending again',
+    })).toHaveLength(1);
+  });
+
+  it('reports a failure when the provider answers HTTP 200 with a body that has no success field', async () => {
+    const fetchSpy = stubFetch(async () => ({
+      ok: true,
+      json: async () => ({ message: 'Submission received' }),
+    }));
+
+    renderPage();
+    fillValidEnquiry();
+    fireEvent.click(submitControl());
+
+    await waitFor(() =>
+      expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.failed),
+    );
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(within(qualifySection()).queryByRole('heading', {
+      name: 'Your details are on their way',
+    })).toBeNull();
+    expect(qualifySection().querySelector('form')).not.toBeNull();
+  });
+
   it('lands a rejected provider promise in the failed state and never in succeeded', async () => {
     stubFetch(async () => {
       throw new Error('network down');
@@ -760,7 +873,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('never claims a provider round-trip for a submission it refused to start', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
     // A product misconfiguration: `buildSubmissionBody` throws before any request. The
     // page must not borrow the transport-failure copy, which names an email provider,
     // and must not offer a retry that would fail identically every time.
@@ -976,7 +1089,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     cleanup();
     vi.unstubAllGlobals();
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     const second = render(
       <QualifyForm
         {...MEASUREMENT_PROPS}
@@ -1019,7 +1132,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('namespaces every id so two product forms can coexist on one page', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
 
     const { container } = render(
       <>
@@ -1057,7 +1170,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('traps bots without blocking assistive technology', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
 
@@ -1101,8 +1214,8 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('admits exactly one request while a submission is still in flight', async () => {
-    let settle: (value: { ok: boolean }) => void = () => {};
-    const pending = new Promise<{ ok: boolean }>((resolve) => {
+    let settle: (value: ReturnType<typeof providerAccepted>) => void = () => {};
+    const pending = new Promise<ReturnType<typeof providerAccepted>>((resolve) => {
       settle = resolve;
     });
     const fetchSpy = stubFetch(() => pending);
@@ -1118,7 +1231,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    settle({ ok: true });
+    settle(providerAccepted());
 
     await waitFor(() =>
       expect(statusRegion().textContent).toBe(QUALIFY_STATUS_MESSAGES.succeeded),
@@ -1127,7 +1240,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('rejects a manipulated select value before any request is issued', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillValidEnquiry();
@@ -1148,7 +1261,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('rejects a programmatically over-length value before any request is issued', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillValidEnquiry();
@@ -1165,7 +1278,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('renders configured groups and legends in configured DOM order', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
 
     const section = within(qualifySection());
@@ -1202,7 +1315,7 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
   });
 
   it('derives the optional label suffix from computed requiredness', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
 
     // No source label carries the suffix or an asterisk (D-21) — the marker is
     // rendered from `isFieldRequired`, never stored in copy, so it cannot drift away
@@ -1267,6 +1380,38 @@ describe('Phase 2 qualified enquiry tracer contracts', () => {
 });
 
 describe('Phase 2 qualified enquiry pure contracts', () => {
+  it('accepts a provider body only when it reports acceptance (L2-O1)', () => {
+    // The two acceptance shapes: FormSubmit's AJAX answer as observed (the string
+    // 'true') and a boolean `true`.
+    expect(isProviderAcceptance({ success: 'true' })).toBe(true);
+    expect(isProviderAcceptance({ success: true })).toBe(true);
+    expect(isProviderAcceptance({ success: 'true', message: 'The form was submitted successfully.' }))
+      .toBe(true);
+
+    // Everything else is not acceptance. The live refusal body comes first.
+    expect(isProviderAcceptance(LIVE_ACTIVATION_REFUSAL_BODY)).toBe(false);
+    expect(isProviderAcceptance({ success: 'false' })).toBe(false);
+    expect(isProviderAcceptance({ success: false })).toBe(false);
+    expect(isProviderAcceptance({})).toBe(false);
+    expect(isProviderAcceptance({ message: 'Submission received' })).toBe(false);
+    expect(isProviderAcceptance({ success: null })).toBe(false);
+    expect(isProviderAcceptance(null)).toBe(false);
+    expect(isProviderAcceptance(undefined)).toBe(false);
+    expect(isProviderAcceptance('true')).toBe(false);
+    expect(isProviderAcceptance(true)).toBe(false);
+    expect(isProviderAcceptance(1)).toBe(false);
+    expect(isProviderAcceptance(['true'])).toBe(false);
+    expect(isProviderAcceptance({ success: 1 })).toBe(false);
+    expect(isProviderAcceptance({ success: 'yes' })).toBe(false);
+
+    // Case-sensitive on purpose. Only the exact string FormSubmit was observed to send
+    // counts. A variant nobody has observed is an unexpected body, and an unexpected body
+    // must end in a visible failure, never in a claimed send.
+    expect(isProviderAcceptance({ success: 'TRUE' })).toBe(false);
+    expect(isProviderAcceptance({ success: 'True' })).toBe(false);
+    expect(isProviderAcceptance({ success: ' true' })).toBe(false);
+  });
+
   it('builds a deeply equal body for the same values on every call', () => {
     const values = {
       ...emptyValues(),
@@ -1369,7 +1514,7 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
 
 describe('Phase 2 qualified enquiry correction contracts', () => {
   it('keeps validation quiet until the first submit attempt', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
 
     const name = controlByName('name');
@@ -1396,7 +1541,7 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
   });
 
   it('clears one field validation message as it is corrected and retains entered values', () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillControls({ name: 'Jane Wanjiru', county: 'Nairobi' });
@@ -1455,7 +1600,7 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
   });
 
   it('re-announces the problem summary on a repeat invalid submit', () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fireEvent.click(submitControl());
@@ -1478,7 +1623,7 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
   });
 
   it('links every summary problem to its control in configured DOM order', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
     fireEvent.click(submitControl());
 
@@ -1502,7 +1647,7 @@ describe('Phase 2 qualified enquiry correction contracts', () => {
   });
 
   it('rejects manipulated and over-bound values in the same validation pass', () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillControls(requiredValues());
@@ -1553,7 +1698,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   }
 
   it('leaves the phone field optional until a channel requires it', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
 
     const phone = controlByName(PHONE) as HTMLInputElement;
@@ -1574,7 +1719,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   it('makes phone required in every surface for the channels that need it', () => {
     for (const channel of REACHABLE_CHANNELS) {
       cleanup();
-      stubFetch(async () => ({ ok: true }));
+      stubFetch(async () => providerAccepted());
       renderPage();
 
       fireEvent.change(controlByName(CHANNEL), { target: { value: channel } });
@@ -1622,7 +1767,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   });
 
   it('reports the locked message when a required phone is empty', () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillControls({ ...requiredValues(), preferredChannel: 'Phone call' });
@@ -1635,7 +1780,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   });
 
   it('grows the summary the moment a dependent rule starts matching', () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     // A first invalid submit makes the summary the authoritative problem list, so from
@@ -1660,7 +1805,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   });
 
   it('reverses requiredness and clears the phone error when the channel changes back', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillControls({ ...requiredValues(), preferredChannel: 'WhatsApp' });
@@ -1685,7 +1830,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   });
 
   it('keeps a typed phone number through every requiredness change', () => {
-    stubFetch(async () => ({ ok: true }));
+    stubFetch(async () => providerAccepted());
     renderPage();
 
     fireEvent.change(controlByName(PHONE), { target: { value: '+254 702 188 044' } });
@@ -1738,7 +1883,7 @@ describe('Phase 2 conditional contact-channel contracts', () => {
   });
 
   it('drives a synthetic product conditional requiredness from configuration alone', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
     const dependent: QualifyField = {
       name: 'siteAddress',
       label: 'Site address',
@@ -2045,7 +2190,7 @@ describe('Phase 4 emailed engagement summary', () => {
   });
 
   it('sends one readable summary with a submitted enquiry', async () => {
-    const fetchSpy = stubFetch(async () => ({ ok: true }));
+    const fetchSpy = stubFetch(async () => providerAccepted());
 
     renderPage();
     fillValidEnquiry();

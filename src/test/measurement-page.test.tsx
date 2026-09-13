@@ -122,8 +122,12 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     const firstSink = vi.fn();
     const secondSink = vi.fn();
     const intersectionCallbacks: IntersectionObserverCallback[] = [];
-    let resolveFirstRequest: ((value: { ok: boolean }) => void) | undefined;
-    const firstRequest = new Promise<{ ok: boolean }>((resolve) => {
+    // An accepting provider response (HTTP 200 and FormSubmit's `{"success":"true"}`), so
+    // the absent confirmation below is owed to the product change, not to a refused send.
+    // Since L2-O1 a bare `{ ok: true }` would itself end in `failed`.
+    type AcceptedResponse = { ok: boolean; json: () => Promise<unknown> };
+    let resolveFirstRequest: ((value: AcceptedResponse) => void) | undefined;
+    const firstRequest = new Promise<AcceptedResponse>((resolve) => {
       resolveFirstRequest = resolve;
     });
     const fetchSpy = vi.fn(() => firstRequest);
@@ -250,7 +254,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     expect(firstSink.mock.calls).toEqual(firstProductCalls);
 
     await act(async () => {
-      resolveFirstRequest?.({ ok: true });
+      resolveFirstRequest?.({ ok: true, json: async () => ({ success: 'true' }) });
       await firstRequest;
     });
     expect(screen.queryByRole('heading', { name: 'Your details are on their way' }))
@@ -1462,7 +1466,7 @@ describe('network payload regression', () => {
       unobserve = vi.fn();
     }
     vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
-    const fetchSpy = vi.fn(() => Promise.resolve({ ok: true }));
+    const fetchSpy = vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ success: 'true' }) }));
     vi.stubGlobal('fetch', fetchSpy);
 
     render(
@@ -1650,7 +1654,9 @@ describe('provider failure isolation', () => {
     'renders, stays mounted, and keeps every visitor action operable when the provider slot %s',
     async (_label, buildScope) => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-      const fetchSpy = vi.fn(() => Promise.resolve({ ok: true }));
+      // HTTP 200 with FormSubmit's acceptance body: since L2-O1 the sent state below needs
+      // both, and a bare `{ ok: true }` ends in `failed`.
+      const fetchSpy = vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ success: 'true' }) }));
       vi.stubGlobal('fetch', fetchSpy);
 
       expect(() => render(
