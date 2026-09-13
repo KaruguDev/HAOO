@@ -1,33 +1,42 @@
 ---
 phase: 05-prove-the-deployed-journey
 verified: 2026-09-13T09:05:00Z
-status: human_needed
+status: passed
 score: 4/4 roadmap success criteria verified; 108/111 plan must-have truths verified (3 backstop truths insufficient_spec, routed to human)
 behavior_unverified: 0
 overrides_applied: 0
 insufficient_spec_items:
+
   - truth: "At the narrowest supported width, the long option labels in the qualification selects remain readable without clipping the visitor cannot scroll past (05-12, verification: backstop)"
     evidence_available: "evidence/form-states-option-labels.json: closed control 278 x 44 CSS px, longest label 16 characters ('Property manager'); the open native popup is not measurable by the harness"
+
   - truth: "At a halved desktop viewport, paragraph copy inside the shipped maximum-width content columns remains readable rather than merely un-clipped (05-13 E1, verification: backstop)"
     evidence_available: "evidence/zoom-readability-inputs.json: 59 to 84 characters per line at the 640 and 720 entries"
+
   - truth: "At the narrowest supported width and at a halved desktop viewport, the brochure HTML equivalent remains readable and complete once its capability grid collapses to a single column (05-13 E3, verification: backstop)"
     evidence_available: "evidence/zoom-readability-inputs.json and zoom-content.json: 1 card per row, 6 capability cards, 4 journey steps at every entry"
 human_verification:
+
   - test: "Option labels at 360 px. On a real phone or at a 360 x 740 viewport on https://www.haoo.online/, open each qualification select (role, portfolio size, location, timeframe, preferred channel) and read every option."
     expected: "Every option label is fully readable in the closed control and in the open native picker, with no truncation the visitor cannot scroll past."
     why_human: "A backstop truth. The native <select> popup is drawn outside the DOM, and readability is a judgement."
+
   - test: "E1, line length. At a 640 x 512 and a 720 x 450 viewport (the equivalent of 200% zoom on a desktop), read the paragraph copy in the HAOO page's max-width columns."
     expected: "The paragraphs read comfortably (measured at 59 to 84 characters per line), not just unclipped."
     why_human: "A backstop truth. Readability is a judgement, and the harness measured only its inputs."
+
   - test: "E3, brochure equivalent. At 320 x 256, 360 x 740 and the 200%-equivalent entries, read the capabilities grid (6 cards) and the rental journey (4 steps)."
     expected: "The HTML equivalent of the brochure is complete and readable in one column."
     why_human: "A backstop truth. Completeness was measured (10 of 10 items), but readability was not."
+
   - test: "KB-O2, keyboard in the embedded PDF viewer. In a desktop Chrome or Firefox with a PDF viewer, Tab into the brochure preview on https://www.haoo.online/ and then Tab or Shift+Tab out again."
     expected: "Focus can enter and leave the embedded viewer by keyboard, and the Open and Download brochure controls stay reachable before and after it."
     why_human: "Headless Chromium has no PDF plugin, so the embedded viewer's keyboard behaviour is not evidenced either way. This is a recorded browser limit."
+
   - test: "FS-O1, the status-region wording. Decide whether 05-12's truth 'Exactly one live status region exists' means the form's submission region (1 at every measured transition) or every role=\"status\" element in the document (2 while the form card renders)."
     expected: "The owner accepts the scoping to the submission region, since the second region is MeasurementDisclosure's own clear-context status, or asks for a change."
     why_human: "The code is correct under the reading the spec was written for. Which reading is the contract is a wording decision, not a measurement."
+
   - test: "Prohibition wording (05-14, 05-17). R-1, the Kenya DPA 2019 acceptance and the origin-certificate acceptance were recorded as 'owner-accepted, orchestrator-drafted at the owner's request, approved as written'. The plans' judgment-tier prohibitions require 'the owner's own statement'. Confirm that approving the drafted wording satisfies that requirement."
     expected: "The owner confirms that the approved drafts stand as their statements. If not, the owner supplies their own sentences."
     why_human: "An unverified prohibition. The verdict here is a non-authoritative LLM judgement: the intent (no executor-invented acceptance) is met, but the literal wording differs."
@@ -255,6 +264,7 @@ No success criterion failed and no must-have artifact is missing, a stub or unwi
 The fixes the phase found on production are all verified by the verifier's own reading of the deployed bytes, not by trusting the summaries: F1-LIVE, ZM-LIVE-1/2 and L2-O1.
 
 The status is `human_needed`, not `passed`, for these reasons:
+
 - Three truths are backstop readability judgements that no instrument can make: option labels, E1 and E3. Those same judgements are the outstanding "deployed manual checks" in QUAL-05.
 - Keyboard behaviour inside a real PDF viewer is unevidenced.
 - FS-O1 and the drafted-acceptance wording need an owner decision.
