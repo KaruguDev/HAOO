@@ -9,7 +9,7 @@ are three distinct facts, and this file keeps them three distinct claims (05-CON
 | Link | Claim | Status | Owning plan |
 |---|---|---|---|
 | 1 — MX | `haoo.online` publishes MX records naming the two PrivateEmail hosts, answering from two independent resolvers | **CONFIRMED** (`2026-09-12T21:03:51Z`; re-measured `2026-09-13T00:06:36Z`) | 05-02 (this plan) |
-| 2 — Activation | FormSubmit's activation confirmation for `info@haoo.online` was received and confirmed; the endpoint's state is recorded | **NOT STARTED** | 05-06 |
+| 2 — Activation | FormSubmit's activation confirmation for `info@haoo.online` was received and confirmed; the endpoint's state is recorded | **CONFIRMED** on the owner's report (`2026-09-13`, "activated form submit"), corroborated by delivery of the marked activation-trigger submission at `00:33:02 +0000`; folder, full sender and post-click page text not stated | 05-06 |
 | 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **NOT STARTED** | 05-16 |
 
 Why three and not one: FormSubmit's activation confirmation is emailed **to the very mailbox under
@@ -671,9 +671,9 @@ published exchanger, and link 2 (plan 05-06) can be attempted.
 
 ## Link 2 — Activation
 
-**Status: AWAITING OWNER CONFIRMATION** — one activation-trigger submission was sent from the live page at `2026-09-13T00:30:34.768Z` carrying `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a`. The browser observed the endpoint accept the request. Whether the activation mail arrived, which folder it landed in, and the endpoint's state after the link is clicked are the owner's to report (Task 3), and are not recorded here yet.
+**Status: CONFIRMED** — on the **owner's report**, in their words: *"activated form submit and received 3 submissions"* (2026-09-13). The owner's statement is what authorises this status. It is **corroborated**, not replaced, by FormSubmit delivering this plan's marked activation-trigger submission (`HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a`, sent `2026-09-13T00:30:34.768Z`) with a message header of `Sun, 13 Sep 2026 00:33:02 +0000`. The owner did **not** state the folder (inbox or spam), the full sender address, or the page text after clicking the activation link, so none of these is recorded (see *Owner's mailbox report*). Link 3 is not closed by anything here.
 
-Status history: **NOT STARTED** until `2026-09-13T00:30:34Z` · **AWAITING OWNER CONFIRMATION** from `2026-09-13T00:30:34.768Z` (plan 05-06 Task 2).
+Status history: **NOT STARTED** until `2026-09-13T00:30:34Z` · **AWAITING OWNER CONFIRMATION** from `2026-09-13T00:30:34.768Z` (plan 05-06 Task 2) · **CONFIRMED** on the owner's report received 2026-09-13 (plan 05-06 Task 3).
 
 Was blocked on link 1, which reads CONFIRMED as of `2026-09-12T21:03:51Z`. FormSubmit's activation confirmation for `https://formsubmit.co/ajax/info@haoo.online`
 is emailed to `info@haoo.online`, so with no published exchanger there was no way to receive it and
@@ -773,8 +773,9 @@ The browser observed the endpoint **accept the request**: one POST, an HTTP 200,
 confirmation state. That is not the same as mail arriving, and it is not activation. The provider's own
 response body says the form is **not yet activated** and that an activation link was emailed. Whether
 that email reached `info@haoo.online`, which folder it landed in, and what state the endpoint is in
-after the link is clicked can only come from the owner's mailbox report. Link 2 therefore stays
-**AWAITING OWNER CONFIRMATION**, not CONFIRMED.
+after the link is clicked can only come from the owner's mailbox report. At the end of Task 2, Link 2
+therefore stood at **AWAITING OWNER CONFIRMATION**, not CONFIRMED. It was set from the owner's report
+in Task 3 (below), not from anything in this subsection.
 
 **Observation L2-O1 — recorded, not acted on in this phase.** The shipped form rendered `Your details
 were sent.` and the confirmation card for a response whose body reads `"success":"false"`.
@@ -792,18 +793,91 @@ Exactly **two** live submissions are sent in the whole of Phase 5:
 
 **Amendment to the UI design contract.** `05-UI-SPEC.md` §FS-3 speaks of *"the single live success
 run"*. That expectation is amended here to **two** live success runs rather than being quietly exceeded.
-The reason is that FormSubmit does not deliver the submission that triggers activation. It only mails
-the activation link. A single submission therefore cannot both activate the endpoint and prove delivery,
-and D-11's ordering needs one of each. Each carries a distinct marker prefix and its own timestamp, so
-the two are distinguishable in the mailbox and in this record.
+The reason as the plan stated it, and as it was written here in Task 2, is that FormSubmit does not
+deliver the submission that triggers activation and only mails the activation link. **That premise was
+contradicted by what followed** (Observation L2-O2 below): the activation-trigger submission *was*
+delivered after activation. The count of two stands for a reason that does not depend on the premise.
+D-11 orders activation before delivery, so Link 3's delivery claim must rest on a submission sent
+through an endpoint already recorded as activated. D-12 and D-13 also require Link 3's own
+release-verification marker, fixed before sending, and an inbox-or-spam folder record, which the owner
+did not give for this message. A message whose send preceded activation cannot supply either. Each of the
+two submissions carries a distinct marker prefix and its own timestamp, so they are distinguishable in
+the mailbox and in this record.
 
-### Owner's mailbox report — pending (Task 3)
+### Owner's mailbox report (Task 3)
 
-To be transcribed verbatim from the owner, not summarised: the date and time the activation message
-was received as the mailbox shows it; the folder, **inbox or spam** (a spam arrival is recorded as spam);
-the sender address; and the page text after clicking the activation link. Or, if none arrived, the words
-"no activation mail" and how long the owner waited. The endpoint's state after activation will be
-recorded as its own claim, separate from any later delivery.
+Asked for: the received date and time as the mailbox shows it, the folder (**inbox or spam**), the
+sender address, and the page text after clicking the activation link.
+
+**The owner's words, verbatim**, all received 2026-09-13 and relayed by the orchestrator:
+
+1. Message 1: *"activated form submit and received 3 submissions"*
+2. Message 2: a screenshot of the owner's mail client (described below; it contains no words of the
+   owner's own).
+3. Message 3, when asked whether the other two "New HAOO qualification" messages carry the same marker:
+   *"no different, it was I who generated them when testing to see if i can view posthog web and product
+   analytics, that bit is still pening"* [owner's correction: *"\*pending"*]
+
+**What the screenshot shows, as read by the orchestrator** (an observation of the screenshot, not the
+owner's words, and not seen directly by this executor):
+
+- The message list is shown under "Show: All Messages" with the folder selector reading "Current Folder".
+  **The folder name is not visible.**
+- `FormSubmit <submission…>` (sender address truncated), subject "Action Required: Activ…" (truncated),
+  "Today 03:30".
+- `FormSubmit <submission…>`, subject "New HAOO qualificatio…" (truncated), "Today 03:33", three rows.
+- The one message open in the preview pane reads `Date: Sun, 13 Sep 2026 00:33:02 +0000 (13/09/2026 03:33:02)`,
+  `Someone just submitted your form on https://www.haoo.online/.`, Full name `HAOO Release Verification`,
+  Email address `info@haoo.online`, Preferred contact channel `Email`, Role `Landlord`, Portfolio size
+  `1-5 units`, Location `Mombasa`, Onboarding timeframe `Ready now`, Message
+  `This is an automated release verification sent by the HAOO release process. It is not an enquiry and needs no reply. Marker: HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a`,
+  Source `Sent from the HAOO product page on ZERO-PAPER HUB (www.haoo.online)`.
+- The mail client displays times in the owner's local zone. The open message's own header gives
+  `+0000` alongside `03:33:02` local, so 03:30 and 03:33 local correspond to 00:30 and 00:33 UTC.
+
+**Recorded against each field asked for:**
+
+| Field | Record |
+|---|---|
+| Activation mail received | Present in the list: `FormSubmit <submission…>`, "Action Required: Activ…", **"Today 03:30"** local (00:30 UTC) as the client displays it; no seconds or full header shown for it |
+| Activation link clicked, endpoint state | **Owner-reported:** "activated form submit". Whether the link was clicked more than once is **not stated** |
+| Folder, inbox or spam | **Not stated.** The screenshot shows "Current Folder" without a name, and the owner did not say. Not inferred |
+| Sender address | **Not stated in full:** truncated to `FormSubmit <submission…` in the screenshot |
+| Page text after clicking the activation link | **Not stated** |
+
+These three unstated items were asked for. If the owner supplies them later, they will be added as a
+dated amendment below this subsection, not by editing the record above.
+
+**Endpoint state after activation — its own claim.** The endpoint `https://formsubmit.co/ajax/info@haoo.online`
+is recorded as **activated, on the owner's report**. Corroboration: FormSubmit delivered a message
+carrying this plan's marker, with a header of `00:33:02 +0000`, after the activation mail listed at
+03:30 local and after the send at `00:30:34.768Z`. No further request was made to the endpoint by this
+plan to test its state. The one-send limit forbids it, and a later delivery is Link 3's claim, not this
+link's.
+
+**Observation L2-O2 — the activation-trigger submission was delivered.** The plan's premise was that
+FormSubmit does not deliver the submission that triggers activation. The screenshot shows that exact
+submission delivered, with the marker, at `00:33:02 +0000`. *Reading, not measured:* FormSubmit appears to
+hold the triggering submission and deliver it once the form is activated. This delivered message is
+recorded here as an **observation under Link 2**. It does **not** close Link 3, which is plan 05-16's own
+tagged release submission (D-12, D-13) and stays NOT STARTED. The unstated folder in particular cannot
+stand in for Link 3's inbox-or-spam record.
+
+### Two owner-generated submissions in the same window — not phase sends
+
+Two of the three "New HAOO qualification" messages listed at "Today 03:33" are, in the owner's words,
+submissions *"I … generated … when testing to see if i can view posthog web and product analytics"*, and
+they do not carry this plan's marker. *Orchestrator's reading, not the owner's words:* these are the owner's
+own manual submissions made to check whether PostHog shows web and product analytics, and the third
+message is this plan's single automated submission. That reconciles "3 submissions" with this plan's
+recorded count of exactly one send.
+
+They are the owner's tests. They are not enquiries, they are not Phase 5 live submissions, and nothing in
+this phase sent them. The phase's count of live submissions stays at one sent (this plan) and one to come
+(05-16).
+
+**Open owner item (does not block Link 2):** the owner's PostHog web and product analytics check is still
+pending, in the owner's words *"that bit is still pening"* [owner's correction: *"\*pending"*].
 
 ---
 
