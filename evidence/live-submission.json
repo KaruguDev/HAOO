@@ -89,5 +89,96 @@
       "claimBoundary": "the confirmation state is a browser-observable claim that the provider accepted the request; it is not a delivery or activation claim and must never be recorded as one",
       "challengePlatformNote": "O-2: Cloudflare JavaScript Detections requests are counted as observed; they are not submissions"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T01:11:46.451Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "phase": "marker fixed, before the submit control was activated",
+      "purpose": "RELEASE-VERIFICATION",
+      "marker": "HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d",
+      "markerGeneratedAt": "2026-09-13T01:11:45.639Z",
+      "markerReadBackFromVisibleControl": true,
+      "providerRequestsSoFar": 0
+    },
+    "detail": {
+      "plan": "05-16",
+      "markerSource": "supplied through HAOO_LIVE_SUBMISSION_MARKER, recorded before the run"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T01:11:51.532Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "phase": "after the single activation of the submit control",
+      "purpose": "RELEASE-VERIFICATION",
+      "marker": "HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d",
+      "sentAt": "2026-09-13T01:11:46.454Z",
+      "submitActivations": 1,
+      "providerPostCount": 1,
+      "providerRequests": [
+        {
+          "method": "POST",
+          "url": "https://formsubmit.co/ajax/info@haoo.online",
+          "bodyCarriesMarker": true
+        }
+      ],
+      "providerFailures": [],
+      "requestUrl": "https://formsubmit.co/ajax/info@haoo.online",
+      "responseStatus": 200,
+      "responseStatusText": "",
+      "responseContentType": "text/html; charset=UTF-8",
+      "responseBody": "{\"success\":\"true\",\"message\":\"The form was submitted successfully.\"}",
+      "terminalHeading": "Your details are on their way",
+      "focusedElement": "H3 \"Your details are on their way\"",
+      "submissionRegionTexts": [
+        "Your details were sent."
+      ],
+      "statusRegionsInDocument": 1,
+      "formElementsAfter": 0,
+      "navigatorWebdriver": true,
+      "ingestionRequests": [],
+      "challengePlatformRequests": 3,
+      "formControlNamesBeforeSend": [
+        "_honey",
+        "name",
+        "email",
+        "preferredChannel",
+        "phone",
+        "role",
+        "organization",
+        "portfolioBand",
+        "county",
+        "timeframe",
+        "message"
+      ],
+      "chosenOptions": {
+        "preferredChannel": "Email",
+        "role": "Landlord",
+        "portfolioBand": "1–5 units",
+        "county": "Mombasa",
+        "timeframe": "Ready now"
+      },
+      "bundleSources": [
+        "/assets/haoo-CHYRGEim.js"
+      ]
+    },
+    "detail": {
+      "plan": "05-16",
+      "target": "live (https://www.haoo.online/)",
+      "ingestionOrigins": [
+        "https://us.i.posthog.com"
+      ],
+      "claimBoundary": "the confirmation state is a browser-observable claim that the provider accepted the request; it is not a delivery or activation claim and must never be recorded as one",
+      "challengePlatformNote": "O-2: Cloudflare JavaScript Detections requests are counted as observed; they are not submissions"
+    }
   }
 ]
