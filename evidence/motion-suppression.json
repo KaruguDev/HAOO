@@ -365,5 +365,117 @@
       "project": "preview",
       "url": "http://localhost:4173/"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:23.447Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "transitionProperty": "none",
+      "transitionDuration": "0.2s",
+      "transformBefore": "none",
+      "transformAfter": "none",
+      "translateBefore": "none",
+      "translateAfter": "none",
+      "hoveredBefore": false,
+      "hoveredAfter": true,
+      "capabilityItems": 6,
+      "mediaQueryReduceMatches": true
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2a",
+      "criterion": "WCAG 2.2 SC 2.3.3 Animation from Interactions",
+      "emulation": "reducedMotion: 'reduce' through the runner option",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "hoverSettleMs": 500
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:35.294Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "transitionProperty": "transform",
+      "transitionDuration": "0.2s",
+      "transformBefore": "none",
+      "transformAfter": "matrix(1, 0, 0, 1, 0, -4)",
+      "translateBefore": "none",
+      "translateAfter": "none",
+      "hoveredBefore": false,
+      "hoveredAfter": true,
+      "capabilityItems": 6
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2a control",
+      "emulation": "reducedMotion: 'no-preference' through the runner option",
+      "purpose": "Proves the before/after transform comparison can see a hover translate at all, so an equal pair under reduce is a measurement rather than an instrument that never reads a change.",
+      "project": "live",
+      "url": "https://www.haoo.online/"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:02.041Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "transitionProperty": "none",
+      "transitionDuration": "0.2s",
+      "transformBefore": "none",
+      "transformAfter": "none",
+      "translateBefore": "none",
+      "translateAfter": "none",
+      "hoveredBefore": false,
+      "hoveredAfter": true,
+      "capabilityItems": 6,
+      "mediaQueryReduceMatches": true
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2a",
+      "criterion": "WCAG 2.2 SC 2.3.3 Animation from Interactions",
+      "emulation": "reducedMotion: 'reduce' through the runner option",
+      "project": "preview",
+      "url": "http://localhost:4173/",
+      "hoverSettleMs": 500
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:05.758Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "measured": {
+      "transitionProperty": "transform",
+      "transitionDuration": "0.2s",
+      "transformBefore": "none",
+      "transformAfter": "matrix(1, 0, 0, 1, 0, -4)",
+      "translateBefore": "none",
+      "translateAfter": "none",
+      "hoveredBefore": false,
+      "hoveredAfter": true,
+      "capabilityItems": 6
+    },
+    "detail": {
+      "plan": "05-13",
+      "rule": "ZM-2a control",
+      "emulation": "reducedMotion: 'no-preference' through the runner option",
+      "purpose": "Proves the before/after transform comparison can see a hover translate at all, so an equal pair under reduce is a measurement rather than an instrument that never reads a change.",
+      "project": "preview",
+      "url": "http://localhost:4173/"
+    }
   }
 ]

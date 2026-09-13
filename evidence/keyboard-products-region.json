@@ -886,5 +886,893 @@
       "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
       "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:30.181Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 5,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 5,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 20,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 9,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 10,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 11,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 12,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 13,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:49.126Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 5,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 5,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 20,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 9,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 10,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 11,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 12,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 13,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:05.955Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 11,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 11,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 26,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 15,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 16,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 17,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 18,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 19,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:24.331Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 11,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 11,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 26,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 15,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 16,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 17,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 18,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 19,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:42.211Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 11,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 11,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 26,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 15,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 16,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 17,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 18,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 19,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:59.023Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "regionStopCount": 1,
+      "regionIndicatedStopCount": 1,
+      "regionUnindicatedStops": [],
+      "regionStops": [
+        {
+          "left": false,
+          "tag": "a",
+          "name": "Explore HAOO",
+          "domIndex": 235,
+          "tabIndex": 0,
+          "href": "https://www.haoo.online/",
+          "insideMain": false,
+          "insideHeader": false,
+          "insideFooter": false,
+          "insideRegion": true,
+          "style": {
+            "outline-style": "solid",
+            "outline-width": "2px",
+            "outline-color": "rgba(0, 0, 0, 0)",
+            "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+          },
+          "order": 5,
+          "indicator": {
+            "before": {
+              "outline-style": "none",
+              "outline-width": "3px",
+              "outline-color": "rgb(255, 255, 255)",
+              "box-shadow": "none"
+            },
+            "after": {
+              "outline-style": "solid",
+              "outline-width": "2px",
+              "outline-color": "rgba(0, 0, 0, 0)",
+              "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(29, 78, 216) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            },
+            "changedProperties": [
+              "outline-style",
+              "outline-width",
+              "outline-color",
+              "box-shadow"
+            ],
+            "addedShadowLayers": [
+              "rgb(255, 255, 255) 0px 0px 0px 2px",
+              "rgb(29, 78, 216) 0px 0px 0px 4px"
+            ],
+            "outlineVisibleBefore": false,
+            "outlineVisibleAfter": false,
+            "nonEmpty": true,
+            "addedByFocus": true
+          }
+        }
+      ],
+      "regionPositiveTabIndexCount": 0,
+      "regionOrderViolations": [],
+      "regionReverseProbes": [
+        {
+          "fromOrder": 5,
+          "fromName": "Explore HAOO",
+          "fromDomIndex": 235,
+          "expectedDomIndex": 68,
+          "landedDomIndex": 68,
+          "landedLeft": false,
+          "landedName": "Learn More",
+          "returnedDomIndex": 235,
+          "returnedLeft": false
+        }
+      ],
+      "regionReverseDefectCount": 0,
+      "observations": {
+        "decision": "D-OQ-3: recorded, not asserted; a scope decision, not a severity judgement",
+        "mainLandmarkCount": 0,
+        "bypassLinkCount": 0,
+        "firstStop": {
+          "tag": "a",
+          "name": "ZERO-PAPER HUB home",
+          "href": "#"
+        },
+        "documentStopCount": 20,
+        "documentExited": true,
+        "documentPositiveTabIndexCount": 0,
+        "outOfScopeUnindicatedCount": 5,
+        "outOfScopeUnindicatedStops": [
+          {
+            "order": 9,
+            "tag": "input",
+            "name": "FIRST NAME",
+            "domIndex": 337,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 10,
+            "tag": "input",
+            "name": "LAST NAME",
+            "domIndex": 340,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 11,
+            "tag": "input",
+            "name": "EMAIL",
+            "domIndex": 343,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 12,
+            "tag": "input",
+            "name": "ORGANIZATION (optional)",
+            "domIndex": 347,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          },
+          {
+            "order": 13,
+            "tag": "textarea",
+            "name": "MESSAGE",
+            "domIndex": 350,
+            "defects": [
+              "the indicator after focus is empty: no visible box-shadow layer and no visible outline"
+            ]
+          }
+        ]
+      }
+    },
+    "detail": {
+      "plan": "05-09",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "scope": "stops inside #products are asserted; everything else on the page is a D-OQ-3 observation",
+      "findingF5": "no <main> landmark and no skip link on the ZERO-PAPER HUB home page (05-UI-SPEC.md F5), deferred by D-OQ-3",
+      "reverseSampling": "Shift+Tab then Tab at every stop inside the region"
+    }
   }
 ]

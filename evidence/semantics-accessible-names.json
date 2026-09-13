@@ -410,5 +410,129 @@
       "rule": "SS-3",
       "note": "No field ships help text, so aria-describedby is absent in the default state and is asserted in the error state, which is the state that renders one."
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:34.799Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "controlsTraversed": 47,
+      "unnamedControls": [],
+      "iconElements": 21,
+      "iconElementsExposedToTheAccessibilityTree": 0,
+      "controlsWhoseOnlyContentIsAnIcon": 0,
+      "controlsNotExposedAtThisWidth": [
+        "Open HAOO navigation",
+        "Benefits",
+        "Capabilities",
+        "Brochure",
+        "Send details",
+        "Onboarding",
+        "Leave this field blank",
+        "Clear what this page remembers"
+      ],
+      "imagesWithNonEmptyAlt": 2,
+      "imagesMarkedDecorative": 1,
+      "imagesMissingAnAltAttribute": 0,
+      "embedLabel": "HAOO brochure preview"
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-3"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:37.807Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "error-summary (empty required submit, nothing sent)",
+      "describedControlsInDefaultState": 1,
+      "describedControlsInErrorState": 8,
+      "describedByTokens": [
+        "haoo-qualify-name-error",
+        "haoo-qualify-email-error",
+        "haoo-qualify-preferredChannel-error",
+        "haoo-qualify-role-error",
+        "haoo-qualify-portfolioBand-error",
+        "haoo-qualify-county-error",
+        "haoo-qualify-timeframe-error",
+        "haoo-qualify-collection-note"
+      ],
+      "unresolvedDescriptionReferences": []
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-3",
+      "note": "No field ships help text, so aria-describedby is absent in the default state and is asserted in the error state, which is the state that renders one."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:10.032Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "controlsTraversed": 47,
+      "unnamedControls": [],
+      "iconElements": 21,
+      "iconElementsExposedToTheAccessibilityTree": 0,
+      "controlsWhoseOnlyContentIsAnIcon": 0,
+      "controlsNotExposedAtThisWidth": [
+        "Open HAOO navigation",
+        "Benefits",
+        "Capabilities",
+        "Brochure",
+        "Send details",
+        "Onboarding",
+        "Leave this field blank",
+        "Clear what this page remembers"
+      ],
+      "imagesWithNonEmptyAlt": 2,
+      "imagesMarkedDecorative": 1,
+      "imagesMissingAnAltAttribute": 0,
+      "embedLabel": "HAOO brochure preview"
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-3"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:12.499Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "error-summary (empty required submit, nothing sent)",
+      "describedControlsInDefaultState": 1,
+      "describedControlsInErrorState": 8,
+      "describedByTokens": [
+        "haoo-qualify-name-error",
+        "haoo-qualify-email-error",
+        "haoo-qualify-preferredChannel-error",
+        "haoo-qualify-role-error",
+        "haoo-qualify-portfolioBand-error",
+        "haoo-qualify-county-error",
+        "haoo-qualify-timeframe-error",
+        "haoo-qualify-collection-note"
+      ],
+      "unresolvedDescriptionReferences": []
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-3",
+      "note": "No field ships help text, so aria-describedby is absent in the default state and is asserted in the error state, which is the state that renders one."
+    }
   }
 ]

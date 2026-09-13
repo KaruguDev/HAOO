@@ -747,5 +747,754 @@
       "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
       "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:58.771Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/haoo-logo.png",
+        "https://www.haoo.online/brochure/haoo-hero.png",
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 3,
+      "recoveryCopyVisible": true,
+      "brochureActions": [
+        {
+          "id": "P1",
+          "name": "Open brochure (opens in a new tab)",
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 45.59,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 381.56,
+            "bottom": 427.16,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "name": "Download brochure",
+          "box": {
+            "rendered": true,
+            "width": 328,
+            "height": 45.59,
+            "left": 16,
+            "right": 344,
+            "innerWidth": 360,
+            "top": 443.16,
+            "bottom": 488.75,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        }
+      ],
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "HAOO page media absent: logo, hero and brochure preview image routes aborted",
+      "routePattern": "\\/brochure\\/[^/?#]+\\.png(?:[?#].*)?$",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09)."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:00.827Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/haoo-logo.png",
+        "https://www.haoo.online/brochure/haoo-hero.png",
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 3,
+      "recoveryCopyVisible": true,
+      "brochureActions": [
+        {
+          "id": "P1",
+          "name": "Open brochure (opens in a new tab)",
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 45.59,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 423.47,
+            "bottom": 469.06,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "name": "Download brochure",
+          "box": {
+            "rendered": true,
+            "width": 358,
+            "height": 45.59,
+            "left": 16,
+            "right": 374,
+            "innerWidth": 390,
+            "top": 485.06,
+            "bottom": 530.66,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        }
+      ],
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "HAOO page media absent: logo, hero and brochure preview image routes aborted",
+      "routePattern": "\\/brochure\\/[^/?#]+\\.png(?:[?#].*)?$",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Modern iPhone class (D-09)."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:02.639Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/haoo-logo.png",
+        "https://www.haoo.online/brochure/haoo-hero.png",
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 3,
+      "recoveryCopyVisible": true,
+      "brochureActions": [
+        {
+          "id": "P1",
+          "name": "Open brochure (opens in a new tab)",
+          "box": {
+            "rendered": true,
+            "width": 720,
+            "height": 45.59,
+            "left": 24,
+            "right": 744,
+            "innerWidth": 768,
+            "top": 347.03,
+            "bottom": 392.63,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "name": "Download brochure",
+          "box": {
+            "rendered": true,
+            "width": 720,
+            "height": 45.59,
+            "left": 24,
+            "right": 744,
+            "innerWidth": 768,
+            "top": 408.63,
+            "bottom": 454.22,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        }
+      ],
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "HAOO page media absent: logo, hero and brochure preview image routes aborted",
+      "routePattern": "\\/brochure\\/[^/?#]+\\.png(?:[?#].*)?$",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09)."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:04.413Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/haoo-logo.png",
+        "https://www.haoo.online/brochure/haoo-hero.png",
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 3,
+      "recoveryCopyVisible": true,
+      "brochureActions": [
+        {
+          "id": "P1",
+          "name": "Open brochure (opens in a new tab)",
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 45.59,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 178.28,
+            "bottom": 223.88,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "name": "Download brochure",
+          "box": {
+            "rendered": true,
+            "width": 288,
+            "height": 45.59,
+            "left": 16,
+            "right": 304,
+            "innerWidth": 320,
+            "top": 210.88,
+            "bottom": 256.47,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+            "tabIndex": 0
+          },
+          "defects": []
+        }
+      ],
+      "escapees": [],
+      "escapeeCount": 0
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "HAOO page media absent: logo, hero and brochure preview image routes aborted",
+      "routePattern": "\\/brochure\\/[^/?#]+\\.png(?:[?#].*)?$",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below)."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:07.795Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 41,
+          "right": 212.13,
+          "innerWidth": 360,
+          "top": 458.38,
+          "bottom": 502.38,
+          "innerHeight": 740,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -112,
+          "right": 488,
+          "innerWidth": 360,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 360,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:12.278Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 41,
+          "right": 212.13,
+          "innerWidth": 390,
+          "top": 487.63,
+          "bottom": 531.63,
+          "innerHeight": 844,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -82,
+          "right": 518,
+          "innerWidth": 390,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 390,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:17.367Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 57,
+          "right": 228.13,
+          "innerWidth": 768,
+          "top": 448.38,
+          "bottom": 492.38,
+          "innerHeight": 1024,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 296,
+          "right": 896,
+          "innerWidth": 768,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 768,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:21.916Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 65,
+          "right": 236.13,
+          "innerWidth": 1280,
+          "top": 703.47,
+          "bottom": 747.47,
+          "innerHeight": 1024,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 808,
+          "right": 1408,
+          "innerWidth": 1280,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 1280,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:25.247Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 145,
+          "right": 316.13,
+          "innerWidth": 1440,
+          "top": 641.47,
+          "bottom": 685.47,
+          "innerHeight": 900,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": 968,
+          "right": 1568,
+          "innerWidth": 1440,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 1440,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 2
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:28.563Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "abortedRequests": [
+        "https://www.haoo.online/brochure/brochure-preview.png"
+      ],
+      "abortedCount": 1,
+      "imageNaturalWidth": 0,
+      "textRendered": {
+        "relationship": true,
+        "outcome": true,
+        "audienceLead": true,
+        "name": true
+      },
+      "explore": {
+        "name": "Explore HAOO",
+        "href": "https://www.haoo.online/",
+        "host": "www.haoo.online",
+        "box": {
+          "rendered": true,
+          "width": 171.13,
+          "height": 44,
+          "left": 41,
+          "right": 212.13,
+          "innerWidth": 320,
+          "top": -0.31,
+          "bottom": 43.69,
+          "innerHeight": 256,
+          "visibility": "visible",
+          "effectiveOpacity": 1,
+          "clippedOut": false,
+          "disabled": false,
+          "insideNav": false,
+          "href": "https://www.haoo.online/",
+          "tabIndex": 0
+        }
+      },
+      "escapees": [],
+      "escapeeCount": 0,
+      "outOfScopeObservations": [
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-green-600/20 blur-3xl",
+          "left": -152,
+          "right": 448,
+          "innerWidth": 320,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "absolute -bottom-40 -left-20 w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-3xl",
+          "left": -80,
+          "right": 420,
+          "innerWidth": 320,
+          "insideRegion": false
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "className": "relative z-10 max-w-4xl mx-auto px-6",
+          "left": 0,
+          "right": 334,
+          "innerWidth": 320,
+          "insideRegion": false
+        }
+      ],
+      "outOfScopeCount": 3
+    },
+    "detail": {
+      "plan": "05-08",
+      "state": "Products card preview image (cross-origin, on the HAOO domain) aborted",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "attribution": "escapees inside #products fail; outside it are D-OQ-3 observations"
+    }
   }
 ]

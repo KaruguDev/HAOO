@@ -292,5 +292,103 @@
       "rule": "SS-2",
       "note": "MEASURED CORRECTION: SS-2 asks for two navigation landmarks. The page exposes at most one at a time — the desktop nav is display:none below md, and the mobile nav carries the hidden attribute until the toggle is pressed."
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:28.191Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "default (1280 px)",
+      "banner": 1,
+      "main": 1,
+      "contentinfo": 1,
+      "navigation": 1,
+      "navigationNames": [
+        "HAOO sections"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-2"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:30.321Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "desktopNavigationNames": [
+        "HAOO sections"
+      ],
+      "narrowClosedNavigationNames": [],
+      "narrowClosedNavigationCount": 0,
+      "narrowOpenNavigationNames": [
+        "HAOO mobile sections"
+      ],
+      "distinctNamesAcrossStates": [
+        "HAOO sections",
+        "HAOO mobile sections"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-2",
+      "note": "MEASURED CORRECTION: SS-2 asks for two navigation landmarks. The page exposes at most one at a time — the desktop nav is display:none below md, and the mobile nav carries the hidden attribute until the toggle is pressed."
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:03.287Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "default (1280 px)",
+      "banner": 1,
+      "main": 1,
+      "contentinfo": 1,
+      "navigation": 1,
+      "navigationNames": [
+        "HAOO sections"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-2"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:05.274Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "desktopNavigationNames": [
+        "HAOO sections"
+      ],
+      "narrowClosedNavigationNames": [],
+      "narrowClosedNavigationCount": 0,
+      "narrowOpenNavigationNames": [
+        "HAOO mobile sections"
+      ],
+      "distinctNamesAcrossStates": [
+        "HAOO sections",
+        "HAOO mobile sections"
+      ]
+    },
+    "detail": {
+      "url": "https://www.haoo.online/",
+      "rule": "SS-2",
+      "note": "MEASURED CORRECTION: SS-2 asks for two navigation landmarks. The page exposes at most one at a time — the desktop nav is display:none below md, and the mobile nav carries the hidden attribute until the toggle is pressed."
+    }
   }
 ]

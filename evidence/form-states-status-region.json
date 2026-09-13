@@ -214,5 +214,77 @@
       "target": "preview (S5)",
       "observationFsO1": "the document carries two role=\"status\" regions in every state that renders the form: the submission region outside the form card, and the measurement disclosure's clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2's \"exactly one\" is true of the submission region and false of the document."
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:26.822Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "timeline": [
+        {
+          "at": "first render",
+          "regionsInDocument": 2,
+          "submissionRegions": 1,
+          "text": ""
+        },
+        {
+          "at": "filled, before any submission",
+          "regionsInDocument": 2,
+          "submissionRegions": 1,
+          "text": ""
+        },
+        {
+          "at": "after a transport failure",
+          "regionsInDocument": 2,
+          "submissionRegions": 1,
+          "text": "We couldn't send your details."
+        },
+        {
+          "at": "requiredness change after a terminal message",
+          "regionsInDocument": 2,
+          "submissionRegions": 1,
+          "text": "A phone number is now required because you asked us to reach you by Phone call."
+        },
+        {
+          "at": "submitting, with a requiredness sentence outstanding",
+          "regionsInDocument": 2,
+          "submissionRegions": 1,
+          "text": "Sending your details…"
+        },
+        {
+          "at": "after success, with the form card replaced",
+          "regionsInDocument": 1,
+          "submissionRegions": 1,
+          "text": "Your details were sent."
+        }
+      ],
+      "transitionsObserved": 6,
+      "submissionRegionsPerTransition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "documentRegionsPerTransition": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        1
+      ],
+      "requestCount": 2
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-2",
+      "target": "preview (S5)",
+      "observationFsO1": "the document carries two role=\"status\" regions in every state that renders the form: the submission region outside the form card, and the measurement disclosure's clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2's \"exactly one\" is true of the submission region and false of the document."
+    }
   }
 ]

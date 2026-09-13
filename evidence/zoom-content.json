@@ -385,5 +385,134 @@
       "url": "https://www.haoo.online/",
       "reRuns": "SS-4 assertions 1 and 2 through e2e/fixtures/brochure-equivalence.ts"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:52.045Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 640,
+      "height": 512
+    },
+    "measured": {
+      "capabilitiesFound": 6,
+      "capabilitiesExpected": 6,
+      "journeyStepsFound": 4,
+      "journeyStepsExpected": 4,
+      "equivalentItemsFound": 10,
+      "equivalentItemsExpected": 10,
+      "titlesExposed": 10,
+      "descriptionsVisible": 10,
+      "missing": [],
+      "capabilityTitles": [
+        "Rent & payments",
+        "Properties & units",
+        "Leases & screening",
+        "Maintenance",
+        "Vacancy marketplace",
+        "Reports & communication"
+      ],
+      "journeyTitles": [
+        "Fill vacancies with confidence",
+        "Move in with clarity",
+        "Make every month easier",
+        "Grow with visibility"
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1280 halved — models 200% zoom on the first desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "reRuns": "SS-4 assertions 1 and 2 through e2e/fixtures/brochure-equivalence.ts"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:02.740Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "measured": {
+      "capabilitiesFound": 6,
+      "capabilitiesExpected": 6,
+      "journeyStepsFound": 4,
+      "journeyStepsExpected": 4,
+      "equivalentItemsFound": 10,
+      "equivalentItemsExpected": 10,
+      "titlesExposed": 10,
+      "descriptionsVisible": 10,
+      "missing": [],
+      "capabilityTitles": [
+        "Rent & payments",
+        "Properties & units",
+        "Leases & screening",
+        "Maintenance",
+        "Vacancy marketplace",
+        "Reports & communication"
+      ],
+      "journeyTitles": [
+        "Fill vacancies with confidence",
+        "Move in with clarity",
+        "Make every month easier",
+        "Grow with visibility"
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.4 Resize Text (200%)",
+      "claim": "resize-text-200-percent",
+      "entryReason": "1440 halved — models 200% zoom on the wide desktop width.",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "reRuns": "SS-4 assertions 1 and 2 through e2e/fixtures/brochure-equivalence.ts"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:14.111Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "capabilitiesFound": 6,
+      "capabilitiesExpected": 6,
+      "journeyStepsFound": 4,
+      "journeyStepsExpected": 4,
+      "equivalentItemsFound": 10,
+      "equivalentItemsExpected": 10,
+      "titlesExposed": 10,
+      "descriptionsVisible": 10,
+      "missing": [],
+      "capabilityTitles": [
+        "Rent & payments",
+        "Properties & units",
+        "Leases & screening",
+        "Maintenance",
+        "Vacancy marketplace",
+        "Reports & communication"
+      ],
+      "journeyTitles": [
+        "Fill vacancies with confidence",
+        "Move in with clarity",
+        "Make every month easier",
+        "Grow with visibility"
+      ]
+    },
+    "detail": {
+      "plan": "05-13",
+      "criterion": "WCAG 2.2 SC 1.4.10 Reflow",
+      "claim": "reflow-320",
+      "entryReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "method": "CSS viewport set through the runner viewport option at describe scope; device scale factor left at the project default",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "reRuns": "SS-4 assertions 1 and 2 through e2e/fixtures/brochure-equivalence.ts"
+    }
   }
 ]

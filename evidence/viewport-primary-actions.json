@@ -6016,5 +6016,6023 @@
       "interactiveScope": "#products",
       "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:54.759Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 328,
+                "height": 45.59,
+                "left": 16,
+                "right": 344,
+                "innerWidth": 360,
+                "top": 346.81,
+                "bottom": 392.41,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 328,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 328,
+                "height": 45.59,
+                "left": 16,
+                "right": 344,
+                "innerWidth": 360,
+                "top": 408.41,
+                "bottom": 454,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 328,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 278,
+                "height": 44,
+                "left": 41,
+                "right": 319,
+                "innerWidth": 360,
+                "top": 348.16,
+                "bottom": 392.16,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 278,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.19,
+                "bottom": 392.19,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.41,
+                "bottom": 392.41,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 347.75,
+                "bottom": 391.75,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 280,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.19,
+                "bottom": 392.19,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.41,
+                "bottom": 392.41,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 347.75,
+                "bottom": 391.75,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 280,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.19,
+                "bottom": 392.19,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 348.41,
+                "bottom": 392.41,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 280,
+                "height": 44,
+                "left": 40,
+                "right": 320,
+                "innerWidth": 360,
+                "top": 347.75,
+                "bottom": 391.75,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 280,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 278,
+                "height": 45.59,
+                "left": 41,
+                "right": 319,
+                "innerWidth": 360,
+                "top": 346.97,
+                "bottom": 392.56,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 278,
+                "height": 45.59,
+                "left": 41,
+                "right": 319,
+                "innerWidth": 360,
+                "top": 347.19,
+                "bottom": 392.78,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 278,
+                "height": 45.59,
+                "left": 41,
+                "right": 319,
+                "innerWidth": 360,
+                "top": 347.53,
+                "bottom": 393.13,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 278,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 360,
+                "top": 348.38,
+                "bottom": 392.38,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 360,
+                "top": 347.59,
+                "bottom": 391.59,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 360,
+                "top": 347.94,
+                "bottom": 391.94,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 228,
+            "height": 44,
+            "left": 66,
+            "right": 294,
+            "innerWidth": 360,
+            "top": 348.16,
+            "bottom": 392.16,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 228,
+            "height": 57.19,
+            "left": 66,
+            "right": 294,
+            "innerWidth": 360,
+            "top": 3311.88,
+            "bottom": 3369.06,
+            "innerHeight": 740,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 18,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "Open HAOO navigation",
+            "href": "",
+            "width": 44,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 278,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 278,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 228,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 228,
+            "height": 57.19
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 10,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:05.497Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 41,
+                "right": 212.13,
+                "innerWidth": 360,
+                "top": 458.38,
+                "bottom": 502.38,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 360,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "disclosure",
+              "box": {
+                "rendered": true,
+                "width": 312,
+                "height": 44,
+                "left": 24,
+                "right": 336,
+                "innerWidth": 360,
+                "top": 239,
+                "bottom": 283,
+                "innerHeight": 740,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": {
+            "name": "Open navigation menu",
+            "box": {
+              "rendered": true,
+              "width": 44,
+              "height": 44,
+              "left": 300,
+              "right": 344,
+              "innerWidth": 360,
+              "top": 16,
+              "bottom": 60,
+              "innerHeight": 740,
+              "visibility": "visible",
+              "effectiveOpacity": 1,
+              "clippedOut": false,
+              "disabled": false,
+              "insideNav": false,
+              "href": "",
+              "tabIndex": 0
+            },
+            "pointer": "receives-pointer",
+            "defects": []
+          },
+          "minWidth": 312,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Small Android class — the narrowest supported product width (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:19.360Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 358,
+                "height": 45.59,
+                "left": 16,
+                "right": 374,
+                "innerWidth": 390,
+                "top": 398.91,
+                "bottom": 444.5,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 358,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 358,
+                "height": 45.59,
+                "left": 16,
+                "right": 374,
+                "innerWidth": 390,
+                "top": 460.5,
+                "bottom": 506.09,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 358,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 308,
+                "height": 44,
+                "left": 41,
+                "right": 349,
+                "innerWidth": 390,
+                "top": 399.88,
+                "bottom": 443.88,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 308,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.19,
+                "bottom": 444.19,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.31,
+                "bottom": 444.31,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.47,
+                "bottom": 444.47,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 310,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.19,
+                "bottom": 444.19,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.31,
+                "bottom": 444.31,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.47,
+                "bottom": 444.47,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 310,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.19,
+                "bottom": 444.19,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.31,
+                "bottom": 444.31,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 310,
+                "height": 44,
+                "left": 40,
+                "right": 350,
+                "innerWidth": 390,
+                "top": 400.47,
+                "bottom": 444.47,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 310,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 308,
+                "height": 45.59,
+                "left": 41,
+                "right": 349,
+                "innerWidth": 390,
+                "top": 398.97,
+                "bottom": 444.56,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 308,
+                "height": 45.59,
+                "left": 41,
+                "right": 349,
+                "innerWidth": 390,
+                "top": 399.09,
+                "bottom": 444.69,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 308,
+                "height": 45.59,
+                "left": 41,
+                "right": 349,
+                "innerWidth": 390,
+                "top": 437.25,
+                "bottom": 482.84,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 308,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 390,
+                "top": 400.38,
+                "bottom": 444.38,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 390,
+                "top": 399.5,
+                "bottom": 443.5,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 390,
+                "top": 399.66,
+                "bottom": 443.66,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 258,
+            "height": 44,
+            "left": 66,
+            "right": 324,
+            "innerWidth": 390,
+            "top": 399.88,
+            "bottom": 443.88,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 258,
+            "height": 57.19,
+            "left": 66,
+            "right": 324,
+            "innerWidth": 390,
+            "top": 3124.06,
+            "bottom": 3181.25,
+            "innerHeight": 844,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 18,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "Open HAOO navigation",
+            "href": "",
+            "width": 44,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 308,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 308,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 258,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 258,
+            "height": 57.19
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 10,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:28.775Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 41,
+                "right": 212.13,
+                "innerWidth": 390,
+                "top": 487.63,
+                "bottom": 531.63,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 390,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "disclosure",
+              "box": {
+                "rendered": true,
+                "width": 342,
+                "height": 44,
+                "left": 24,
+                "right": 366,
+                "innerWidth": 390,
+                "top": 239,
+                "bottom": 283,
+                "innerHeight": 844,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": {
+            "name": "Open navigation menu",
+            "box": {
+              "rendered": true,
+              "width": 44,
+              "height": 44,
+              "left": 330,
+              "right": 374,
+              "innerWidth": 390,
+              "top": 16,
+              "bottom": 60,
+              "innerHeight": 844,
+              "visibility": "visible",
+              "effectiveOpacity": 1,
+              "clippedOut": false,
+              "disabled": false,
+              "insideNav": false,
+              "href": "",
+              "tabIndex": 0
+            },
+            "pointer": "receives-pointer",
+            "defects": []
+          },
+          "minWidth": 342,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Modern iPhone class (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:45.191Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 720,
+                "height": 45.59,
+                "left": 24,
+                "right": 744,
+                "innerWidth": 768,
+                "top": 489.14,
+                "bottom": 534.73,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 720,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 720,
+                "height": 45.59,
+                "left": 24,
+                "right": 744,
+                "innerWidth": 768,
+                "top": 550.73,
+                "bottom": 596.33,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 720,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 150,
+                "height": 44,
+                "left": 57,
+                "right": 207,
+                "innerWidth": 768,
+                "top": 489.77,
+                "bottom": 533.77,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 150,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.06,
+                "bottom": 534.06,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.36,
+                "bottom": 534.36,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 656,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.06,
+                "bottom": 534.06,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.36,
+                "bottom": 534.36,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 656,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.06,
+                "bottom": 534.06,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 656,
+                "height": 44,
+                "left": 56,
+                "right": 712,
+                "innerWidth": 768,
+                "top": 490.36,
+                "bottom": 534.36,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 656,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 654,
+                "height": 45.59,
+                "left": 57,
+                "right": 711,
+                "innerWidth": 768,
+                "top": 489.38,
+                "bottom": 534.97,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 654,
+                "height": 45.59,
+                "left": 57,
+                "right": 711,
+                "innerWidth": 768,
+                "top": 489.25,
+                "bottom": 534.84,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 654,
+                "height": 45.59,
+                "left": 57,
+                "right": 711,
+                "innerWidth": 768,
+                "top": 700.55,
+                "bottom": 746.14,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 654,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 56,
+                "right": 248,
+                "innerWidth": 768,
+                "top": 489.78,
+                "bottom": 533.78,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 56,
+                "right": 248,
+                "innerWidth": 768,
+                "top": 489.66,
+                "bottom": 533.66,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 56,
+                "right": 248,
+                "innerWidth": 768,
+                "top": 489.95,
+                "bottom": 533.95,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 428,
+            "height": 44,
+            "left": 90,
+            "right": 518,
+            "innerWidth": 768,
+            "top": 489.77,
+            "bottom": 533.77,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 259,
+            "height": 44,
+            "left": 90,
+            "right": 349,
+            "innerWidth": 768,
+            "top": 2392.98,
+            "bottom": 2436.98,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 22,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Benefits",
+            "href": "#benefits",
+            "width": 72,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Capabilities",
+            "href": "#capabilities",
+            "width": 97,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Brochure",
+            "href": "#brochure",
+            "width": 80,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Send details",
+            "href": "#qualify",
+            "width": 101,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Onboarding",
+            "href": "#onboarding",
+            "width": 99,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 428,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 259,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 6,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:54.585Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 57,
+                "right": 228.13,
+                "innerWidth": 768,
+                "top": 448.38,
+                "bottom": 492.38,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 60.98,
+                "height": 44,
+                "left": 389.14,
+                "right": 450.13,
+                "innerWidth": 768,
+                "top": 30,
+                "bottom": 74,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 768,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 60.98,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Tablet, and Tailwind's `md` breakpoint boundary where `hidden md:flex` flips (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:00.144Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 592,
+                "height": 45.59,
+                "left": 656,
+                "right": 1248,
+                "innerWidth": 1280,
+                "top": 488.88,
+                "bottom": 534.47,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 592,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 592,
+                "height": 45.59,
+                "left": 656,
+                "right": 1248,
+                "innerWidth": 1280,
+                "top": 550.47,
+                "bottom": 596.06,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 592,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 150,
+                "height": 44,
+                "left": 65,
+                "right": 215,
+                "innerWidth": 1280,
+                "top": 490.25,
+                "bottom": 534.25,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 150,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 64,
+                "right": 384,
+                "innerWidth": 1280,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 489.69,
+                "bottom": 533.69,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 587.84,
+                "bottom": 631.84,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 64,
+                "right": 384,
+                "innerWidth": 1280,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 489.69,
+                "bottom": 533.69,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 647.84,
+                "bottom": 691.84,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 64,
+                "right": 384,
+                "innerWidth": 1280,
+                "top": 490.19,
+                "bottom": 534.19,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 489.69,
+                "bottom": 533.69,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 64,
+                "right": 592,
+                "innerWidth": 1280,
+                "top": 695.84,
+                "bottom": 739.84,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 318,
+                "height": 45.59,
+                "left": 481,
+                "right": 799,
+                "innerWidth": 1280,
+                "top": 489.19,
+                "bottom": 534.78,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 526,
+                "height": 45.59,
+                "left": 689,
+                "right": 1215,
+                "innerWidth": 1280,
+                "top": 489.69,
+                "bottom": 535.28,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 526,
+                "height": 45.59,
+                "left": 689,
+                "right": 1215,
+                "innerWidth": 1280,
+                "top": 564.84,
+                "bottom": 610.44,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 318,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 64,
+                "right": 256,
+                "innerWidth": 1280,
+                "top": 490.38,
+                "bottom": 534.38,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 64,
+                "right": 256,
+                "innerWidth": 1280,
+                "top": 490.28,
+                "bottom": 534.28,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 64,
+                "right": 256,
+                "innerWidth": 1280,
+                "top": 791.44,
+                "bottom": 835.44,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 428,
+            "height": 44,
+            "left": 98,
+            "right": 526,
+            "innerWidth": 1280,
+            "top": 80.25,
+            "bottom": 124.25,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 259,
+            "height": 44,
+            "left": 98,
+            "right": 357,
+            "innerWidth": 1280,
+            "top": 1983.47,
+            "bottom": 2027.47,
+            "innerHeight": 1024,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 22,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Benefits",
+            "href": "#benefits",
+            "width": 72,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Capabilities",
+            "href": "#capabilities",
+            "width": 97,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Brochure",
+            "href": "#brochure",
+            "width": 80,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Send details",
+            "href": "#qualify",
+            "width": 101,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Onboarding",
+            "href": "#onboarding",
+            "width": 99,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 428,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 259,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 6,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:07.354Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 65,
+                "right": 236.13,
+                "innerWidth": 1280,
+                "top": 703.47,
+                "bottom": 747.47,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 60.98,
+                "height": 44,
+                "left": 873,
+                "right": 933.98,
+                "innerWidth": 1280,
+                "top": 30,
+                "bottom": 74,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 1280,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 1024,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 60.98,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Desktop, and the base for the first halved zoom-equivalence entry (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:13.506Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 592,
+                "height": 45.59,
+                "left": 736,
+                "right": 1328,
+                "innerWidth": 1440,
+                "top": 426.88,
+                "bottom": 472.47,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 592,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 592,
+                "height": 45.59,
+                "left": 736,
+                "right": 1328,
+                "innerWidth": 1440,
+                "top": 488.47,
+                "bottom": 534.06,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 592,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 150,
+                "height": 44,
+                "left": 145,
+                "right": 295,
+                "innerWidth": 1440,
+                "top": 428.25,
+                "bottom": 472.25,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 150,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 144,
+                "right": 464,
+                "innerWidth": 1440,
+                "top": 428.19,
+                "bottom": 472.19,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 427.69,
+                "bottom": 471.69,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 463.84,
+                "bottom": 507.84,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 144,
+                "right": 464,
+                "innerWidth": 1440,
+                "top": 428.19,
+                "bottom": 472.19,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 427.69,
+                "bottom": 471.69,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 523.84,
+                "bottom": 567.84,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 320,
+                "height": 44,
+                "left": 144,
+                "right": 464,
+                "innerWidth": 1440,
+                "top": 428.19,
+                "bottom": 472.19,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 427.69,
+                "bottom": 471.69,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 528,
+                "height": 44,
+                "left": 144,
+                "right": 672,
+                "innerWidth": 1440,
+                "top": 571.84,
+                "bottom": 615.84,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 320,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 318,
+                "height": 45.59,
+                "left": 561,
+                "right": 879,
+                "innerWidth": 1440,
+                "top": 427.19,
+                "bottom": 472.78,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 526,
+                "height": 45.59,
+                "left": 769,
+                "right": 1295,
+                "innerWidth": 1440,
+                "top": 427.69,
+                "bottom": 473.28,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 526,
+                "height": 45.59,
+                "left": 769,
+                "right": 1295,
+                "innerWidth": 1440,
+                "top": 440.84,
+                "bottom": 486.44,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 318,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 144,
+                "right": 336,
+                "innerWidth": 1440,
+                "top": 428.38,
+                "bottom": 472.38,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 144,
+                "right": 336,
+                "innerWidth": 1440,
+                "top": 428.28,
+                "bottom": 472.28,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 144,
+                "right": 336,
+                "innerWidth": 1440,
+                "top": 667.44,
+                "bottom": 711.44,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 428,
+            "height": 44,
+            "left": 178,
+            "right": 606,
+            "innerWidth": 1440,
+            "top": 0.25,
+            "bottom": 44.25,
+            "innerHeight": 900,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 259,
+            "height": 44,
+            "left": 178,
+            "right": 437,
+            "innerWidth": 1440,
+            "top": 1903.47,
+            "bottom": 1947.47,
+            "innerHeight": 900,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 22,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Benefits",
+            "href": "#benefits",
+            "width": 72,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Capabilities",
+            "href": "#capabilities",
+            "width": 97,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Brochure",
+            "href": "#brochure",
+            "width": 80,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Send details",
+            "href": "#qualify",
+            "width": 101,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Onboarding",
+            "href": "#onboarding",
+            "width": 99,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 494,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 494,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 428,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 259,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 6,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:21.792Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 145,
+                "right": 316.13,
+                "innerWidth": 1440,
+                "top": 641.47,
+                "bottom": 685.47,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 60.98,
+                "height": 44,
+                "left": 953,
+                "right": 1013.98,
+                "innerWidth": 1440,
+                "top": 30,
+                "bottom": 74,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 1440,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 900,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 60.98,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "Wide desktop, and the base for the second halved zoom-equivalence entry (D-09).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:28.286Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P1",
+          "accessibleName": "Open brochure (opens in a new tab)",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 288,
+                "height": 45.59,
+                "left": 16,
+                "right": 304,
+                "innerWidth": 320,
+                "top": 105.28,
+                "bottom": 150.88,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 288,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P2",
+          "accessibleName": "Download brochure",
+          "declaredDestinations": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "/brochure/HAOO-Marketing-Brochure.pdf"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 288,
+                "height": 45.59,
+                "left": 16,
+                "right": 304,
+                "innerWidth": 320,
+                "top": 166.88,
+                "bottom": 212.47,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "/brochure/HAOO-Marketing-Brochure.pdf",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 288,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P3",
+          "accessibleName": "Send my details",
+          "declaredDestinations": [
+            "the configured qualification endpoint (form submit)"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 0,
+          "hrefs": [
+            ""
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 238,
+                "height": 44,
+                "left": 41,
+                "right": 279,
+                "innerWidth": 320,
+                "top": 106.19,
+                "bottom": 150.19,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 238,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P4",
+          "accessibleName": "Chat with HAOO on WhatsApp",
+          "declaredDestinations": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+            "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started."
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 63.19,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 96.38,
+                "bottom": 159.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 63.19,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 95.94,
+                "bottom": 159.13,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 63.19,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 96.38,
+                "bottom": 159.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 240,
+          "minHeight": 63.19,
+          "defects": []
+        },
+        {
+          "id": "P5",
+          "accessibleName": "Call +254 702 188 044",
+          "declaredDestinations": [
+            "tel:+254702188044"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "tel:+254702188044",
+            "tel:+254702188044",
+            "tel:+254702188044"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 105.56,
+                "bottom": 149.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 106.13,
+                "bottom": 150.13,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 105.56,
+                "bottom": 149.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "tel:+254702188044",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 240,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P6",
+          "accessibleName": "Email info@haoo.online",
+          "declaredDestinations": [
+            "mailto:info@haoo.online"
+          ],
+          "declaredInstances": 4,
+          "instancesFound": 3,
+          "anchorsToDestination": 4,
+          "hrefs": [
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online",
+            "mailto:info@haoo.online"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 105.56,
+                "bottom": 149.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 106.13,
+                "bottom": 150.13,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 240,
+                "height": 44,
+                "left": 40,
+                "right": 280,
+                "innerWidth": 320,
+                "top": 105.56,
+                "bottom": 149.56,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "mailto:info@haoo.online",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 240,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P7",
+          "accessibleName": "Start with HAOO",
+          "declaredDestinations": [
+            "https://manage.haoo.online/"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 3,
+          "hrefs": [
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/",
+            "https://manage.haoo.online/"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 238,
+                "height": 45.59,
+                "left": 41,
+                "right": 279,
+                "innerWidth": 320,
+                "top": 105.34,
+                "bottom": 150.94,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 238,
+                "height": 45.59,
+                "left": 41,
+                "right": 279,
+                "innerWidth": 320,
+                "top": 104.91,
+                "bottom": 150.5,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 238,
+                "height": 45.59,
+                "left": 41,
+                "right": 279,
+                "innerWidth": 320,
+                "top": 105.34,
+                "bottom": 150.94,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://manage.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 238,
+          "minHeight": 45.59,
+          "defects": []
+        },
+        {
+          "id": "P8",
+          "accessibleName": "Send your details instead",
+          "declaredDestinations": [
+            "#qualify"
+          ],
+          "declaredInstances": 3,
+          "instancesFound": 3,
+          "anchorsToDestination": 5,
+          "hrefs": [
+            "#qualify",
+            "#qualify",
+            "#qualify"
+          ],
+          "reachableInstances": 3,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 320,
+                "top": 105.75,
+                "bottom": 149.75,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 320,
+                "top": 106.31,
+                "bottom": 150.31,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            },
+            {
+              "index": 2,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 192,
+                "height": 44,
+                "left": 40,
+                "right": 232,
+                "innerWidth": 320,
+                "top": 105.75,
+                "bottom": 149.75,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "#qualify",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 192,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": {
+        "opener": {
+          "name": "How we measure this page",
+          "box": {
+            "rendered": true,
+            "width": 188,
+            "height": 48,
+            "left": 66,
+            "right": 254,
+            "innerWidth": 320,
+            "top": 104.19,
+            "bottom": 152.19,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          },
+          "pointer": "receives-pointer",
+          "defects": []
+        },
+        "openBefore": false,
+        "openAfter": true,
+        "openAfterSecondPress": false,
+        "revealedControl": {
+          "name": "Clear what this page remembers",
+          "box": {
+            "rendered": true,
+            "width": 188,
+            "height": 57.19,
+            "left": 66,
+            "right": 254,
+            "innerWidth": 320,
+            "top": 3653.34,
+            "bottom": 3710.53,
+            "innerHeight": 256,
+            "visibility": "visible",
+            "effectiveOpacity": 1,
+            "clippedOut": false,
+            "disabled": false,
+            "insideNav": false,
+            "href": "",
+            "tabIndex": 0
+          }
+        }
+      },
+      "interactive": {
+        "primaryInstancesRendered": 18,
+        "nonPrimaryCount": 18,
+        "nonPrimaryTargets": [
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          },
+          {
+            "tag": "button",
+            "label": "Open HAOO navigation",
+            "href": "",
+            "width": 44,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a channel WhatsApp Phone call Email",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select your role Landlord Property manager Agency Organization Other",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "input",
+            "label": "",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a range 1–5 units 6–20 units 21–50 units 51–200 units 200+ units",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a county Mombasa Kwale Kilifi Tana River Lamu Taita–Taveta Garissa Wajir ",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "select",
+            "label": "Select a timeframe Ready now In 1–3 months In 3+ months Just exploring",
+            "href": "",
+            "width": 238,
+            "height": 44
+          },
+          {
+            "tag": "textarea",
+            "label": "",
+            "href": "",
+            "width": 238,
+            "height": 114
+          },
+          {
+            "tag": "summary",
+            "label": "How we measure this page",
+            "href": "",
+            "width": 188,
+            "height": 48
+          },
+          {
+            "tag": "button",
+            "label": "",
+            "href": "",
+            "width": 188,
+            "height": 57.19
+          },
+          {
+            "tag": "a",
+            "label": "+254 702 188 044",
+            "href": "tel:+254702188044",
+            "width": 141,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "info@haoo.online",
+            "href": "mailto:info@haoo.online",
+            "width": 139,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "How we measure this page",
+            "href": "#haoo-measurement-disclosure",
+            "width": 203,
+            "height": 44
+          },
+          {
+            "tag": "a",
+            "label": "Back to ZERO-PAPER HUB",
+            "href": "https://www.zero-paperhub.com/",
+            "width": 192,
+            "height": 44
+          }
+        ],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 10,
+          "scriptFocusOnly": 1,
+          "offCanvasByDesign": 1
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.haoo.online/",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "whole document",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:35.084Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "primaryFloorPx": 44,
+      "interactiveFloorPx": 24,
+      "actions": [
+        {
+          "id": "P9",
+          "accessibleName": "Explore HAOO",
+          "declaredDestinations": [
+            "https://www.haoo.online/"
+          ],
+          "declaredInstances": 1,
+          "instancesFound": 1,
+          "anchorsToDestination": 1,
+          "hrefs": [
+            "https://www.haoo.online/"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "rendered",
+              "box": {
+                "rendered": true,
+                "width": 171.13,
+                "height": 44,
+                "left": 41,
+                "right": 212.13,
+                "innerWidth": 320,
+                "top": 211.69,
+                "bottom": 255.69,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": false,
+                "href": "https://www.haoo.online/",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": null,
+          "minWidth": 171.13,
+          "minHeight": 44,
+          "defects": []
+        },
+        {
+          "id": "P10",
+          "accessibleName": "Products",
+          "declaredDestinations": [
+            "#products"
+          ],
+          "declaredInstances": 2,
+          "instancesFound": 2,
+          "anchorsToDestination": 2,
+          "hrefs": [
+            "#products",
+            "#products"
+          ],
+          "reachableInstances": 1,
+          "instances": [
+            {
+              "index": 0,
+              "reachedVia": "not-rendered",
+              "box": {
+                "rendered": false,
+                "width": 0,
+                "height": 0,
+                "left": 0,
+                "right": 0,
+                "innerWidth": 320,
+                "top": 0,
+                "bottom": 0,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": true,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "not-rendered",
+              "defects": []
+            },
+            {
+              "index": 1,
+              "reachedVia": "disclosure",
+              "box": {
+                "rendered": true,
+                "width": 272,
+                "height": 44,
+                "left": 24,
+                "right": 296,
+                "innerWidth": 320,
+                "top": 239,
+                "bottom": 283,
+                "innerHeight": 256,
+                "visibility": "visible",
+                "effectiveOpacity": 1,
+                "clippedOut": false,
+                "disabled": false,
+                "insideNav": true,
+                "href": "#products",
+                "tabIndex": 0
+              },
+              "pointer": "receives-pointer",
+              "defects": []
+            }
+          ],
+          "opener": {
+            "name": "Open navigation menu",
+            "box": {
+              "rendered": true,
+              "width": 44,
+              "height": 44,
+              "left": 260,
+              "right": 304,
+              "innerWidth": 320,
+              "top": 16,
+              "bottom": 60,
+              "innerHeight": 256,
+              "visibility": "visible",
+              "effectiveOpacity": 1,
+              "clippedOut": false,
+              "disabled": false,
+              "insideNav": false,
+              "href": "",
+              "tabIndex": 0
+            },
+            "pointer": "receives-pointer",
+            "defects": []
+          },
+          "minWidth": 272,
+          "minHeight": 44,
+          "defects": []
+        }
+      ],
+      "disclosure": "no disclosure on this surface",
+      "interactive": {
+        "primaryInstancesRendered": 1,
+        "nonPrimaryCount": 0,
+        "nonPrimaryTargets": [],
+        "nonPrimaryBelowFloor": [],
+        "excluded": {
+          "notRendered": 0,
+          "scriptFocusOnly": 0,
+          "offCanvasByDesign": 0
+        }
+      }
+    },
+    "detail": {
+      "plan": "05-08",
+      "project": "live",
+      "url": "https://www.zero-paperhub.com/#products",
+      "viewportReason": "The width at which the reflow success criterion is DEFINED. WCAG 2.2 SC 1.4.10 is stated at 320 CSS px wide by 256 CSS px tall, described in its Understanding document as equivalent to a 1280 px viewport at 400% zoom. It is added here at near-zero cost so the reflow claim has a measurement that actually supports it, rather than being inferred from a 640 px reading (see ZOOM_VIEWPORTS below).",
+      "closedListSize": 13,
+      "actionsOnSurface": [
+        "P9",
+        "P10"
+      ],
+      "primaryFloorMeaning": "the bar both repositories already ship (min-h-11, size-11) — a record, not a new requirement",
+      "interactiveFloorMeaning": "WCAG 2.2 SC 2.5.8 Target Size (Minimum), for everything not in the primary list",
+      "interactiveScope": "#products",
+      "reachability": "D-OQ-2 — reachable when scrolled to; no above-the-fold requirement"
+    }
   }
 ]

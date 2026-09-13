@@ -2016,5 +2016,617 @@
       "url": "https://www.haoo.online/",
       "target": "live (S1)"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:21:45.413Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "idle",
+      "project": "live",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "leadTextPresent": 1,
+      "statusRegionText": "",
+      "statusRegionMinHeight": "24px",
+      "statusRegionsInDocument": 2,
+      "submissionStatusRegions": 1,
+      "errorSummaries": 0,
+      "honeypot": {
+        "tabIndexAttribute": "-1",
+        "tabIndexProperty": -1,
+        "ariaHiddenAncestor": "DIV",
+        "right": -9733,
+        "left": -9967,
+        "inAccessibilityTree": 0
+      },
+      "providerAttemptCount": 0,
+      "focusDestination": "<no transition made>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 empty/idle row",
+      "url": "https://www.haoo.online/",
+      "target": "live (S1)",
+      "providerGuard": "formsubmit\\.co routed to abort; FS-0 permits this state on both targets because no request is issued"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:21:48.284Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "invalid",
+      "project": "live",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "",
+      "statusRegionsInDocument": 2,
+      "submissionStatusRegions": 1,
+      "summaryHeading": "There is a problem",
+      "summaryItems": [
+        {
+          "text": "Enter your full name",
+          "href": "#haoo-qualify-name"
+        },
+        {
+          "text": "Enter your email address",
+          "href": "#haoo-qualify-email"
+        },
+        {
+          "text": "Select how we should reach you",
+          "href": "#haoo-qualify-preferredChannel"
+        },
+        {
+          "text": "Select your role",
+          "href": "#haoo-qualify-role"
+        },
+        {
+          "text": "Select how many units you manage",
+          "href": "#haoo-qualify-portfolioBand"
+        },
+        {
+          "text": "Select where your properties are",
+          "href": "#haoo-qualify-county"
+        },
+        {
+          "text": "Select when you would like to start",
+          "href": "#haoo-qualify-timeframe"
+        }
+      ],
+      "markedControls": {
+        "name": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-name-error",
+          "errorText": "Error: Enter your full name"
+        },
+        "email": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-email-error",
+          "errorText": "Error: Enter your email address"
+        },
+        "preferredChannel": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-preferredChannel-error",
+          "errorText": "Error: Select how we should reach you"
+        },
+        "role": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-role-error",
+          "errorText": "Error: Select your role"
+        },
+        "portfolioBand": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-portfolioBand-error",
+          "errorText": "Error: Select how many units you manage"
+        },
+        "county": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-county-error",
+          "errorText": "Error: Select where your properties are"
+        },
+        "timeframe": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-timeframe-error",
+          "errorText": "Error: Select when you would like to start"
+        }
+      },
+      "focusDestination": "DIV tabindex=-1 wrapping role=alert",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "providerAttemptCount": 0,
+      "bodyFocusCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 invalid row, KF-5 rows 1-3",
+      "url": "https://www.haoo.online/",
+      "target": "live (S1)",
+      "providerGuard": "formsubmit\\.co routed to abort; validation is client-side so FS-0 permits this state on both targets"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:21:53.777Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "invalid (conditional requirement)",
+      "project": "live",
+      "triggeringValue": "WhatsApp",
+      "beforeSelection": {
+        "nativeRequired": false,
+        "ariaRequired": "false",
+        "derivedLabel": "Phone number (optional)"
+      },
+      "afterSelection": {
+        "nativeRequired": true,
+        "ariaRequired": "true",
+        "derivedLabel": "Phone number"
+      },
+      "afterReversal": {
+        "nativeRequired": false,
+        "ariaRequired": "false",
+        "derivedLabel": "Phone number (optional)"
+      },
+      "announcement": "A phone number is now required because you asked us to reach you by WhatsApp.",
+      "separatorsOnlyValue": "+()- ()-",
+      "separatorsOnlyMessage": "Error: Enter a phone number using digits, spaces, or +",
+      "providerAttemptCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "haoo.ts requiredWhen on phone, keyed on preferredChannel",
+      "url": "https://www.haoo.online/",
+      "target": "live (S1)"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:33.221Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "idle",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "leadTextPresent": 1,
+      "statusRegionText": "",
+      "statusRegionMinHeight": "24px",
+      "statusRegionsInDocument": 2,
+      "submissionStatusRegions": 1,
+      "errorSummaries": 0,
+      "honeypot": {
+        "tabIndexAttribute": "-1",
+        "tabIndexProperty": -1,
+        "ariaHiddenAncestor": "DIV",
+        "right": -9733,
+        "left": -9967,
+        "inAccessibilityTree": 0
+      },
+      "providerAttemptCount": 0,
+      "focusDestination": "<no transition made>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 empty/idle row",
+      "url": "http://localhost:4173/",
+      "target": "preview (S5)",
+      "providerGuard": "formsubmit\\.co routed to abort; FS-0 permits this state on both targets because no request is issued"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:37.552Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "invalid",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "",
+      "statusRegionsInDocument": 2,
+      "submissionStatusRegions": 1,
+      "summaryHeading": "There is a problem",
+      "summaryItems": [
+        {
+          "text": "Enter your full name",
+          "href": "#haoo-qualify-name"
+        },
+        {
+          "text": "Enter your email address",
+          "href": "#haoo-qualify-email"
+        },
+        {
+          "text": "Select how we should reach you",
+          "href": "#haoo-qualify-preferredChannel"
+        },
+        {
+          "text": "Select your role",
+          "href": "#haoo-qualify-role"
+        },
+        {
+          "text": "Select how many units you manage",
+          "href": "#haoo-qualify-portfolioBand"
+        },
+        {
+          "text": "Select where your properties are",
+          "href": "#haoo-qualify-county"
+        },
+        {
+          "text": "Select when you would like to start",
+          "href": "#haoo-qualify-timeframe"
+        }
+      ],
+      "markedControls": {
+        "name": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-name-error",
+          "errorText": "Error: Enter your full name"
+        },
+        "email": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-email-error",
+          "errorText": "Error: Enter your email address"
+        },
+        "preferredChannel": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-preferredChannel-error",
+          "errorText": "Error: Select how we should reach you"
+        },
+        "role": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-role-error",
+          "errorText": "Error: Select your role"
+        },
+        "portfolioBand": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-portfolioBand-error",
+          "errorText": "Error: Select how many units you manage"
+        },
+        "county": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-county-error",
+          "errorText": "Error: Select where your properties are"
+        },
+        "timeframe": {
+          "ariaInvalid": "true",
+          "describedBy": "haoo-qualify-timeframe-error",
+          "errorText": "Error: Select when you would like to start"
+        }
+      },
+      "focusDestination": "DIV tabindex=-1 wrapping role=alert",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "providerAttemptCount": 0,
+      "bodyFocusCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 invalid row, KF-5 rows 1-3",
+      "url": "http://localhost:4173/",
+      "target": "preview (S5)",
+      "providerGuard": "formsubmit\\.co routed to abort; validation is client-side so FS-0 permits this state on both targets"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:41.654Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "invalid (conditional requirement)",
+      "project": "preview",
+      "triggeringValue": "WhatsApp",
+      "beforeSelection": {
+        "nativeRequired": false,
+        "ariaRequired": "false",
+        "derivedLabel": "Phone number (optional)"
+      },
+      "afterSelection": {
+        "nativeRequired": true,
+        "ariaRequired": "true",
+        "derivedLabel": "Phone number"
+      },
+      "afterReversal": {
+        "nativeRequired": false,
+        "ariaRequired": "false",
+        "derivedLabel": "Phone number (optional)"
+      },
+      "announcement": "A phone number is now required because you asked us to reach you by WhatsApp.",
+      "separatorsOnlyValue": "+()- ()-",
+      "separatorsOnlyMessage": "Error: Enter a phone number using digits, spaces, or +",
+      "providerAttemptCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "haoo.ts requiredWhen on phone, keyed on preferredChannel",
+      "url": "http://localhost:4173/",
+      "target": "preview (S5)"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:04.252Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "in-flight",
+      "project": "preview",
+      "submitEnabled": false,
+      "submitLabel": "Sending…",
+      "statusRegionText": "Sending your details…",
+      "statusRegionsInDocument": 2,
+      "submissionStatusRegions": 1,
+      "disabledFieldControls": 10,
+      "fieldControlCount": 10,
+      "honeypotDisabled": false,
+      "requestsDuringWindow": 1,
+      "focusDestination": "<no focus move: the in-flight state moves no focus>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 in-flight row",
+      "target": "preview (S5)",
+      "observationFsO2": "the honeypot input is not disabled during the window; it is not a product field, is aria-hidden, off-canvas and out of the tab order, so no visitor edit can be lost in it"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:08.530Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "success",
+      "project": "preview",
+      "formElements": 0,
+      "confirmationHeading": "Your details are on their way",
+      "confirmationBody": "Your details were submitted. If you don't hear back within one business day, use one of the contacts below.",
+      "followUpPrompt": "Need an answer sooner?",
+      "confirmationLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044"
+      ],
+      "statusRegionText": "Your details were sent.",
+      "statusRegionsInDocument": 1,
+      "focusDestination": "H3 tabindex=-1 \"Your details are on their way\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 1,
+      "submitEnabled": "<absent: the submit control was replaced with the confirmation card>",
+      "submitLabel": "<absent: the submit control was replaced with the confirmation card>"
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 success row",
+      "target": "preview (S5)",
+      "claimBoundary": "the sent announcement is a browser-observable claim that the provider accepted the request; it is not a delivery claim and must never be recorded as one"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:12.622Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "transport failure",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "We couldn't send your details.",
+      "statusRegionsInDocument": 2,
+      "fallbackBody": "Something went wrong between this page and our email provider. Your answers are still here, so you can try again — or reach HAOO directly.",
+      "retryControls": 1,
+      "panelLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online"
+      ],
+      "formElements": 1,
+      "valuesBefore": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "valuesAfter": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "focusDestination": "H3 tabindex=-1 \"We couldn't send your details\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 1
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 failed row",
+      "target": "preview (S5)",
+      "method": "the endpoint routed to an aborted response"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:16.912Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "blocked",
+      "project": "preview",
+      "submitEnabled": true,
+      "submitLabel": "Send my details",
+      "statusRegionText": "We couldn't send your details.",
+      "statusRegionsInDocument": 2,
+      "blockedBody": "This page couldn't prepare your details for sending, so nothing was sent. Your answers are still here — please reach HAOO directly.",
+      "retryControls": 0,
+      "panelLinks": [
+        "https://wa.me/254702188044?text=Hello%20HAOO%2C%20I%20would%20like%20help%20choosing%20the%20best%20way%20to%20get%20started.",
+        "tel:+254702188044",
+        "mailto:info@haoo.online"
+      ],
+      "formElements": 1,
+      "valuesBefore": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "valuesAfter": {
+        "name": "Form State Probe",
+        "email": "form-state-probe@example.com",
+        "preferredChannel": "Email",
+        "phone": "",
+        "role": "Landlord",
+        "organization": "Retained Holdings FS-12-ORG",
+        "portfolioBand": "1–5 units",
+        "county": "Nairobi",
+        "timeframe": "Ready now",
+        "message": "Distinctive pre-submission answer FS-12-RETAIN-7788"
+      },
+      "focusDestination": "H3 tabindex=-1 \"We couldn't send your details\"",
+      "scriptFocusIndicator": {
+        "before": {
+          "outline-style": "none",
+          "outline-width": "3px",
+          "outline-color": "rgb(24, 39, 95)",
+          "box-shadow": "none"
+        },
+        "after": {
+          "outline-style": "solid",
+          "outline-width": "2px",
+          "outline-color": "rgba(0, 0, 0, 0)",
+          "box-shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(64, 84, 198) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "addedShadowLayers": [
+          "rgb(255, 255, 255) 0px 0px 0px 2px",
+          "rgb(64, 84, 198) 0px 0px 0px 4px"
+        ],
+        "outlineVisibleAfter": false,
+        "paintedByFocus": true
+      },
+      "requestCount": 0
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC FS-1 blocked row",
+      "target": "preview (S5)",
+      "method": "JSON.stringify patched in the browser to throw for the submission body only, so the page refuses to start a submission it cannot assemble"
+    }
   }
 ]

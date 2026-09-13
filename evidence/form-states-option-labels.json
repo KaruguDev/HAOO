@@ -229,5 +229,82 @@
       "heldOut": "held out for human judgement: a native select clips rather than reflows and its open popup lies outside the document layout, so no assertion here could settle readability. These are the measured inputs to that judgement, and this record is NOT a pass.",
       "method": "the closed control measured with getBoundingClientRect; the label set read from the select options, with the form-authored placeholder measured separately from the product option data"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:11.334Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "lists": [
+        {
+          "field": "preferredChannel",
+          "controlWidthCssPx": 278,
+          "controlHeightCssPx": 44,
+          "optionCount": 3,
+          "longestLabel": "Phone call",
+          "longestLabelCharacters": 10,
+          "placeholderLabel": "Select a channel",
+          "placeholderCharacters": 16
+        },
+        {
+          "field": "role",
+          "controlWidthCssPx": 278,
+          "controlHeightCssPx": 44,
+          "optionCount": 5,
+          "longestLabel": "Property manager",
+          "longestLabelCharacters": 16,
+          "placeholderLabel": "Select your role",
+          "placeholderCharacters": 16
+        },
+        {
+          "field": "portfolioBand",
+          "controlWidthCssPx": 278,
+          "controlHeightCssPx": 44,
+          "optionCount": 5,
+          "longestLabel": "51–200 units",
+          "longestLabelCharacters": 12,
+          "placeholderLabel": "Select a range",
+          "placeholderCharacters": 14
+        },
+        {
+          "field": "county",
+          "controlWidthCssPx": 278,
+          "controlHeightCssPx": 44,
+          "optionCount": 48,
+          "longestLabel": "Elgeyo-Marakwet",
+          "longestLabelCharacters": 15,
+          "placeholderLabel": "Select a county",
+          "placeholderCharacters": 15
+        },
+        {
+          "field": "timeframe",
+          "controlWidthCssPx": 278,
+          "controlHeightCssPx": 44,
+          "optionCount": 4,
+          "longestLabel": "Just exploring",
+          "longestLabelCharacters": 14,
+          "placeholderLabel": "Select a timeframe",
+          "placeholderCharacters": 18
+        }
+      ],
+      "widestLabelCharacters": 16,
+      "controlWidthsCssPx": [
+        278,
+        278,
+        278,
+        278,
+        278
+      ]
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC § UI Considerations, the 360 px option-label backstop row",
+      "target": "live (S1)",
+      "heldOut": "held out for human judgement: a native select clips rather than reflows and its open popup lies outside the document layout, so no assertion here could settle readability. These are the measured inputs to that judgement, and this record is NOT a pass.",
+      "method": "the closed control measured with getBoundingClientRect; the label set read from the select options, with the form-authored placeholder measured separately from the product option data"
+    }
   }
 ]
