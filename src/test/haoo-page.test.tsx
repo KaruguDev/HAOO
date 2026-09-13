@@ -458,7 +458,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' }).className).toContain('z-[60]');
   });
 
-  it('switches the header from transparent to solid on scroll and while the menu is open, with a passive listener', () => {
+  it('switches the header from hero navy to solid white on scroll and while the menu is open, with a passive listener', () => {
     const addSpy = vi.spyOn(window, 'addEventListener');
     const removeSpy = vi.spyOn(window, 'removeEventListener');
     const setScrollY = (value: number) => {
@@ -477,7 +477,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       expect(scrollCall![2]).toEqual({ passive: true });
       const handler = scrollCall![1];
 
-      expect(banner.className).toContain('bg-transparent');
+      expect(banner.className).toContain('bg-[#18275F]');
       expect(sectionLinks().every((link) => link.className.includes('text-white/90'))).toBe(true);
 
       act(() => setScrollY(120));
@@ -488,11 +488,11 @@ describe('Phase 1 semantic HAOO page contracts', () => {
 
       act(() => setScrollY(0));
       fireEvent.scroll(window);
-      expect(banner.className).toContain('bg-transparent');
+      expect(banner.className).toContain('bg-[#18275F]');
 
       fireEvent.click(screen.getByRole('button', { name: 'Open HAOO navigation' }));
       expect(banner.className).toContain('bg-white');
-      expect(banner.className).not.toContain('bg-transparent');
+      expect(banner.className).not.toContain('bg-[#18275F]');
 
       unmount();
       expect(removeSpy.mock.calls.some(([type, fn]) => type === 'scroll' && fn === handler)).toBe(true);
