@@ -6,11 +6,18 @@ LEAD-07 asks two things — that the HAOO form endpoint is **activated**, and th
 is **delivered**. Neither is reachable until mail for `haoo.online` has a published exchanger. Those
 are three distinct facts, and this file keeps them three distinct claims (05-CONTEXT.md **D-11**).
 
+**Chain summary, closed 2026-09-13 by plan 05-16:**
+
+- Link 1, MX: **CONFIRMED** at `2026-09-12T21:03:51Z`. Last re-measured `2026-09-13T01:11:43.608Z`, just before the release send.
+- Link 2, Activation: **CONFIRMED** on the owner's report (2026-09-13). The marked activation-trigger message corroborates it, delivered with header `Sun, 13 Sep 2026 00:33:02 +0000`.
+- Link 3, Delivery: **CONFIRMED** on the owner's report (2026-09-13). Marker `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, sent `2026-09-13T01:11:46.454Z`, received "Today 04:11" as the owner's mail client shows it (01:11 UTC). The folder was **inbox**.
+- Live submissions sent in Phase 5: **2**. They are `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` (05-06) and `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` (05-16), one message each.
+
 | Link | Claim | Status | Owning plan |
 |---|---|---|---|
 | 1 — MX | `haoo.online` publishes MX records naming the two PrivateEmail hosts, answering from two independent resolvers | **CONFIRMED** (`2026-09-12T21:03:51Z`; re-measured `2026-09-13T00:06:36Z`) | 05-02 (this plan) |
 | 2 — Activation | FormSubmit's activation confirmation for `info@haoo.online` was received and confirmed; the endpoint's state is recorded | **CONFIRMED** on the owner's report (`2026-09-13`, "activated form submit"), corroborated by delivery of the marked activation-trigger submission at `00:33:02 +0000`; folder, full sender and post-click page text not stated | 05-06 |
-| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **NOT STARTED** | 05-16 |
+| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **CONFIRMED** on the owner's mailbox report (2026-09-13). The tagged submission `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` was sent `2026-09-13T01:11:46.454Z` as 1 message, with the marker committed first in `49c976a`. It was received "Today 04:11" as the owner's mail client shows it (01:11 UTC), folder **inbox**. The full sender and subject are not stated: both are cut off in the owner's screenshot | 05-16 |
 
 Why three and not one: FormSubmit's activation confirmation is emailed **to the very mailbox under
 test**. Collapsing the chain into a single pass/fail would report *"mail did not arrive"* without
@@ -784,7 +791,7 @@ body, by design. Against an unactivated endpoint that design shows a visitor the
 submission FormSubmit did not deliver. This is a browser-observable fact about the shipped code, measured
 here; changing `src/` is outside this plan.
 
-**L2-O1: fixed in source, not yet deployed (2026-09-13).** The owner decided on 2026-09-13 to fix L2-O1
+**L2-O1: fixed in source and deployed (2026-09-13).** The owner decided on 2026-09-13 to fix L2-O1
 before 05-16. Two commits carry the fix:
 - `a7675f4`: the tests, with the response body above, verbatim, as the regression input.
 - `e6cf694`, `fix(05): count a qualification send as succeeded only when FormSubmit accepts it (L2-O1)`.
@@ -792,16 +799,21 @@ before 05-16. Two commits carry the fix:
 The form now ends in `succeeded` only when the response is OK and the body's `success` reads `'true'` or
 `true`. With the body above, the tests end in `We couldn't send your details.` with the form and its
 values still mounted. That reading comes from hermetic tests: nothing was sent to take it. The
-measurement above is unchanged and still describes the code the live site serves. Until the orchestrator
-deploys, the live site serves `/assets/haoo-C1OXjuEM.js`, which carries the old behaviour. 05-16's tagged
-submission runs after that deploy.
+measurement above is unchanged, and it describes the pre-fix bundle `/assets/haoo-C1OXjuEM.js`.
+
+**Deployed and verified live.** The orchestrator pushed `651eebe..2d45e5f`, whose only source commits are `a7675f4` and `e6cf694`. `Deploy HAOO` run `34729513221` and `Verify tree disjointness` run `34729513230` both concluded `success`. At `2026-09-13T01:06:34Z` the live site served `/assets/haoo-CHYRGEim.js` (207795 bytes, SHA-256 prefix `f1034f2e91285f51`). That name differs from the local build's `haoo-DccNMFAD.js` because the deploy injects build-time variables, as the previous deploy also showed. Static reading: the served bundle contains `const n=e.success;return n==="true"||n===!0` and 0 occurrences of the old `ok?"succeeded":"failed"` pattern. Behavioural reading: at `2026-09-13T01:07:41.317Z` the orchestrator loaded `https://www.haoo.online/` in Chromium, routed `formsubmit.co` to answer locally with HTTP 200 and the pre-activation body above, and submitted the form. It read status `We couldn't send your details.`, 0 confirmation headings, 1 form still mounted, and the entered message retained. 1 POST was intercepted and nothing reached FormSubmit, so the standing count of live submissions below is unchanged. 05-16's tagged submission runs against this bundle.
 
 ### Standing count of live submissions in Phase 5
 
 Exactly **two** live submissions are sent in the whole of Phase 5:
 
 1. this activation trigger (`HAOO-ENDPOINT-ACTIVATION-…`, plan 05-06), **sent**, count 1;
-2. the tagged release submission (`HAOO-RELEASE-VERIFICATION-…`, plan 05-16), not yet sent.
+2. the tagged release submission (`HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, plan 05-16),
+   **sent** `2026-09-13T01:11:46.454Z`, count 1. Its marker was committed in `49c976a` before the send,
+   and it was not retried (Link 3).
+
+**Total live submissions sent in Phase 5: 2.** One message carries each marker above. No other armed
+run was made.
 
 **Amendment to the UI design contract.** `05-UI-SPEC.md` §FS-3 speaks of *"the single live success
 run"*. That expectation is amended here to **two** live success runs rather than being quietly exceeded.
@@ -895,10 +907,181 @@ pending, in the owner's words *"that bit is still pening"* [owner's correction: 
 
 ## Link 3 — Delivery
 
-**Status: NOT STARTED.** Owned by plan **05-16**, which appends here.
+**Status: CONFIRMED.** This rests on the **owner's mailbox report** (2026-09-13, plan 05-16 Task 3): the delivered message carries the marker committed in `49c976a` before the send, and the owner named the folder as **inbox**. Delivery is established by that report. It is **not** established by the browser's success state or by FormSubmit's `"success":"true"`. Those two readings, recorded below, show only that the provider accepted the request. Owned by plan **05-16**.
 
-Blocked on link 2. A tagged submission sent through an unactivated endpoint proves nothing about
-delivery, which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.
+Status history: **NOT STARTED** until `2026-09-13T01:10:59.543Z` · **MARKER RECORDED, NOT YET SENT** from `2026-09-13T01:10:59.543Z` (committed `49c976a` at `2026-09-13T01:11:29Z`) · **AWAITING OWNER CONFIRMATION** from `2026-09-13T01:11:46.454Z` (send record committed `754ed31`) · **CONFIRMED** on the owner's report received 2026-09-13 (plan 05-16 Task 3).
+
+### The release-verification marker, fixed before sending (D-12)
+
+This marker is written and committed **before** the submission is armed, so the message the owner
+searches for is provably the message this plan sent (threat T-05-76). The send record below must
+carry this exact string; a run that carries any other marker is not this plan's send.
+
+| Reading | Value |
+|---|---|
+| Marker | `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` |
+| Generated at | `2026-09-13T01:10:59.543Z` |
+| How generated | `node:crypto` `randomBytes(4)` hex suffix and the UTC instant to the second, the same expression as `buildMarker` in `e2e/live-submission.e2e.ts`. `buildMarker` could not be called directly: importing the spec module outside the Playwright runner throws `Playwright Test did not expect test.describe() to be called here`. |
+| Checked against `MARKER_PATTERN` and the `RELEASE-VERIFICATION` purpose tail | both matched at generation; the armed spec re-checks it with `markerHasPurpose` and refuses to send a mismatch |
+| How it reaches the send | `HAOO_LIVE_SUBMISSION_MARKER`, read by the spec before navigation |
+| Submissions sent carrying it at the time of writing | 0 |
+
+**MX re-measured before the send (*Restart rule*).** `DiG 9.18.39-0ubuntu0.24.04.7-Ubuntu`, at
+`2026-09-13T01:10:38Z`: `dig +short MX haoo.online` (local) returned `10 mx1.privateemail.com.` /
+`10 mx2.privateemail.com.`, exit 0; `dig +short MX haoo.online @8.8.8.8` returned
+`10 mx1.privateemail.com.` / `10 mx2.privateemail.com.`, exit 0. A further measurement is taken
+immediately before the send and gates it. At `2026-09-13T01:10:45Z` `https://www.haoo.online/`
+answered HTTP 200 and referenced `/assets/haoo-CHYRGEim.js`, the L2-O1-fixed bundle.
+
+### The single tagged release submission — what the browser observed
+
+**The marker was committed first.** Commit `49c976a` (`2026-09-13T01:11:29Z`) was confirmed to be an
+ancestor of `HEAD` in the same command that armed the send.
+
+**MX re-measured immediately before the send, gating it.** At `2026-09-13T01:11:43.608Z`,
+`dig +short MX haoo.online` (local) returned `10 mx1.privateemail.com.` / `10 mx2.privateemail.com.`,
+exit 0. `dig +short MX haoo.online @8.8.8.8` returned `10 mx2.privateemail.com.` / `10 mx1.privateemail.com.`,
+exit 0. The run command executed only because both answers named both hosts.
+
+One armed run, started `2026-09-13T01:11:43.756Z`, ended `01:11:51.679Z`, exit 0:
+
+`HAOO_SEND_LIVE_SUBMISSION=1 HAOO_LIVE_SUBMISSION_PURPOSE=RELEASE-VERIFICATION HAOO_LIVE_SUBMISSION_MARKER=HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d npx playwright test --project=live e2e/live-submission.e2e.ts --retries=0 --workers=1 --reporter=list`
+
+Reporter output: `1 passed (7.1s)`, one result, retry 0. The run was not retried, and no other armed
+run was made. The full live suite was not run. The run changed one tracked file,
+`evidence/live-submission.json`, adding two records (91 lines) after the two 05-06 records.
+Values below are transcribed from those two records and the run's own `LIVE-SUBMISSION` output line.
+
+| Reading | Value |
+|---|---|
+| Marker, as sent | `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, identical to the marker committed in `49c976a` |
+| Marker generated at | `2026-09-13T01:10:59.543Z` (see above) |
+| Marker read by the spec from `HAOO_LIVE_SUBMISSION_MARKER` (the spec's `markerGeneratedAt` field) | `2026-09-13T01:11:45.639Z`; `markerSource`: `supplied through HAOO_LIVE_SUBMISSION_MARKER, recorded before the run` |
+| Marker written to `evidence/live-submission.json`, before the submit control was activated | `2026-09-13T01:11:46.451Z` (provider requests at that moment: 0) |
+| Submission sent at (submit control activated) | `2026-09-13T01:11:46.454Z` |
+| Messages sent carrying this marker | **1** (submit activations: 1; provider POST requests: 1) |
+| Endpoint the browser posted to, verbatim | `https://formsubmit.co/ajax/info@haoo.online` |
+| Request method | `POST` |
+| Posted body contained the marker | `bodyCarriesMarker: true`, meaning the marker string was found in the request body |
+| Provider request failures | none recorded (empty list) |
+| HTTP response status | `200` (status text empty) |
+| Response `content-type` | `text/html; charset=UTF-8` |
+| Response body, verbatim | `{"success":"true","message":"The form was submitted successfully."}` |
+| Confirmation heading rendered | `Your details are on their way` |
+| Focused element after the transition | `H3 "Your details are on their way"` |
+| Submission status-region text | `Your details were sent.` |
+| `<form>` elements after the transition | 0 |
+| `role="status"` regions in the document after | 1 |
+| Page | `https://www.haoo.online/`, bundle `/assets/haoo-CHYRGEim.js`, viewport 1280×1024 |
+| `navigator.webdriver` | `true` |
+| Requests to the analytics ingestion origin `https://us.i.posthog.com` | **0** (empty list) |
+| Cloudflare `/cdn-cgi/challenge-platform/` requests (CF-JSD-1) | 3 (observed; not submissions; not counted as sends) |
+
+**Compared with the pinned success contract** (`05-EVIDENCE-FORM-STATES.md` §1, `success` row, taken on
+preview):
+
+| Contract element | Pinned value | This send |
+|---|---|---|
+| Form subtree replaced | `0` form elements remain | `0` |
+| Heading | `Your details are on their way` | `Your details are on their way` |
+| Focus destination | `H3 tabindex=-1` "Your details are on their way" | `H3 "Your details are on their way"` (the `tabindex` attribute was not read by this spec) |
+| Status-region text | `Your details were sent.` | `Your details were sent.` (read from the submission region, FS-O1) |
+| Body copy | `Your details were submitted. If you don't hear back within one business day, use one of the contacts below.` | **not read by this spec** |
+| Follow-up prompt and its 2 links | `Need an answer sooner?`, the `wa.me` and `tel:` links | **not read by this spec** |
+
+The four elements the spec reads match the pinned values. The body copy, the follow-up prompt and its
+two links were not read by `e2e/live-submission.e2e.ts`, which captures neither. They are recorded as
+not measured, not as matching. They were not measured afterwards either, because doing so would have
+needed a second live submission. This is the first live reading of this success state on the fixed
+bundle. The 05-06 send ended in the same four readings, but on the pre-fix bundle, where the page did not
+read the provider's body.
+
+**What the visitor-visible form carried.** The marker was typed into the shipped `Anything else we
+should know?` control. The spec asserted that the control was visible and that its value read back
+exactly, and `markerReadBackFromVisibleControl` was recorded `true` before any provider request. The value:
+`This is an automated release verification sent by the HAOO release process. It is not an enquiry and needs no reply. Marker: HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`.
+Full name `HAOO Release Verification`; email `info@haoo.online`; channel `Email`; the remaining required
+selects took `Landlord`, `1–5 units`, `Mombasa`, `Ready now`. The controls present before sending were
+the shipped eleven (`_honey`, `name`, `email`, `preferredChannel`, `phone`, `role`, `organization`,
+`portfolioBand`, `county`, `timeframe`, `message`). None was added and none was hidden for the marker.
+
+**Analytics consequence, measured rather than anticipated.** The event this form emits on a send is
+`qualify_submit`. `05-EVIDENCE-HARNESS.md` §4 expected this D-12 submission to be human-driven, with
+`navigator.webdriver` `false`, and so to be *"the one known inclusion"* in the owner's funnel counts. That
+premise does not hold for this send. It was driven by Playwright through the guarded spec, which 05-06
+built for reuse. `navigator.webdriver` read `true`, and 0 requests reached `https://us.i.posthog.com`
+across the run. So the `qualify_submit` event for this submission was **not** captured, and the owner's
+report **does not carry it**. The inclusion that section names did not occur, and no tagged submission
+adds to the owner's funnel counts.
+
+**What this evidence does and does not prove.** The browser observed the endpoint accept the request:
+one POST, HTTP 200, a body whose `success` reads `"true"`, and the page's success state, which on this
+bundle requires that body. That is FormSubmit's statement that it accepted the submission. It is not
+evidence that the message arrived at `info@haoo.online`, or which folder it landed in. Link 3 therefore
+stands at **AWAITING OWNER CONFIRMATION**, and it moves only on the owner's verbatim mailbox report (D-13).
+
+### Owner's mailbox report (Task 2 checkpoint, transcribed in Task 3)
+
+What I asked for: the exact marker string found by searching the mailbox, the received date and time as
+the mailbox displays it, the folder (**inbox or spam**, named explicitly), the full sender address, and
+the subject line.
+
+**The owner's words, verbatim.** Both were received 2026-09-13 and relayed by the orchestrator:
+
+1. Message 1: a screenshot of the owner's mail client, captioned *"the last form sumission you made"*
+   (the owner's spelling, kept as written).
+2. Message 2: the orchestrator asked *"Which folder is the 04:11 message (marker …b770730d) in?"*,
+   offering `Inbox` and `Spam / Junk`. The owner selected **"Inbox"**.
+
+**What the screenshot shows, as read by the orchestrator.** This is the orchestrator's reading of the
+owner's screenshot, not the owner's words, and this executor did not see the screenshot:
+
+- A new top row in the message list: sender `FormSubmit <submission…` (cut off), subject
+  `New HAOO qualificatio…` (cut off), received **"Today 04:11"**.
+- The open message's Message row ends `Marker: HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`.
+  That is **character for character** the marker committed in `49c976a` before the send.
+- No `Date:` header with seconds was visible.
+- The older rows visible beneath are the 05-06-era messages already recorded under Link 2. They are not
+  recorded again here.
+
+**Recorded against each field asked for.** Only these fields are recorded. No message content beyond
+the marker appears in this file, because both repositories are public.
+
+| Field | Record |
+|---|---|
+| Marker found | `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, read from the open message in the owner's screenshot (orchestrator's reading). It is identical to the marker committed in `49c976a` and to the marker the browser posted at `01:11:46.454Z`. |
+| Received timestamp | **"Today 04:11"**, as the owner's mail client displays it. The client shows local time. Under Link 2 its offset was measured from a `+0000` header shown beside `03:33:02` local, which makes 04:11 local equal to **01:11 UTC** on 2026-09-13. That agrees with the send at `2026-09-13T01:11:46.454Z`. No seconds were shown, and none are recorded. |
+| Folder | **inbox**. This is the owner's direct answer to the folder question. |
+| Sender address | **Not stated in full.** It is cut off in the owner's screenshot at `FormSubmit <submission…`. The owner was asked for it and did not supply the rest. It is not completed from memory or from Link 2. |
+| Subject line | **Not stated in full.** It is cut off in the owner's screenshot at `New HAOO qualificatio…`. The owner was asked for it and did not supply the rest. It is not completed from memory or from Link 2. |
+
+The two fields that are not stated do not hold Link 3 open. D-13's record is the marker, the received
+timestamp and the folder, and all three are established above.
+
+**Folder note (D-13).** The message landed in the **inbox**. The spam-landing branch of D-13 does not
+apply, so no sender-authentication follow-up is raised by this link. This record says only where this
+one message landed. It measures nothing about the domain's sender authentication.
+
+### The LEAD-07 mail chain — closed
+
+| Link | Final status | Timestamp | Authorised by |
+|---|---|---|---|
+| 1 — MX | CONFIRMED | `2026-09-12T21:03:51Z`; re-measured `2026-09-13T01:11:43.608Z` before this send | measurement from two resolvers |
+| 2 — Activation | CONFIRMED | owner's report 2026-09-13; corroborating header `00:33:02 +0000` | the owner's report |
+| 3 — Delivery | CONFIRMED | sent `2026-09-13T01:11:46.454Z`; received "Today 04:11" local (01:11 UTC); folder inbox | the owner's report |
+
+LEAD-07 asks that the endpoint is **activated** and that a uniquely tagged production submission
+**reaches the inbox or spam folder**. Link 2 records the first claim and Link 3 the second, each on the
+owner's report, and in the order D-11 requires. Total live submissions sent in Phase 5: **2**, one message
+per marker: `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` (05-06) and
+`HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` (05-16). Nothing further was sent after the owner's
+report.
+
+**History note: the pre-send placeholder for this link, written before Link 2 was confirmed and kept
+as written. It no longer describes Link 3's state, which is CONFIRMED above.** It read: *Was blocked
+on link 2. A tagged submission sent through an unactivated endpoint proves nothing about delivery,
+which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.* The paragraph below belongs to the same
+placeholder.
 
 To be recorded when taken, per **D-13**: the unique release-verification tag (fixed *before* sending,
 per **D-12**), the received timestamp, and the destination folder. **Arrival in the spam folder

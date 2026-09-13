@@ -262,5 +262,93 @@
       "finding": "F5",
       "disposition": "deferred by D-OQ-3 — recorded as an observation, never asserted"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:32.735Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "regionId": "products",
+      "labelledBy": "products-heading",
+      "labelText": "Products",
+      "productsRegionCount": 1,
+      "productsNavEntries": [
+        {
+          "text": "Products",
+          "raw": "#products"
+        },
+        {
+          "text": "Products",
+          "raw": "#products"
+        }
+      ]
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/#products",
+      "rule": "SS-2"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:32.735Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mainLandmarkCount": 0
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/#products",
+      "finding": "F5",
+      "disposition": "deferred by D-OQ-3 — recorded as an observation, never asserted"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:07.978Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "regionId": "products",
+      "labelledBy": "products-heading",
+      "labelText": "Products",
+      "productsRegionCount": 1,
+      "productsNavEntries": [
+        {
+          "text": "Products",
+          "raw": "#products"
+        },
+        {
+          "text": "Products",
+          "raw": "#products"
+        }
+      ]
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/#products",
+      "rule": "SS-2"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:26:07.987Z",
+    "surface": "S3",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "mainLandmarkCount": 0
+    },
+    "detail": {
+      "url": "https://www.zero-paperhub.com/#products",
+      "finding": "F5",
+      "disposition": "deferred by D-OQ-3 — recorded as an observation, never asserted"
+    }
   }
 ]

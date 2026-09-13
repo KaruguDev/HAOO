@@ -230,6 +230,9 @@ async function gateScan(
       state,
       url: page.url(),
       project: testInfo.project.name,
+      // Always 0 while retries are pinned below; recorded so a record can never be mistaken for a
+      // retry's reading if that pin is ever lifted.
+      attempt: testInfo.retry,
       engine: results.testEngine.name,
       engineVersion: results.testEngine.version,
       tags: [...AXE_TAGS],
@@ -288,6 +291,17 @@ function requireProject(testInfo: TestInfo, project: 'live' | 'preview'): void {
   );
   test.setTimeout(SCAN_TIMEOUT_MS);
 }
+
+/*
+ * NO RETRIES FOR THE GATE, on either project, overriding the `live` project's `retries: 2`.
+ *
+ * A retry would let the gate pass on a blocking finding it actually observed: a serious finding
+ * caught on attempt 1 (for example `color-contrast` read mid-way through an opacity reveal) and
+ * absent on attempt 2 makes Playwright report the test as flaky and exit 0 (review WR-01). A gate
+ * that saw a blocking node once has an answer, and that answer is red. A live-network failure is
+ * re-run by a person and the re-run is its own recorded measurement.
+ */
+test.describe.configure({ retries: 0 });
 
 /* ------------------------------------------------------------------------------------ *
  * THE EXCEPTION LIST ITSELF — closed-list checks that need no page.

@@ -253,7 +253,7 @@ The Phase 3 fixed order is preserved, with step (f) replaced:
 | Caveat block | Always-visible inset stating: counts are occurrences not people; a stage total is a sum of the listed actions and not proof of progression; blockers and privacy settings mean recorded counts can be lower than real actions; a send attempt is not proven inbox delivery; an outbound click is not a conversation, a registration, a customer, or completed onboarding. |
 | Empty period state | When every event in the selected period is `0`, the stage cards still render with `0` values and the period section shows the empty-state copy from the Copywriting Contract. A zero period is never rendered as a blank section, a dash, "no data", or a hidden section. |
 | Disclosure summary group (Surface B) | New labelled group inside the existing `MeasurementDisclosure`. Fixed product-configured copy and a semantic `<ul>` of what the attached summary contains. No live values, no toggle, no opt-out control (the existing clear control is the only action). |
-| Visible collection notice (Surface B) | Existing always-visible surface; its final clause is replaced with the owner-approved Phase 4 sentence. Never hidden inside `details`, shortened, or revealed only after interaction. |
+| Visible collection notice (Surface B) | Existing always-visible surface; its final clause is replaced with the owner-approved Phase 4 sentence. That sentence is the C-1 `A-plus-campaign` clause, which says a readable summary of the signals **and of any campaign values seen on arrival** is attached. The notice's boundary therefore covers everything that leaves the browser with the enquiry, including the campaign label checkpoint C-2 resolved to include *(amended 2026-09-13, plan 05-17)*. Never hidden inside `details`, shortened, or revealed only after interaction. |
 | Email engagement-summary field (Surface C) | One additional string field on the existing FormSubmit JSON body under the reserved label `HAOO engagement context`, appended after the visitor fields and after `Source`. The label is added to `RESERVED_EMAIL_LABELS` so no product field can override it. |
 
 The report generator holds the credential; the generated document holds only counts and labels. The summary formatter is pure: it receives the already-bounded context and campaign snapshot and returns a string. Storage, URL, history, and analytics access remain exclusively inside `src/measurement/`.
@@ -363,6 +363,16 @@ recorded, so real activity can be higher than the counts shown.
 
 `visitor`, `visitors`, `user`, `users`, `people`, `unique`, `session`, `lead`, `leads`, `score`, `customer`, `conversion`, `converted`, `conversion rate`, `drop-off`, `funnel drop`, `journey`, `delivered`, `received`, `onboarded`, `signed up`, `%`, and any percentage figure.
 
+**Scope of the ban, as shipped** *(amended 2026-09-13 by plan 05-17; see the amendment note at the end of this document)*:
+- **It does not apply to authored denial text.** A denial must name the claim it denies. The locked Caveat block copy above says "not people, sessions, or enquiries" and "not … a customer", three terms from this list.
+- **The report (Surface A).** The ban applies to all rendered text except the authored caveat block (`#report-caveats`). That block is instead pinned by exact text against the authored copy. A separate contract requires every banned term found anywhere in the document to lie inside that block. This is how plan 04-03 resolved the contradiction in code (`src/test/haoo-report.test.ts`).
+- **The disclosure (Surface B) and the email summary (Surface C).** The approved copy uses banned terms only inside authored denials:
+  - the Surface B boundary line "It contains no score, …"
+  - the C-1 clause "never a score, an identifier, or your form answers"
+  - the Surface C prefix and fallback "not a lead score"
+
+  No automated contract scans Surface B or Surface C text against this list. Those strings are pinned byte for byte as approved copy instead.
+
 ### Surface B — disclosure copy change
 
 Replaces `summaryBoundary` (`No engagement summary is attached to this form submission yet.`):
@@ -400,7 +410,7 @@ The formatter never emits `visitOrdinal`, `lastSeenDay`, a numeric total, a rank
 
 | # | Item | Why blocking |
 |---|------|--------------|
-| C-1 | The replacement clause in the always-visible collection notice — the Phase 3 sentence ends `…and no engagement summary is attached to this submission yet.`, which becomes false in this phase. Proposed replacement clause: `These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them — never a score, an identifier, or your form answers.` | Byte-exact owner-approved visitor-facing notice; Phase 3 set this precedent with its D-16 checkpoint. |
+| C-1 | The replacement clause in the always-visible collection notice — the Phase 3 sentence ends `…and no engagement summary is attached to this submission yet.`, which becomes false in this phase. **Resolved by the owner (plan 04-04) as the `A-plus-campaign` variant, which is the shipped clause:** `These signals stay separate from your form answers, and when you send this form we attach a short readable summary of them and of any campaign values seen on arrival — never a score, an identifier, or your form answers.` The character before `never` is an em dash (U+2014). *Amended 2026-09-13 by plan 05-17; see the amendment note at the end of this document for the superseded proposal and the reason.* | Byte-exact owner-approved visitor-facing notice; Phase 3 set this precedent with its D-16 checkpoint. |
 | C-2 | Whether normalized campaign values appear in the emailed summary (Surface C part 5). Recommendation: include. | `04-RESEARCH.md` Open Question 4 delegates this to product/privacy owners. |
 | C-3 | Approval of the analytics processor and production provider enablement. | Carried blocker in `STATE.md`; the report and live counts depend on it, the visitor copy describes it. |
 
@@ -536,3 +546,38 @@ No third-party registry, shadcn official block, provider dashboard widget, embed
 - [x] Dimension 6 Registry Safety: PASS
 
 **Approval:** approved 2026-09-01 (gsd-ui-checker — 6/6 PASS, no recommendations)
+
+---
+
+## Amendment note — 2026-09-13, plan 05-17 (phase 5 D-18 item 2)
+
+This document was reconciled to the bytes that shipped. It was not rewritten. The 2026-09-01
+approval above covered the text as it then stood. The changes are listed below so a reader can see
+what moved and why.
+
+1. **C-1 row (Blocking human checkpoints).** The proposed clause was replaced with the clause the
+   owner approved at plan 04-04 and that ships in `src/products/copy.ts`
+   (`qualifyCollectionNotePageContext`). The superseded proposal ended "…a short readable summary of
+   them —" with no mention of campaign values. It is no longer part of this contract; its full text is
+   kept verbatim in `04-04-SUMMARY.md` § "Checkpoint C-1 outcome".
+   **Why it changed** (`04-04-SUMMARY.md`, "Checkpoint C-1 outcome"). Once C-2 resolved `include`, a
+   normalized campaign label travels with the enquiry. In the proposed wording, "a short readable
+   summary of them" covers only the enumerated signals, so the notice would have left the campaign
+   label undisclosed. The owner's `A-plus-campaign` variant names both.
+2. **Visible collection notice row (Component Inventory, Surface B).** The row now states the
+   notice's boundary as the shipped clause draws it, campaign values included.
+3. **Locked banned vocabulary.** Its real scope is now stated beneath the list. The list and the
+   locked Caveat block copy contradicted each other: the caveat contains `people`, `sessions` and
+   `customer`. Plan 04-03 resolved this in code by removing the authored caveat block from the
+   report's vocabulary scan, pinning that block by exact text, and requiring every banned term in the
+   document to lie inside it. The note also records that Surface B and C copy uses `score` and
+   `lead` only inside authored denials, and that no automated contract scans those surfaces against
+   the list.
+
+**Unchanged:**
+- The Surface B disclosure copy table. Every string in it, including the boundary line and all four
+  contents items, matches `src/products/haoo.ts` byte for byte, measured 2026-09-13 with `grep -F`.
+- The list's 22 entries.
+- Every other row.
+
+`grep -rn 'no engagement summary is attached' src/` returns 0 lines.

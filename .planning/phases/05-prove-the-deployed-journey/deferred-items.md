@@ -70,7 +70,7 @@ came from and why it is recorded here rather than fixed.
   provider-coupled contract the current design deliberately avoids) or whether the owner report and
   the mail chain are the accepted detection path. If the page changes, add a preview-project case
   that fulfils `200 {"success":"false"}` and asserts the failure state.
-- **Status: FIXED IN SOURCE on 2026-09-13, not yet deployed.** On 2026-09-13 the owner decided to fix
+- **Status: FIXED AND DEPLOYED on 2026-09-13.** On 2026-09-13 the owner decided to fix
   this before 05-16's tagged production submission. It is logged as WINDOWS.md #37 and was marked
   `fixed` through `gsd-tools windows fixed 37`.
   - **Decision taken:** the page reads FormSubmit's `success` field. A send ends in `succeeded` only
@@ -108,5 +108,6 @@ came from and why it is recorded here rather than fixed.
     the run rewrote were restored to HEAD.
   - **Not added:** an e2e preview case that fulfils `200 {"success":"false"}`. The refusal body is
     covered hermetically by the unit and component tests above.
-  - **Still open until deploy:** the live site serves `/assets/haoo-C1OXjuEM.js`, which carries the old
-    behaviour. A local build of the fixed tree emits `dist/assets/haoo-DccNMFAD.js`.
+  - **Deployed and verified live.** Before the deploy the live site served `/assets/haoo-C1OXjuEM.js`, which
+    carried the old behaviour; a local build of the fixed tree emits `dist/assets/haoo-DccNMFAD.js`. The
+    orchestrator pushed `651eebe..2d45e5f`, whose only source commits are `a7675f4` and `e6cf694`. `Deploy HAOO` run `34729513221` and `Verify tree disjointness` run `34729513230` both concluded `success`. At `2026-09-13T01:06:34Z` the live site served `/assets/haoo-CHYRGEim.js` (207795 bytes, SHA-256 prefix `f1034f2e91285f51`). That name differs from the local build's `haoo-DccNMFAD.js` because the deploy injects build-time variables, as the previous deploy also showed. Static reading: the served bundle contains `const n=e.success;return n==="true"||n===!0` and 0 occurrences of the old `ok?"succeeded":"failed"` pattern. Behavioural reading: at `2026-09-13T01:07:41.317Z` the orchestrator loaded `https://www.haoo.online/` in Chromium, routed `formsubmit.co` to answer locally with HTTP 200 and the pre-activation body above, and submitted the form. It read status `We couldn't send your details.`, 0 confirmation headings, 1 form still mounted, and the entered message retained. 1 POST was intercepted and nothing reached FormSubmit, so the standing count of live submissions below is unchanged.

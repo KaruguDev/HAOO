@@ -1363,5 +1363,395 @@
       "target": "live (S1)",
       "method": "activate every summary item in turn and read document.activeElement after each"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:21:48.287Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-1",
+          "transition": "invalid submit",
+          "expected": "the error-summary container"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-2",
+          "transition": "repeat invalid submit, unchanged errors",
+          "expected": "the error-summary container again"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-3",
+          "transition": "correcting a field while typing",
+          "expected": "unchanged — the control the visitor is in"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 3
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 rows 1-3",
+      "target": "live (S1)",
+      "matrix": [
+        "KF5-1",
+        "KF5-2",
+        "KF5-3",
+        "KF5-4",
+        "KF5-5",
+        "KF5-6"
+      ],
+      "note": "rows 4-6 extend this same matrix from the terminal-state block"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:08.970Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-email",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-preferredChannel",
+          "tabIndexAttribute": null,
+          "text": "Select a channelWhatsAppPhone callEmail",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-role",
+          "tabIndexAttribute": null,
+          "text": "Select your roleLandlordProperty managerAgencyOrganizationOther",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-portfolioBand",
+          "tabIndexAttribute": null,
+          "text": "Select a range1–5 units6–20 units21–50 units51–200 units200+ units",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-county",
+          "tabIndexAttribute": null,
+          "text": "Select a countyMombasaKwaleKilifiTana RiverLamuTaita–TavetaGarissaWajirManderaMa",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-timeframe",
+          "tabIndexAttribute": null,
+          "text": "Select a timeframeReady nowIn 1–3 monthsIn 3+ monthsJust exploring",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        }
+      ],
+      "landings": [
+        {
+          "item": "Enter your full name",
+          "href": "#haoo-qualify-name",
+          "focused": "haoo-qualify-name"
+        },
+        {
+          "item": "Enter your email address",
+          "href": "#haoo-qualify-email",
+          "focused": "haoo-qualify-email"
+        },
+        {
+          "item": "Select how we should reach you",
+          "href": "#haoo-qualify-preferredChannel",
+          "focused": "haoo-qualify-preferredChannel"
+        },
+        {
+          "item": "Select your role",
+          "href": "#haoo-qualify-role",
+          "focused": "haoo-qualify-role"
+        },
+        {
+          "item": "Select how many units you manage",
+          "href": "#haoo-qualify-portfolioBand",
+          "focused": "haoo-qualify-portfolioBand"
+        },
+        {
+          "item": "Select where your properties are",
+          "href": "#haoo-qualify-county",
+          "focused": "haoo-qualify-county"
+        },
+        {
+          "item": "Select when you would like to start",
+          "href": "#haoo-qualify-timeframe",
+          "focused": "haoo-qualify-timeframe"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 7
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 row 4",
+      "target": "live (S1)",
+      "method": "activate every summary item in turn and read document.activeElement after each"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:37.554Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-1",
+          "transition": "invalid submit",
+          "expected": "the error-summary container"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "tabIndexAttribute": "-1",
+          "text": "There is a problemEnter your full nameEnter your email addressSelect how we shou",
+          "wrapsAlert": true,
+          "isBody": false,
+          "row": "KF5-2",
+          "transition": "repeat invalid submit, unchanged errors",
+          "expected": "the error-summary container again"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-3",
+          "transition": "correcting a field while typing",
+          "expected": "unchanged — the control the visitor is in"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 3
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 rows 1-3",
+      "target": "preview (S5)",
+      "matrix": [
+        "KF5-1",
+        "KF5-2",
+        "KF5-3",
+        "KF5-4",
+        "KF5-5",
+        "KF5-6"
+      ],
+      "note": "rows 4-6 extend this same matrix from the terminal-state block"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:25:56.070Z",
+    "surface": "S5",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "rows": [
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-name",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "INPUT",
+          "id": "haoo-qualify-email",
+          "tabIndexAttribute": null,
+          "text": "",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-preferredChannel",
+          "tabIndexAttribute": null,
+          "text": "Select a channelWhatsAppPhone callEmail",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-role",
+          "tabIndexAttribute": null,
+          "text": "Select your roleLandlordProperty managerAgencyOrganizationOther",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-portfolioBand",
+          "tabIndexAttribute": null,
+          "text": "Select a range1–5 units6–20 units21–50 units51–200 units200+ units",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-county",
+          "tabIndexAttribute": null,
+          "text": "Select a countyMombasaKwaleKilifiTana RiverLamuTaita–TavetaGarissaWajirManderaMa",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        },
+        {
+          "tag": "SELECT",
+          "id": "haoo-qualify-timeframe",
+          "tabIndexAttribute": null,
+          "text": "Select a timeframeReady nowIn 1–3 monthsIn 3+ monthsJust exploring",
+          "wrapsAlert": false,
+          "isBody": false,
+          "row": "KF5-4",
+          "transition": "activating a summary item link",
+          "expected": "the field that item names"
+        }
+      ],
+      "landings": [
+        {
+          "item": "Enter your full name",
+          "href": "#haoo-qualify-name",
+          "focused": "haoo-qualify-name"
+        },
+        {
+          "item": "Enter your email address",
+          "href": "#haoo-qualify-email",
+          "focused": "haoo-qualify-email"
+        },
+        {
+          "item": "Select how we should reach you",
+          "href": "#haoo-qualify-preferredChannel",
+          "focused": "haoo-qualify-preferredChannel"
+        },
+        {
+          "item": "Select your role",
+          "href": "#haoo-qualify-role",
+          "focused": "haoo-qualify-role"
+        },
+        {
+          "item": "Select how many units you manage",
+          "href": "#haoo-qualify-portfolioBand",
+          "focused": "haoo-qualify-portfolioBand"
+        },
+        {
+          "item": "Select where your properties are",
+          "href": "#haoo-qualify-county",
+          "focused": "haoo-qualify-county"
+        },
+        {
+          "item": "Select when you would like to start",
+          "href": "#haoo-qualify-timeframe",
+          "focused": "haoo-qualify-timeframe"
+        }
+      ],
+      "bodyFocusCount": 0,
+      "transitionCount": 7
+    },
+    "detail": {
+      "plan": "05-12",
+      "contract": "UI-SPEC KF-5 row 4",
+      "target": "preview (S5)",
+      "method": "activate every summary item in turn and read document.activeElement after each"
+    }
   }
 ]

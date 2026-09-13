@@ -501,5 +501,508 @@
       "providerGuard": "formsubmit\\.co routed to abort; FS-0 permits this state on live because no request is issued",
       "focusAfterSubmitNote": "recorded only; where focus lands after the invalid submit is KF-5, asserted by the preview-target form-state spec"
     }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:14.744Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:33.180Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:22:51.567Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:08.934Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:26.851Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:23:45.333Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 320,
+      "height": 256
+    },
+    "measured": {
+      "state": "default",
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "errorSummary": {
+        "present": false,
+        "tabIndexAttribute": "",
+        "domIndex": -1
+      },
+      "confirmationHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, success row)",
+      "failureHeading": "not rendered in the default state; covered by the preview-target form-state spec (UI-SPEC KF-5, transport failure / blocked rows)"
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "honeypotLocatedBy": "the <label> whose text is 'Leave this field blank' and its for attribute",
+      "errorSummaryState": "the error summary exists only in the invalid state, measured in its own test"
+    }
+  },
+  {
+    "recordedAt": "2026-09-13T08:24:01.902Z",
+    "surface": "S1",
+    "viewport": {
+      "width": 1280,
+      "height": 1024
+    },
+    "measured": {
+      "state": "invalid (empty submit)",
+      "submitReachedAt": 425,
+      "providerAttemptCount": 0,
+      "errorSummary": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 255
+      },
+      "errorSummaryIsStop": false,
+      "honeypot": {
+        "present": true,
+        "tabIndexAttribute": "-1",
+        "domIndex": 254
+      },
+      "honeypotIsStop": false,
+      "focusAfterSubmit": {
+        "tag": "div",
+        "domIndex": 255
+      },
+      "tailExited": true,
+      "fullPassExited": true,
+      "fullPassStopCount": 47,
+      "fullPassStops": [
+        {
+          "order": 1,
+          "tag": "a",
+          "name": "Skip to HAOO content",
+          "domIndex": 26
+        },
+        {
+          "order": 2,
+          "tag": "a",
+          "name": "Back to ZERO-PAPER HUB",
+          "domIndex": 29
+        },
+        {
+          "order": 3,
+          "tag": "a",
+          "name": "Benefits",
+          "domIndex": 32
+        },
+        {
+          "order": 4,
+          "tag": "a",
+          "name": "Capabilities",
+          "domIndex": 33
+        },
+        {
+          "order": 5,
+          "tag": "a",
+          "name": "Brochure",
+          "domIndex": 34
+        },
+        {
+          "order": 6,
+          "tag": "a",
+          "name": "Send details",
+          "domIndex": 35
+        },
+        {
+          "order": 7,
+          "tag": "a",
+          "name": "Onboarding",
+          "domIndex": 36
+        },
+        {
+          "order": 8,
+          "tag": "a",
+          "name": "Chat with HAOO on WhatsApp",
+          "domIndex": 65
+        },
+        {
+          "order": 9,
+          "tag": "a",
+          "name": "Call +254 702 188 044",
+          "domIndex": 69
+        },
+        {
+          "order": 10,
+          "tag": "a",
+          "name": "Email info@haoo.online",
+          "domIndex": 72
+        },
+        {
+          "order": 11,
+          "tag": "a",
+          "name": "Send your details instead",
+          "domIndex": 77
+        },
+        {
+          "order": 12,
+          "tag": "a",
+          "name": "Start with HAOO",
+          "domIndex": 81
+        },
+        {
+          "order": 13,
+          "tag": "a",
+          "name": "Chat with HAOO on WhatsApp",
+          "domIndex": 196
+        },
+        {
+          "order": 14,
+          "tag": "a",
+          "name": "Call +254 702 188 044",
+          "domIndex": 200
+        },
+        {
+          "order": 15,
+          "tag": "a",
+          "name": "Email info@haoo.online",
+          "domIndex": 203
+        },
+        {
+          "order": 16,
+          "tag": "a",
+          "name": "Send your details instead",
+          "domIndex": 208
+        },
+        {
+          "order": 17,
+          "tag": "a",
+          "name": "Start with HAOO",
+          "domIndex": 212
+        },
+        {
+          "order": 18,
+          "tag": "a",
+          "name": "Open brochure (opens in a new tab)",
+          "domIndex": 231
+        },
+        {
+          "order": 19,
+          "tag": "a",
+          "name": "Download brochure",
+          "domIndex": 237
+        },
+        {
+          "order": 20,
+          "tag": "a",
+          "name": "Enter your full name",
+          "domIndex": 260
+        },
+        {
+          "order": 21,
+          "tag": "a",
+          "name": "Enter your email address",
+          "domIndex": 262
+        },
+        {
+          "order": 22,
+          "tag": "a",
+          "name": "Select how we should reach you",
+          "domIndex": 264
+        },
+        {
+          "order": 23,
+          "tag": "a",
+          "name": "Select your role",
+          "domIndex": 266
+        },
+        {
+          "order": 24,
+          "tag": "a",
+          "name": "Select how many units you manage",
+          "domIndex": 268
+        },
+        {
+          "order": 25,
+          "tag": "a",
+          "name": "Select where your properties are",
+          "domIndex": 270
+        },
+        {
+          "order": 26,
+          "tag": "a",
+          "name": "Select when you would like to start",
+          "domIndex": 272
+        },
+        {
+          "order": 27,
+          "tag": "input",
+          "name": "Full name",
+          "domIndex": 277
+        },
+        {
+          "order": 28,
+          "tag": "input",
+          "name": "Email address",
+          "domIndex": 282
+        },
+        {
+          "order": 29,
+          "tag": "select",
+          "name": "How should we reach you?",
+          "domIndex": 287
+        },
+        {
+          "order": 30,
+          "tag": "input",
+          "name": "Phone number (optional)",
+          "domIndex": 297
+        },
+        {
+          "order": 31,
+          "tag": "select",
+          "name": "Your role",
+          "domIndex": 302
+        },
+        {
+          "order": 32,
+          "tag": "input",
+          "name": "Organization (optional)",
+          "domIndex": 314
+        },
+        {
+          "order": 33,
+          "tag": "select",
+          "name": "How many units do you manage?",
+          "domIndex": 317
+        },
+        {
+          "order": 34,
+          "tag": "select",
+          "name": "Where are your properties?",
+          "domIndex": 328
+        },
+        {
+          "order": 35,
+          "tag": "select",
+          "name": "When would you like to start?",
+          "domIndex": 384
+        },
+        {
+          "order": 36,
+          "tag": "textarea",
+          "name": "Anything else we should know? (optional)",
+          "domIndex": 395
+        },
+        {
+          "order": 37,
+          "tag": "summary",
+          "name": "How we measure this page",
+          "domIndex": 401
+        },
+        {
+          "order": 38,
+          "tag": "button",
+          "name": "Send my details",
+          "domIndex": 457
+        },
+        {
+          "order": 39,
+          "tag": "a",
+          "name": "Chat with HAOO on WhatsApp",
+          "domIndex": 465
+        },
+        {
+          "order": 40,
+          "tag": "a",
+          "name": "Call +254 702 188 044",
+          "domIndex": 469
+        },
+        {
+          "order": 41,
+          "tag": "a",
+          "name": "Email info@haoo.online",
+          "domIndex": 472
+        },
+        {
+          "order": 42,
+          "tag": "a",
+          "name": "Send your details instead",
+          "domIndex": 477
+        },
+        {
+          "order": 43,
+          "tag": "a",
+          "name": "Start with HAOO",
+          "domIndex": 481
+        },
+        {
+          "order": 44,
+          "tag": "a",
+          "name": "+254 702 188 044",
+          "domIndex": 490
+        },
+        {
+          "order": 45,
+          "tag": "a",
+          "name": "info@haoo.online",
+          "domIndex": 491
+        },
+        {
+          "order": 46,
+          "tag": "a",
+          "name": "How we measure this page",
+          "domIndex": 492
+        },
+        {
+          "order": 47,
+          "tag": "a",
+          "name": "Back to ZERO-PAPER HUB",
+          "domIndex": 493
+        }
+      ]
+    },
+    "detail": {
+      "plan": "05-09",
+      "url": "https://www.haoo.online/",
+      "method": "Tab to the submit control, Enter, then Tab to the document exit and one complete pass from document start",
+      "providerGuard": "formsubmit\\.co routed to abort; FS-0 permits this state on live because no request is issued",
+      "focusAfterSubmitNote": "recorded only; where focus lands after the invalid submit is KF-5, asserted by the preview-target form-state spec"
+    }
   }
 ]

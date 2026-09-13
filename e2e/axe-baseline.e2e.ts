@@ -1,9 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 import { AXE_TAGS, axeDisablesFor, axeFor, type AxeRuleDisable } from './fixtures/axe';
+import { isMissingFileError, writeFileAtomically } from './fixtures/evidence';
 import { SURFACES, type SurfaceId } from './fixtures/surfaces';
 import { VIEWPORTS } from './fixtures/viewports';
 
@@ -334,8 +335,11 @@ function readBaseline(): BaselineEntry[] {
   let raw: string;
   try {
     raw = readFileSync(BASELINE_PATH, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // Only an ABSENT file is an empty baseline. Any other read failure says nothing about what the
+    // file holds, and returning [] would let the upsert below overwrite every earlier entry.
+    if (isMissingFileError(error)) return [];
+    throw error;
   }
 
   const parsed: unknown = JSON.parse(raw);
@@ -373,8 +377,8 @@ function upsertEntry(entry: BaselineEntry): void {
     a.surface === b.surface ? a.state.localeCompare(b.state) : a.surface.localeCompare(b.surface),
   );
 
-  mkdirSync(EVIDENCE_DIR, { recursive: true });
-  writeFileSync(BASELINE_PATH, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
+  // Temp file plus rename, so a crash or a concurrent reader never sees a truncated baseline.
+  writeFileAtomically(BASELINE_PATH, `${JSON.stringify(entries, null, 2)}\n`);
 }
 
 interface ScanRequest {

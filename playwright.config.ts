@@ -59,13 +59,19 @@ export default defineConfig({
    * server runs, and a conditional `command` would make the two projects diverge in a way that
    * is invisible from the spec files.
    *
-   * `vite preview` serves the already-built `dist/`, so it requires a prior `npm run build`;
-   * it does not build on demand.
+   * **The command builds before it serves.** `vite preview` serves the already-built `dist/` and
+   * throws when it is absent, and `dist/` is gitignored. Serving alone would therefore hard-fail
+   * every run on a fresh clone, a live run included, before any test ran. It would also let the
+   * preview gate pass against whatever `dist/` an earlier build left behind rather than the
+   * current `src/` (review WR-02). Building here is what `npm test` already does before Vitest.
+   *
+   * `reuseExistingServer` still reuses a server already listening on 4173 outside CI, and that
+   * server serves whatever it was started with. CI never reuses.
    */
   webServer: {
-    command: 'npm run preview -- --port 4173 --strictPort',
+    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });

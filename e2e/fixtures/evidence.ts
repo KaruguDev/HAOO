@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 import type { SurfaceId } from './surfaces';
 
@@ -38,8 +39,9 @@ export interface EvidenceInput {
   readonly viewport?: EvidenceViewport | null;
   /**
    * The measured value or values. Either a scalar reading or, more usually, a record of named
-   * readings. Every value in it is checked: a record whose values are all pass marks is
-   * refused exactly as a bare `'passed'` is.
+   * readings. Every value in it is checked, at any depth — inside arrays and nested records as
+   * well as at the top level: a pass mark anywhere is refused exactly as a bare `'passed'` is.
+   * Record an attribute reading through `attributeReading`, never as a bare `"true"`.
    */
   readonly measured: unknown;
   /** Free-form context: rule ids, tag lists, engine versions, URLs, node targets. */
@@ -61,6 +63,45 @@ function isPassMark(value: unknown): boolean {
     typeof value === 'string' &&
     PASS_MARKS.includes(value.trim().toLowerCase() as (typeof PASS_MARKS)[number])
   );
+}
+
+/**
+ * The first pass-mark string anywhere inside `value`, with its path, or `null` when there is none.
+ *
+ * Walks arrays and nested records, not only the top level: callers record structures
+ * (`focus.rows`, `readings`, `disclosure`), and a refusal that stopped at the first level would let
+ * `{ rows: [{ outcome: 'ok' }] }` reach committed evidence untouched (review WR-04).
+ */
+function findPassMark(value: unknown, path: string): { path: string; value: string } | null {
+  if (isPassMark(value)) return { path, value: String(value) };
+  if (Array.isArray(value)) {
+    for (const [index, item] of value.entries()) {
+      const hit = findPassMark(item, `${path}[${index}]`);
+      if (hit !== null) return hit;
+    }
+  } else if (value !== null && typeof value === 'object') {
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      const hit = findPassMark(item, `${path}.${key}`);
+      if (hit !== null) return hit;
+    }
+  }
+  return null;
+}
+
+/**
+ * An HTML attribute reading, in a form the pass-mark refusal can tell apart from a verdict.
+ *
+ * Boolean-valued ARIA attributes read back as the strings `"true"` and `"false"`. Those are
+ * measurements, but a bare `"true"` is indistinguishable from a pass mark once the refusal walks
+ * nested values. So the reading is recorded WITH its attribute name — `aria-invalid="true"` — and
+ * an absent attribute as `aria-invalid absent`, because `getAttribute` returning `null` is its own
+ * reading and must not collapse into `"false"`.
+ *
+ * Records written before this form existed carry the bare string (`"ariaInvalid": "true"`). They
+ * are historical measurements and are left as they were taken; this form applies from the next run.
+ */
+export function attributeReading(attribute: string, value: string | null): string {
+  return value === null ? `${attribute} absent` : `${attribute}="${value}"`;
 }
 
 /**
@@ -101,13 +142,52 @@ function assertMeasured(name: string, measured: unknown): void {
             'Record the reading, or leave the key out and say why in `detail`.',
         );
       }
-      if (isPassMark(value)) {
-        throw new Error(
-          `evidence '${name}': refused measured.${key} = '${String(value)}'. A pass mark is a ` +
-            'conclusion, not a measurement — record what the instrument read.',
-        );
-      }
     }
+  }
+
+  const passMark = findPassMark(measured, 'measured');
+  if (passMark !== null) {
+    throw new Error(
+      `evidence '${name}': refused ${passMark.path} = '${passMark.value}'. A pass mark is a ` +
+        'conclusion, not a measurement — record what the instrument read (an attribute reading ' +
+        'goes through attributeReading).',
+    );
+  }
+}
+
+/** Whether a filesystem error says the file is ABSENT, as opposed to present but unreadable. */
+export function isMissingFileError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as NodeJS.ErrnoException).code === 'ENOENT'
+  );
+}
+
+/**
+ * Replace the file at `path` with `body` so that any reader sees either the whole old file or the
+ * whole new one, never a partial one.
+ *
+ * `writeFileSync` truncates the target before it writes. A worker killed mid-write (a timeout, a
+ * Ctrl-C) would leave a truncated committed file, and a second process reading at that moment
+ * would parse an empty or partial array. So the body goes to a uniquely named temporary sibling
+ * first — the same directory, therefore the same filesystem — and is then renamed over the target,
+ * which is atomic on POSIX. A failed write removes its own temporary file rather than leaving it in
+ * `evidence/` (and `.gitignore` ignores `evidence/*.tmp` in case a kill leaves one anyway).
+ *
+ * This makes each write whole. It does not serialise two writers: two processes that both read N
+ * records and both write N+1 still lose one append. Run one project at a time against a shared
+ * evidence file.
+ */
+export function writeFileAtomically(path: string, body: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const temporary = `${path}.${process.pid}.${Date.now()}.${randomBytes(4).toString('hex')}.tmp`;
+  try {
+    writeFileSync(temporary, body, { encoding: 'utf8', flag: 'wx' });
+    renameSync(temporary, path);
+  } catch (error) {
+    rmSync(temporary, { force: true });
+    throw error;
   }
 }
 
@@ -116,8 +196,12 @@ export function readEvidence(name: string): readonly EvidenceRecord[] {
   let raw: string;
   try {
     raw = readFileSync(evidencePath(name), 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // Only an ABSENT file is an empty record set. Any other failure — a permission error, a
+    // directory in the file's place, descriptor exhaustion — says nothing about what the file
+    // holds, and treating it as empty would let the next append replace every earlier measurement.
+    if (isMissingFileError(error)) return [];
+    throw error;
   }
 
   const parsed: unknown = JSON.parse(raw);
@@ -148,7 +232,6 @@ export function recordEvidence(name: string, input: EvidenceInput): EvidenceReco
   };
 
   const records = [...readEvidence(name), record];
-  mkdirSync(EVIDENCE_DIR, { recursive: true });
-  writeFileSync(evidencePath(name), `${JSON.stringify(records, null, 2)}\n`, 'utf8');
+  writeFileAtomically(evidencePath(name), `${JSON.stringify(records, null, 2)}\n`);
   return record;
 }
