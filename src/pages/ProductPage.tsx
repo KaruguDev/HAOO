@@ -330,7 +330,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
               <span aria-hidden="true">{'\u00B7'}</span>
               <a className={footerLinkClasses} href={product.contacts.emailHref}>{product.contacts.email}</a>
               <span aria-hidden="true">{'\u00B7'}</span>
-              <span>{parentRelationshipLine(product.name)}</span>
+              <span className="px-2">{parentRelationshipLine(product.name)}</span>
             </p>
           </div>
         </div>

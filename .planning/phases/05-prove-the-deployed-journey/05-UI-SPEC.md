@@ -961,3 +961,26 @@ one.
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
+
+---
+
+## Superseded by quick task 260913-vbl (2026-09-13)
+
+Owner decisions OD-1 to OD-6 (2026-09-13) restyled the HAOO header and footer to the ZERO-PAPER HUB
+parent-site layout in HAOO's own palette and switched the site font. The rows below replace the
+named parts of this contract going forward.
+
+| Contract | Superseded by |
+|----------|---------------|
+| KF-1 opening stops | The parent-link stop becomes the `HAOO home` logo link to `#top`. At desktop widths `Get started` follows the five section links |
+| SS-3 D4 | D4 now matches no link. It is kept as a guard |
+| Design System, font row | Noto Sans webfont, loaded by a first-line `@import` in `src/index.css` (fallback `'Noto Sans', system-ui, sans-serif`) |
+| Typography | h1 900, h2 800, ProductPage h3 700, header links 500, CTA 600. Sizes are unchanged |
+| Color, header | Transparent over `#18275F` with `white/90` links, then `#FFFFFF` with navy links once scrolled past 40px or while the mobile menu is open |
+| Color, footer | `#0F1A45` with `#DBE2FF` text |
+| Color, focus | White focus ring on every navy surface (`ring-offset-[#18275F]` in the header, `ring-offset-[#0F1A45]` in the footer) |
+| ZM-2 | The header's colour, shadow and padding transition is suppressed by `motion-reduce:transition-none` |
+| F1 | Closed by removing both parent back links |
+| Phase 01 anchor decision ("scroll-mt on the target, not scroll-padding-top on html") | Superseded by `html { scroll-padding-top: 5rem / 6rem }`. Its reason, an html shared with a non-fixed parent header, ended at the 04.2 split, and the header is now fixed |
+
+The original rows above remain the Phase 5 record of what was measured and shipped at the time.

@@ -88,9 +88,14 @@ export default function ProductHeader({ product }: ProductHeaderProps) {
               {link.label}
             </a>
           ))}
+          {/*
+            Shown from lg. Between md and lg the bar cannot fit the logo, five links and the pill on
+            one line (the 260913-vbl visual check measured "Send details" and the pill wrapping at
+            768px), so the CTA stays in the mobile panel below md and returns at 1024px.
+          */}
           <a
             href={GET_STARTED_HREF}
-            className={`ml-2 inline-flex min-h-11 items-center rounded-full bg-[#4054C6] px-5 text-sm font-semibold text-white shadow transition-colors duration-200 hover:bg-[#34459F] motion-reduce:transition-none ${focusClasses}`}
+            className={`ml-2 hidden min-h-11 items-center rounded-full bg-[#4054C6] px-5 text-sm font-semibold text-white shadow transition-colors duration-200 hover:bg-[#34459F] motion-reduce:transition-none lg:inline-flex ${focusClasses}`}
           >
             {GET_STARTED_LABEL}
           </a>

@@ -1,0 +1,673 @@
+{
+  "task": "quick-260913-vbl",
+  "generatedAt": "2026-09-13T20:08:51.376Z",
+  "baseUrl": "http://localhost:4173",
+  "failures": [],
+  "observations": [],
+  "readings": {
+    "screenshots": [
+      "screenshots/1440-top.png",
+      "screenshots/1440-scrolled.png",
+      "screenshots/1440-footer.png",
+      "screenshots/768-top.png",
+      "screenshots/1024-top.png",
+      "screenshots/390-top.png",
+      "screenshots/390-scrolled.png",
+      "screenshots/390-menu-open.png",
+      "screenshots/390-footer.png",
+      "screenshots/320x256-menu-open.png"
+    ],
+    "anchoredHeadings": [
+      {
+        "run": "1440-reduce",
+        "href": "#benefits",
+        "headerBottom": 88,
+        "headingTop": 175.5625,
+        "headingText": "Benefits",
+        "scrollY": 1041
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#capabilities",
+        "headerBottom": 88,
+        "headingTop": 175.75,
+        "headingText": "Capabilities",
+        "scrollY": 1388
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#brochure",
+        "headerBottom": 88,
+        "headingTop": 175.875,
+        "headingText": "Brochure",
+        "scrollY": 3307
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#qualify",
+        "headerBottom": 88,
+        "headingTop": 175.59375,
+        "headingText": "Send your details",
+        "scrollY": 3975
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#onboarding",
+        "headerBottom": 88,
+        "headingTop": 208.4375,
+        "headingText": "Get help choosing",
+        "scrollY": 6056
+      },
+      {
+        "run": "390-reduce",
+        "href": "#benefits",
+        "headerBottom": 64,
+        "headingTop": 144.4375,
+        "headingText": "Benefits",
+        "scrollY": 1843
+      },
+      {
+        "run": "390-reduce",
+        "href": "#capabilities",
+        "headerBottom": 64,
+        "headingTop": 143.8125,
+        "headingText": "Capabilities",
+        "scrollY": 2386
+      },
+      {
+        "run": "390-reduce",
+        "href": "#brochure",
+        "headerBottom": 64,
+        "headingTop": 144.46875,
+        "headingText": "Brochure",
+        "scrollY": 5566
+      },
+      {
+        "run": "390-reduce",
+        "href": "#qualify",
+        "headerBottom": 64,
+        "headingTop": 144.46875,
+        "headingText": "Send your details",
+        "scrollY": 6307
+      },
+      {
+        "run": "390-reduce",
+        "href": "#onboarding",
+        "headerBottom": 64,
+        "headingTop": 168.0625,
+        "headingText": "Get help choosing",
+        "scrollY": 8554
+      },
+      {
+        "run": "1440-smooth",
+        "href": "#benefits",
+        "headerBottom": 88,
+        "headingTop": 175.5625,
+        "headingText": "Benefits",
+        "scrollY": 1041
+      },
+      {
+        "run": "1440-smooth",
+        "href": "#capabilities",
+        "headerBottom": 88,
+        "headingTop": 175.75,
+        "headingText": "Capabilities",
+        "scrollY": 1388
+      },
+      {
+        "run": "1440-smooth",
+        "href": "#brochure",
+        "headerBottom": 88,
+        "headingTop": 175.875,
+        "headingText": "Brochure",
+        "scrollY": 3307
+      },
+      {
+        "run": "1440-smooth",
+        "href": "#qualify",
+        "headerBottom": 88,
+        "headingTop": 175.59375,
+        "headingText": "Send your details",
+        "scrollY": 3975
+      },
+      {
+        "run": "1440-smooth",
+        "href": "#onboarding",
+        "headerBottom": 88,
+        "headingTop": 224.4375,
+        "headingText": "Get help choosing",
+        "scrollY": 6040
+      }
+    ],
+    "contrast": [
+      {
+        "state": "1440-top",
+        "name": "Benefits",
+        "foreground": "#e8e9ef",
+        "backdrop": "#18275f",
+        "ratio": 11.63,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-top",
+        "name": "Capabilities",
+        "foreground": "#e8e9ef",
+        "backdrop": "#18275f",
+        "ratio": 11.63,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-top",
+        "name": "Brochure",
+        "foreground": "#e8e9ef",
+        "backdrop": "#18275f",
+        "ratio": 11.63,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-top",
+        "name": "Send details",
+        "foreground": "#e8e9ef",
+        "backdrop": "#18275f",
+        "ratio": 11.63,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-top",
+        "name": "Onboarding",
+        "foreground": "#e8e9ef",
+        "backdrop": "#18275f",
+        "ratio": 11.63,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-top",
+        "name": "Get started",
+        "foreground": "#ffffff",
+        "backdrop": "#4054c6",
+        "ratio": 6.36,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Benefits",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Capabilities",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Brochure",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Send details",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Onboarding",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "1440-scrolled",
+        "name": "Get started",
+        "foreground": "#ffffff",
+        "backdrop": "#4054c6",
+        "ratio": 6.36,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: Benefits",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: Capabilities",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: Brochure",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: Send details",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: Onboarding",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: How we measure this page",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "p: © 2026 HAOO. All rights reserved.",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "p: +254 702 188 044·info@haoo.online·HAOO is a ZERO-PAPER HUB p",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: +254 702 188 044",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "footer",
+        "name": "a: info@haoo.online",
+        "foreground": "#dbe2ff",
+        "backdrop": "#0f1a45",
+        "ratio": 13.03,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-top",
+        "name": "Open HAOO navigation",
+        "foreground": "#ffffff",
+        "backdrop": "#18275f",
+        "ratio": 14.05,
+        "threshold": 3
+      },
+      {
+        "state": "390-scrolled",
+        "name": "Open HAOO navigation",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 3
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Benefits",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Capabilities",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Brochure",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Send details",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Onboarding",
+        "foreground": "#18275f",
+        "backdrop": "#ffffff",
+        "ratio": 14.05,
+        "threshold": 4.5
+      },
+      {
+        "state": "390-menu-panel",
+        "name": "Get started",
+        "foreground": "#ffffff",
+        "backdrop": "#4054c6",
+        "ratio": 6.36,
+        "threshold": 4.5
+      }
+    ],
+    "axe": [
+      {
+        "label": "header color-contrast 1440 top",
+        "violations": 0,
+        "violationIds": [],
+        "incomplete": 0,
+        "incompleteIds": []
+      },
+      {
+        "label": "header color-contrast 1440 scrolled",
+        "violations": 0,
+        "violationIds": [],
+        "incomplete": 0,
+        "incompleteIds": []
+      },
+      {
+        "label": "footer all rules 1440 bottom",
+        "violations": 0,
+        "violationIds": [],
+        "incomplete": 0,
+        "incompleteIds": []
+      },
+      {
+        "label": "header color-contrast 390 scrolled menu open",
+        "violations": 0,
+        "violationIds": [],
+        "incomplete": 0,
+        "incompleteIds": []
+      }
+    ],
+    "overflow": [
+      {
+        "viewport": "1440x900",
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "1280x800",
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "1024x768",
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "innerWidth": 1024,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "768x1024",
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "390x844",
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      },
+      {
+        "viewport": "360x740",
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      },
+      {
+        "viewport": "320x256",
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      }
+    ],
+    "menuReachability": {
+      "name": "Get started",
+      "centre": {
+        "x": 160,
+        "y": 194
+      },
+      "height": 44,
+      "hitIsLink": true,
+      "hit": "a Get started"
+    },
+    "skipLink": {
+      "focused": "Skip to HAOO content",
+      "rect": {
+        "top": 16,
+        "left": 16,
+        "width": 152,
+        "height": 20
+      },
+      "hitIsSkipLink": true,
+      "hit": "a Skip to HAOO content",
+      "zIndex": "60"
+    },
+    "reducedMotion": {
+      "transitionProperty": "none",
+      "transitionDuration": "0.3s"
+    },
+    "font": {
+      "notoSans900Loaded": true,
+      "h1FontFamily": "\"Noto Sans\", system-ui, sans-serif",
+      "h1FontWeight": "900",
+      "headerLinkFontWeight": "500",
+      "ctaFontWeight": "600",
+      "sectionH2FontWeight": "800",
+      "fontResponses": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosans/v42/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7duw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosans/v42/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7duw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosans/v42/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7duw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosans/v42/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7duw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosans/v42/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5a7duw.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "footerCounts": {
+      "telLinks": 1,
+      "mailtoLinks": 1,
+      "parentSiteAnchors": 0
+    }
+  }
+}
