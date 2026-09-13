@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-14-PLAN.md
-last_updated: "2026-09-12T20:37:53.927Z"
-last_activity: 2026-09-12
-last_activity_desc: 05-13 complete, 05-14 next
-state_head: 1f1230acb588fbe18db276009a9a1fa1455ab679
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-13T00:11:35.277Z"
+last_activity: 2026-09-13
+last_activity_desc: 05-02 complete, link 1 (MX) confirmed, 05-06 next
+state_head: e92fe525166d4cb6d69704cb5be0a3585f422e9b
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 66
+  completed_plans: 67
   percent: 43
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 14 of 17 (05-14 next; 12 plans summarised; 05-02, 05-06 and 05-16 parked on the haoo.online MX records)
+Plan: 15 of 17 (05-06 next; 14 plans summarised; 05-06, 05-16 and 05-17 remain, and 05-06 is no longer parked on MX)
 Total Plans in Phase: 17
 Status: Ready to execute
-Last activity: 2026-09-12 — 05-13 complete. ZM-1 is measured at 640/720 (SC 1.4.4, 200%) and 320 (SC 1.4.10): 0 escapees, 10/10 content items, 8/8 actions, 0 truncations. ZM-2 found two live reduced-motion defects, fixed in 65a612a and proven on preview. E1 and E3 are held out for human judgement
+Last activity: 2026-09-13 — 05-02 complete. Link 1 (MX) of LEAD-07 is CONFIRMED: the local resolver and 8.8.8.8 both name 10 mx1/mx2.privateemail.com (closing run 2026-09-12T21:03:51Z, re-measured 2026-09-13T00:06:36Z). Task 3's four-address A clause measures 2 because the zone is now Cloudflare-proxied (WINDOWS #36, owner or planner decision)
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
 
@@ -108,6 +108,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P15 | 12 min | 3 tasks | 12 files |
 | Phase 05 P13 | 19 min | 3 tasks | 17 files |
 | Phase 05 P14 | 23 min | 3 tasks | 7 files |
+| Phase 05 P02 | 10 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -257,6 +258,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-14: the axe gate (e2e/axe-gate.e2e.ts) fails on any critical or serious node in violations OR incomplete without a named exception, and covers all 11 surface-states including S4 (owner rulings, deliberately wider than the plan wording)
 - [Phase 05]: 05-14: R-1 (bypass, serious, incomplete, S4 html) ACCEPTED as the one named exception with a vacuity guard; reason owner-accepted, orchestrator-drafted at the owner's request, not the owner's own wording
 - [Phase 05]: 05-14: the numbered axe blocking list stayed empty on a re-read against the builds serving now (live haoo-D1dl6F2P.js, ZPH 3525f6d, preview haoo-CNGGkFFJ.js), so no product source changed; e2e/fixtures/axe.ts byte-unchanged
+- [Phase 05]: 05-02: link 1 (MX) of LEAD-07 CONFIRMED — local resolver and 8.8.8.8 both name 10 mx1/mx2.privateemail.com (ten consecutive rounds 21:02:44Z-21:03:30Z, closing run 2026-09-12T21:03:51Z, re-measured 2026-09-13T00:06:36Z after the executor's spend-limit interruption). Task 3's automated check exits 1 on its four-address A clause only: the zone is now delegated to bella/oswald.ns.cloudflare.com and the apex resolves to Cloudflare proxy addresses 104.21.65.146/172.67.164.26, not caused by the MX edit. Recorded as measured, not rewritten; owner or planner to decide whether to amend the criterion. 05-06 (link 2) can now be attempted.
 
 ### Pending Todos
 
@@ -284,7 +286,7 @@ None yet.
 - Phase 04.2 plan 04 is HALTED at its first task — a blocking-human checkpoint:decision on the measurement-disclosure data-controller copy (D-09). No source work is possible: tasks 2 and 3 both carry preconditions on that approval. Owner must return the approved controller heading and note verbatim, the placement, and the orphaned-record disposition. The unresolved Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) feeds into this gate.
 - [Phase 04.2] RESOLVED by plan 04.2-08: the owner ratified the 26-entry scaffold allowlist on two grounds and narrowed SPLT-01's positive half to product source. `npm run verify:disjoint` now exits 0 in BOTH repositories (26 shared paths, 26 subtracted, 0 violations, 0 converged collisions, 0 product-source leaks). SPLT-01 is Complete.
 - OPEN: Kenya Data Protection Act 2019 sign-off (02-VALIDATION.md:91) — NOT closed by the owner's copy approval; needs someone with legal standing
-- DECIDED NOT EXECUTED: haoo.online has no MX records, so info@haoo.online very likely does not receive mail; Phase 5 / LEAD-07 blocks on the DNS change
+- EXECUTED 2026-09-12 (05-02): haoo.online now publishes MX 10 mx1.privateemail.com / 10 mx2.privateemail.com, CONFIRMED from the local resolver and 8.8.8.8 (re-measured 2026-09-13T00:06:36Z). LEAD-07 links 2 (activation, 05-06) and 3 (delivery, 05-16) are still outstanding
 - OPEN: the certificate serving www.haoo.online was issued 2026-09-03, two days before the reclaim, while a third party held the Pages claim (D34)
 - [Phase 05 RESOLVED 2026-09-12] F1-LIVE is CLOSED. Both "Back to ZERO-PAPER HUB" links on the deployed https://www.haoo.online/ had resolved to the HAOO page itself because fix commit d8f4bea was never pushed. The owner gave explicit authorisation and the orchestrator ran git push origin main: origin/main moved f957fd9 -> c39cc5a (37 commits), and the Deploy HAOO workflow run 34687312104 concluded success (10:00:38Z -> 10:01:45Z, head SHA c39cc5a2). Re-measured independently at 10:12-10:13 UTC: the live page serves bundle /assets/haoo-D1dl6F2P.js (SHA-256 d607c149ca785c58c5f26183852367aa52badcb02ee8bbad93e0daf136f6b508), that bundle carries two <a> elements with href="https://www.zero-paperhub.com/", and both links resolve to that destination in the DOM across 3 of 3 measurements. The self-terminating DEPLOY_LAG entry in e2e/semantics.e2e.ts broke as designed and was deleted with all of its machinery, so promise rule D4 is now unconditional. Full readings in 05-EVIDENCE-SEMANTICS.md section 5.1.
 - [Phase 05 RESOLVED 2026-09-12] ZM-LIVE-1 and ZM-LIVE-2 are CLOSED. Under prefers-reduced-motion, the deployed https://www.haoo.online/ still translated the capability card on hover (matrix(1, 0, 0, 1, 0, -4)) and computed html scroll-behavior smooth, because fix commit 65a612a was not yet deployed. On the owner's explicit decision to deploy HAOO once after 05-14, the orchestrator ran git push origin main: ea538c0..651eebe (11 commits, 65a612a the only product-source commit). Deploy HAOO run 34717723054 and Verify tree disjointness run 34717723047 both finished with status completed and conclusion success. Re-measured independently at 20:45-20:49 UTC: live serves /assets/haoo-C1OXjuEM.js (SHA-256 3a6ee0fd849f1d0f670f2dc530c0b9c1a4e26a8523ea3985eb21c92e39e51281) and /assets/haoo-BYmxvBcM.css (SHA-256 29f8b5bdfc9771dc6414fca33d7f47afe8f1043b45a23beaca7a7bdf68c4d13c). With reduce emulated, transform reads none before and after hover and html scroll-behavior reads auto, in the spec and in 3 of 3 standalone probe loads; a no-preference control still reads the translate and smooth. Both DEPLOY_LAG entries in e2e/zoom-motion.e2e.ts broke as designed and were deleted with all of their machinery (DEPLOY_LAG occurrences 3 -> 0), so ZM-2a/2b assert unconditionally on live and preview. Closing commit: "fix(05-13): close ZM-LIVE-1 and ZM-LIVE-2 by deleting the DEPLOY_LAG entries the deploy terminated". Full readings in 05-EVIDENCE-ZOOM-MOTION.md section 2.1.
@@ -312,6 +314,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-12T20:37:53.783Z
-Stopped at: Completed 05-14-PLAN.md
+Last session: 2026-09-13T00:11:35.127Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

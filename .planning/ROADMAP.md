@@ -343,7 +343,7 @@ wave below therefore holds at most one HAOO-side plan and at most one ZERO-PAPER
   3. Direct production navigation and refresh work for the HAOO page and brochure, while build, typecheck, lint, automated contract/component tests, and required deployed checks pass.
   4. A uniquely tagged production qualification submission demonstrates that the activated HAOO endpoint reaches the `info@haoo.online` inbox or spam folder, with direct onboarding recovery paths still available.
 
-**Plans**: 13/18 plans executed
+**Plans**: 14/18 plans executed
 
 - [ ] 05-EVIDENCE-PLANNING-HOME.md
 
@@ -359,7 +359,7 @@ after wave 1 must be run from HAOO.*
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 05-02-PLAN.md — Open the mail chain: the MX records gate, placed early so DNS propagation overlaps the harness build.
+- [x] 05-02-PLAN.md — Open the mail chain: the MX records gate, placed early so DNS propagation overlaps the harness build.
 - [x] 05-03-PLAN.md — Tracer: one live HAOO surface measured end to end, with the harness inside typecheck and outside the unit run. **The phase's sole `type="tracer"` task.**
 
 **Wave 3** *(blocked on Wave 2 — every plan here depends on the tracer being verified)*
@@ -406,4 +406,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
 | 04.2. Split HAOO into its Own Repository and Domain | 9/9 | Complete    | 2026-09-07 |
-| 5. Prove the Deployed Journey | 13/18 | In Progress|  |
+| 5. Prove the Deployed Journey | 14/18 | In Progress|  |
