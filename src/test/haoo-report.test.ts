@@ -1677,12 +1677,13 @@ describe('credentialed CLI', () => {
   /**
    * The real auditor, called — not four `toContain` checks that resemble it.
    *
-   * `auditPhase4Coverage` holds 69 required capability rows and eleven operational-boundary
+   * `auditPhase4Coverage` holds 69 required capability rows and twelve operational-boundary
    * assertions, including the ones stating that production analytics enablement is opt-in
    * and enabled, that a green workflow run is not evidence of a capturing deploy, and that
    * the report credentials never enter a `VITE_*` variable. (Nine until `04.1-11` replaced
    * the three deferral-state assertions and added the two that keep the enabled state from
-   * overclaiming.) It was exported and
+   * overclaiming; quick task `260913-p4u` added the twelfth, pinning the owner-performed
+   * cookieless server hash mode setting.) It was exported and
    * imported nowhere: no npm script ran it, the deploy workflow did not run it, and the
    * only test that mentioned the file asserted that ESLint supplied it with rules. A
    * 200-line enforcement module ran solely when a human typed the command, so COVERAGE.md
