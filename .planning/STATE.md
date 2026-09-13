@@ -38,7 +38,7 @@ Last activity: 2026-09-13 — Phase 05 complete, transitioned to Phase 2
 - **Earlier phases not yet marked complete:** 2, 3, 4 and 04.1 show In Progress in ROADMAP.md although their plans are summarised.
 - **Nothing pushed:** HAOO local main is ahead of origin by docs/evidence commits only.
 
-Progress: 70/72 plans summarised across the milestone; 4 of 7 phases complete ([██████░░░░] 57%)
+Progress: 70/72 plans summarised across the milestone; 3 of 7 phases (1, 04.2, 5) marked complete in ROADMAP.md
 
 ## Performance Metrics
 
