@@ -1077,8 +1077,11 @@ per marker: `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` (05-06) and
 `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` (05-16). Nothing further was sent after the owner's
 report.
 
-Was blocked on link 2. A tagged submission sent through an unactivated endpoint proves nothing about
-delivery, which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.
+**History note: the pre-send placeholder for this link, written before Link 2 was confirmed and kept
+as written. It no longer describes Link 3's state, which is CONFIRMED above.** It read: *Was blocked
+on link 2. A tagged submission sent through an unactivated endpoint proves nothing about delivery,
+which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.* The paragraph below belongs to the same
+placeholder.
 
 To be recorded when taken, per **D-13**: the unique release-verification tag (fixed *before* sending,
 per **D-12**), the received timestamp, and the destination folder. **Arrival in the spam folder
