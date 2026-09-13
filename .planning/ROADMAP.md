@@ -17,7 +17,7 @@ This milestone turns the existing company landing page into a product-led site b
 - [ ] **Phase 4: Report and Enrich the HAOO Funnel Truthfully** - Make aggregate funnel activity visible and attach a readable engagement summary to voluntary enquiries without opaque scoring.
 - [ ] **Phase 04.1: Migrate Measurement from Plausible to PostHog (INSERTED)** - Replace Plausible with PostHog while preserving and proving every Phase 3 and Phase 4 privacy contract.
 - [x] **Phase 04.2: Split HAOO into its Own Repository and Domain (INSERTED)** - Move HAOO to its own repository at `www.haoo.online` so Phase 5 proves the arrangement that ships permanently. *(Host corrected 2026-09-06 by plan 04.2-09 task 3: the owner reversed decision (a) after 04.2-02 shipped the apex, and `haoo.online` now 301-redirects to the canonical `www` leg. See 04.2-SPLIT-CONTRACT.md § Domain → Decision (a) reversal.)* (completed 2026-09-07)
-- [ ] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts.
+- [x] **Phase 5: Prove the Deployed Journey** - Verify the complete live funnel across devices, accessibility modes, static routes, providers, assets, and HAOO source facts. (completed 2026-09-13)
 
 ## Phase Details
 
@@ -406,4 +406,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 04.1 → 04.2 → 5
 | 4. Report and Enrich the HAOO Funnel Truthfully | 13/14 | In Progress|  |
 | 04.1. Migrate Measurement from Plausible to PostHog | 11/11 | In Progress|  |
 | 04.2. Split HAOO into its Own Repository and Domain | 9/9 | Complete    | 2026-09-07 |
-| 5. Prove the Deployed Journey | 17/18 | In Progress|  |
+| 5. Prove the Deployed Journey | 17/17 | Complete    | 2026-09-13 |
