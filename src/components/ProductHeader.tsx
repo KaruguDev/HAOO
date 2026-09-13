@@ -49,14 +49,16 @@ export default function ProductHeader({ product }: ProductHeaderProps) {
   // The open mobile panel always sits under a white bar.
   const solid = scrolled || menuOpen;
   const focusClasses = solid ? focusOnLight : focusOnNavy;
-  const headerStateClasses = solid ? 'bg-white py-2 shadow-md md:py-3' : 'bg-transparent py-3 md:py-5';
+  // Unscrolled, the bar paints the hero's own navy rather than transparent: identical over the flat
+  // navy hero, and never white-on-light while scroll state catches up after an in-page jump (axe S1).
+  const headerStateClasses = solid ? 'bg-white py-2 shadow-md md:py-3' : 'bg-[#18275F] py-3 md:py-5';
   const sectionLinkStateClasses = solid ? 'text-[#18275F] hover:text-[#4054C6]' : 'text-white/90 hover:text-white';
   const toggleStateClasses = solid ? 'text-[#18275F] hover:bg-[#E9EDFF]' : 'text-white hover:bg-white/10';
   const homeTextStateClasses = solid ? 'text-[#18275F]' : 'text-white';
   const logo = product.media.logo;
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,padding] duration-300 motion-reduce:transition-none ${headerStateClasses}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-[box-shadow,padding] duration-300 motion-reduce:transition-none ${headerStateClasses}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <a
           href="#top"
@@ -83,7 +85,7 @@ export default function ProductHeader({ product }: ProductHeaderProps) {
             <a
               key={link.href}
               href={link.href}
-              className={`inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium tracking-wide transition-colors duration-200 motion-reduce:transition-none ${sectionLinkStateClasses} ${focusClasses}`}
+              className={`inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium tracking-wide ${sectionLinkStateClasses} ${focusClasses}`}
             >
               {link.label}
             </a>
