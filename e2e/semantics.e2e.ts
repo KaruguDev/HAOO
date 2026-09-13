@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 
 import { PRODUCTS_REGION_SELECTOR } from './fixtures/axe';
 import {
@@ -61,6 +61,20 @@ const PRODUCTS = SURFACES.S3;
 
 /** A live network round trip plus several state transitions does not fit the 30 s default. */
 const LIVE_TIMEOUT_MS = 180_000;
+
+/**
+ * Every test in this file measures the DEPLOYED journeys: `openHaoo` navigates to the absolute live
+ * URL and the Products test to the live ZERO-PAPER HUB home page. Run from the hermetic `preview`
+ * project they would reach production from the gate that must not need the network, and write S1
+ * records indistinguishable from live ones (review CR-01). So they run on the `live` project only.
+ */
+function requireLive(testInfo: TestInfo): void {
+  test.skip(
+    testInfo.project.name !== HAOO.playwrightProject,
+    'the semantics contract measures the deployed journeys and has no referent in the preview build',
+  );
+  test.setTimeout(LIVE_TIMEOUT_MS);
+}
 
 /** The desktop width every default-state reading is taken at (D-09's 1280 entry). */
 const DESKTOP = { width: 1280, height: 1024 } as const;
@@ -338,8 +352,15 @@ async function landmarkCounts(page: Page) {
   };
 }
 
-/** Drive the page into the empty-required-submit state. Nothing is sent: the form is `noValidate`. */
+/**
+ * Drive the page into the empty-required-submit state. Nothing is sent: the form is `noValidate`
+ * and untouched, so validation stops the submit before any request.
+ *
+ * The provider route is belt-and-braces against that reasoning being wrong, as in every other spec
+ * that drives the live form: a validation regression must abort in the browser, not send a lead.
+ */
 async function submitEmptyRequired(page: Page): Promise<void> {
+  await page.route(/formsubmit\.co/, (route) => route.abort('blockedbyclient'));
   const submit: Locator = page.getByRole('button', { name: SUBMIT_NAME, exact: true });
   await submit.scrollIntoViewIfNeeded();
   await submit.click();
@@ -357,7 +378,8 @@ test.describe('SS-1 — heading order, asserted by this spec rather than by an a
 
   test('the default state has one top-level heading and the shipped level structure', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const headings = assertNonEmptySubjects(
@@ -430,7 +452,8 @@ test.describe('SS-1 — heading order, asserted by this spec rather than by an a
     }
   });
 
-  test('the error-summary state holds its level', async ({ page }) => {
+  test('the error-summary state holds its level', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
     await submitEmptyRequired(page);
 
@@ -459,7 +482,8 @@ test.describe('SS-1 — heading order, asserted by this spec rather than by an a
     expect(skipped).toBeNull();
   });
 
-  test('the aborted-artifact state holds its level', async ({ page }) => {
+  test('the aborted-artifact state holds its level', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await page.route('**/*.pdf', (route) => route.abort());
     await openHaoo(page);
     await page.getByRole('region', { name: 'Brochure', exact: true }).scrollIntoViewIfNeeded();
@@ -503,7 +527,8 @@ test.describe('SS-1 — heading order, asserted by this spec rather than by an a
 test.describe('SS-2 — landmark and region inventories', () => {
   test.describe.configure({ timeout: LIVE_TIMEOUT_MS });
 
-  test('one banner, one main, one contentinfo, and the closed region list', async ({ page }) => {
+  test('one banner, one main, one contentinfo, and the closed region list', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const nodes = await ariaNodes(page);
@@ -564,7 +589,8 @@ test.describe('SS-2 — landmark and region inventories', () => {
 
   test('the two navigation landmarks are distinct, and each is exposed in its own state', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
     const desktop = namesForRole(await ariaNodes(page), 'navigation');
 
@@ -610,7 +636,8 @@ test.describe('SS-2 — landmark and region inventories', () => {
     }
   });
 
-  test('the Products section is a named region its nav entry resolves to', async ({ page }) => {
+  test('the Products section is a named region its nav entry resolves to', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await page.setViewportSize(DESKTOP);
     await page.goto(PRODUCTS.url, { waitUntil: 'networkidle' });
 
@@ -932,7 +959,8 @@ test.describe('SS-3 — every name is descriptive, and every name that names a d
 
   test('every link, button and control has a non-empty name, and no name is icon content', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const controls = assertNonEmptySubjects(
@@ -1031,7 +1059,8 @@ test.describe('SS-3 — every name is descriptive, and every name that names a d
     }
   });
 
-  test('every description reference resolves in the state that renders one', async ({ page }) => {
+  test('every description reference resolves in the state that renders one', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const idle = (await namedControls(page)).filter((control) => control.describedBy !== null);
@@ -1069,7 +1098,8 @@ test.describe('SS-3 — every name is descriptive, and every name that names a d
     }
   });
 
-  test('every name that names a destination resolves to that destination', async ({ page }) => {
+  test('every name that names a destination resolves to that destination', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const links = assertNonEmptySubjects(
@@ -1148,7 +1178,8 @@ test.describe('SS-4 — the brochure content exists as HTML, and outlives the br
 
   test('the capability and journey content is present, in order, at count equality', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const capabilities = await capabilityItems(page);
@@ -1190,7 +1221,8 @@ test.describe('SS-4 — the brochure content exists as HTML, and outlives the br
 
   test('the equivalent survives the artifact being unavailable, and keeps both controls', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    requireLive(testInfo);
     await page.route('**/*.pdf', (route) => route.abort());
     await openHaoo(page);
     await page.getByRole('region', { name: 'Brochure', exact: true }).scrollIntoViewIfNeeded();
@@ -1241,7 +1273,8 @@ test.describe('SS-4 — the brochure content exists as HTML, and outlives the br
     await expect(download).toBeEnabled();
   });
 
-  test('the three brochure references resolve to one and the same target', async ({ page }) => {
+  test('the three brochure references resolve to one and the same target', async ({ page }, testInfo) => {
+    requireLive(testInfo);
     await openHaoo(page);
 
     const references = await brochureReferences(page);
