@@ -6,11 +6,18 @@ LEAD-07 asks two things — that the HAOO form endpoint is **activated**, and th
 is **delivered**. Neither is reachable until mail for `haoo.online` has a published exchanger. Those
 are three distinct facts, and this file keeps them three distinct claims (05-CONTEXT.md **D-11**).
 
+**Chain summary, closed 2026-09-13 by plan 05-16:**
+
+- Link 1, MX: **CONFIRMED** at `2026-09-12T21:03:51Z`. Last re-measured `2026-09-13T01:11:43.608Z`, just before the release send.
+- Link 2, Activation: **CONFIRMED** on the owner's report (2026-09-13). The marked activation-trigger message corroborates it, delivered with header `Sun, 13 Sep 2026 00:33:02 +0000`.
+- Link 3, Delivery: **CONFIRMED** on the owner's report (2026-09-13). Marker `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, sent `2026-09-13T01:11:46.454Z`, received "Today 04:11" as the owner's mail client shows it (01:11 UTC). The folder was **inbox**.
+- Live submissions sent in Phase 5: **2**. They are `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` (05-06) and `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` (05-16), one message each.
+
 | Link | Claim | Status | Owning plan |
 |---|---|---|---|
 | 1 — MX | `haoo.online` publishes MX records naming the two PrivateEmail hosts, answering from two independent resolvers | **CONFIRMED** (`2026-09-12T21:03:51Z`; re-measured `2026-09-13T00:06:36Z`) | 05-02 (this plan) |
 | 2 — Activation | FormSubmit's activation confirmation for `info@haoo.online` was received and confirmed; the endpoint's state is recorded | **CONFIRMED** on the owner's report (`2026-09-13`, "activated form submit"), corroborated by delivery of the marked activation-trigger submission at `00:33:02 +0000`; folder, full sender and post-click page text not stated | 05-06 |
-| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **AWAITING OWNER CONFIRMATION**. The tagged submission `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` was sent `2026-09-13T01:11:46.454Z`, 1 message, HTTP 200, `success` `"true"`. The marker was committed before the send (`49c976a`). No delivery is recorded yet | 05-16 |
+| 3 — Delivery | A uniquely tagged production submission arrived, recorded with its tag, received timestamp and destination folder | **CONFIRMED** on the owner's mailbox report (2026-09-13). The tagged submission `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` was sent `2026-09-13T01:11:46.454Z` as 1 message, with the marker committed first in `49c976a`. It was received "Today 04:11" as the owner's mail client shows it (01:11 UTC), folder **inbox**. The full sender and subject are not stated: both are cut off in the owner's screenshot | 05-16 |
 
 Why three and not one: FormSubmit's activation confirmation is emailed **to the very mailbox under
 test**. Collapsing the chain into a single pass/fail would report *"mail did not arrive"* without
@@ -900,9 +907,9 @@ pending, in the owner's words *"that bit is still pening"* [owner's correction: 
 
 ## Link 3 — Delivery
 
-**Status: AWAITING OWNER CONFIRMATION** (plan 05-16 Task 1, from `2026-09-13T01:11:46.454Z`). Owned by plan **05-16**, which appends here. The browser saw the provider accept the request. Only the owner's mailbox report can say whether the message arrived, and in which folder.
+**Status: CONFIRMED.** This rests on the **owner's mailbox report** (2026-09-13, plan 05-16 Task 3): the delivered message carries the marker committed in `49c976a` before the send, and the owner named the folder as **inbox**. Delivery is established by that report. It is **not** established by the browser's success state or by FormSubmit's `"success":"true"`. Those two readings, recorded below, show only that the provider accepted the request. Owned by plan **05-16**.
 
-Status history: **NOT STARTED** until `2026-09-13T01:10:59.543Z` · **MARKER RECORDED, NOT YET SENT** from `2026-09-13T01:10:59.543Z` (committed `49c976a` at `2026-09-13T01:11:29Z`) · **AWAITING OWNER CONFIRMATION** from `2026-09-13T01:11:46.454Z`.
+Status history: **NOT STARTED** until `2026-09-13T01:10:59.543Z` · **MARKER RECORDED, NOT YET SENT** from `2026-09-13T01:10:59.543Z` (committed `49c976a` at `2026-09-13T01:11:29Z`) · **AWAITING OWNER CONFIRMATION** from `2026-09-13T01:11:46.454Z` (send record committed `754ed31`) · **CONFIRMED** on the owner's report received 2026-09-13 (plan 05-16 Task 3).
 
 ### The release-verification marker, fixed before sending (D-12)
 
@@ -1012,6 +1019,63 @@ one POST, HTTP 200, a body whose `success` reads `"true"`, and the page's succes
 bundle requires that body. That is FormSubmit's statement that it accepted the submission. It is not
 evidence that the message arrived at `info@haoo.online`, or which folder it landed in. Link 3 therefore
 stands at **AWAITING OWNER CONFIRMATION**, and it moves only on the owner's verbatim mailbox report (D-13).
+
+### Owner's mailbox report (Task 2 checkpoint, transcribed in Task 3)
+
+What I asked for: the exact marker string found by searching the mailbox, the received date and time as
+the mailbox displays it, the folder (**inbox or spam**, named explicitly), the full sender address, and
+the subject line.
+
+**The owner's words, verbatim.** Both were received 2026-09-13 and relayed by the orchestrator:
+
+1. Message 1: a screenshot of the owner's mail client, captioned *"the last form sumission you made"*
+   (the owner's spelling, kept as written).
+2. Message 2: the orchestrator asked *"Which folder is the 04:11 message (marker …b770730d) in?"*,
+   offering `Inbox` and `Spam / Junk`. The owner selected **"Inbox"**.
+
+**What the screenshot shows, as read by the orchestrator.** This is the orchestrator's reading of the
+owner's screenshot, not the owner's words, and this executor did not see the screenshot:
+
+- A new top row in the message list: sender `FormSubmit <submission…` (cut off), subject
+  `New HAOO qualificatio…` (cut off), received **"Today 04:11"**.
+- The open message's Message row ends `Marker: HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`.
+  That is **character for character** the marker committed in `49c976a` before the send.
+- No `Date:` header with seconds was visible.
+- The older rows visible beneath are the 05-06-era messages already recorded under Link 2. They are not
+  recorded again here.
+
+**Recorded against each field asked for.** Only these fields are recorded. No message content beyond
+the marker appears in this file, because both repositories are public.
+
+| Field | Record |
+|---|---|
+| Marker found | `HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d`, read from the open message in the owner's screenshot (orchestrator's reading). It is identical to the marker committed in `49c976a` and to the marker the browser posted at `01:11:46.454Z`. |
+| Received timestamp | **"Today 04:11"**, as the owner's mail client displays it. The client shows local time. Under Link 2 its offset was measured from a `+0000` header shown beside `03:33:02` local, which makes 04:11 local equal to **01:11 UTC** on 2026-09-13. That agrees with the send at `2026-09-13T01:11:46.454Z`. No seconds were shown, and none are recorded. |
+| Folder | **inbox**. This is the owner's direct answer to the folder question. |
+| Sender address | **Not stated in full.** It is cut off in the owner's screenshot at `FormSubmit <submission…`. The owner was asked for it and did not supply the rest. It is not completed from memory or from Link 2. |
+| Subject line | **Not stated in full.** It is cut off in the owner's screenshot at `New HAOO qualificatio…`. The owner was asked for it and did not supply the rest. It is not completed from memory or from Link 2. |
+
+The two fields that are not stated do not hold Link 3 open. D-13's record is the marker, the received
+timestamp and the folder, and all three are established above.
+
+**Folder note (D-13).** The message landed in the **inbox**. The spam-landing branch of D-13 does not
+apply, so no sender-authentication follow-up is raised by this link. This record says only where this
+one message landed. It measures nothing about the domain's sender authentication.
+
+### The LEAD-07 mail chain — closed
+
+| Link | Final status | Timestamp | Authorised by |
+|---|---|---|---|
+| 1 — MX | CONFIRMED | `2026-09-12T21:03:51Z`; re-measured `2026-09-13T01:11:43.608Z` before this send | measurement from two resolvers |
+| 2 — Activation | CONFIRMED | owner's report 2026-09-13; corroborating header `00:33:02 +0000` | the owner's report |
+| 3 — Delivery | CONFIRMED | sent `2026-09-13T01:11:46.454Z`; received "Today 04:11" local (01:11 UTC); folder inbox | the owner's report |
+
+LEAD-07 asks that the endpoint is **activated** and that a uniquely tagged production submission
+**reaches the inbox or spam folder**. Link 2 records the first claim and Link 3 the second, each on the
+owner's report, and in the order D-11 requires. Total live submissions sent in Phase 5: **2**, one message
+per marker: `HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a` (05-06) and
+`HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d` (05-16). Nothing further was sent after the owner's
+report.
 
 Was blocked on link 2. A tagged submission sent through an unactivated endpoint proves nothing about
 delivery, which is the ordering trap 05-RESEARCH.md §"Pitfall 9" names.
