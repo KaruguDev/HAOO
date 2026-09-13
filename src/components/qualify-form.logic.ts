@@ -41,6 +41,37 @@ export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
 export const HONEYPOT_NAME = '_honey';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Whether a parsed provider response body reports that the provider accepted the
+ * submission. Together with an OK status, this is the only thing that may put the page
+ * in `succeeded`.
+ *
+ * L2-O1. The page used to take its terminal state from the HTTP status alone and never
+ * read the body. The aim was that no provider body could make the page claim a send.
+ * Measured live on 2026-09-13T00:30:34.768Z (plan 05-06), FormSubmit answered HTTP 200
+ * with `{"success":"false","message":"This form needs Activation. ..."}` and the page
+ * announced `Your details were sent.`. Ignoring the body produced exactly the false send
+ * that design set out to rule out.
+ *
+ * The aim is kept and the mechanism reversed. Only an explicit acceptance counts: an
+ * object whose `success` is the string `'true'` (FormSubmit's AJAX answer, as observed)
+ * or boolean `true`. A missing, unreadable or unexpected body is not acceptance. A later
+ * provider body change can therefore cause a false failure, which the recovery panel
+ * makes visible and recoverable, but never a false send.
+ *
+ * Case-sensitive by decision. `'TRUE'` and `' true'` have never been observed, and an
+ * unobserved shape is an unexpected body.
+ */
+export function isProviderAcceptance(body: unknown): boolean {
+  if (typeof body !== 'object' || body === null) {
+    return false;
+  }
+
+  const success = (body as { readonly success?: unknown }).success;
+
+  return success === 'true' || success === true;
+}
+
 /** The single requiredness seam used by labels, attributes, validation and announcements. */
 export function isFieldRequired(field: QualifyField, values: QualifyValues): boolean {
   if (field.required) {

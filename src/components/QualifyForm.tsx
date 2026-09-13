@@ -17,6 +17,7 @@ import {
   buildSubmissionBody,
   HONEYPOT_NAME,
   isFieldRequired,
+  isProviderAcceptance,
   QUALIFY_REQUEST_TIMEOUT_MS,
   QUALIFY_STATUS_MESSAGES,
   QUALIFY_SUBMIT_LABEL,
@@ -353,9 +354,23 @@ export default function QualifyForm({
         signal: controller.signal,
       });
 
-      // Terminal state comes from the response status alone. The provider body is
-      // never read, so a provider body change cannot make this page claim a send.
-      setState(response.ok ? 'succeeded' : 'failed');
+      // L2-O1. The terminal state used to come from the response status alone and the
+      // provider body was never read, so that a provider body change could not make this
+      // page claim a send. Measured live on 2026-09-13T00:30:34.768Z (plan 05-06), that
+      // design did claim one: FormSubmit answered HTTP 200 with "success":"false" and
+      // this page announced "Your details were sent.". The aim is kept and the mechanism
+      // reversed. A send succeeds only when the status is OK AND the body reports
+      // acceptance (`isProviderAcceptance`). A missing, unreadable or unexpected body
+      // ends in `failed`. A provider body change can therefore cause a visible,
+      // recoverable false failure, but never a false send.
+      //
+      // The body is awaited inside this `try` and before the `finally` clears the
+      // timeout, so the request budget also covers the body read, and a parse that throws
+      // lands in the `catch` below as `failed`. `json()` parses the body text whatever
+      // the content-type, and the live endpoint labels its JSON answer `text/html`.
+      const accepted = response.ok && isProviderAcceptance(await response.json());
+
+      setState(accepted ? 'succeeded' : 'failed');
     } catch {
       // An abort arrives here like any other transport error, so a stalled request ends
       // in the one state that mounts the recovery panel rather than in a dead spinner.
