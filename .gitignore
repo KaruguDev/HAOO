@@ -67,3 +67,8 @@ dist-provider-unset-probe/
 # of those, and it is rewritten by every run. `evidence/tracer.json` is written by the spec
 # itself and carries measurements only, so it stays committed.
 evidence/playwright-run.json
+
+# Temporary siblings written by the evidence recorders (e2e/fixtures/evidence.ts
+# writeFileAtomically) before they are renamed over their target. A failed write removes its own;
+# a worker killed between the write and the rename could leave one, and it is not a measurement.
+evidence/*.tmp

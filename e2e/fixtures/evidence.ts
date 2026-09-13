@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 import type { SurfaceId } from './surfaces';
 
@@ -111,13 +112,53 @@ function assertMeasured(name: string, measured: unknown): void {
   }
 }
 
+/** Whether a filesystem error says the file is ABSENT, as opposed to present but unreadable. */
+export function isMissingFileError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as NodeJS.ErrnoException).code === 'ENOENT'
+  );
+}
+
+/**
+ * Replace the file at `path` with `body` so that any reader sees either the whole old file or the
+ * whole new one, never a partial one.
+ *
+ * `writeFileSync` truncates the target before it writes. A worker killed mid-write (a timeout, a
+ * Ctrl-C) would leave a truncated committed file, and a second process reading at that moment
+ * would parse an empty or partial array. So the body goes to a uniquely named temporary sibling
+ * first — the same directory, therefore the same filesystem — and is then renamed over the target,
+ * which is atomic on POSIX. A failed write removes its own temporary file rather than leaving it in
+ * `evidence/` (and `.gitignore` ignores `evidence/*.tmp` in case a kill leaves one anyway).
+ *
+ * This makes each write whole. It does not serialise two writers: two processes that both read N
+ * records and both write N+1 still lose one append. Run one project at a time against a shared
+ * evidence file.
+ */
+export function writeFileAtomically(path: string, body: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const temporary = `${path}.${process.pid}.${Date.now()}.${randomBytes(4).toString('hex')}.tmp`;
+  try {
+    writeFileSync(temporary, body, { encoding: 'utf8', flag: 'wx' });
+    renameSync(temporary, path);
+  } catch (error) {
+    rmSync(temporary, { force: true });
+    throw error;
+  }
+}
+
 /** Every record already written under this evidence name, or `[]` when the file is absent. */
 export function readEvidence(name: string): readonly EvidenceRecord[] {
   let raw: string;
   try {
     raw = readFileSync(evidencePath(name), 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // Only an ABSENT file is an empty record set. Any other failure — a permission error, a
+    // directory in the file's place, descriptor exhaustion — says nothing about what the file
+    // holds, and treating it as empty would let the next append replace every earlier measurement.
+    if (isMissingFileError(error)) return [];
+    throw error;
   }
 
   const parsed: unknown = JSON.parse(raw);
@@ -148,7 +189,6 @@ export function recordEvidence(name: string, input: EvidenceInput): EvidenceReco
   };
 
   const records = [...readEvidence(name), record];
-  mkdirSync(EVIDENCE_DIR, { recursive: true });
-  writeFileSync(evidencePath(name), `${JSON.stringify(records, null, 2)}\n`, 'utf8');
+  writeFileAtomically(evidencePath(name), `${JSON.stringify(records, null, 2)}\n`);
   return record;
 }
