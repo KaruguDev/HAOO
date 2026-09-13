@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-09-13T00:11:35.277Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-09-13T00:44:14.527Z"
 last_activity: 2026-09-13
-last_activity_desc: 05-02 complete, link 1 (MX) confirmed, 05-06 next
-state_head: e92fe525166d4cb6d69704cb5be0a3585f422e9b
+last_activity_desc: 05-06 complete, link 2 (activation) confirmed on the owner report, 05-16 next
+state_head: a20737f8593e5c1d44b19e392db125337f2060ee
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 67
+  completed_plans: 68
   percent: 43
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 15 of 17 (05-06 next; 14 plans summarised; 05-06, 05-16 and 05-17 remain, and 05-06 is no longer parked on MX)
+Plan: 16 of 17 (05-16 next; 15 plans summarised; 05-16 and 05-17 remain)
 Total Plans in Phase: 17
 Status: Ready to execute
-Last activity: 2026-09-13 — 05-02 complete. Link 1 (MX) of LEAD-07 is CONFIRMED: the local resolver and 8.8.8.8 both name 10 mx1/mx2.privateemail.com (closing run 2026-09-12T21:03:51Z, re-measured 2026-09-13T00:06:36Z). Task 3's four-address A clause measures 2 because the zone is now Cloudflare-proxied (WINDOWS #36, owner or planner decision)
+Last activity: 2026-09-13 — 05-06 complete. Link 2 (activation) of LEAD-07 is CONFIRMED on the owner report ("activated form submit and received 3 submissions"), corroborated by delivery of the marked activation-trigger submission at 00:33:02 +0000; folder, full sender and post-click page text not stated. Exactly 1 live submission sent (HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a). Link 3 (delivery, 05-16) next
 
 Progress: 43/46 plans ([████░░░░░░] 43%)
 
@@ -109,6 +109,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P13 | 19 min | 3 tasks | 17 files |
 | Phase 05 P14 | 23 min | 3 tasks | 7 files |
 | Phase 05 P02 | 10 min | 3 tasks | 2 files |
+| Phase 05 P06 | 28 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -259,6 +260,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-14: R-1 (bypass, serious, incomplete, S4 html) ACCEPTED as the one named exception with a vacuity guard; reason owner-accepted, orchestrator-drafted at the owner's request, not the owner's own wording
 - [Phase 05]: 05-14: the numbered axe blocking list stayed empty on a re-read against the builds serving now (live haoo-D1dl6F2P.js, ZPH 3525f6d, preview haoo-CNGGkFFJ.js), so no product source changed; e2e/fixtures/axe.ts byte-unchanged
 - [Phase 05]: 05-02: link 1 (MX) of LEAD-07 CONFIRMED — local resolver and 8.8.8.8 both name 10 mx1/mx2.privateemail.com (ten consecutive rounds 21:02:44Z-21:03:30Z, closing run 2026-09-12T21:03:51Z, re-measured 2026-09-13T00:06:36Z after the executor's spend-limit interruption). Task 3's automated check exits 1 on its four-address A clause only: the zone is now delegated to bella/oswald.ns.cloudflare.com and the apex resolves to Cloudflare proxy addresses 104.21.65.146/172.67.164.26, not caused by the MX edit. Recorded as measured, not rewritten; owner or planner to decide whether to amend the criterion. 05-06 (link 2) can now be attempted.
+- [Phase 05]: 05-06: link 2 (activation) of LEAD-07 CONFIRMED on the owner's report ('activated form submit and received 3 submissions', 2026-09-13), corroborated by FormSubmit delivering the marked activation-trigger submission HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a at 00:33:02 +0000. Folder, full sender address and post-click page text not stated. Link 3 (05-16) stays NOT STARTED.
+- [Phase 05]: 05-06: e2e/live-submission.e2e.ts is the only mechanism for live submissions; inert unless HAOO_SEND_LIVE_SUBMISSION is set, needs HAOO_LIVE_SUBMISSION_PURPOSE, live project only, retries pinned to 0 and refuses a retry or repeat index. Exactly 1 live submission sent by 05-06; 05-16 sends the second and last.
 
 ### Pending Todos
 
@@ -292,6 +295,8 @@ None yet.
 - [Phase 05 RESOLVED 2026-09-12] ZM-LIVE-1 and ZM-LIVE-2 are CLOSED. Under prefers-reduced-motion, the deployed https://www.haoo.online/ still translated the capability card on hover (matrix(1, 0, 0, 1, 0, -4)) and computed html scroll-behavior smooth, because fix commit 65a612a was not yet deployed. On the owner's explicit decision to deploy HAOO once after 05-14, the orchestrator ran git push origin main: ea538c0..651eebe (11 commits, 65a612a the only product-source commit). Deploy HAOO run 34717723054 and Verify tree disjointness run 34717723047 both finished with status completed and conclusion success. Re-measured independently at 20:45-20:49 UTC: live serves /assets/haoo-C1OXjuEM.js (SHA-256 3a6ee0fd849f1d0f670f2dc530c0b9c1a4e26a8523ea3985eb21c92e39e51281) and /assets/haoo-BYmxvBcM.css (SHA-256 29f8b5bdfc9771dc6414fca33d7f47afe8f1043b45a23beaca7a7bdf68c4d13c). With reduce emulated, transform reads none before and after hover and html scroll-behavior reads auto, in the spec and in 3 of 3 standalone probe loads; a no-preference control still reads the translate and smooth. Both DEPLOY_LAG entries in e2e/zoom-motion.e2e.ts broke as designed and were deleted with all of their machinery (DEPLOY_LAG occurrences 3 -> 0), so ZM-2a/2b assert unconditionally on live and preview. Closing commit: "fix(05-13): close ZM-LIVE-1 and ZM-LIVE-2 by deleting the DEPLOY_LAG entries the deploy terminated". Full readings in 05-EVIDENCE-ZOOM-MOTION.md section 2.1.
 - O-1: the ZERO-PAPER HUB Cloudflare zone injects a Web Analytics beacon into the retired-path document, which 04.2 D25 defines as carrying exactly zero script. Owner decision about the other repository's hosting; handed to 05-14 alongside R-1. DECIDED, OWNER ACTION DONE (formal closure on 05-17): Owner decision, 2026-09-12 (05-14): the owner will turn off Cloudflare Web Analytics auto-injection for zero-paperhub.com themselves, as a Cloudflare dashboard action outside both repositories. Owner-decided; owner action done (reported 2026-09-12); beacon measured absent by the orchestrator at 2026-09-12T20:31:04Z (Chromium via @playwright/test, JavaScript enabled, the haoo.online refresh target blocked: HTTP 200, cf-cache-status DYNAMIC, 0 requests to cloudflareinsights.com during load plus 3 s, beacon.min.js not referenced, 1 script tag in the served HTML, and plain curl also 1); formal closure still on 05-17's final live run. The one remaining script is the inline Cloudflare bot-management bootstrap 05-11 already recorded: it is not measurement, and 05-11's spec already asserts 0 non-Cloudflare scripts. Whether a bot-management bootstrap sits within D-12's zero-script intent is recorded for 05-17 and phase verification, not decided here. No spec in 05-14 asserts the beacon's absence.
 - OPEN (05-14, AG-O1): www.haoo.online is also fronted by Cloudflare (server: cloudflare, cf-ray). The Cloudflare Web Analytics beacon static.cloudflareinsights.com/beacon.min.js was PRESENT beside /assets/haoo-D1dl6F2P.js on all 4 live S1 states at 2026-09-12T20:29:26Z-20:29:50Z and ABSENT on all 4 at 20:33:19Z-20:34:06Z (e2e/axe-gate.e2e.ts scriptSources); the built dist/index.html carries 0. The owner reported turning off Web Analytics for zero-paperhub.com between the two readings; whether that also covered haoo.online, or the injection is intermittent, is not established. Owner to confirm the haoo.online zone's setting; 05-17's live run is the next reading. Recorded in 05-EVIDENCE-AXE.md section 9.7.
+- OPEN (05-06, L2-O1): the qualification form renders its sent state on an HTTP 200 whose FormSubmit body reads success false (measured 2026-09-13T00:30:34.768Z against the unactivated endpoint). src/ change, out of Phase 5 scope; see 05 deferred-items.md. The windows ledger refused the append because entry 36 carries status 'resolved'.
+- OPEN owner item (05-06): the owner's own check that PostHog shows web and product analytics is pending, in the owner's words 'that bit is still pening' [owner's correction: '*pending']. Two owner test submissions were delivered to info@haoo.online at 00:33 UTC on 2026-09-13; they are not phase sends.
 
 ### Quick Tasks Completed
 
@@ -314,6 +319,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-13T00:11:35.127Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-09-13T00:44:14.383Z
+Stopped at: Completed 05-06-PLAN.md
 Resume file: None
