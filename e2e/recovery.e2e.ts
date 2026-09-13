@@ -1076,7 +1076,10 @@ test.describe('Reachability — out of band, redirects not followed, status trea
       viewport: null,
       measured: {
         target: reading.target,
-        disposition: 'reachable',
+        // Derived from the reading, never written ahead of it: a 404 or a transport failure
+        // (status -1) must not be committed as reachable (review WR-06).
+        disposition:
+          reading.status === 200 ? 'reachable' : `unavailable (status ${reading.status})`,
         status: reading.status,
         redirectTarget: reading.redirectTarget,
         contentType: reading.contentType,
