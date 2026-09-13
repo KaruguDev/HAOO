@@ -55,13 +55,13 @@ coverage:
     requirement: LEAD-07
     verification:
       - kind: other
-        ref: "test \"$(dig +short A haoo.online | wc -l)\" -eq 4 (task 3 verify clause 4, measured 2 at 2026-09-13T00:06:39Z)"
-        status: fail
+        ref: "amended task 3 clause 4 (owner decision 2026-09-13): apex 301 to www, www 200 with /assets/haoo- bundle; amended check exit 0 at 2026-09-13T00:15:46Z. Retired clause measured 2 A records at 2026-09-13T00:06:39Z"
+        status: pass
       - kind: other
         ref: "curl -sSI https://haoo.online/ (301 to www) and https://www.haoo.online/ (200, HAOO bundle), 2026-09-12T21:03:52Z"
         status: pass
-    human_judgment: true
-    rationale: "The four-address criterion no longer describes the zone after the Cloudflare delegation. A person must decide whether the curl reading replaces it, or whether the plan criterion should be amended."
+    human_judgment: false
+    rationale: "The retired four-address clause needed a person to decide whether the criterion still applied. The owner decided on 2026-09-13 to amend it to site-still-serves, and the amended check exits 0, so no judgement remains open."
 
 duration: "about 10 min of active resumed work; wall time from 2026-09-07 to 2026-09-13, spanning the owner's DNS change and two interruptions"
 completed: 2026-09-13
@@ -114,6 +114,7 @@ status: complete
 - **Issue:** `test "$(dig +short A haoo.online | wc -l)" -eq 4` measures `2`. The zone moved to Cloudflare, and the apex now resolves to two proxy addresses, not the four GitHub Pages addresses. The three MX clauses each exit `0`.
 - **Action:** The check was recorded as it ran and was not rewritten. The intent of threat T-05-06, that the website keeps serving, was measured separately with `curl`: the apex returns 301 to `www`, and `www` returns 200 from Cloudflare with `/assets/haoo-C1OXjuEM.js`. Logged to `.planning/WINDOWS.md` as a deviation.
 - **Open for a person:** whether to amend the plan's acceptance criterion (for example, "the site still serves" instead of "four A records"). Not decided here.
+- **Resolved after the plan landed (owner decision 2026-09-13):** the owner chose to amend clause 4 to "the site still serves" (apex 301 to www, www 200 with the HAOO bundle). The amended check exited `0` at `2026-09-13T00:15:46Z`; WINDOWS.md #36 is resolved. Recorded in `05-EVIDENCE-MAIL.md` § Link 1, "Owner amendment to the task 3 check".
 
 ### Record fixes made while checking the uncommitted draft
 

@@ -624,6 +624,34 @@ The three MX clauses exit `0`. The chain exits `1` on clause 4 alone, for the re
 the apex now resolves to two Cloudflare proxy addresses instead of the four GitHub Pages addresses.
 The MX edit did not change the A set. The check is recorded as it ran and was not rewritten.
 
+### Owner amendment to the task 3 check
+
+The run at `2026-09-13T00:06:39Z` exited `1` on clause 4 alone, recorded above and logged as
+`.planning/WINDOWS.md` #36. On 2026-09-13 the owner was asked whether to amend that clause, keep it,
+or take `haoo.online` off the Cloudflare proxy, and chose to amend it to what it was guarding: that
+the website still serves after the MX edit (threat T-05-06).
+
+- **Retired clause 4:** `test "$(dig +short A haoo.online | wc -l)" -eq 4`. It counted the four GitHub
+  Pages addresses, which stopped describing the zone once `haoo.online` moved behind the Cloudflare
+  proxy.
+- **Replacement:** `https://haoo.online/` returns `301`, `https://www.haoo.online/` returns `200`,
+  and the served document references a `/assets/haoo-` bundle.
+
+Measured by the orchestrator at `2026-09-13T00:14:43Z`: `http://haoo.online/` → `301`, location
+`https://www.haoo.online/`; `https://haoo.online/` → `301`, location `https://www.haoo.online/`;
+`https://www.haoo.online/` → `200`, bundle `/assets/haoo-C1OXjuEM.js`. Apex A answer
+`104.21.65.146 172.67.164.26`; MX `10 mx1.privateemail.com.` `10 mx2.privateemail.com.`.
+
+The amended check, run in full at `2026-09-13T00:15:46Z`:
+
+```
+$ test -n "$(dig +short MX haoo.online)" && dig +short MX haoo.online | grep -q 'mx1.privateemail.com' && dig +short MX haoo.online @8.8.8.8 | grep -q 'mx2.privateemail.com' && test "$(curl -s -o /dev/null -w '%{http_code}' https://haoo.online/)" = 301 && test "$(curl -s -o /dev/null -w '%{http_code}' https://www.haoo.online/)" = 200 && curl -s https://www.haoo.online/ | grep -q '/assets/haoo-'
+exit 0
+```
+
+Link 1's status is unchanged by this amendment: it was CONFIRMED on the MX clauses, which are identical
+before and after.
+
 ### What link 1 does and does not establish
 
 **It establishes** that the `haoo.online` zone publishes an MX set naming `mx1.privateemail.com` and

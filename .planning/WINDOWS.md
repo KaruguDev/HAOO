@@ -50,7 +50,7 @@ last_updated: 2026-09-13T00:10:10.640Z
 | 33 | 04.2 | deviation | .planning/phases/04.2-split-haoo-into-its-own-repository-and-domain/04.2-VALIDATION.md |  | PROD-02 has no row in the per-task verification map (D39) | open |  | 2026-09-06T14:46:56.586Z |  |
 | 34 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-1: the live HAOO capability card still translates on hover under prefers-reduced-motion. Fixed in 65a612a; held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.790Z | 2026-09-12T20:54:15.895Z |
 | 35 | 05 | deviation | e2e/zoom-motion.e2e.ts |  | ZM-LIVE-2: live html computes scroll-behavior smooth under prefers-reduced-motion. Fixed in 65a612a (src/index.css); held by DEPLOY_LAG until deploy, then delete the entry | fixed |  | 2026-09-12T20:11:08.951Z | 2026-09-12T20:54:16.088Z |
-| 36 | 05 | deviation | .planning/phases/05-prove-the-deployed-journey/05-02-PLAN.md | 208 | 05-02 task 3 automated check exits 1 on its A clause: dig +short A haoo.online returns 2 Cloudflare proxy addresses, not the 4 GitHub Pages addresses, since the zone moved to Cloudflare; MX clauses exit 0. T-05-06 intent (site serving) measured by curl in 05-EVIDENCE-MAIL.md | open |  | 2026-09-13T00:10:10.640Z |  |
+| 36 | 05 | deviation | .planning/phases/05-prove-the-deployed-journey/05-02-PLAN.md | 208 | 05-02 task 3 automated check exits 1 on its A clause: dig +short A haoo.online returns 2 Cloudflare proxy addresses, not the 4 GitHub Pages addresses, since the zone moved to Cloudflare; MX clauses exit 0. T-05-06 intent (site serving) measured by curl in 05-EVIDENCE-MAIL.md | resolved | Owner amended 05-02 task 3 clause 4 to "site still serves" (owner decision 2026-09-13); amended check exit 0 at 2026-09-13T00:15:46Z | 2026-09-13T00:10:10.640Z | 2026-09-13T00:15:46Z |
 
 ````json
 [
@@ -481,10 +481,10 @@ last_updated: 2026-09-13T00:10:10.640Z
     "file": ".planning/phases/05-prove-the-deployed-journey/05-02-PLAN.md",
     "line": 208,
     "description": "05-02 task 3 automated check exits 1 on its A clause: dig +short A haoo.online returns 2 Cloudflare proxy addresses, not the 4 GitHub Pages addresses, since the zone moved to Cloudflare; MX clauses exit 0. T-05-06 intent (site serving) measured by curl in 05-EVIDENCE-MAIL.md",
-    "status": "open",
-    "reason": "",
+    "status": "resolved",
+    "reason": "Owner amended 05-02 task 3 clause 4 to \"site still serves\" (owner decision 2026-09-13); amended check exit 0 at 2026-09-13T00:15:46Z",
     "recorded_at": "2026-09-13T00:10:10.640Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-13T00:15:46Z"
   }
 ]
 ````
