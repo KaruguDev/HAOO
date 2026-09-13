@@ -10,7 +10,7 @@ requires:
     provides: "D-03's first half (the HAOO clone plus the 04.2-09 sync), the D37 deferred-item walk and its W-1 amendment, and scripts/verify-tree-disjointness.mjs with EXCLUDED_PREFIXES = ['.planning/']"
 provides:
   - "KaruguDev/HAOO as the single home for the planning record, with the ZERO-PAPER HUB .planning/ directory removed"
-  - "05-EVIDENCE-PLANNING-HOME.md — the authorising walk's integers, both removal SHAs, both post-removal verify:disjoint runs verbatim, the working-directory rule and the recurrence note"
+  - "05-EVIDENCE-RECORD-HOME.md — the authorising walk's integers, both removal SHAs, both post-removal verify:disjoint runs verbatim, the working-directory rule and the recurrence note"
   - "A stated, unambiguous working directory for every remaining Phase 5 plan"
 affects: [all remaining Phase 5 plans, phase verification, future GSD sessions targeting either checkout]
 
@@ -29,7 +29,7 @@ tech-stack:
 
 key-files:
   created:
-    - .planning/phases/05-prove-the-deployed-journey/05-EVIDENCE-PLANNING-HOME.md
+    - .planning/phases/05-prove-the-deployed-journey/05-EVIDENCE-RECORD-HOME.md
   modified:
     - .planning/STATE.md
     - .planning/milestone.lock
@@ -116,7 +116,7 @@ status: complete
 
 ## Files Created/Modified
 
-- `.planning/phases/05-prove-the-deployed-journey/05-EVIDENCE-PLANNING-HOME.md` — created (253 lines). The authorising walk with its measured integers, the excluded-cache measurement, the record of the first walk's divergence and its resolution, both removal SHAs, the 249-vs-233 accounting, both verbatim `verify:disjoint` blocks, the working-directory rule and the recurrence note.
+- `.planning/phases/05-prove-the-deployed-journey/05-EVIDENCE-RECORD-HOME.md` — created (253 lines). The authorising walk with its measured integers, the excluded-cache measurement, the record of the first walk's divergence and its resolution, both removal SHAs, the 249-vs-233 accounting, both verbatim `verify:disjoint` blocks, the working-directory rule and the recurrence note.
 - `.planning/STATE.md` — the orchestrator's execution-start write, committed to clear task 1's precondition, then synced forward into the sibling before its tree was removed.
 - `.planning/milestone.lock` — phase 05 claimed by this execution session.
 - `../ZERO-PAPERHUB/.planning/` — removed entirely.

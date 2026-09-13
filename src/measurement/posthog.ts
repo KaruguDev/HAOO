@@ -339,6 +339,7 @@ const established = new WeakMap<PostHogClient, {
   readonly token: string;
   readonly apiHost: string;
   readonly events: readonly string[];
+  readonly campaign: Readonly<Record<string, string>>;
   readonly sink: (event: string) => void;
 }>();
 
@@ -353,6 +354,29 @@ const established = new WeakMap<PostHogClient, {
  */
 function sameEvents(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((event, index) => event === right[index]);
+}
+
+/**
+ * Equality of two normalized campaign records: the same own key set, each value `===`.
+ *
+ * Compared for the same reason the allowlist is. Since quick task `260913-p4u` the
+ * lockdown's `before_send` writes the campaign record it was built with onto every event,
+ * so a second page sharing a client but carrying different campaign values is a
+ * reconfiguration: the installed chokepoint would keep writing the first page's values.
+ */
+function sameCampaign(
+  left: Readonly<Record<string, string>>,
+  right: Readonly<Record<string, string>>,
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  return (
+    leftKeys.length === rightKeys.length
+    && leftKeys.every(
+      (key) => Object.prototype.hasOwnProperty.call(right, key) && left[key] === right[key],
+    )
+  );
 }
 
 /**
@@ -387,16 +411,24 @@ function sameEvents(left: readonly string[], right: readonly string[]): boolean 
  * unconfigured build is not a refusal, and signalling it would make the refusal channel
  * meaningless on the builds that matter.
  *
- * When it does return a sink, that sink takes exactly one argument: the bare event name.
- * It attaches no property bag, no form value, and no visitor property, because there is no
+ * When it does return a sink, that sink takes exactly one argument: the event name. It
+ * attaches no property bag, no form value, and no visitor property, because there is no
  * parameter through which one could travel — the single-parameter signature is what makes
- * a property bag structurally impossible rather than merely absent. Nothing in this module
- * throws: every failure is a returned sentinel or a swallowed catch, because provider
- * delivery is deliberately isolated from every visitor action.
+ * a property bag structurally impossible rather than merely absent. The SDK enriches each
+ * event automatically with page, referrer and browser properties, and the lockdown's
+ * `before_send` reducer decides which of those survive (quick task `260913-p4u`).
+ *
+ * `campaign` is the facade's normalized campaign record. It is handed to the lockdown,
+ * whose reducer writes it onto every delivered event, and it is part of the configuration
+ * the re-entry gate compares.
+ *
+ * Nothing in this module throws: every failure is a returned sentinel or a swallowed
+ * catch, because provider delivery is deliberately isolated from every visitor action.
  */
 export function createPostHogEventSink<EventName extends string>(
   config: Pick<ProductMeasurement<EventName>, 'provider' | 'providerConfig' | 'events'>,
   adapters: PostHogAdapters = {},
+  campaign: Readonly<Record<string, string>> = {},
 ): ((event: EventName) => void) | undefined {
   if (config.provider !== 'posthog') return undefined;
 
@@ -442,14 +474,15 @@ export function createPostHogEventSink<EventName extends string>(
       priorEstablishment.token === providerConfig.token
       && priorEstablishment.apiHost === providerConfig.apiHost
       && sameEvents(priorEstablishment.events, config.events)
+      && sameCampaign(priorEstablishment.campaign, campaign)
     ) {
       return priorEstablishment.sink;
     }
 
     // A DIFFERENT configuration for a client that is already initialized. Re-initializing
     // would be a no-op the vendor reports through a log line, leaving this call's events
-    // to travel under the previous call's project key and allowlist. Refuse instead, and
-    // say which gate refused in its own words.
+    // to travel under the previous call's project key, allowlist and campaign values.
+    // Refuse instead, and say which gate refused in its own words.
     signalRefusal(POSTHOG_REFUSAL.reconfiguration);
     return undefined;
   }
@@ -462,6 +495,7 @@ export function createPostHogEventSink<EventName extends string>(
     providerConfig.apiHost,
     providerConfig.token,
     config.events,
+    campaign,
   );
 
   let instance: unknown;
@@ -519,6 +553,7 @@ export function createPostHogEventSink<EventName extends string>(
     token: providerConfig.token,
     apiHost: providerConfig.apiHost,
     events: [...config.events],
+    campaign: { ...campaign },
     sink,
   });
 

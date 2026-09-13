@@ -181,7 +181,7 @@ ZERO-PAPER HUB alone does not trigger it (`05-EVIDENCE-GATES.md` §4).
 **Held out:** the requirement's "required deployed manual checks" beyond the enumerated gates, meaning
 the three held-out judgements in §1 and §2. They are owed to `/gsd-verify-work 05`.
 
-**Evidence files:** `05-EVIDENCE-GATES.md` (§1–§6), `05-EVIDENCE-PLANNING-HOME.md`, `05-EVIDENCE-RECOVERY.md`.
+**Evidence files:** `05-EVIDENCE-GATES.md` (§1–§6), `05-EVIDENCE-RECORD-HOME.md`, `05-EVIDENCE-RECOVERY.md`.
 
 ---
 
@@ -267,7 +267,7 @@ The same table, with fuller citations, is in `.planning/REQUIREMENTS.md` § Phas
 
 | File | Subject | Outcome |
 |---|---|---|
-| `05-EVIDENCE-PLANNING-HOME.md` | 05-01: the planning record's single home | ZERO-PAPER HUB `.planning/` removed after a superset walk (0 ZERO-PAPER-HUB-only, 0 differing paths across 233 comparisons) |
+| `05-EVIDENCE-RECORD-HOME.md` | 05-01: the planning record's single home | ZERO-PAPER HUB `.planning/` removed after a superset walk (0 ZERO-PAPER-HUB-only, 0 differing paths across 233 comparisons) |
 | `05-EVIDENCE-HARNESS.md` | 05-03: the tracer and the harness | First live run: 29 rules, 0 violations, 0 escapees at 360 px, 0 PostHog ingestion requests (`webdriver` `true`); test-traffic decision recorded |
 | `05-EVIDENCE-PREFLIGHT-FIXES.md` | 05-04: pre-flight findings | F1, F2 and F3 closed; F4, F4b, F5 and F6 measured, unfixed, deferred |
 | `05-EVIDENCE-AXE.md` | 05-07 baseline, 05-14 triage and gate | 11 surface-states, 0 violations; gate 0 unexcepted; R-1 accepted; O-1 and AG-O1 routed |

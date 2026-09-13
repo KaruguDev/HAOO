@@ -29,8 +29,14 @@ const REQUIRED_TABLES = {
     ['DOM autocapture (`autocapture`)', 'OPT-OUT'],
     ['rageclick (`rageclick`)', 'OPT-OUT'],
     ['dead clicks (`capture_dead_clicks`)', 'OPT-OUT'],
-    ['automatic `$pageview` (`capture_pageview`)', 'OPT-OUT'],
-    ['automatic `$pageleave` (`capture_pageleave`)', 'OPT-OUT'],
+    // Re-decided 2026-09-13 by owner decision (quick task 260913-p4u), in the same commit
+    // as the COVERAGE.md rows they pin. Each of the four INTEGRATE rows marked below was
+    // OPT-OUT before: the owner reversed the bare-name half of D-03 so PostHog Web Analytics
+    // works, which needs the automatic page events, the referrer and cookieless identity.
+    // The rows are re-decided rather than renamed, because the capability each names is the
+    // same capability; only the decision about it moved.
+    ['automatic `$pageview` (`capture_pageview`)', 'INTEGRATE'],
+    ['automatic `$pageleave` (`capture_pageleave`)', 'INTEGRATE'],
     ['session recording / replay (`disable_session_recording`)', 'OPT-OUT'],
     ['surveys (`disable_surveys`)', 'OPT-OUT'],
     ['automatic survey display (`disable_surveys_automatic_display`)', 'OPT-OUT'],
@@ -44,13 +50,15 @@ const REQUIRED_TABLES = {
     ['site apps (`opt_in_site_apps`)', 'OPT-OUT'],
     ['feature flags (`advanced_disable_feature_flags`)', 'OPT-OUT'],
     ['toolbar metrics (`advanced_disable_toolbar_metrics`)', 'OPT-OUT'],
-    ['`save_referrer`', 'OPT-OUT'],
+    // Re-decided 2026-09-13 (quick task 260913-p4u); predecessor OPT-OUT.
+    ['`save_referrer`', 'INTEGRATE'],
     ['`save_campaign_params`', 'OPT-OUT'],
     ['`identify()` / `alias()` / `group()` / `setPersonProperties()`', 'OPT-OUT'],
     ['`property_denylist` as a privacy boundary', 'OPT-OUT'],
     ['`sanitize_properties`', 'OPT-OUT'],
     ['the deprecated `ip` option', 'OPT-OUT'],
-    ['`cookieless_mode`', 'OPT-OUT'],
+    // Re-decided 2026-09-13 (quick task 260913-p4u); predecessor OPT-OUT.
+    ['`cookieless_mode`', 'INTEGRATE'],
     ['`$geoip_disable` as an event property', 'OPT-OUT'],
   ]),
   'PostHog — Query API': new Map([
@@ -289,6 +297,16 @@ export function auditPhase4Coverage(markdown) {
       // closes the gap, which is the one claim this project may not make (Pitfall 5).
       'client IP discard is an owner-performed project setting',
       /"Discard client IP data"\s+is\s+an\s+owner-performed\s+project\s+setting/iu,
+    ],
+    [
+      // ADDED 2026-09-13 by quick task 260913-p4u, not a replacement. Under
+      // `cookieless_mode: 'always'` every event is dropped at ingestion while the project's
+      // server hash setting is off, and that reads as a dead funnel rather than a broken one
+      // (D-05). Nothing in this tree can observe the setting, so the sentence that keeps it
+      // an owner-performed precondition is pinned across the whole claim rather than on the
+      // setting's name, which a sentence saying the opposite would also satisfy.
+      'cookieless server hash mode is an owner-performed project setting and events are dropped at ingestion while it is off',
+      /"Cookieless\s+server\s+hash\s+mode"\s+is\s+an\s+owner-performed\s+project\s+setting[\s\S]{0,400}?dropped\s+at\s+ingestion\s+while\s+it\s+is\s+off/iu,
     ],
   ];
   for (const [description, pattern] of boundaryChecks) {

@@ -12,10 +12,14 @@ import {
   type PostHogScope,
 } from '../measurement/posthog';
 import {
+  CAMPAIGN_PROPERTIES,
+  COOKIELESS_DISTINCT_ID,
   POSTHOG_LOCKDOWN,
+  SDK_PAGE_EVENTS,
   TRANSPORT_REQUIRED_PROPERTIES,
+  WEB_ANALYTICS_PROPERTIES,
   lockdownHolds,
-  stripToBareName,
+  reduceCapture,
 } from '../measurement/posthog-lockdown';
 import {
   HAOO_MEASUREMENT,
@@ -680,19 +684,54 @@ function hostileValue(locked: unknown): unknown {
  */
 const SUBSTITUTED_BEFORE_SEND = (result: unknown): unknown => result;
 
-/** The transport shape a real capture arrives in, before the chokepoint reduces it. */
+/** The four cookieless transport keys with the exact values the reducer requires. */
+function cookielessTransport(): Record<string, unknown> {
+  return {
+    token: PROJECT_TOKEN,
+    distinct_id: COOKIELESS_DISTINCT_ID,
+    $process_person_profile: false,
+    $cookieless_mode: true,
+  };
+}
+
+/** The cookieless transport shape a real capture arrives in, before the chokepoint reduces it. */
 function vendorPayload(
   event: string,
   properties: Record<string, unknown> = {
-    token: PROJECT_TOKEN,
-    distinct_id: 'contract-distinct-1',
-    $process_person_profile: false,
+    ...cookielessTransport(),
     $current_url: PRODUCT_HREF,
     $referrer: 'https://search.example/',
     $lib: 'web',
   },
 ): VendorCaptureResult {
   return { uuid: 'contract-envelope-1', event, properties };
+}
+
+/** The reducer called directly, typed at the vendor fixture's payload shape. */
+function reduce(
+  received: unknown,
+  campaign: Readonly<Record<string, string>> = {},
+): VendorCaptureResult | null {
+  return reduceCapture(
+    received as Parameters<typeof reduceCapture>[0],
+    HAOO_MEASUREMENT_EVENTS,
+    campaign,
+  ) as VendorCaptureResult | null;
+}
+
+/**
+ * The delivered property shape: the transport keys first and in order, then only members
+ * of the Web Analytics or campaign allowlists.
+ */
+function expectAllowlistedKeys(properties: Record<string, unknown> | undefined) {
+  const keys = Object.keys(properties ?? {});
+  const transportCount = TRANSPORT_REQUIRED_PROPERTIES.length;
+  const permitted: readonly string[] = [...WEB_ANALYTICS_PROPERTIES, ...CAMPAIGN_PROPERTIES];
+
+  expect(keys.slice(0, transportCount)).toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+  for (const key of keys.slice(transportCount)) {
+    expect(permitted, key).toContain(key);
+  }
 }
 
 describe('fail-closed provider resolution', () => {
@@ -819,7 +858,7 @@ describe('fail-closed provider resolution', () => {
   });
 });
 
-describe('name-only provider sink', () => {
+describe('allowlisted provider sink', () => {
   const unconfiguredRows: readonly [string, string, string][] = [
     ['the resolved token is empty', '', APPROVED_HOST],
     ['the resolved token is whitespace only', '   ', APPROVED_HOST],
@@ -902,7 +941,7 @@ describe('name-only provider sink', () => {
 
   const droppedRows: readonly [string, VendorCaptureResult | null][] = [
     ['a null payload', null],
-    ['an event the SDK emits for itself', vendorPayload('$pageview')],
+    ['an event the SDK emits for itself', vendorPayload('$autocapture')],
     ['a name that differs only by case', vendorPayload('HAOO_PAGE_VIEW')],
     ['a name padded with whitespace', vendorPayload(' haoo_page_view ')],
     [
@@ -914,14 +953,69 @@ describe('name-only provider sink', () => {
       'an allowlisted name missing one transport key',
       vendorPayload('haoo_page_view', {
         token: PROJECT_TOKEN,
+        distinct_id: COOKIELESS_DISTINCT_ID,
+      }),
+    ],
+    ...TRANSPORT_REQUIRED_PROPERTIES.map((missing): [string, VendorCaptureResult] => {
+      const properties = cookielessTransport();
+      delete properties[missing];
+      return [`an allowlisted name missing ${missing}`, vendorPayload('haoo_page_view', properties)];
+    }),
+    [
+      'a per-browser distinct id instead of the cookieless sentinel',
+      vendorPayload('haoo_page_view', {
+        ...cookielessTransport(),
         distinct_id: 'contract-distinct-1',
       }),
+    ],
+    [
+      'a cookieless flag set to false',
+      vendorPayload('haoo_page_view', { ...cookielessTransport(), $cookieless_mode: false }),
+    ],
+    [
+      'a cookieless flag set to the string true',
+      vendorPayload('haoo_page_view', { ...cookielessTransport(), $cookieless_mode: 'true' }),
+    ],
+    [
+      'person processing switched on',
+      vendorPayload('haoo_page_view', { ...cookielessTransport(), $process_person_profile: true }),
     ],
   ];
 
   it.each(droppedRows)('emits nothing for %s', (_label, received) => {
     expect(resolvedBeforeSend()(received)).toBeNull();
   });
+
+  const droppedNameRows: readonly [string][] = [
+    ['$autocapture'],
+    ['$rageclick'],
+    ['$web_vitals'],
+    ['$exception'],
+    ['$feature_flag_called'],
+    ['$identify'],
+    ['$PAGEVIEW'],
+    [' $pageview '],
+    ['$pageleave\n'],
+    ['\uFF04pageview'],
+  ];
+
+  it.each(droppedNameRows)(
+    'drops %j even with the full cookieless transport shape',
+    (event) => {
+      expect(resolvedBeforeSend()(vendorPayload(event))).toBeNull();
+    },
+  );
+
+  it.each([...HAOO_MEASUREMENT_EVENTS, ...SDK_PAGE_EVENTS].map((event) => [event] as const))(
+    'admits %s with the transport keys first and only allowlisted keys after them',
+    (event) => {
+      const emitted = resolvedBeforeSend()(vendorPayload(event));
+
+      expect(emitted?.event).toBe(event);
+      expectAllowlistedKeys(emitted?.properties);
+      expect(emitted?.properties.distinct_id).toBe(COOKIELESS_DISTINCT_ID);
+    },
+  );
 
   it('drops a payload whose properties object is absent rather than emitting it partially', () => {
     const absent = { uuid: 'contract-envelope-1', event: 'haoo_page_view' };
@@ -935,30 +1029,181 @@ describe('name-only provider sink', () => {
     expect('hａoo_page_view'.normalize('NFKC')).toBe('haoo_page_view');
     expect(' haoo_page_view '.trim()).toBe('haoo_page_view');
     expect('HAOO_PAGE_VIEW'.toLowerCase()).toBe('haoo_page_view');
+    expect('\uFF04pageview'.normalize('NFKC')).toBe('$pageview');
   });
 
-  it('emits exactly the three transport keys, in order, from a freshly built literal', () => {
+  it('emits the transport keys first, in order, then only allowlisted keys, from a fresh literal', () => {
     const received = vendorPayload('haoo_qualify_submit');
     const emitted = resolvedBeforeSend()(received);
 
     expect(emitted).not.toBeNull();
-    expect(Object.keys(emitted?.properties ?? {})).toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+    expectAllowlistedKeys(emitted?.properties);
     expect(emitted?.properties).not.toBe(received.properties);
   });
 
-  it('reduces a payload carrying thirty extra provider properties to exactly three', () => {
-    const properties: Record<string, unknown> = {
-      token: PROJECT_TOKEN,
-      distinct_id: 'contract-distinct-1',
-      $process_person_profile: false,
-    };
+  it('reduces a payload carrying thirty unknown provider properties to allowlisted keys only', () => {
+    const properties: Record<string, unknown> = { ...cookielessTransport(), $lib: 'web' };
     for (let index = 0; index < 30; index += 1) {
       properties[`$provider_added_${index}`] = `value-${index}`;
     }
 
-    const emitted = resolvedBeforeSend()(vendorPayload('haoo_page_view', properties));
+    const received = vendorPayload('haoo_page_view', properties);
+    const emitted = resolvedBeforeSend()(received);
 
-    expect(Object.keys(emitted?.properties ?? {})).toEqual([...TRANSPORT_REQUIRED_PROPERTIES]);
+    expect(Object.keys(emitted?.properties ?? {})).toEqual([
+      ...TRANSPORT_REQUIRED_PROPERTIES,
+      '$lib',
+    ]);
+    expect(emitted?.properties).not.toBe(received.properties);
+  });
+
+  it('keeps only the origin and path of the page address', () => {
+    const emitted = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+      ...cookielessTransport(),
+      $current_url:
+        'https://someone:secret@www.haoo.online/products/haoo/?email=person%40example.com#contact',
+    }));
+
+    expect(emitted?.properties.$current_url).toBe('https://www.haoo.online/products/haoo/');
+  });
+
+  const unreducibleAddressRows: readonly [string, unknown][] = [
+    ['an unparseable string', 'not a url at all'],
+    ['a non-web scheme', 'ftp://files.example/private?q=1'],
+    ['a data address', 'data:text/plain,private'],
+    ['a number', 42],
+    ['an object', { href: PRODUCT_HREF }],
+  ];
+
+  it.each(unreducibleAddressRows)(
+    'omits a page address that is %s and still delivers the event',
+    (_label, value) => {
+      const emitted = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+        ...cookielessTransport(),
+        $current_url: value,
+      }));
+
+      expect(emitted).not.toBeNull();
+      expect(emitted?.properties).not.toHaveProperty('$current_url');
+    },
+  );
+
+  it('keeps the literal $direct referrer and reduces any other referrer to its origin', () => {
+    const direct = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+      ...cookielessTransport(),
+      $referrer: '$direct',
+    }));
+    const referred = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+      ...cookielessTransport(),
+      $referrer: 'https://search.example/results?q=private+words#top',
+    }));
+    const unparseable = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+      ...cookielessTransport(),
+      $referrer: 'not a referrer',
+    }));
+
+    expect(direct?.properties.$referrer).toBe('$direct');
+    expect(referred?.properties.$referrer).toBe('https://search.example');
+    expect(unparseable).not.toBeNull();
+    expect(unparseable?.properties).not.toHaveProperty('$referrer');
+  });
+
+  it('omits an allowlisted key whose value is an object, an array or a non-finite number', () => {
+    const emitted = resolvedBeforeSend()(vendorPayload('haoo_page_view', {
+      ...cookielessTransport(),
+      $browser: { name: 'Chrome' },
+      $screen_width: [1280],
+      $time: Number.NaN,
+      $screen_height: 800,
+      $os: 'Linux',
+    }));
+
+    expect(emitted?.properties).not.toHaveProperty('$browser');
+    expect(emitted?.properties).not.toHaveProperty('$screen_width');
+    expect(emitted?.properties).not.toHaveProperty('$time');
+    expect(emitted?.properties.$screen_height).toBe(800);
+    expect(emitted?.properties.$os).toBe('Linux');
+  });
+});
+
+describe('campaign values on delivered events', () => {
+  const sdkCampaignPayload = () => vendorPayload('haoo_page_view', {
+    ...cookielessTransport(),
+    utm_source: 'raw-sdk-value',
+    utm_medium: 'raw-sdk-medium',
+    utm_campaign: 'raw-sdk-campaign',
+    utm_term: 'raw-sdk-term',
+    gclid: 'raw-click-identifier',
+  });
+
+  it('writes accepted normalized values and never copies a value the SDK supplied', () => {
+    const emitted = reduce(sdkCampaignPayload(), {
+      utm_source: 'partner',
+      utm_medium: 'email',
+      utm_campaign: 'a'.repeat(32),
+    });
+
+    expect(emitted?.properties.utm_source).toBe('partner');
+    expect(emitted?.properties.utm_medium).toBe('email');
+    expect(emitted?.properties.utm_campaign).toBe('a'.repeat(32));
+    expect(emitted?.properties).not.toHaveProperty('utm_term');
+    expect(emitted?.properties).not.toHaveProperty('gclid');
+    expectAllowlistedKeys(emitted?.properties);
+  });
+
+  it('writes no campaign key at all when the facade supplied none', () => {
+    const emitted = reduce(sdkCampaignPayload());
+
+    for (const key of CAMPAIGN_PROPERTIES) {
+      expect(emitted?.properties, key).not.toHaveProperty(key);
+    }
+  });
+
+  const rejectedCampaignRows: readonly [string, unknown][] = [
+    ['uppercase', 'Partner'],
+    ['longer than 32 characters', 'a'.repeat(33)],
+    ['carrying a space', 'spring launch'],
+    ['empty', ''],
+    ['a number', 7],
+    ['null', null],
+    ['an array', ['partner']],
+  ];
+
+  it.each(rejectedCampaignRows)('does not write a campaign value that is %s', (_label, value) => {
+    const emitted = reduce(sdkCampaignPayload(), {
+      utm_source: value,
+      utm_medium: value,
+      utm_campaign: value,
+    } as unknown as Record<string, string>);
+
+    expect(emitted).not.toBeNull();
+    for (const key of CAMPAIGN_PROPERTIES) {
+      expect(emitted?.properties, key).not.toHaveProperty(key);
+    }
+  });
+
+  it('ignores an inherited campaign value', () => {
+    const inherited = Object.create({ utm_source: 'partner' }) as Record<string, string>;
+
+    expect(reduce(sdkCampaignPayload(), inherited)?.properties).not.toHaveProperty('utm_source');
+  });
+
+  it('keeps the campaign record the lockdown was built with, whatever the caller does after', () => {
+    const campaign: Record<string, string> = { utm_source: 'partner' };
+    const lockdown = POSTHOG_LOCKDOWN(
+      APPROVED_HOST,
+      PROJECT_TOKEN,
+      HAOO_MEASUREMENT_EVENTS,
+      campaign,
+    );
+
+    campaign.utm_source = 'changed-after-init';
+    campaign.utm_medium = 'added-after-init';
+
+    const emitted = (lockdown.before_send as VendorBeforeSend)(sdkCampaignPayload());
+
+    expect(emitted?.properties.utm_source).toBe('partner');
+    expect(emitted?.properties).not.toHaveProperty('utm_medium');
   });
 });
 
@@ -1585,6 +1830,54 @@ describe('repeat initialization against an already-loaded client', () => {
     },
   );
 
+  it('hands back the established sink for an identical campaign record', () => {
+    const client = createLoadedOncePostHogVendorClient();
+    const reasons: string[] = [];
+    const adapters: PostHogAdapters = {
+      client,
+      signalRefusal: (reason) => reasons.push(reason),
+    };
+
+    const first = createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters, {
+      utm_source: 'partner',
+    });
+    const second = createPostHogEventSink(CONFIGURED_MEASUREMENT, adapters, {
+      utm_source: 'partner',
+    });
+
+    expect(first).toBeTypeOf('function');
+    expect(second).toBe(first);
+    expect(client.initCallCount()).toBe(1);
+    expect(reasons).toEqual([]);
+  });
+
+  it.each([
+    ['a different value', { utm_source: 'newsletter' }],
+    ['a different key', { utm_medium: 'partner' }],
+    ['an added key', { utm_source: 'partner', utm_medium: 'email' }],
+    ['no campaign at all', {}],
+  ] as const)(
+    'refuses a campaign record with %s against an established client, as a reconfiguration',
+    (_label, campaign) => {
+      const client = createLoadedOncePostHogVendorClient();
+      const reasons: string[] = [];
+      const signalRefusal = (reason: string) => reasons.push(reason);
+
+      const first = createPostHogEventSink(
+        CONFIGURED_MEASUREMENT,
+        { client, signalRefusal },
+        { utm_source: 'partner' },
+      );
+
+      expect(first).toBeTypeOf('function');
+      expect(
+        createPostHogEventSink(CONFIGURED_MEASUREMENT, { client, signalRefusal }, campaign),
+      ).toBeUndefined();
+      expect(reasons).toEqual([POSTHOG_REFUSAL.reconfiguration]);
+      expect(client.initCallCount()).toBe(1);
+    },
+  );
+
   it('is consulted after the configuration gate, so an emptied configuration still refuses', () => {
     const client = createLoadedOncePostHogVendorClient();
     const reasons: string[] = [];
@@ -2086,6 +2379,86 @@ describe('facade contract under the widened provider seam', () => {
     // `readCampaign` the only path by which a campaign value is ever observed.
     expect(measurement.readCampaign()).toEqual({ utm_source: 'partner' });
     expect(client.capturedEvents()).toEqual(['haoo_qualify_submit']);
+    // The normalized record travels through the adapter into the lockdown, which writes it
+    // onto the delivered event.
+    expect(client.deliveredPayloads()).toHaveLength(1);
+    expect(client.deliveredPayloads()[0].properties.utm_source).toBe('partner');
+  });
+});
+
+/**
+ * The quick-task `260913-p4u` tracer: one cookieless `$pageview` from the facade to the wire.
+ *
+ * On 2026-09-13 the owner reversed the bare-name half of Phase 04.1 D-03 so PostHog Web
+ * Analytics can work. This case walks the whole new path in one place: the facade reads
+ * and normalizes campaign values, hands them to the adapter, the adapter sends the
+ * cookieless lockdown and reads it back, and the SDK's automatic `$pageview` reaches the
+ * wire only through the allowlist reducer. The jsdom address carries an unrelated query
+ * parameter and a fragment, so a reducer that forwarded the address as the SDK reads it
+ * would be visible here.
+ */
+describe('cookieless web analytics tracer', () => {
+  it('delivers one cookieless $pageview with a reduced address and normalized campaign values', () => {
+    const originalHref = window.location.href;
+    const jsdomHref = new URL('/products/haoo/?ref=private-note#products', originalHref);
+    window.history.replaceState(null, '', jsdomHref.href);
+
+    try {
+      const client = createPostHogVendorClient();
+      const measurement = createMeasurement(CONFIGURED_MEASUREMENT, {
+        storage: new MemoryStorage(),
+        now: () => TODAY,
+        location: { href: `${PRODUCT_HREF}?utm_source=Partner&utm_medium=email` },
+        history: { state: null, replaceState: vi.fn() },
+        providerAdapters: { client },
+      });
+
+      measurement.initialize();
+      client.simulateAutomaticCapture('$pageview');
+
+      const delivered = client.deliveredPayloads();
+      expect(delivered).toHaveLength(1);
+      expect(delivered[0].event).toBe('$pageview');
+
+      const properties = delivered[0].properties;
+      expect(Object.keys(properties).slice(0, 4)).toEqual([
+        'token',
+        'distinct_id',
+        '$process_person_profile',
+        '$cookieless_mode',
+      ]);
+      expect(properties.token).toBe(PROJECT_TOKEN);
+      expect(properties.distinct_id).toBe('$posthog_cookieless');
+      expect(properties.$cookieless_mode).toBe(true);
+      expect(properties.$process_person_profile).toBe(false);
+
+      expect(properties.$current_url).toBe(`${jsdomHref.origin}${jsdomHref.pathname}`);
+      expect(properties.utm_source).toBe('partner');
+      expect(properties.utm_medium).toBe('email');
+      expect(properties).not.toHaveProperty('utm_campaign');
+      expect(properties.$referrer).toBe('https://search.example');
+      expect(properties).toHaveProperty('$referring_domain');
+
+      for (const forbidden of [
+        '$ip',
+        '$device_id',
+        'gclid',
+        'utm_term',
+        'title',
+        'ph_keyword',
+        '$initial_person_info',
+      ]) {
+        expect(properties, forbidden).not.toHaveProperty(forbidden);
+      }
+      expect(delivered[0]).not.toHaveProperty('$set_once');
+
+      for (const value of Object.values(properties)) {
+        expect(String(value)).not.toContain('private-note');
+        expect(String(value)).not.toContain('#');
+      }
+    } finally {
+      window.history.replaceState(null, '', originalHref);
+    }
   });
 });
 
@@ -2134,7 +2507,7 @@ describe('PostHog tracer: one event end-to-end', () => {
     // it, so this re-assertion cannot obtain the sent function independently — and it does
     // not need to. That the identity held is already proven by `sink` being a function at
     // all: the adapter returns one only after its own `lockdownHolds` agreed. What this
-    // call adds is an independent re-read of the other 32 keys, and what proves the
+    // call adds is an independent re-read of the other 33 keys, and what proves the
     // identity comparison can FAIL is the substituted-reducer row in the hostile table.
     expect(lockdownHolds(resolved, {
       apiHost: APPROVED_HOST,
@@ -2145,8 +2518,9 @@ describe('PostHog tracer: one event end-to-end', () => {
     // Spot-check the four options whose defaults are `undefined` — meaning "ask the
     // remote configuration" — plus the switch that makes them unbypassable.
     expect(resolved?.autocapture).toBe(false);
-    expect(resolved?.capture_pageview).toBe(false);
-    expect(resolved?.capture_pageleave).toBe(false);
+    expect(resolved?.capture_pageview).toBe(true);
+    expect(resolved?.capture_pageleave).toBe(true);
+    expect(resolved?.cookieless_mode).toBe('always');
     expect(resolved?.capture_heatmaps).toBe(false);
     expect(resolved?.capture_exceptions).toBe(false);
     expect(resolved?.capture_performance).toBe(false);
@@ -2156,11 +2530,11 @@ describe('PostHog tracer: one event end-to-end', () => {
     expect(resolved?.persistence).toBe('memory');
     expect(resolved?.disable_persistence).toBe(true);
     expect(resolved?.save_campaign_params).toBe(false);
-    expect(resolved?.save_referrer).toBe(false);
+    expect(resolved?.save_referrer).toBe(true);
     expect(typeof resolved?.before_send).toBe('function');
   });
 
-  it('carries one HAOO event through the facade as a bare name with three transport keys', () => {
+  it('carries one HAOO event through the facade with the transport keys and allowlisted properties', () => {
     const client = tracerClient();
     const storage = new MemoryStorage();
     const measurement = tracerMeasurement(client, storage);
@@ -2173,9 +2547,7 @@ describe('PostHog tracer: one event end-to-end', () => {
     const delivered = client.deliveredPayloads();
     expect(delivered).toHaveLength(1);
     expect(delivered[0].event).toBe('haoo_page_view');
-    expect(Object.keys(delivered[0].properties)).toEqual([
-      ...TRANSPORT_REQUIRED_PROPERTIES,
-    ]);
+    expectAllowlistedKeys(delivered[0].properties);
     expect(delivered[0].properties.token).toBe(PROJECT_TOKEN);
   });
 
@@ -2184,22 +2556,23 @@ describe('PostHog tracer: one event end-to-end', () => {
       uuid: 'tracer-envelope-1',
       event: 'haoo_qualify_submit',
       properties: {
-        token: PROJECT_TOKEN,
-        distinct_id: 'tracer-distinct-1',
-        $process_person_profile: false,
+        ...cookielessTransport(),
         $current_url: 'https://www.haoo.online/',
         $referrer: 'https://search.example/',
         $lib: 'web',
       },
     };
 
-    const emitted = stripToBareName(received, HAOO_MEASUREMENT_EVENTS);
+    const emitted = reduce(received);
 
     expect(emitted).not.toBeNull();
     expect(emitted?.uuid).toBe(received.uuid);
     expect(emitted?.event).toBe(received.event);
     expect(Object.keys(emitted?.properties ?? {})).toEqual([
       ...TRANSPORT_REQUIRED_PROPERTIES,
+      '$current_url',
+      '$referrer',
+      '$lib',
     ]);
     // A fresh literal, not the object it was handed: mutating the emitted set must not
     // reach back into the payload the SDK still holds.
@@ -2209,8 +2582,8 @@ describe('PostHog tracer: one event end-to-end', () => {
   const droppedRows: readonly [string, unknown][] = [
     ['a null input', null],
     [
-      'an event name outside the ten',
-      { uuid: 'x', event: '$pageview', properties: { token: PROJECT_TOKEN } },
+      'an event name outside the ten and the two page events',
+      { uuid: 'x', event: '$autocapture', properties: cookielessTransport() },
     ],
     [
       'a name that differs only by case',
@@ -2220,15 +2593,34 @@ describe('PostHog tracer: one event end-to-end', () => {
       'an allowlisted name with no properties at all',
       { uuid: 'x', event: 'haoo_page_view', properties: {} },
     ],
+    [
+      'a per-browser distinct id',
+      {
+        uuid: 'x',
+        event: 'haoo_page_view',
+        properties: { ...cookielessTransport(), distinct_id: 'tracer-distinct-1' },
+      },
+    ],
+    [
+      'cookieless mode reported off',
+      {
+        uuid: 'x',
+        event: '$pageview',
+        properties: { ...cookielessTransport(), $cookieless_mode: false },
+      },
+    ],
+    [
+      'person processing reported on',
+      {
+        uuid: 'x',
+        event: '$pageleave',
+        properties: { ...cookielessTransport(), $process_person_profile: true },
+      },
+    ],
   ];
 
   it.each(droppedRows)('emits nothing for %s', (_label, received) => {
-    expect(
-      stripToBareName(
-        received as Parameters<typeof stripToBareName>[0],
-        HAOO_MEASUREMENT_EVENTS,
-      ),
-    ).toBeNull();
+    expect(reduce(received)).toBeNull();
   });
 
   it('withholds the sink when any one locked key resolves wrong', () => {
@@ -2342,11 +2734,12 @@ describe('posthog-js date-gated defaults', () => {
     'persistence_save_debounce_ms',
     'split_storage',
     'cookieWinsOnConflict',
-    // A user-agent heuristic. Not a channel this project's bare-name payload can carry,
-    // but it is a vendor behaviour this project has not switched off, so it is named.
+    // A user-agent heuristic. It adds no key the reducer's property allowlist admits, but
+    // it is a vendor behaviour this project has not switched off, so it is named.
     'detect_google_search_app',
     // Strips URL fragments. The newest branch is the more conservative one here, and the
-    // adapter never sends a URL property at all.
+    // `before_send` reducer removes query strings and fragments from `$current_url` itself,
+    // keeping only origin and path, so the outcome does not depend on this default.
     'disable_capture_url_hashes',
   ];
 

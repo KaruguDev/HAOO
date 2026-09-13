@@ -12,6 +12,12 @@ import type { CaptureResult, PostHogConfig } from 'posthog-js';
  * `as const` would widen that away, and an excess-property check on the literal is what
  * catches a misspelled key.
  *
+ * On 2026-09-13 the owner reversed the bare-name half of Phase 04.1 D-03 (quick task
+ * `260913-p4u`) so that PostHog Web Analytics and Product Analytics work for the deployed
+ * page. The automatic page visit and page exit events are now on, identity moved to
+ * cookieless mode, and the property chokepoint became a fixed Web Analytics allowlist.
+ * Every other subtraction below stands.
+ *
  * Why each option is here, and why the absent ones are absent:
  *
  * - `token` is passed BOTH as the first `init` argument and inside the configuration.
@@ -52,19 +58,33 @@ import type { CaptureResult, PostHogConfig } from 'posthog-js';
  *   comment correction — and it is deliberately not taken here.
  * - `internal_or_test_user_hostname: null` is explicit because a non-null value enables
  *   person processing, which this project never wants under any hostname.
- * - `autocapture`, `rageclick`, `capture_pageview`, `capture_dead_clicks`,
- *   `capture_heatmaps`, `capture_exceptions`, `capture_performance` are the automatic
- *   channels. **Four of them — heatmaps, exceptions, performance and dead clicks —
- *   default to `undefined`, which does not mean "off": it means "fall back to the
- *   server-side remote configuration".** An explicit `false` is therefore necessary but
- *   NOT sufficient on its own.
+ * - `cookieless_mode: 'always'` is the visitor identity decision (owner decision OD-2,
+ *   2026-09-13). At the pinned 1.425.1 the SDK then sends the fixed `$posthog_cookieless`
+ *   sentinel instead of a per-browser distinct id, stamps `$cookieless_mode: true` on every
+ *   event, forces persistence off and builds no client-side session manager. PostHog
+ *   groups visits server-side with a hash that changes every day. Events sent this way are
+ *   dropped at ingestion unless the owner-performed "Cookieless server hash mode" project
+ *   setting is on, which this tree cannot observe.
+ * - `autocapture`, `rageclick`, `capture_dead_clicks`, `capture_heatmaps`,
+ *   `capture_exceptions`, `capture_performance` are the automatic channels that stay off.
+ *   **Four of them — heatmaps, exceptions, performance and dead clicks — default to
+ *   `undefined`, which does not mean "off": it means "fall back to the server-side remote
+ *   configuration".** An explicit `false` is therefore necessary but NOT sufficient on its
+ *   own.
  * - `advanced_disable_flags: true` is what makes those four unbypassable. The remote
  *   configuration loader returns early when flags are disabled, so without this option a
  *   toggle in the project UI re-enables automatic capture regardless of what is written
  *   here. It is the single most load-bearing line in this object (T-04.1-01).
- * - `capture_pageleave` defaults to the coupled string `'if_capture_pageview'`, not to a
- *   boolean. It is set to a literal `false` and asserted as a literal `false` below,
- *   never as the coupled string, so the coupling cannot quietly re-enable it.
+ * - `capture_pageview: true` turns on the automatic `$pageview` Web Analytics counts. The
+ *   date-gated default is the string `'history_change'`, which would also count history
+ *   changes; the boolean `true` captures only the initial load, one millisecond after
+ *   `init`, and the facade calls `init` only after its own campaign reader has cleaned the
+ *   address bar. The page is single-route, so hash links add no page visits.
+ * - `capture_pageleave: true` turns on the automatic `$pageleave`, sent on page unload,
+ *   which gives Web Analytics its session duration and bounce rate. The default is the
+ *   coupled string `'if_capture_pageview'`, not a boolean. It is set to a literal `true`
+ *   and asserted as a literal `true` below, never as the coupled string, so the coupling
+ *   cannot quietly decide it.
  * - `disable_session_recording`, `disable_surveys`,
  *   `disable_surveys_automatic_display`, `disable_product_tours`,
  *   `disable_conversations`, `disable_web_experiments` and
@@ -75,14 +95,23 @@ import type { CaptureResult, PostHogConfig } from 'posthog-js';
  * - `person_profiles: 'never'`, `persistence: 'memory'` and `disable_persistence: true`
  *   are the three halves of MEAS-03 (T-04.1-03): no profile is ever created, nothing is
  *   written to browser storage or cookies, and no transport reference survives a page
- *   load.
- * - `save_referrer: false`, `save_campaign_params: false` and
- *   `custom_campaign_params: []` keep the vendor out of the campaign question entirely,
- *   so the facade's own `readCampaign` remains the ONLY path by which a campaign value is
- *   ever observed or normalized.
- * - `before_send` is the property chokepoint. It is the second, independent layer under
- *   D-04: even with every automatic channel above switched off, nothing reaches the wire
- *   except an allowlisted bare name carrying the three transport keys.
+ *   load. Cookieless `'always'` already forces persistence off inside the SDK
+ *   (`Fl(){if("always"===this.config.cookieless_mode)return!0`); the two persistence keys
+ *   stay as defence in depth and are still read back.
+ * - `save_referrer: true` is required, because the SDK attaches `$referrer` and
+ *   `$referring_domain` to events only through this option. Under disabled persistence the
+ *   values are held in memory for the page lifetime. The reducer below cuts `$referrer`
+ *   down to its origin, or keeps the literal `$direct`.
+ * - `save_campaign_params: false` and `custom_campaign_params: []` keep the vendor out of
+ *   the campaign question. The vendor reader would copy raw `utm_*` values and click
+ *   identifiers straight from the address bar, bypassing MEAS-06 normalization. Instead the
+ *   facade's own normalized campaign record arrives here as a parameter and the reducer
+ *   writes it onto each delivered event.
+ * - `before_send` is the property chokepoint and the second, independent layer under D-04.
+ *   It admits only the product's own event names plus `$pageview` and `$pageleave`,
+ *   requires the four cookieless transport keys with their exact values, and copies a fixed
+ *   Web Analytics property allowlist into a fresh literal. Anything else is dropped by
+ *   construction.
  *
  * Deliberately NOT set: the deprecated `ip` option. It has no effect at this version and
  * relying on it would be a guarantee that silently does nothing. Suppressing server-side
@@ -92,90 +121,242 @@ export const POSTHOG_LOCKDOWN = (
   apiHost: string,
   token: string,
   allowedEvents: readonly string[],
-) => ({
-  token,
-  api_host: apiHost,
-  ui_host: null,
-  defaults: 'unset',
-  internal_or_test_user_hostname: null,
-  autocapture: false,
-  rageclick: false,
-  capture_dead_clicks: false,
-  capture_pageview: false,
-  capture_pageleave: false,
-  disable_session_recording: true,
-  disable_surveys: true,
-  disable_surveys_automatic_display: true,
-  disable_product_tours: true,
-  disable_conversations: true,
-  disable_web_experiments: true,
-  capture_heatmaps: false,
-  capture_exceptions: false,
-  capture_performance: false,
-  disable_scroll_properties: true,
-  advanced_disable_flags: true,
-  advanced_disable_feature_flags: true,
-  advanced_disable_toolbar_metrics: true,
-  disable_external_dependency_loading: true,
-  opt_in_site_apps: false,
-  person_profiles: 'never',
-  persistence: 'memory',
-  disable_persistence: true,
-  disableDeviceModel: true,
-  save_referrer: false,
-  save_campaign_params: false,
-  custom_campaign_params: [],
-  before_send: (result: CaptureResult | null) => stripToBareName(result, allowedEvents),
-} satisfies Partial<PostHogConfig>);
+  campaign: Readonly<Record<string, string>> = {},
+) => {
+  // Copied and frozen once, so a caller mutating its own record after `init` cannot change
+  // what this instance writes onto events.
+  const campaignSnapshot: Readonly<Record<string, string>> = Object.freeze({ ...campaign });
+
+  return {
+    token,
+    api_host: apiHost,
+    ui_host: null,
+    defaults: 'unset',
+    internal_or_test_user_hostname: null,
+    autocapture: false,
+    rageclick: false,
+    capture_dead_clicks: false,
+    capture_pageview: true,
+    capture_pageleave: true,
+    disable_session_recording: true,
+    disable_surveys: true,
+    disable_surveys_automatic_display: true,
+    disable_product_tours: true,
+    disable_conversations: true,
+    disable_web_experiments: true,
+    capture_heatmaps: false,
+    capture_exceptions: false,
+    capture_performance: false,
+    disable_scroll_properties: true,
+    advanced_disable_flags: true,
+    advanced_disable_feature_flags: true,
+    advanced_disable_toolbar_metrics: true,
+    disable_external_dependency_loading: true,
+    opt_in_site_apps: false,
+    person_profiles: 'never',
+    persistence: 'memory',
+    disable_persistence: true,
+    disableDeviceModel: true,
+    save_referrer: true,
+    save_campaign_params: false,
+    custom_campaign_params: [],
+    cookieless_mode: 'always',
+    before_send: (result: CaptureResult | null) =>
+      reduceCapture(result, allowedEvents, campaignSnapshot),
+  } satisfies Partial<PostHogConfig>;
+};
 
 /**
- * The three keys the vendor's own transport requires, in the order they are copied.
+ * The two events the SDK emits on its own that this project admits.
+ *
+ * Owned here rather than added to the product's event tuple, so the sink type, the owner
+ * report's event list and its query stay exactly as they were (owner decision OD-5).
+ */
+export const SDK_PAGE_EVENTS = ['$pageview', '$pageleave'] as const;
+
+/** The fixed distinct id the SDK sends under `cookieless_mode: 'always'`. */
+export const COOKIELESS_DISTINCT_ID = '$posthog_cookieless';
+
+/**
+ * The four keys the vendor's cookieless transport requires, in the order they are copied.
  *
  * `token` and `distinct_id` are what makes the request routable and countable at all.
- * `$process_person_profile` is the one that looks droppable and is not: the SDK appends
- * it LAST, after its own property denylist has already run, and it is the only channel by
- * which the never-create-a-profile setting actually reaches ingestion. Strip it and the
- * server applies its own default instead — which is why the vendor's property denylist is
- * not the contract this project relies on, and this reducer is.
+ * `$cookieless_mode` is what tells ingestion to derive the daily server-side hash instead
+ * of trusting the distinct id; the vendor's own minimal cookieless set is these two plus
+ * it. `$process_person_profile` is the one that looks droppable and is not: the SDK
+ * appends it LAST, after its own property denylist has already run, and it is the only
+ * channel by which the never-create-a-profile setting actually reaches ingestion. Strip it
+ * and the server applies its own default instead — which is why the vendor's property
+ * denylist is not the contract this project relies on, and this reducer is.
  */
 export const TRANSPORT_REQUIRED_PROPERTIES = [
   'token',
   'distinct_id',
   '$process_person_profile',
+  '$cookieless_mode',
 ] as const;
 
 /**
- * The property chokepoint: reduce a capture to a bare name plus the three transport keys,
- * or drop it entirely.
+ * The Web Analytics properties allowed through, in the order they are copied.
+ *
+ * A key is copied only when it is an own property whose value is a string, a finite
+ * number or a boolean. `$raw_user_agent` and `$host` must survive, because the daily
+ * server-side hash is derived from the team, a daily salt, the IP, the user agent and the
+ * hostname. `$current_url` and `$referrer` are reduced before they are written.
+ */
+export const WEB_ANALYTICS_PROPERTIES = [
+  '$current_url',
+  '$host',
+  '$pathname',
+  '$referrer',
+  '$referring_domain',
+  '$session_id',
+  '$window_id',
+  '$pageview_id',
+  '$prev_pageview_id',
+  '$prev_pageview_pathname',
+  '$prev_pageview_duration',
+  '$browser',
+  '$os',
+  '$device_type',
+  '$raw_user_agent',
+  '$browser_language',
+  '$browser_language_prefix',
+  '$screen_height',
+  '$screen_width',
+  '$viewport_height',
+  '$viewport_width',
+  '$timezone',
+  '$timezone_offset',
+  '$lib',
+  '$lib_version',
+  '$insert_id',
+  '$time',
+] as const;
+
+/** The campaign keys written from the facade's normalized record, never from the SDK. */
+export const CAMPAIGN_PROPERTIES = ['utm_source', 'utm_medium', 'utm_campaign'] as const;
+
+/** The facade's own campaign rule, restated so this module re-validates what it writes. */
+const CAMPAIGN_VALUE = /^[a-z0-9-]{1,32}$/;
+
+function isCopyableValue(value: unknown): value is string | number | boolean {
+  return (
+    typeof value === 'string'
+    || typeof value === 'boolean'
+    || (typeof value === 'number' && Number.isFinite(value))
+  );
+}
+
+/**
+ * Parse an address value as an http or https URL, or return `null`.
+ *
+ * Parses the property value handed in, never an ambient browser global.
+ */
+function parseWebAddress(value: string): URL | null {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The property chokepoint: reduce a capture to the cookieless transport keys, allowlisted
+ * Web Analytics properties and normalized campaign values, or drop it entirely.
+ *
+ * Named successor to the withdrawn bare-name reducer `stripToBareName`, which reduced every
+ * capture to three transport keys and dropped `$pageview`. That reducer was withdrawn on
+ * 2026-09-13 by owner decision (quick task `260913-p4u`), because an event with no page
+ * address, referrer or browser properties is invisible to Web Analytics.
  *
  * `allowedEvents` is passed in rather than imported so this module stays generic over the
- * product's event tuple, exactly as the measurement facade is. The comparison is plain
- * JavaScript string equality — no case folding, no trimming, no Unicode normalization —
- * so a visually identical name in a different normal form is NOT allowlisted. The
- * allowlist runs on the way OUT as well as on the way in, which is what drops anything
- * the SDK itself emits even if one of its defaults moves.
+ * product's event tuple, exactly as the measurement facade is. The name comparison is plain
+ * JavaScript string equality against those names and `SDK_PAGE_EVENTS` — no case folding,
+ * no trimming, no Unicode normalization — so a visually identical name in a different
+ * normal form is NOT allowed through.
  *
- * The surviving property set is built as a FRESH literal by copying the three keys in a
- * fixed order. It is never a spread of the payload minus a denylist, because a denylist
- * inherits every key a future SDK version or a remote setting adds. Any payload missing
- * one of the three — including one whose properties object is absent or empty — is
- * dropped rather than emitted partially, and the vendor's own person-property channels
- * are removed from the envelope on the way through.
+ * Fail-closed transport: a payload is dropped unless every transport key is an own property
+ * AND `distinct_id` is exactly the cookieless sentinel, `$cookieless_mode` is exactly `true`
+ * and `$process_person_profile` is exactly `false`. So no per-browser identifier can leave
+ * the page even if cookieless mode silently lapsed.
+ *
+ * The surviving property set is built as a FRESH literal: transport keys first, then each
+ * allowlisted key, then campaign values. It is never a spread of the payload minus a
+ * denylist, because a denylist inherits every key a future SDK version or a remote setting
+ * adds. `$current_url` keeps only origin and path; `$referrer` keeps only its origin or the
+ * literal `$direct`; a value that cannot be reduced is omitted. Campaign values come only
+ * from `campaign`, re-validated against lowercase letters, digits and hyphens, 1 to 32
+ * characters; a campaign value the SDK supplied in the payload is never copied.
  */
-export function stripToBareName(
+export function reduceCapture(
   result: CaptureResult | null,
   allowedEvents: readonly string[],
+  campaign: Readonly<Record<string, string>> = {},
 ): CaptureResult | null {
   if (result === null || typeof result !== 'object') return null;
-  if (!allowedEvents.some((allowed) => allowed === result.event)) return null;
+
+  const event: unknown = result.event;
+  const admitted =
+    allowedEvents.some((allowed) => allowed === event)
+    || SDK_PAGE_EVENTS.some((page) => page === event);
+  if (!admitted) return null;
 
   const source: unknown = result.properties;
   if (typeof source !== 'object' || source === null) return null;
+  const received = source as Record<string, unknown>;
+  const hasOwn = (target: object, key: string) =>
+    Object.prototype.hasOwnProperty.call(target, key);
+
+  for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
+    if (!hasOwn(received, key)) return null;
+  }
+  if (
+    received.distinct_id !== COOKIELESS_DISTINCT_ID
+    || received.$cookieless_mode !== true
+    || received.$process_person_profile !== false
+  ) {
+    return null;
+  }
 
   const properties: Record<string, unknown> = {};
   for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
-    if (!Object.prototype.hasOwnProperty.call(source, key)) return null;
-    properties[key] = (source as Record<string, unknown>)[key];
+    properties[key] = received[key];
+  }
+
+  for (const key of WEB_ANALYTICS_PROPERTIES) {
+    if (!hasOwn(received, key)) continue;
+    const value = received[key];
+    if (!isCopyableValue(value)) continue;
+
+    if (key === '$current_url') {
+      if (typeof value !== 'string') continue;
+      const parsed = parseWebAddress(value);
+      if (parsed !== null) properties[key] = `${parsed.origin}${parsed.pathname}`;
+      continue;
+    }
+
+    if (key === '$referrer') {
+      if (value === '$direct') {
+        properties[key] = value;
+        continue;
+      }
+      if (typeof value !== 'string') continue;
+      const parsed = parseWebAddress(value);
+      if (parsed !== null) properties[key] = parsed.origin;
+      continue;
+    }
+
+    properties[key] = value;
+  }
+
+  for (const key of CAMPAIGN_PROPERTIES) {
+    if (!hasOwn(campaign, key)) continue;
+    const value: unknown = campaign[key];
+    if (typeof value === 'string' && CAMPAIGN_VALUE.test(value)) {
+      properties[key] = value;
+    }
   }
 
   // The surviving envelope is a fresh object carrying the vendor's own transport
@@ -202,9 +383,9 @@ export interface PostHogLockdownExpectation {
    * has none, and `typeof merged.before_send === 'function'` — which is what this
    * predicate used to check — accepts ANY function. That made the single most
    * privacy-load-bearing option the one option nothing proved: a client free to choose
-   * what it exposes as `config` could echo back all 32 locked values verbatim and
+   * what it exposes as `config` could echo back all 33 locked values verbatim and
    * substitute its own reducer, passing the readback while the property chokepoint that
-   * reduces a capture to a bare name was never installed at all.
+   * reduces a capture to the allowlisted property set was never installed at all.
    *
    * It is supplied by the caller rather than read from `POSTHOG_LOCKDOWN` here on
    * purpose: `POSTHOG_LOCKDOWN` is a factory, so calling it again in this module would
@@ -254,9 +435,11 @@ export function lockdownHolds(
     merged.autocapture === false &&
     merged.rageclick === false &&
     merged.capture_dead_clicks === false &&
-    merged.capture_pageview === false &&
-    // Asserted as a literal `false`, never as the coupled `'if_capture_pageview'`.
-    merged.capture_pageleave === false &&
+    // A literal `true`, never the `'history_change'` default, which also counts history
+    // changes.
+    merged.capture_pageview === true &&
+    // Asserted as a literal `true`, never as the coupled `'if_capture_pageview'`.
+    merged.capture_pageleave === true &&
     merged.disable_session_recording === true &&
     merged.disable_surveys === true &&
     merged.disable_surveys_automatic_display === true &&
@@ -277,10 +460,11 @@ export function lockdownHolds(
     merged.persistence === 'memory' &&
     merged.disable_persistence === true &&
     merged.disableDeviceModel === true &&
-    merged.save_referrer === false &&
+    merged.save_referrer === true &&
     merged.save_campaign_params === false &&
     Array.isArray(campaignParams) &&
     campaignParams.length === 0 &&
+    merged.cookieless_mode === 'always' &&
     // Identity, not `typeof`. The chokepoint is only installed if the function that came
     // back is the very function that went in; any other function — including one the
     // client minted for itself — is an unconfirmed lockdown. The `typeof` guard is kept

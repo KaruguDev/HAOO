@@ -8,7 +8,8 @@
 > Each PostHog surface is enumerated from a full-coverage baseline. Because D-03's
 > automatic-capture lockdown *is* a set of subtractions, every one of those subtractions is
 > recorded below as a reasoned OPT-OUT, which is what makes the lockdown a decision rather than
-> a configuration accident.
+> a configuration accident. On 2026-09-13 the owner reversed the bare-name half of D-03 in favour
+> of cookieless Web Analytics (quick task 260913-p4u); the remaining subtractions stand.
 
 ## PostHog — browser SDK (posthog-js, pinned and loaded; delivery gated on the selector)
 
@@ -16,10 +17,10 @@
 |---|---|---|
 | `posthog.init(token, config)` with an explicit lockdown object | INTEGRATE | the automatic-capture posture is passed as one literal object (D-03), leaving no surface at a default. Reached at runtime: `src/measurement/posthog.ts` binds the SDK by value (D4 closed by 04.1-09) |
 | merged-config readback via `instance.config` | INTEGRATE | `init` assigns the fully merged config before returning, so the readback proves resolved values rather than submitted ones — and `init` does not throw on a blank token, so the readback is the gate |
-| `capture(name)` with a bare name and no property argument | INTEGRATE | the ten allowlisted HAOO names are the entire event vocabulary (MEAS-02) |
-| `before_send` payload reduction | INTEGRATE | the sole property chokepoint: it runs last, after `property_denylist` and after `$process_person_profile` is appended, and returning `null` drops anything outside the allowlist |
+| `capture(name)` with a bare name and no property argument | INTEGRATE | the facade still passes only a name, and the ten allowlisted HAOO names remain the product event vocabulary (MEAS-02); since 2026-09-13 the SDK enriches each event automatically and `before_send` decides which properties survive |
+| `before_send` payload reduction | INTEGRATE | the sole property chokepoint: it runs last, after `property_denylist` and after `$process_person_profile` is appended; it admits the ten HAOO names plus `$pageview`/`$pageleave`, requires the four cookieless transport keys with exact values (`distinct_id` `$posthog_cookieless`, `$cookieless_mode` true, `$process_person_profile` false), copies a fixed Web Analytics property allowlist into a fresh literal, reduces `$current_url` to origin and path and `$referrer` to origin or `$direct`, writes the normalized campaign values, and returns `null` for anything else |
 | `person_profiles: 'never'` | INTEGRATE | no PostHog person profile may be created (MEAS-03); the setting reaches ingestion only through the retained `$process_person_profile` property |
-| `persistence: 'memory'` with `disable_persistence: true` | INTEGRATE | no stable visitor identifier is written to the browser, and data previously saved to the browser is deleted (MEAS-03) |
+| `persistence: 'memory'` with `disable_persistence: true` | INTEGRATE | no stable visitor identifier is written to the browser, and data previously saved to the browser is deleted (MEAS-03); cookieless `'always'` also forces persistence off inside the SDK, so these two keys are defence in depth and are still read back |
 | `advanced_disable_flags` to suppress the remote-configuration fetch | INTEGRATE | without it the options documented `@default undefined` fall back to remote configuration, so a server-side project setting could re-enable a locked surface |
 | `disable_external_dependency_loading` | INTEGRATE | prevents the SDK requesting any external script for session replay, surveys or site apps, so the bundled version pin is the whole of what executes |
 | `defaults` sentinel and the date-gated default set | INTEGRATE | successor to `` `defaults: 'unset'` pinning of the date-gated default set `` (WR-03), whose reason read "a dated default set is a moving target" and was false: `'unset'` sorts lexicographically ABOVE every date literal, so it selects the NEWEST branch of every date gate but `session_recording` rather than pinning any of them. What holds is per-key, not per-sentinel — the three date-gated keys carrying a privacy decision (`rageclick`, `capture_pageview`, `internal_or_test_user_hostname`) are locked explicitly and read back by `lockdownHolds`, so the branch the vendor would have chosen never survives, and every other date-gated key in the installed bundle is named and acknowledged rather than left unseen. Executable half: `measurement.test.ts#locks or acknowledges every date-gated default key the installed SDK carries`, which extracts the gates from the installed bundle so a version bump that adds one fails and names it |
@@ -27,8 +28,8 @@
 | DOM autocapture (`autocapture`) | OPT-OUT | `@default true`; captures clicks, inputs and form interactions, which would carry the free-text form values MEAS-02 prohibits outright |
 | rageclick (`rageclick`) | OPT-OUT | `@default true` and independent of `autocapture`; would emit `$rageclick`, an interaction event outside the closed allowlist |
 | dead clicks (`capture_dead_clicks`) | OPT-OUT | `@default undefined`, meaning it falls back to remote configuration; an interaction event outside the closed allowlist |
-| automatic `$pageview` (`capture_pageview`) | OPT-OUT | duplicates the explicit `haoo_page_view` event and can fire before campaign parameters are normalized |
-| automatic `$pageleave` (`capture_pageleave`) | OPT-OUT | `@default 'if_capture_pageview'` — off only *because* pageview is off, so it is set to literal `false` and asserted as `false` rather than as the coupling string |
+| automatic `$pageview` (`capture_pageview`) | INTEGRATE | owner decision 2026-09-13 (quick task 260913-p4u): Web Analytics counts `$pageview`; locked to literal `true`, which at 1.425.1 captures only the initial load (the `'history_change'` default would also count history changes); it fires 1 ms after `init`, which runs after `readCampaign` cleans the address bar; `haoo_page_view` stays for the owner report |
+| automatic `$pageleave` (`capture_pageleave`) | INTEGRATE | gives Web Analytics session duration and bounce rate; set and read back as literal `true`, never the coupled `'if_capture_pageview'` string |
 | session recording / replay (`disable_session_recording`) | OPT-OUT | `@default false`; replay would record visitor interaction and form content, the one-way disclosure D-03 exists to prevent |
 | surveys (`disable_surveys`) | OPT-OUT | `@default false`; a survey is a visitor-facing artifact the product owner has neither authored nor disclosed |
 | automatic survey display (`disable_surveys_automatic_display`) | OPT-OUT | `@default false` and a separate switch, so disabling surveys alone would not prove display is off |
@@ -42,14 +43,14 @@
 | site apps (`opt_in_site_apps`) | OPT-OUT | would execute PostHog-hosted code inside the page, defeating the bundled, version-pinned delivery decision |
 | feature flags (`advanced_disable_feature_flags`) | OPT-OUT | this milestone ships no flagged behaviour, and a flag evaluation emits `$feature_flag_called`, an event outside the allowlist |
 | toolbar metrics (`advanced_disable_toolbar_metrics`) | OPT-OUT | the toolbar is an authoring surface this project never loads, so its metrics would describe nothing a visitor did |
-| `save_referrer` | OPT-OUT | `@default true`; emits `$referrer` and `$referring_domain`, ambient context outside the bare-name contract |
-| `save_campaign_params` | OPT-OUT | `@default true`; PostHog would capture `utm_*` itself, bypassing the repo-side `readCampaign` allowlist and normalization MEAS-06 requires |
+| `save_referrer` | INTEGRATE | the SDK attaches `$referrer` and `$referring_domain` to events only through this option; the values are held in memory under disabled persistence, and `before_send` reduces `$referrer` to its origin or `$direct` |
+| `save_campaign_params` | OPT-OUT | it would read raw `utm_*` values and click identifiers from the address bar and bypass MEAS-06 normalization; instead `before_send` writes the normalized `readCampaign` values onto each event |
 | `identify()` / `alias()` / `group()` / `setPersonProperties()` | OPT-OUT | each forces person processing on for the rest of the session regardless of `person_profiles: 'never'`; the adapter exposes only `capture` |
 | `property_denylist` as a privacy boundary | OPT-OUT | it runs before `$process_person_profile` is appended and therefore cannot be the contract; `before_send` is the chokepoint and the denylist is at most a redundant second layer |
 | `sanitize_properties` | OPT-OUT | `@deprecated - use before_send instead`, and setting it logs a runtime error |
 | the deprecated `ip` option | OPT-OUT | `@deprecated - THIS OPTION HAS NO EFFECT`; setting it would record a suppression that does not exist |
-| `cookieless_mode` | OPT-OUT | derives `hash(team_id, daily_salt, ip_address, user_agent, hostname)` — an identifier from personal data — and silently drops every event when the project setting is off (D-05 dead funnel) |
-| `$geoip_disable` as an event property | OPT-OUT | it is the only client-side GeoIP lever, but adding it would contradict the bare-name payload; suppression is the owner-performed "Discard client IP data" project setting instead |
+| `cookieless_mode` | INTEGRATE | owner decision 2026-09-13 reverses the earlier opt-out: `'always'` sends the `$posthog_cookieless` sentinel instead of a per-browser identifier, forces persistence off and builds no client session; PostHog derives `hash(team_id, daily_salt, ip_address, user_agent, hostname)` server-side; events are dropped at ingestion unless the owner-performed "Cookieless server hash mode" setting in the Operational boundary is on |
+| `$geoip_disable` as an event property | OPT-OUT | approximate IP-derived location is now disclosed to visitors and used by Web Analytics; any suppression remains the owner-performed "Discard client IP data" project setting |
 
 ## PostHog — Query API
 
@@ -110,7 +111,7 @@ green build. First, whether those three repository variables carry values: they 
 repository variables, created outside version control, and nothing in this tree can observe them. An
 absent variable expands to the empty string, the selector fails closed to `none`, and the deployed
 build captures nothing while every gate here still passes — so a green workflow run is not evidence
-of a capturing deploy. Second, the live outcomes: ingestion acceptance of the three-property payload
+of a capturing deploy. Second, the live outcomes: ingestion acceptance of the reduced cookieless payload
 and the absence of a person profile remain owner observations at the seven checkpoints 04.1-11
 unblocked, not facts this tree has established (D-05).
 
@@ -141,7 +142,10 @@ receiving events, not a count since the project did and not a count since the si
 every query in the report is bounded at that day so the figure matches the heading above it.
 
 "Discard client IP data" is an owner-performed project setting the code cannot assert. Server-side
-GeoIP enrichment has no client-side lever that keeps events bare: the `ip` option is deprecated and
-has no effect, and `$geoip_disable` is an event property that would contradict the bare-name
-payload. The suppression is therefore verified by the owner in project settings, and this row states
-that limit rather than claiming the adapter closes it.
+GeoIP enrichment has no client-side lever this project uses: the `ip` option is deprecated and
+has no effect, and `$geoip_disable` is an event property that would withhold the approximate
+location now disclosed to visitors and used by Web Analytics. The suppression is therefore verified
+by the owner in project settings, and this row states that limit rather than claiming the adapter
+closes it.
+
+"Cookieless server hash mode" is an owner-performed project setting (PostHog, Project settings > Web analytics). The browser SDK runs with `cookieless_mode: 'always'`, and events sent that way are dropped at ingestion while it is off, so the setting must be enabled before a build carrying this configuration is deployed. Whether it is on is an owner observation, not a fact this tree can establish.

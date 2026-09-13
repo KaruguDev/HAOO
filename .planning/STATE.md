@@ -1,45 +1,44 @@
 ---
 gsd_state_version: 1.0
-current_phase: 05
-current_phase_name: Prove the Deployed Journey
-status: verifying
-stopped_at: Completed 05-17-PLAN.md
-last_updated: "2026-09-13T08:49:57.475Z"
+current_phase: 2
+current_phase_name: Submit a Qualified HAOO Enquiry
+status: planning
+stopped_at: Phase 05 complete, ready to plan Phase 2
+last_updated: "2026-09-13T14:41:36.956Z"
 last_activity: 2026-09-13
-last_activity_desc: 05-17 complete, phase 05 ready for verification; Kenya DPA sign-off accepted risk, outstanding
-state_head: 0f242f3e8f83510a883f0056a18622046a2578a1
+last_activity_desc: Phase 05 complete, transitioned to Phase 2
+state_head: e530e3a88adba3944059653f34b020e3d104cbba
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 73
+  completed_phases: 4
+  total_plans: 72
   completed_plans: 70
-  percent: 43
+  percent: 57
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-29)
+See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** A serious HAOO prospect can understand the product, demonstrate intent, and reach the right onboarding path quickly without getting lost in general company traffic.
-**Current focus:** Phase 05 — Prove the Deployed Journey
+**Current focus:** Phase 2 — Submit a Qualified HAOO Enquiry (all 7 plans already summarised; awaiting verification and completion, like Phases 3, 4 and 04.1)
 
 ## Current Position
 
-Phase: 05 (Prove the Deployed Journey): all plans executed, ready for verification
-Plan: 17 of 17 (all 17 plans summarised; 05-17, the phase close, completed 2026-09-13)
-Total Plans in Phase: 17
-Status: Phase complete — ready for verification (/gsd-verify-work 05)
-Last activity: 2026-09-13 — 05-17 complete.
-- **Gates:** 13 enumerated commands exit 0 across both repositories (HAOO 688 tests / 10 files, ZERO-PAPER HUB 32 / 3).
-- **Evidence pass:** live 141/128/13 and preview 141/33/108, exit 0, against deploy 2d45e5f.
-- **Owner dispositions:** D-18 items 3 and 4 accepted (orchestrator-drafted at the owner's request, approved as written). The Kenya DPA 2019 sign-off stays outstanding and is carried beyond Phase 5.
-- **Records:** Phase 4 contract reconciled; statuses set from evidence; 05-EVIDENCE.md written.
-- **Owed to verification:** option labels, E1, E3, FS-O1.
+Phase: 2 — Submit a Qualified HAOO Enquiry
+Plan: Not started
+Total Plans in Phase: 7
+Status: Ready to plan
+Last activity: 2026-09-13 - Completed quick task 260913-p4u: Enable PostHog Web Analytics via cookieless mode
+
+- **Phase 05 closed:** UAT 6/6 passed (tests 3 and 4 automated with Playwright against https://www.haoo.online/), 05-VERIFICATION.md passed, 05-SECURITY.md 88/88 threats closed.
+- **Carried beyond Phase 5:** the Kenya DPA 2019 sign-off stays an owner-accepted, unresolved risk (see Blockers/Concerns).
+- **Earlier phases not yet marked complete:** 2, 3, 4 and 04.1 show In Progress in ROADMAP.md although their plans are summarised.
 - **Nothing pushed:** HAOO local main is ahead of origin by docs/evidence commits only.
 
-Progress: 70/73 plans summarised across the milestone; 3 of 7 phases complete ([████░░░░░░] 43%)
+Progress: 70/72 plans summarised across the milestone; 3 of 7 phases (1, 04.2, 5) marked complete in ROADMAP.md
 
 ## Performance Metrics
 
@@ -49,6 +48,7 @@ Progress: 70/73 plans summarised across the milestone; 3 of 7 phases complete ([
 |-------|-------|-------|----------|
 | 01 | 9 | - | - |
 | 04.2 | 9 | - | - |
+| 05 | 17 | - | - |
 
 *Updated after each plan completion*
 **Per-Plan Metrics:**
@@ -274,6 +274,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-16: the Playwright-driven tagged send was not captured by PostHog (webdriver true, 0 ingestion requests), contradicting 05-EVIDENCE-HARNESS section 4's one-known-inclusion premise
 - [Phase 05]: 05-17: the final evidence pass's appended records were committed (6be6575), not restored, because the latest committed keyboard and viewport records still measured the pre-F1-LIVE page; evidence/axe-baseline.json was restored to HEAD (upsert replaced 11 of 11 entries identical apart from timestamps)
 - [Phase 05]: 05-17: D-18 item 3, Kenya DPA 2019 sign-off, dispositioned accepted by the owner 2026-09-13 (owner-accepted, orchestrator-drafted at the owner's request, approved as written). Accepted risk, NOT resolved: no legal review, no compliance determination; the sign-off stays outstanding and is carried beyond Phase 5
+- [Phase 05]: UAT 2026-09-13: FS-O1 'exactly one live status region' is scoped to the form's submission region; MeasurementDisclosure's clear-context status is a separate feature. The owner confirmed the orchestrator-drafted, owner-approved sentences for R-1, the Kenya DPA 2019 and the origin certificate stand as their own statements.
 - [Phase 05]: 05-17: D-18 item 4, haoo.online certificate provenance (D34), dispositioned accepted by the owner 2026-09-13, same provenance. Edge YE2 06D56404... (2026-09-09 to 2026-12-08); origin still YR2 0609A517... (2026-09-03 to 2026-12-02); Cloudflare SSL mode and platform rotation unknown
 - [Phase 05]: 05-17: LEAD-07 Complete, re-derived from 05-EVIDENCE-MAIL.md; QUAL-01, QUAL-02, QUAL-03 and QUAL-05 Complete (qualified), each naming what was not proven with successor /gsd-verify-work 05 (option labels, E1, E3 held out; KB-O2; FS-O1)
 - [Phase 05]: 05-17: O-1 and AG-O1 closed by the formal live readings of 2026-09-13 (S4 1 edge script, the CF-JSD-1 bootstrap, 0 beacon; S1 loads only haoo-CHYRGEim.js)
@@ -320,6 +321,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260830-16r | Update .gitignore to exclude local GSD runtime state and generated planning research cache files | 2026-08-30 | c5cce39 | [260830-16r-update-gitignore-to-exclude-local-gsd-ru](./quick/260830-16r-update-gitignore-to-exclude-local-gsd-ru/) |
+| 260913-p4u | Enable PostHog Web Analytics via cookieless mode | 2026-09-13 | 4c43be8 | [260913-p4u-enable-posthog-web-analytics-via-cookiel](./quick/260913-p4u-enable-posthog-web-analytics-via-cookiel/) |
 
 ### Roadmap Evolution
 
@@ -336,6 +338,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-13T08:49:57.117Z
-Stopped at: Completed 05-17-PLAN.md
+Last session: 2026-09-13T14:45:00.000Z
+Stopped at: Phase 05 complete, ready to plan Phase 2
 Resume file: None

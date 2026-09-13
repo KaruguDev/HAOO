@@ -268,8 +268,9 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
       haoo_assisted_email: 'That you chose email to contact HAOO.',
       haoo_self_onboarding: 'That you opened HAOO self-onboarding.',
     },
+    // Replaced 2026-09-13 (quick task 260913-p4u), executor-drafted under the owner's cookieless decision; owed an owner read before the next deploy.
     signalBoundary:
-      'These signals are sent as bare names with no form answers or visitor properties attached.',
+      "Each of these signals, and each page visit and page exit, is sent with: this page's address without anything after a ? or #; the name of the site that sent you here; the browser, operating system, device type, language, time zone and screen size your browser reports; and any accepted campaign values. No form answers or contact details are attached.",
     browserHeading: 'What this browser remembers',
     browserFacts: [
       'Whether this visit is first, returning, or frequent.',
@@ -281,8 +282,9 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     browserBoundary:
       'The capped visit step and day-only value never enter analytics events or form submissions.',
     campaignHeading: 'Campaign information',
+    // Replaced 2026-09-13 (quick task 260913-p4u), executor-drafted under the owner's cookieless decision; owed an owner read before the next deploy.
     campaignDescription:
-      'On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, and removed from the address bar after being read.',
+      "On one page load, we may read utm_source, utm_medium, and utm_campaign. Accepted values are lowercased, limited to short letters, numbers, and hyphens, kept only for this page lifetime, sent with this page's signals to PostHog, and removed from the address bar after being read.",
     /**
      * Owner-approved copy, byte-exact, resolved by plan 04.2-04's blocking-human
      * checkpoint (task 1, gate `blocking-human`, approved 2026-09-06) under D-09.
@@ -307,26 +309,31 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     controllerNote:
       'HAOO is a product of ZERO-PAPER HUB, and ZERO-PAPER HUB decides how the information on this site is collected and used. Moving HAOO to its own web address does not change who operates it or who receives what you send. If you submit the qualification form, your details are sent through FormSubmit, a third-party email-forwarding service, which passes them to ZERO-PAPER HUB.',
     /**
-     * Owner-approved copy, byte-exact, resolved by this plan's blocking checkpoint
-     * (04.1-06 Task 1) as the resolution of the D-10 deferral. D-08 moved measurement to
-     * a different processor in a different country, so the visitor is told which
-     * processor holds the data and which jurisdiction processes it.
+     * Wording replaced on 2026-09-13 under the owner's decision (quick task 260913-p4u)
+     * to enable cookieless PostHog Web Analytics. The executor drafted it under that
+     * decision; it is NOT the earlier owner-approved text and is owed an owner read before
+     * the next deploy.
      *
-     * The second sentence names the per-page-load transport reference the wire actually
-     * carries. It is here because the payload is a bare event name plus the vendor's own
-     * transport keys, not a literally empty object, and a disclosure that implied
-     * otherwise would describe a request this page does not send.
+     * The predecessor, approved at 04.1-06 Task 1 as the resolution of the D-10 deferral,
+     * described a per-page-load transport reference because the payload was then a bare
+     * event name. That stopped being true when the lockdown moved to cookieless mode with a
+     * Web Analytics property allowlist, so the note now says what the visitor's page
+     * actually sends: no cookies or browser storage by PostHog, an anonymous server-side
+     * code derived from IP address and browser details that is renewed daily, and
+     * approximate location PostHog may derive from the IP address. The processor and the
+     * jurisdiction (D-08) are unchanged.
      */
     processorHeading: 'Where this measurement is processed',
     processorNote:
-      'Aggregate page signals are processed by PostHog in the United States. Each signal is sent with a temporary reference that lasts only for the current page load, is never saved in this browser, and is never linked to your form answers.',
+      'Page signals are processed by PostHog in the United States. PostHog uses no cookies and saves nothing in this browser. It groups visits using an anonymous code calculated on its own servers from your IP address and browser details, and that code changes every day. PostHog may also work out your approximate location, such as your country or city, from your IP address. Page signals are never linked to your form answers.',
     neverCollectedHeading: 'What we never collect for measurement',
     neverCollected: [
       'Name, email address, phone number, or organization.',
       'Message text.',
       'Role, county, timeframe, or exact portfolio values.',
-      'Cookies, fingerprints, or cross-site identifiers.',
+      'Cookies, identifiers saved in this browser, or cross-site identifiers.',
       'Raw click history.',
+      'Anything in the page address after a ? or #, apart from accepted campaign values.',
       'Any form answer attached to an analytics event.',
     ],
     /**
