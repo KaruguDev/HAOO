@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Prove the Deployed Journey
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-09-13T00:44:14.527Z"
+stopped_at: Completed 05-16-PLAN.md
+last_updated: "2026-09-13T08:15:10.766Z"
 last_activity: 2026-09-13
 last_activity_desc: 05-06 complete, link 2 (activation) confirmed on the owner report, 05-16 next
-state_head: a20737f8593e5c1d44b19e392db125337f2060ee
+state_head: 2bf6d28f009595e4520b3e979763569505d40bf0
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 68
+  completed_plans: 69
   percent: 43
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Prove the Deployed Journey) — EXECUTING
-Plan: 16 of 17 (05-16 next; 15 plans summarised; 05-16 and 05-17 remain)
+Plan: 17 of 17 (05-16 next; 15 plans summarised; 05-16 and 05-17 remain)
 Total Plans in Phase: 17
 Status: Ready to execute
 Last activity: 2026-09-13 — 05-06 complete. Link 2 (activation) of LEAD-07 is CONFIRMED on the owner report ("activated form submit and received 3 submissions"), corroborated by delivery of the marked activation-trigger submission at 00:33:02 +0000; folder, full sender and post-click page text not stated. Exactly 1 live submission sent (HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a). Link 3 (delivery, 05-16) next
@@ -110,6 +110,7 @@ Progress: 43/46 plans ([████░░░░░░] 43%)
 | Phase 05 P14 | 23 min | 3 tasks | 7 files |
 | Phase 05 P02 | 10 min | 3 tasks | 2 files |
 | Phase 05 P06 | 28 min | 3 tasks | 5 files |
+| Phase 05 P16 | about 7h elapsed (about 10 min active, rest at owner checkpoint) | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -262,6 +263,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-02: link 1 (MX) of LEAD-07 CONFIRMED — local resolver and 8.8.8.8 both name 10 mx1/mx2.privateemail.com (ten consecutive rounds 21:02:44Z-21:03:30Z, closing run 2026-09-12T21:03:51Z, re-measured 2026-09-13T00:06:36Z after the executor's spend-limit interruption). Task 3's automated check exits 1 on its four-address A clause only: the zone is now delegated to bella/oswald.ns.cloudflare.com and the apex resolves to Cloudflare proxy addresses 104.21.65.146/172.67.164.26, not caused by the MX edit. Recorded as measured, not rewritten; owner or planner to decide whether to amend the criterion. 05-06 (link 2) can now be attempted.
 - [Phase 05]: 05-06: link 2 (activation) of LEAD-07 CONFIRMED on the owner's report ('activated form submit and received 3 submissions', 2026-09-13), corroborated by FormSubmit delivering the marked activation-trigger submission HAOO-ENDPOINT-ACTIVATION-20260913T003033Z-571c962a at 00:33:02 +0000. Folder, full sender address and post-click page text not stated. Link 3 (05-16) stays NOT STARTED.
 - [Phase 05]: 05-06: e2e/live-submission.e2e.ts is the only mechanism for live submissions; inert unless HAOO_SEND_LIVE_SUBMISSION is set, needs HAOO_LIVE_SUBMISSION_PURPOSE, live project only, retries pinned to 0 and refuses a retry or repeat index. Exactly 1 live submission sent by 05-06; 05-16 sends the second and last.
+- [Phase 05]: 05-16: LEAD-07 link 3 CONFIRMED on the owner's report; marker HAOO-RELEASE-VERIFICATION-20260913T011059Z-b770730d arrived in the info@haoo.online inbox at Today 04:11 local (01:11 UTC); full sender and subject not stated
+- [Phase 05]: 05-16: the Playwright-driven tagged send was not captured by PostHog (webdriver true, 0 ingestion requests), contradicting 05-EVIDENCE-HARNESS section 4's one-known-inclusion premise
 
 ### Pending Todos
 
@@ -320,6 +323,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-13T00:44:14.383Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-09-13T08:15:10.587Z
+Stopped at: Completed 05-16-PLAN.md
 Resume file: None

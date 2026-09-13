@@ -30,7 +30,7 @@
 - [ ] **LEAD-04**: A valid HAOO qualification submission is addressed to `info@haoo.online` with a recognizable HAOO-specific subject and human-readable field labels
 - [ ] **LEAD-05**: Visitor receives accessible validation, submitting, success, failure, and retry guidance without losing entered values after a recoverable error
 - [ ] **LEAD-06**: Qualification form applies a honeypot and provider-supported spam controls without creating a barrier for legitimate keyboard or assistive-technology users
-- [ ] **LEAD-07**: Release verification proves the HAOO form endpoint is activated and a uniquely tagged production submission reaches the HAOO inbox or spam folder
+- [x] **LEAD-07**: Release verification proves the HAOO form endpoint is activated and a uniquely tagged production submission reaches the HAOO inbox or spam folder
 
 ### Privacy-First Measurement
 
@@ -184,7 +184,7 @@ Traceability is populated during roadmap creation. Every v1 requirement must map
 | LEAD-04 | Phase 2 | Gaps Found |
 | LEAD-05 | Phase 2 | Gaps Found |
 | LEAD-06 | Phase 2 | Gaps Found |
-| LEAD-07 | Phase 5 | Pending |
+| LEAD-07 | Phase 5 | Complete |
 | MEAS-01 | Phase 4 | Gaps Found |
 | MEAS-02 | Phase 3 | Complete |
 | MEAS-03 | Phase 3 | Complete |
