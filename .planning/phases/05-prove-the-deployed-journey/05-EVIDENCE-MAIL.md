@@ -784,7 +784,7 @@ body, by design. Against an unactivated endpoint that design shows a visitor the
 submission FormSubmit did not deliver. This is a browser-observable fact about the shipped code, measured
 here; changing `src/` is outside this plan.
 
-**L2-O1: fixed in source, not yet deployed (2026-09-13).** The owner decided on 2026-09-13 to fix L2-O1
+**L2-O1: fixed in source and deployed (2026-09-13).** The owner decided on 2026-09-13 to fix L2-O1
 before 05-16. Two commits carry the fix:
 - `a7675f4`: the tests, with the response body above, verbatim, as the regression input.
 - `e6cf694`, `fix(05): count a qualification send as succeeded only when FormSubmit accepts it (L2-O1)`.
@@ -792,9 +792,9 @@ before 05-16. Two commits carry the fix:
 The form now ends in `succeeded` only when the response is OK and the body's `success` reads `'true'` or
 `true`. With the body above, the tests end in `We couldn't send your details.` with the form and its
 values still mounted. That reading comes from hermetic tests: nothing was sent to take it. The
-measurement above is unchanged and still describes the code the live site serves. Until the orchestrator
-deploys, the live site serves `/assets/haoo-C1OXjuEM.js`, which carries the old behaviour. 05-16's tagged
-submission runs after that deploy.
+measurement above is unchanged, and it describes the pre-fix bundle `/assets/haoo-C1OXjuEM.js`.
+
+**Deployed and verified live.** The orchestrator pushed `651eebe..2d45e5f`, whose only source commits are `a7675f4` and `e6cf694`. `Deploy HAOO` run `34729513221` and `Verify tree disjointness` run `34729513230` both concluded `success`. At `2026-09-13T01:06:34Z` the live site served `/assets/haoo-CHYRGEim.js` (207795 bytes, SHA-256 prefix `f1034f2e91285f51`). That name differs from the local build's `haoo-DccNMFAD.js` because the deploy injects build-time variables, as the previous deploy also showed. Static reading: the served bundle contains `const n=e.success;return n==="true"||n===!0` and 0 occurrences of the old `ok?"succeeded":"failed"` pattern. Behavioural reading: at `2026-09-13T01:07:41.317Z` the orchestrator loaded `https://www.haoo.online/` in Chromium, routed `formsubmit.co` to answer locally with HTTP 200 and the pre-activation body above, and submitted the form. It read status `We couldn't send your details.`, 0 confirmation headings, 1 form still mounted, and the entered message retained. 1 POST was intercepted and nothing reached FormSubmit, so the standing count of live submissions below is unchanged. 05-16's tagged submission runs against this bundle.
 
 ### Standing count of live submissions in Phase 5
 
