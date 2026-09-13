@@ -1,6 +1,6 @@
 {
   "task": "quick-260913-vbl",
-  "generatedAt": "2026-09-13T20:17:05.036Z",
+  "generatedAt": "2026-09-13T20:20:54.070Z",
   "baseUrl": "http://localhost:4173",
   "failures": [],
   "observations": [],
@@ -22,121 +22,121 @@
         "run": "1440-reduce",
         "href": "#benefits",
         "headerBottom": 88,
-        "headingTop": 175.5625,
+        "headingTop": 175.96875,
         "headingText": "Benefits",
-        "scrollY": 1041
+        "scrollY": 1013
       },
       {
         "run": "1440-reduce",
         "href": "#capabilities",
         "headerBottom": 88,
-        "headingTop": 175.75,
+        "headingTop": 176.15625,
         "headingText": "Capabilities",
-        "scrollY": 1388
+        "scrollY": 1360
       },
       {
         "run": "1440-reduce",
         "href": "#brochure",
         "headerBottom": 88,
-        "headingTop": 175.875,
+        "headingTop": 176.28125,
         "headingText": "Brochure",
-        "scrollY": 3307
+        "scrollY": 3279
       },
       {
         "run": "1440-reduce",
         "href": "#qualify",
         "headerBottom": 88,
-        "headingTop": 175.59375,
+        "headingTop": 176,
         "headingText": "Send your details",
-        "scrollY": 3975
+        "scrollY": 3947
       },
       {
         "run": "1440-reduce",
         "href": "#onboarding",
         "headerBottom": 88,
-        "headingTop": 208.4375,
+        "headingTop": 207.84375,
         "headingText": "Get help choosing",
-        "scrollY": 6056
+        "scrollY": 6029
       },
       {
         "run": "390-reduce",
         "href": "#benefits",
         "headerBottom": 64,
-        "headingTop": 144.4375,
+        "headingTop": 143.84375,
         "headingText": "Benefits",
-        "scrollY": 1843
+        "scrollY": 1816
       },
       {
         "run": "390-reduce",
         "href": "#capabilities",
         "headerBottom": 64,
-        "headingTop": 143.8125,
+        "headingTop": 144.21875,
         "headingText": "Capabilities",
-        "scrollY": 2386
+        "scrollY": 2358
       },
       {
         "run": "390-reduce",
         "href": "#brochure",
         "headerBottom": 64,
-        "headingTop": 144.46875,
+        "headingTop": 143.875,
         "headingText": "Brochure",
-        "scrollY": 5566
+        "scrollY": 5539
       },
       {
         "run": "390-reduce",
         "href": "#qualify",
         "headerBottom": 64,
-        "headingTop": 144.46875,
+        "headingTop": 143.875,
         "headingText": "Send your details",
-        "scrollY": 6307
+        "scrollY": 6280
       },
       {
         "run": "390-reduce",
         "href": "#onboarding",
         "headerBottom": 64,
-        "headingTop": 168.0625,
+        "headingTop": 168.46875,
         "headingText": "Get help choosing",
-        "scrollY": 8554
+        "scrollY": 8526
       },
       {
         "run": "1440-smooth",
         "href": "#benefits",
         "headerBottom": 88,
-        "headingTop": 175.5625,
+        "headingTop": 175.96875,
         "headingText": "Benefits",
-        "scrollY": 1041
+        "scrollY": 1013
       },
       {
         "run": "1440-smooth",
         "href": "#capabilities",
         "headerBottom": 88,
-        "headingTop": 175.75,
+        "headingTop": 176.15625,
         "headingText": "Capabilities",
-        "scrollY": 1388
+        "scrollY": 1360
       },
       {
         "run": "1440-smooth",
         "href": "#brochure",
         "headerBottom": 88,
-        "headingTop": 175.875,
+        "headingTop": 176.28125,
         "headingText": "Brochure",
-        "scrollY": 3307
+        "scrollY": 3279
       },
       {
         "run": "1440-smooth",
         "href": "#qualify",
         "headerBottom": 88,
-        "headingTop": 175.59375,
+        "headingTop": 176,
         "headingText": "Send your details",
-        "scrollY": 3975
+        "scrollY": 3947
       },
       {
         "run": "1440-smooth",
         "href": "#onboarding",
         "headerBottom": 88,
-        "headingTop": 224.4375,
+        "headingTop": 223.84375,
         "headingText": "Get help choosing",
-        "scrollY": 6040
+        "scrollY": 6013
       }
     ],
     "contrast": [

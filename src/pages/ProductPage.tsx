@@ -111,7 +111,6 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             <div className="lg:col-span-2">
               <div className="max-w-[620px]">
                 <p className="mb-4 text-sm font-semibold leading-[1.4] text-[#DBE2FF]">{product.relationship}</p>
-                <p className="mb-2 text-sm font-semibold leading-[1.4]">{product.name}</p>
                 <h1 className="mb-6 text-[40px] font-black leading-[1.1] tracking-tight">{product.outcome}</h1>
                 <p className="mb-8 text-base font-normal leading-6 text-[#DBE2FF]">{product.audienceLead}</p>
               </div>

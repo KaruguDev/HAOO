@@ -452,7 +452,8 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     }
 
     expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
-    expect(within(screen.getByRole('main')).getAllByText('HAOO').length).toBeGreaterThan(0);
+    // Owner decision 2026-09-13: the hero no longer repeats the bare product name; the header logo carries it.
+    expect(within(screen.getByRole('main')).queryAllByText('HAOO')).toHaveLength(0);
     expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' }).className).toContain('z-[60]');
   });
