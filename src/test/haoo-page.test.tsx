@@ -34,7 +34,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', {
       level: 1,
-      name: 'Run the business—not the paperwork.',
+      name: 'Run the business, not the paperwork.',
     })).toBeTruthy();
     expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByText(/For landlords and property managers/)).toBeTruthy();

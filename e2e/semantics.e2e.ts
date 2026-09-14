@@ -95,7 +95,7 @@ const EVIDENCE = {
 /* ------------------------------------------------------------------------------------------- */
 
 /** `HAOO_PRODUCT.outcome`, pinned by `src/test/haoo-content.test.ts:38`. */
-const OUTCOME = 'Run the business—not the paperwork.';
+const OUTCOME = 'Run the business, not the paperwork.';
 
 /**
  * The second-level headings SS-1 enumerates, as the page ships them.

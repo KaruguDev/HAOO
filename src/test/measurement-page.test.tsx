@@ -371,7 +371,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
 
       expect(screen.getByRole('heading', {
         level: 1,
-        name: 'Run the business—not the paperwork.',
+        name: 'Run the business, not the paperwork.',
       })).toBeTruthy();
       expect(screen.getAllByRole('link', { name: 'Chat with HAOO on WhatsApp' }))
         .toHaveLength(3);
