@@ -39,8 +39,7 @@ describe('Phase 1 centralized HAOO content contracts', () => {
     expect(HAOO_PRODUCT.audiences).toEqual(EXPECTED_AUDIENCES);
     expect(HAOO_PRODUCT.capabilities.map(({ title }) => title)).toEqual(EXPECTED_CAPABILITIES);
     expect(HAOO_PRODUCT.journey.map(({ title }) => title)).toEqual(EXPECTED_JOURNEY);
-    expect(HAOO_PRODUCT.featureCaveat)
-      .toBe('Feature availability may vary by subscription plan.');
+    expect(HAOO_PRODUCT).not.toHaveProperty('featureCaveat');
     expect(HAOO_PRODUCT.marketClaim).toBe(
       'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
     );
