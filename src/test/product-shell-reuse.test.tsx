@@ -82,7 +82,6 @@ function syntheticProduct(
       icon: 'reports',
     }],
     journey: [{ title: 'Start clearly', description: 'Set up the operation in one place.' }],
-    featureCaveat: 'Feature availability may vary by subscription plan.',
     marketClaim: 'Designed for practical service operations.',
     assistedInvitation: 'Tell us about your operation and we will help you begin.',
     media: {},

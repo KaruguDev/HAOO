@@ -599,7 +599,6 @@ export const HAOO_PRODUCT: ProductDefinition = {
         'Use connected records and reports to manage more units without losing the human touch.',
     },
   ],
-  featureCaveat: 'Feature availability may vary by subscription plan.',
   marketClaim: 'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
   assistedInvitation: 'Tell us about your properties and we\'ll help you choose the best way to get started.',
   media: {

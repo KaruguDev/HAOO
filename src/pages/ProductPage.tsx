@@ -198,9 +198,6 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                 );
               })}
             </ul>
-            <p className="mt-6 max-w-[680px] text-sm font-normal leading-[1.4] text-[#5F6B84]">
-              {product.featureCaveat}
-            </p>
           </div>
         </section>
 

@@ -268,7 +268,6 @@ export interface ProductDefinition {
   readonly benefits: readonly string[];
   readonly capabilities: readonly ProductCapability[];
   readonly journey: readonly ProductStoryItem[];
-  readonly featureCaveat: string;
   readonly marketClaim: string;
   readonly assistedInvitation: string;
   readonly media: ProductMedia;

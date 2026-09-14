@@ -80,7 +80,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
 
     const capabilities = screen.getByRole('region', { name: 'Capabilities' });
     expect(within(capabilities)
-      .getByText('Feature availability may vary by subscription plan.')).toBeTruthy();
+      .queryByText('Feature availability may vary by subscription plan.')).toBeNull();
     expect(screen.getByText(
       'Built for the realities of property management in Kenya, with familiar digital payment journeys and role-based access.',
     )).toBeTruthy();
