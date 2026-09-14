@@ -1,7 +1,7 @@
 # shared-scaffold.txt — the closed list of paths that legitimately exist in BOTH
 # `KaruguDev/ZERO-PAPERHUB` and `KaruguDev/HAOO`.
 #
-# TWENTY-SIX ENTRIES, ON TWO DIFFERENT GROUNDS. The distinction is load-bearing and is
+# TWENTY-EIGHT ENTRIES, ON TWO DIFFERENT GROUNDS. The distinction is load-bearing and is
 # marked machine-readably by the `# @ground:` directives below. Do not collapse it.
 #
 # WHY THIS FILE EXISTS
@@ -112,7 +112,7 @@ scripts/verify-tree-disjointness.mjs
 # ─────────────────────────────────────────────────────────────────────────────────────
 # @ground: collision
 #
-# GROUND B — RATIFIED PATH COLLISIONS WITH DIVERGENT CONTENT (3 entries)
+# GROUND B — RATIFIED PATH COLLISIONS WITH DIVERGENT CONTENT (5 entries)
 #
 # These are NOT shared files. They are the same PATH holding entirely different content,
 # because both repositories descend from the same Vite React scaffold. ZERO-PAPER HUB's
@@ -124,11 +124,11 @@ scripts/verify-tree-disjointness.mjs
 # ⚠ HOW THIS GROUND DECAYS, AND WHAT IS DONE ABOUT IT
 # A Ground A entry is safe indefinitely: the two copies being identical is the point. A
 # Ground B entry is safe only while the two copies stay DIVERGENT. If the content of one
-# of these three ever CONVERGES — one repository's copy edited to match the other's —
+# of these five ever CONVERGES — one repository's copy edited to match the other's —
 # that is a genuine SPLT-01 violation, and a plain path allowlist would be blind to it,
 # because the path is on the list either way.
 #
-# So the auditor does not merely subtract these three: it asserts, per entry, that the
+# So the auditor does not merely subtract these five: it asserts, per entry, that the
 # two copies are NOT byte-identical, and reports convergence as a violation. That turns
 # the decay risk into a checked property rather than a comment nobody re-reads. A Ground
 # B entry that becomes identical across the two repositories FAILS the run.
@@ -147,3 +147,10 @@ src/test/build-output.test.ts
 # the focus-contrast suite — one registered ZERO-PAPER HUB source vs six in HAOO; the
 # union of the two closed lists is the pre-split list, split rather than duplicated
 src/test/focus-contrast.test.ts
+# RATIFIED 2026-09-14 — the crawler directives each host must serve at `/robots.txt`.
+# Search engines read that one fixed path, so the collision is imposed by the protocol,
+# not chosen; each copy names only its own host and its own sitemap
+public/robots.txt
+# RATIFIED 2026-09-14 — the sitemap each `robots.txt` points to; each copy lists only
+# URLs on its own host, so neither ever names the other half's pages
+public/sitemap.xml
