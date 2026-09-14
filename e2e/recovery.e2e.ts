@@ -536,7 +536,7 @@ const RETIRED = SURFACES.S4;
  * Transcribed for the same reason `WHATSAPP_STARTER_TEXT` is: `src/products/haoo.ts` reads
  * `import.meta.env` at module scope and throws when imported outside Vite.
  */
-const HAOO_OUTCOME_HEADING = 'Run the business—not the paperwork.';
+const HAOO_OUTCOME_HEADING = 'Run the business, not the paperwork.';
 
 /** The `<noscript>` top-level heading, which is the h1 a JS-disabled visitor lands on. */
 const SCRIPTLESS_HEADING = 'Choose how to start with HAOO';

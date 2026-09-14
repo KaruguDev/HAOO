@@ -109,7 +109,7 @@ const HAOO_MEDIA_PATTERN = /\/brochure\/[^/?#]+\.png(?:[?#].*)?$/;
 const PRODUCTS_CARD = {
   name: 'HAOO',
   relationship: 'A ZERO-PAPER HUB Product',
-  outcome: 'Run the business—not the paperwork.',
+  outcome: 'Run the business, not the paperwork.',
   audienceLead:
     'For landlords and property managers who want one clear view of their properties, rent, leases, maintenance, and communication.',
   previewImageHref: 'https://www.haoo.online/brochure/brochure-preview.png',

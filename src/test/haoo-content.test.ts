@@ -35,7 +35,7 @@ const EXPECTED_WHATSAPP_TEXT =
 
 describe('Phase 1 centralized HAOO content contracts', () => {
   it('[phase1-red:content] preserves the exact brochure ledger in centralized data', () => {
-    expect(HAOO_PRODUCT.outcome).toBe('Run the business—not the paperwork.');
+    expect(HAOO_PRODUCT.outcome).toBe('Run the business, not the paperwork.');
     expect(HAOO_PRODUCT.audiences).toEqual(EXPECTED_AUDIENCES);
     expect(HAOO_PRODUCT.capabilities.map(({ title }) => title)).toEqual(EXPECTED_CAPABILITIES);
     expect(HAOO_PRODUCT.journey.map(({ title }) => title)).toEqual(EXPECTED_JOURNEY);
