@@ -36,7 +36,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       level: 1,
       name: 'Run the business—not the paperwork.',
     })).toBeTruthy();
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByText(/For landlords and property managers/)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' })).toBeTruthy();
   });
@@ -364,7 +364,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(screen.queryAllByRole('img')).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 1, name: HAOO_PRODUCT.outcome })).toBeTruthy();
     expect(screen.getByText(HAOO_PRODUCT.audienceLead)).toBeTruthy();
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByText(HAOO_PRODUCT.marketClaim)).toBeTruthy();
     for (const [name, href] of ONBOARDING_LINKS) {
       const links = screen.getAllByRole('link', { name });
@@ -408,7 +408,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(menu.getAttribute('aria-expanded')).toBe('false');
 
     expect(screen.getAllByRole('region', { name: /onboarding choices/i })).toHaveLength(3);
-    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.queryAllByRole('link', { name: 'Back to ZERO-PAPER HUB' })).toHaveLength(0);
 
     const banner = screen.getByRole('banner');
@@ -451,10 +451,10 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
     }
 
-    expect(screen.getByText('A ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('A ZERO-PAPER HUB Product')).toBeTruthy();
     // Owner decision 2026-09-13: the hero no longer repeats the bare product name; the header logo carries it.
     expect(within(screen.getByRole('main')).queryAllByText('HAOO')).toHaveLength(0);
-    expect(screen.getByText('HAOO is a ZERO-PAPER HUB product')).toBeTruthy();
+    expect(screen.getByText('HAOO is a ZERO-PAPER HUB Product')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Skip to HAOO content' }).className).toContain('z-[60]');
   });
 
@@ -525,6 +525,81 @@ describe('Quick task 260913-vbl headline weights (OD-2)', () => {
     for (const name of pageH3Names) {
       expect(screen.getByRole('heading', { level: 3, name }).className, name).toContain('font-bold');
     }
+  });
+});
+
+describe('Quick task 260913-x19 space use', () => {
+  function classTokens(element: Element | null) {
+    return (element?.getAttribute('class') ?? '').split(/\s+/);
+  }
+
+  it('renders the rental journey as a responsive stepper with decorative connectors between steps', () => {
+    renderPage();
+
+    const journey = screen.getByRole('region', { name: 'Rental journey' });
+    const lists = journey.querySelectorAll('ol');
+    expect(lists).toHaveLength(1);
+    expect(classTokens(lists[0])).toEqual(expect.arrayContaining(['md:grid-cols-2', 'lg:grid-cols-4']));
+
+    const steps = Array.from(lists[0].children);
+    expect(steps).toHaveLength(HAOO_PRODUCT.journey.length);
+    for (const [index, step] of steps.entries()) {
+      const { title, description } = HAOO_PRODUCT.journey[index];
+      expect(step.tagName).toBe('LI');
+      expect(step.querySelector('h3')?.textContent, title).toBe(title);
+      expect(step.textContent, title).toContain(description);
+    }
+
+    const connectors = Array.from(journey.querySelectorAll('li [aria-hidden="true"]'))
+      .filter((element) => element.textContent === '');
+    expect(connectors).toHaveLength(HAOO_PRODUCT.journey.length - 1);
+    expect(steps.at(-1)?.contains(connectors.at(-1) ?? null)).toBe(false);
+    expect(journey.textContent).toBe(HAOO_PRODUCT.journey
+      .map(({ title, description }, index) => `${index + 1}${title}${description}`)
+      .join(''));
+  });
+
+  it('steps capability and journey titles down one size while section and benefit headings keep 28px', () => {
+    renderPage();
+
+    for (const name of [
+      ...HAOO_PRODUCT.capabilities.map(({ title }) => title),
+      ...HAOO_PRODUCT.journey.map(({ title }) => title),
+    ]) {
+      const tokens = classTokens(screen.getByRole('heading', { level: 3, name }));
+      expect(tokens, name).toEqual(expect.arrayContaining(['font-bold', 'text-lg', 'md:text-xl']));
+      expect(tokens, name).not.toContain('text-[28px]');
+    }
+    for (const heading of screen.getAllByRole('heading', { level: 2 })) {
+      expect(classTokens(heading), heading.textContent ?? '')
+        .toEqual(expect.arrayContaining(['text-[28px]', 'font-extrabold']));
+    }
+    for (const name of [HAOO_PRODUCT.painHeading, HAOO_PRODUCT.benefitHeading]) {
+      expect(classTokens(screen.getByRole('heading', { level: 3, name })), name).toContain('text-[28px]');
+    }
+  });
+
+  it('top-aligns the onboarding choice cards in all three placements', () => {
+    renderPage();
+
+    const placements = screen.getAllByRole('region', { name: /onboarding choices/i });
+    expect(placements).toHaveLength(3);
+    for (const placement of placements) {
+      expect(classTokens(placement), placement.getAttribute('aria-label') ?? '').toContain('lg:items-start');
+    }
+  });
+
+  it('lets the brochure object fallback fill the embed frame as one centred card', () => {
+    renderPage();
+
+    const pdfObject = brochureRegion().querySelector('object[type="application/pdf"]');
+    const fallback = pdfObject?.firstElementChild ?? null;
+    expect(classTokens(fallback)).toEqual(expect.arrayContaining(['h-full', 'justify-center']));
+    expect(fallback?.textContent).toContain(FALLBACK_HEADING);
+    expect(fallback?.textContent).toContain(FALLBACK_BODY);
+
+    const previewImage = brochureRegion().querySelector('img');
+    expect(classTokens(previewImage?.parentElement ?? null)).toEqual(['lg:hidden']);
   });
 });
 

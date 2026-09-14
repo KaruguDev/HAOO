@@ -38,6 +38,8 @@ const containerClasses = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
 const sectionHeadingClasses = 'text-[28px] font-extrabold leading-[1.2]';
 const headingClasses = 'text-[28px] font-bold leading-[1.2]';
 const bodyClasses = 'text-base font-normal leading-6 text-[#5F6B84]';
+/** Capability card and journey step titles: one size below the 28px headings (260913-x19). */
+const stepTitleClasses = 'text-lg font-bold leading-[1.3] md:text-xl';
 const CAPABILITY_ICONS: Record<ProductCapabilityIcon, LucideIcon> = {
   payments: Wallet,
   properties: Building2,
@@ -96,8 +98,10 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
     }
   }
 
+  // overflow-x-clip, not hidden: hidden makes this wrapper a scroll container and disables the
+  // sticky #qualify lead column (260913-x19).
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FBFCFF] text-[#18275F]">
+    <div className="min-h-screen overflow-x-clip bg-[#FBFCFF] text-[#18275F]">
       <a href={`#${mainContentId}`} className="sr-only z-[60] rounded-lg bg-white px-4 py-3 text-sm font-semibold leading-[1.4] text-[#18275F] focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2">
         {skipToContentLabel(product.name)}
       </a>
@@ -188,7 +192,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                     <span className="mb-4 inline-flex size-11 items-center justify-center rounded-lg bg-[#4054C6] text-white">
                       <Icon aria-hidden="true" size={20} />
                     </span>
-                    <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                    <h3 className={`mb-2 ${stepTitleClasses}`}>{title}</h3>
                     <p className={bodyClasses}>{description}</p>
                   </li>
                 );
@@ -204,9 +208,17 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           <div className={containerClasses}>
             <h2 className={sectionHeadingClasses}>{product.journeyHeading}</h2>
             <section aria-label={product.journeyHeading} className="mt-6">
-              <ol className="grid max-w-[680px] list-none gap-6 p-0">
+              {/* A vertical list below md, 2x2 at md and a four-column stepper at lg (260913-x19). */}
+              <ol className="grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
                 {product.journey.map(({ title, description }, index) => (
-                  <li key={title} className="grid grid-cols-[44px_1fr] gap-4">
+                  <li key={title} className="relative grid grid-cols-[44px_1fr] content-start gap-4 md:grid-cols-1 md:gap-3">
+                    {index < product.journey.length - 1 ? (
+                      // Decorative connector: 12px past this circle to 12px before the next one.
+                      <span
+                        aria-hidden="true"
+                        className="absolute -right-5 left-14 top-[21px] hidden h-0.5 bg-[#DFE4F0] lg:block"
+                      />
+                    ) : null}
                     <span
                       aria-hidden="true"
                       className="flex size-11 items-center justify-center rounded-full bg-[#4054C6] text-sm font-semibold leading-[1.4] text-white"
@@ -214,14 +226,14 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
                       {index + 1}
                     </span>
                     <div>
-                      <h3 className={`mb-2 ${headingClasses}`}>{title}</h3>
+                      <h3 className={`mb-2 ${stepTitleClasses}`}>{title}</h3>
                       <p className={bodyClasses}>{description}</p>
                     </div>
                   </li>
                 ))}
               </ol>
             </section>
-            <p className={`mt-8 max-w-[680px] ${bodyClasses}`}>{product.marketClaim}</p>
+            <p className={`mt-8 ${bodyClasses}`}>{product.marketClaim}</p>
           </div>
         </section>
 
@@ -252,26 +264,32 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
         </section>
 
         <section id="qualify" aria-label="Send your details" className="scroll-mt-4 py-12 md:py-16">
-          <div className={containerClasses}>
-            <h2 className={sectionHeadingClasses}>Send your details</h2>
-            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
-            <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
-            <QualifyForm
-              key={product.slug}
-              qualify={product.qualify}
-              contacts={product.contacts}
-              productName={product.name}
-              slug={product.slug}
-              track={measurement.track}
-              measurementEvents={{
-                start: product.measurement.interactionEvents.qualifyStart,
-                submit: product.measurement.interactionEvents.qualifySubmit,
-              }}
-              measurementEventNames={product.measurement.events}
-              measurementDisclosure={product.measurement.disclosure}
-              clearMeasurementContext={measurement.clearContext}
-              buildEngagementSummary={buildEngagementSummary}
-            />
+          {/* Two columns from xl (PD-3: at lg a paired label wrapped and split its row): the lead column stays in view beside the form (260913-x19). */}
+          <div className={`${containerClasses} xl:grid xl:grid-cols-12 xl:gap-x-12`}>
+            {/* top-32 (128px) clears the 88-104px fixed header. */}
+            <div className="xl:sticky xl:top-32 xl:col-span-5 xl:self-start">
+              <h2 className={sectionHeadingClasses}>Send your details</h2>
+              <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{product.assistedInvitation}</p>
+              <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{QUALIFY_SUB_LEAD}</p>
+            </div>
+            <div className="xl:col-span-7">
+              <QualifyForm
+                key={product.slug}
+                qualify={product.qualify}
+                contacts={product.contacts}
+                productName={product.name}
+                slug={product.slug}
+                track={measurement.track}
+                measurementEvents={{
+                  start: product.measurement.interactionEvents.qualifyStart,
+                  submit: product.measurement.interactionEvents.qualifySubmit,
+                }}
+                measurementEventNames={product.measurement.events}
+                measurementDisclosure={product.measurement.disclosure}
+                clearMeasurementContext={measurement.clearContext}
+                buildEngagementSummary={buildEngagementSummary}
+              />
+            </div>
           </div>
         </section>
 

@@ -48,7 +48,7 @@ export default function OnboardingChoices({
   }
 
   return (
-    <section aria-label={POSITION_LABELS[position]} className="grid gap-4 md:gap-6 lg:grid-cols-2 lg:gap-8">
+    <section aria-label={POSITION_LABELS[position]} className="grid gap-4 md:gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
       <div className="rounded-2xl bg-white p-6 text-[#18275F] shadow-sm md:p-8">
         <h2 className="mb-4 text-[28px] font-extrabold leading-[1.2]">Get help choosing</h2>
         <p className="mb-6 text-base font-normal leading-6 text-[#5F6B84]">{product.assistedInvitation}</p>

@@ -721,7 +721,7 @@ describe('Phase 1 static build contracts', () => {
 
       const hrefs = [...markup.matchAll(/href="([^"]+)"/g)].map(([, href]) => href);
       expect(hrefs.slice(0, expectedHrefs.length)).toEqual(expectedHrefs);
-      expect(markup).toContain('HAOO is a ZERO-PAPER HUB product.');
+      expect(markup).toContain('HAOO is a ZERO-PAPER HUB Product.');
       expect(markup).toContain(HAOO_PRODUCT.assistedInvitation);
       expect(markup).toContain('These contact links leave the ZERO-PAPER HUB product page.');
       expect(markup).toContain(

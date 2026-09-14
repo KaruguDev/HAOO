@@ -530,7 +530,7 @@ export const KENYAN_COUNTY_OPTIONS: readonly QualifyOption[] = toOptions([
 export const HAOO_PRODUCT: ProductDefinition = {
   slug: 'haoo',
   name: 'HAOO',
-  relationship: 'A ZERO-PAPER HUB product',
+  relationship: 'A ZERO-PAPER HUB Product',
   outcome: 'Run the business—not the paperwork.',
   audienceLead: 'For landlords and property managers who want one clear view of their properties, rent, leases, maintenance, and communication.',
   audiences: ['Landlords', 'Property managers', 'Tenants', 'Agents'],

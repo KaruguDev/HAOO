@@ -984,3 +984,25 @@ named parts of this contract going forward.
 | Phase 01 anchor decision ("scroll-mt on the target, not scroll-padding-top on html") | Superseded by `html { scroll-padding-top: 5rem / 6rem }`. Its reason, an html shared with a non-fixed parent header, ended at the 04.2 split, and the header is now fixed |
 
 The original rows above remain the Phase 5 record of what was measured and shipped at the time.
+
+## Superseded by quick task 260913-x19 (2026-09-13)
+
+Owner request (2026-09-13) removed poor space use on the HAOO page without compressing it, and
+capitalised "Product" in the ZERO-PAPER HUB relationship wording. Mobile stays single-column and every
+other locked copy string is unchanged. The rows below replace the named parts of the Phase 1-3 and
+Phase 5 contracts going forward.
+
+| Contract | Superseded by |
+|----------|---------------|
+| 02-UI-SPEC layout rows (L76, L78, L178 item 5 width, L202 single column, L564, L595-L603, L607, L633) | `#qualify` is two columns from **xl** (1280px), not lg: PD-3 fired because at 1024px "How many units do you manage?" wrapped and split its pair by 20px. The h2 and both lead paragraphs sit in a left column (`xl:col-span-5`, `xl:sticky xl:top-32`), the form in the right (`xl:col-span-7`). The card, required-fields note, confirmation panel and failure panel fill their column (the 560px cap is removed). Fields pair from md by the product-generic `fullWidthFieldNames` rule: a textarea, or a field that would sit alone in its row, spans both columns. DOM order equals Tab order, row-wise visual order and error-summary order. Single column below md; below xl the section stacks |
+| 02-UI-SPEC L226 and L389, 03-UI-SPEC L77 and L149 | **Not superseded.** The collection note and the measurement disclosure stay inside the form, immediately above the submit control, and the submit button's `aria-describedby` still points at the note. Moving them into the lead column would have separated the disclosure from the point of submission (PD-1) |
+| 03-UI-SPEC L76 | The measurement disclosure occupies the form card's width, which is no longer 560px |
+| 05-UI-SPEC ZM-1 note (L355) | The 560px form column is retired. The 620px hero measure and the 680px measure remain where still used (the journey list and market claim no longer carry 680px) |
+| Typography | Capability card and journey step h3 are 18px below md and 20px from md, weight 700, line height 1.3. Section h2s (28px, 800) and the Benefits h3s (28px, 700) are unchanged |
+| 01-UI-SPEC L141 and L156, Rental journey | Vertical list below md, 2x2 at md, four columns at lg with number circles above the titles and a decorative `aria-hidden` 2px `#DFE4F0` connector between steps. The `ol`, four `li` and the nested "Rental journey" region remain; the market claim sits below the steps |
+| OnboardingChoices | The two cards are top-aligned from lg (`lg:items-start`), so "Ready to begin?" sizes to its content. All three placements and their content are unchanged |
+| Brochure object fallback | The `<object>` child fallback fills the embed frame as one centred card. Probe: Playwright headless shell reports `pdfViewerEnabled` false and lays out the fallback (416px of a 416px frame); headed Playwright Chromium and `/snap/bin/chromium` report true and render the embed. The below-lg preview image and the Open and Download controls are unchanged |
+| 01-UI-SPEC L34, L161, L196 and CONTEXT D-15 | The relationship label is `A ZERO-PAPER HUB Product` and the footer sentence is `HAOO is a ZERO-PAPER HUB Product` (owner, 2026-09-13), replacing the lowercase form. The noscript identity line reads `HAOO is a ZERO-PAPER HUB Product.`; the "product page." contact-links sentence keeps its generic noun |
+| Page wrapper overflow | The root wrapper clips horizontal overflow with `overflow-x-clip` instead of `overflow-x-hidden`, which made the wrapper a scroll container and disabled the sticky lead column |
+
+The original rows above remain the Phase 5 record of what was measured and shipped at the time.

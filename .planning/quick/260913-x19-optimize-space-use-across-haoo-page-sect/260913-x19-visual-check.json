@@ -1,0 +1,1511 @@
+{
+  "task": "quick-260913-x19",
+  "generatedAt": "2026-09-13T21:25:07.142Z",
+  "baseUrl": "http://localhost:4173",
+  "qualifySplitBreakpoint": "xl",
+  "failures": [],
+  "observations": [
+    "screenshots: the fixed header is hidden with an injected visibility:hidden style during element screenshots so it does not overlay the shot; heights are measured before that style is added"
+  ],
+  "readings": {
+    "previewServer": "started vite preview as child pid 216353",
+    "sectionHeights": [
+      {
+        "id": "s00",
+        "name": "hero",
+        "before1440": 928,
+        "before390": 1505,
+        "after": {
+          "320": 1574,
+          "390": 1505,
+          "768": 1686,
+          "1024": 981,
+          "1440": 928
+        }
+      },
+      {
+        "id": "s01",
+        "name": "Who HAOO supports",
+        "before1440": 197,
+        "before390": 407,
+        "after": {
+          "320": 407,
+          "390": 407,
+          "768": 267,
+          "1024": 197,
+          "1440": 197
+        }
+      },
+      {
+        "id": "s02",
+        "name": "Benefits",
+        "before1440": 347,
+        "before390": 542,
+        "after": {
+          "320": 576,
+          "390": 542,
+          "768": 429,
+          "1024": 347,
+          "1440": 347
+        }
+      },
+      {
+        "id": "s03",
+        "name": "Capabilities",
+        "before1440": 750,
+        "before390": 1532,
+        "after": {
+          "320": 1553,
+          "390": 1438,
+          "768": 955,
+          "1024": 757,
+          "1440": 705
+        }
+      },
+      {
+        "id": "s04",
+        "name": "Rental journey",
+        "before1440": 672,
+        "before390": 851,
+        "after": {
+          "320": 886,
+          "390": 743,
+          "768": 602,
+          "1024": 458,
+          "1440": 434
+        }
+      },
+      {
+        "id": "s05",
+        "name": "onboarding block after journey",
+        "before1440": 497,
+        "before390": 797,
+        "after": {
+          "320": 850,
+          "390": 797,
+          "768": 742,
+          "1024": 517,
+          "1440": 497
+        }
+      },
+      {
+        "id": "s06",
+        "name": "Brochure",
+        "before1440": 668,
+        "before390": 741,
+        "after": {
+          "320": 692,
+          "390": 741,
+          "768": 961,
+          "1024": 577,
+          "1440": 668
+        }
+      },
+      {
+        "id": "s07",
+        "name": "Send your details",
+        "before1440": 2082,
+        "before390": 2247,
+        "after": {
+          "320": 2499,
+          "390": 2247,
+          "768": 1657,
+          "1024": 1598,
+          "1440": 1495
+        }
+      },
+      {
+        "id": "s08",
+        "name": "#onboarding",
+        "before1440": 561,
+        "before390": 845,
+        "after": {
+          "320": 898,
+          "390": 845,
+          "768": 806,
+          "1024": 581,
+          "1440": 561
+        }
+      },
+      {
+        "id": "s09",
+        "name": "footer",
+        "before1440": 245,
+        "before390": 472,
+        "after": {
+          "320": 472,
+          "390": 472,
+          "768": 273,
+          "1024": 273,
+          "1440": 245
+        }
+      }
+    ],
+    "pageTotal": {
+      "before1440": 6947,
+      "before390": 9940,
+      "after": {
+        "320": 10406,
+        "390": 9737,
+        "768": 8376,
+        "1024": 6286,
+        "1440": 6077
+      }
+    },
+    "screenshots": [
+      "after/1440-s00.png",
+      "after/1440-s01.png",
+      "after/1440-s02.png",
+      "after/1440-s03.png",
+      "after/1440-s04.png",
+      "after/1440-s05.png",
+      "after/1440-s06.png",
+      "after/1440-s07.png",
+      "after/1440-s08.png",
+      "after/1440-s09.png",
+      "after/1024-s00.png",
+      "after/1024-s01.png",
+      "after/1024-s02.png",
+      "after/1024-s03.png",
+      "after/1024-s04.png",
+      "after/1024-s05.png",
+      "after/1024-s06.png",
+      "after/1024-s07.png",
+      "after/1024-s08.png",
+      "after/1024-s09.png",
+      "after/768-s00.png",
+      "after/768-s01.png",
+      "after/768-s02.png",
+      "after/768-s03.png",
+      "after/768-s04.png",
+      "after/768-s05.png",
+      "after/768-s06.png",
+      "after/768-s07.png",
+      "after/768-s08.png",
+      "after/768-s09.png",
+      "after/390-s00.png",
+      "after/390-s01.png",
+      "after/390-s02.png",
+      "after/390-s03.png",
+      "after/390-s04.png",
+      "after/390-s05.png",
+      "after/390-s06.png",
+      "after/390-s07.png",
+      "after/390-s08.png",
+      "after/390-s09.png",
+      "after/320-s00.png",
+      "after/320-s01.png",
+      "after/320-s02.png",
+      "after/320-s03.png",
+      "after/320-s04.png",
+      "after/320-s05.png",
+      "after/320-s06.png",
+      "after/320-s07.png",
+      "after/320-s08.png",
+      "after/320-s09.png"
+    ],
+    "overflow": [
+      {
+        "viewport": "1440x900",
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "1280x800",
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "innerWidth": 1280,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "1024x768",
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "innerWidth": 1024,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Get started",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "768x1024",
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "headerOffenders": [],
+        "desktopLinkHeights": [
+          {
+            "name": "Benefits",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Capabilities",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Brochure",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Send details",
+            "height": 44,
+            "lines": 1
+          },
+          {
+            "name": "Onboarding",
+            "height": 44,
+            "lines": 1
+          }
+        ]
+      },
+      {
+        "viewport": "390x844",
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      },
+      {
+        "viewport": "360x740",
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "innerWidth": 360,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      },
+      {
+        "viewport": "320x256",
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "headerOffenders": [],
+        "desktopLinkHeights": []
+      }
+    ],
+    "formOrder": [
+      {
+        "width": 1440,
+        "controls": [
+          {
+            "name": "haoo-qualify-name",
+            "top": 3972.03,
+            "left": 671.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-email",
+            "top": 3972.03,
+            "left": 993.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "top": 4063.63,
+            "left": 671.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "top": 4063.63,
+            "left": 993.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-role",
+            "top": 4203.22,
+            "left": 671.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "top": 4203.22,
+            "left": 993.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "top": 4294.81,
+            "left": 671.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-county",
+            "top": 4294.81,
+            "left": 993.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "top": 4434.41,
+            "left": 671.66,
+            "width": 623.33
+          },
+          {
+            "name": "haoo-qualify-message",
+            "top": 4526,
+            "left": 671.66,
+            "width": 623.33
+          },
+          {
+            "name": "summary",
+            "top": 4980.94,
+            "left": 704.66,
+            "width": 557.33
+          },
+          {
+            "name": "button",
+            "top": 5089.94,
+            "left": 671.66,
+            "width": 149
+          }
+        ],
+        "pairs": [
+          {
+            "left": "haoo-qualify-name",
+            "right": "haoo-qualify-email",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-preferredChannel",
+            "right": "haoo-qualify-phone",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-role",
+            "right": "haoo-qualify-organization",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-portfolioBand",
+            "right": "haoo-qualify-county",
+            "topDelta": 0
+          }
+        ]
+      },
+      {
+        "width": 1280,
+        "controls": [
+          {
+            "name": "haoo-qualify-name",
+            "top": 3972.03,
+            "left": 591.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-email",
+            "top": 3972.03,
+            "left": 913.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "top": 4063.63,
+            "left": 591.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "top": 4063.63,
+            "left": 913.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-role",
+            "top": 4203.22,
+            "left": 591.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "top": 4203.22,
+            "left": 913.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "top": 4294.81,
+            "left": 591.66,
+            "width": 301.66
+          },
+          {
+            "name": "haoo-qualify-county",
+            "top": 4294.81,
+            "left": 913.31,
+            "width": 301.67
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "top": 4434.41,
+            "left": 591.66,
+            "width": 623.33
+          },
+          {
+            "name": "haoo-qualify-message",
+            "top": 4526,
+            "left": 591.66,
+            "width": 623.33
+          },
+          {
+            "name": "summary",
+            "top": 4980.94,
+            "left": 624.66,
+            "width": 557.33
+          },
+          {
+            "name": "button",
+            "top": 5089.94,
+            "left": 591.66,
+            "width": 149
+          }
+        ],
+        "pairs": [
+          {
+            "left": "haoo-qualify-name",
+            "right": "haoo-qualify-email",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-preferredChannel",
+            "right": "haoo-qualify-phone",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-role",
+            "right": "haoo-qualify-organization",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-portfolioBand",
+            "right": "haoo-qualify-county",
+            "topDelta": 0
+          }
+        ]
+      },
+      {
+        "width": 1024,
+        "controls": [
+          {
+            "name": "haoo-qualify-name",
+            "top": 4191.59,
+            "left": 65,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-email",
+            "top": 4191.59,
+            "left": 522,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "top": 4283.19,
+            "left": 65,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "top": 4283.19,
+            "left": 522,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-role",
+            "top": 4422.78,
+            "left": 65,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "top": 4422.78,
+            "left": 522,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "top": 4514.38,
+            "left": 65,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-county",
+            "top": 4514.38,
+            "left": 522,
+            "width": 437
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "top": 4653.97,
+            "left": 65,
+            "width": 894
+          },
+          {
+            "name": "haoo-qualify-message",
+            "top": 4745.56,
+            "left": 65,
+            "width": 894
+          },
+          {
+            "name": "summary",
+            "top": 5141.72,
+            "left": 98,
+            "width": 828
+          },
+          {
+            "name": "button",
+            "top": 5250.72,
+            "left": 65,
+            "width": 149
+          }
+        ],
+        "pairs": [
+          {
+            "left": "haoo-qualify-name",
+            "right": "haoo-qualify-email",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-preferredChannel",
+            "right": "haoo-qualify-phone",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-role",
+            "right": "haoo-qualify-organization",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-portfolioBand",
+            "right": "haoo-qualify-county",
+            "topDelta": 0
+          }
+        ]
+      },
+      {
+        "width": 768,
+        "controls": [
+          {
+            "name": "haoo-qualify-name",
+            "top": 5998.55,
+            "left": 57,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-email",
+            "top": 5998.55,
+            "left": 394,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "top": 6090.14,
+            "left": 57,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "top": 6090.14,
+            "left": 394,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-role",
+            "top": 6229.73,
+            "left": 57,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "top": 6229.73,
+            "left": 394,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "top": 6321.33,
+            "left": 57,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-county",
+            "top": 6321.33,
+            "left": 394,
+            "width": 317
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "top": 6460.92,
+            "left": 57,
+            "width": 654
+          },
+          {
+            "name": "haoo-qualify-message",
+            "top": 6552.52,
+            "left": 57,
+            "width": 654
+          },
+          {
+            "name": "summary",
+            "top": 7007.45,
+            "left": 90,
+            "width": 588
+          },
+          {
+            "name": "button",
+            "top": 7116.45,
+            "left": 57,
+            "width": 149
+          }
+        ],
+        "pairs": [
+          {
+            "left": "haoo-qualify-name",
+            "right": "haoo-qualify-email",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-preferredChannel",
+            "right": "haoo-qualify-phone",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-role",
+            "right": "haoo-qualify-organization",
+            "topDelta": 0
+          },
+          {
+            "left": "haoo-qualify-portfolioBand",
+            "right": "haoo-qualify-county",
+            "topDelta": 0
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "fieldControlLefts": [
+          41
+        ]
+      },
+      {
+        "width": 320,
+        "fieldControlLefts": [
+          41
+        ]
+      }
+    ],
+    "tabOrder": {
+      "expected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "seen": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    "errorSummary": {
+      "hrefs": [
+        "#haoo-qualify-name",
+        "#haoo-qualify-email",
+        "#haoo-qualify-preferredChannel",
+        "#haoo-qualify-role",
+        "#haoo-qualify-portfolioBand",
+        "#haoo-qualify-county",
+        "#haoo-qualify-timeframe"
+      ],
+      "invalidControlsInDomOrder": [
+        "#haoo-qualify-name",
+        "#haoo-qualify-email",
+        "#haoo-qualify-preferredChannel",
+        "#haoo-qualify-role",
+        "#haoo-qualify-portfolioBand",
+        "#haoo-qualify-county",
+        "#haoo-qualify-timeframe"
+      ]
+    },
+    "stickyColumn": [
+      {
+        "width": 1440,
+        "sectionTop": -700.15625,
+        "columnTop": 128,
+        "columnPosition": "sticky",
+        "headerBottom": 88,
+        "h2Top": 128,
+        "hitIsHeading": true,
+        "hit": "h2 Send your details"
+      },
+      {
+        "width": 1280,
+        "sectionTop": -700.15625,
+        "columnTop": 128,
+        "columnPosition": "sticky",
+        "headerBottom": 88,
+        "h2Top": 128,
+        "hitIsHeading": true,
+        "hit": "h2 Send your details"
+      },
+      {
+        "width": 1024,
+        "sectionTop": -700.1875,
+        "columnTop": -636.1875,
+        "columnPosition": "static",
+        "headerBottom": 88,
+        "h2Top": -636.1875,
+        "hitIsHeading": false,
+        "hit": null
+      }
+    ],
+    "anchoredHeadings": [
+      {
+        "run": "1440-reduce",
+        "href": "#benefits",
+        "headerBottom": 88,
+        "headingTop": 175.96875,
+        "headingText": "Benefits",
+        "scrollY": 1013
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#capabilities",
+        "headerBottom": 88,
+        "headingTop": 176.15625,
+        "headingText": "Capabilities",
+        "scrollY": 1360
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#brochure",
+        "headerBottom": 88,
+        "headingTop": 176.125,
+        "headingText": "Brochure",
+        "scrollY": 2996
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#qualify",
+        "headerBottom": 88,
+        "headingTop": 175.84375,
+        "headingText": "Send your details",
+        "scrollY": 3664
+      },
+      {
+        "run": "1440-reduce",
+        "href": "#onboarding",
+        "headerBottom": 88,
+        "headingTop": 207.9375,
+        "headingText": "Get help choosing",
+        "scrollY": 5159
+      },
+      {
+        "run": "390-reduce",
+        "href": "#benefits",
+        "headerBottom": 64,
+        "headingTop": 143.84375,
+        "headingText": "Benefits",
+        "scrollY": 1816
+      },
+      {
+        "run": "390-reduce",
+        "href": "#capabilities",
+        "headerBottom": 64,
+        "headingTop": 144.21875,
+        "headingText": "Capabilities",
+        "scrollY": 2358
+      },
+      {
+        "run": "390-reduce",
+        "href": "#brochure",
+        "headerBottom": 64,
+        "headingTop": 144.0625,
+        "headingText": "Brochure",
+        "scrollY": 5336
+      },
+      {
+        "run": "390-reduce",
+        "href": "#qualify",
+        "headerBottom": 64,
+        "headingTop": 144.0625,
+        "headingText": "Send your details",
+        "scrollY": 6077
+      },
+      {
+        "run": "390-reduce",
+        "href": "#onboarding",
+        "headerBottom": 64,
+        "headingTop": 167.65625,
+        "headingText": "Get help choosing",
+        "scrollY": 8324
+      }
+    ],
+    "journeyAndTitles": [
+      {
+        "width": 1440,
+        "rows": 1,
+        "titleTopSpreadPerRow": [
+          0
+        ],
+        "connectorsVisible": 3,
+        "connectorWidths": [
+          244,
+          244,
+          244
+        ],
+        "capabilityTitleSizes": [
+          "20px"
+        ],
+        "journeyTitleSizes": [
+          "20px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      },
+      {
+        "width": 1280,
+        "rows": 1,
+        "titleTopSpreadPerRow": [
+          0
+        ],
+        "connectorsVisible": 3,
+        "connectorWidths": [
+          244,
+          244,
+          244
+        ],
+        "capabilityTitleSizes": [
+          "20px"
+        ],
+        "journeyTitleSizes": [
+          "20px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      },
+      {
+        "width": 1024,
+        "rows": 1,
+        "titleTopSpreadPerRow": [
+          0
+        ],
+        "connectorsVisible": 3,
+        "connectorWidths": [
+          180,
+          180,
+          180
+        ],
+        "capabilityTitleSizes": [
+          "20px"
+        ],
+        "journeyTitleSizes": [
+          "20px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      },
+      {
+        "width": 768,
+        "rows": 2,
+        "titleTopSpreadPerRow": [
+          0,
+          0
+        ],
+        "connectorsVisible": 0,
+        "connectorWidths": [
+          0,
+          0,
+          0
+        ],
+        "capabilityTitleSizes": [
+          "20px"
+        ],
+        "journeyTitleSizes": [
+          "20px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      },
+      {
+        "width": 390,
+        "rows": 4,
+        "titleTopSpreadPerRow": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "connectorsVisible": 0,
+        "connectorWidths": [
+          0,
+          0,
+          0
+        ],
+        "capabilityTitleSizes": [
+          "18px"
+        ],
+        "journeyTitleSizes": [
+          "18px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      },
+      {
+        "width": 320,
+        "rows": 4,
+        "titleTopSpreadPerRow": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "connectorsVisible": 0,
+        "connectorWidths": [
+          0,
+          0,
+          0
+        ],
+        "capabilityTitleSizes": [
+          "18px"
+        ],
+        "journeyTitleSizes": [
+          "18px"
+        ],
+        "h2Sizes": [
+          "28px"
+        ],
+        "benefitH3Sizes": [
+          "28px"
+        ]
+      }
+    ],
+    "onboardingDeadSpace": [
+      {
+        "width": 1440,
+        "regions": [
+          {
+            "region": "Opening onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 477,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 288,
+                "deadSpace": 1
+              }
+            ]
+          },
+          {
+            "region": "Mid-page onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 433,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 245,
+                "deadSpace": 1
+              }
+            ]
+          },
+          {
+            "region": "Closing onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 433,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 245,
+                "deadSpace": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "width": 1024,
+        "regions": [
+          {
+            "region": "Opening onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 530,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 288,
+                "deadSpace": 1
+              }
+            ]
+          },
+          {
+            "region": "Mid-page onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 453,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 245,
+                "deadSpace": 1
+              }
+            ]
+          },
+          {
+            "region": "Closing onboarding choices",
+            "cards": [
+              {
+                "heading": "Get help choosing",
+                "height": 453,
+                "deadSpace": 0
+              },
+              {
+                "heading": "Ready to begin?",
+                "height": 245,
+                "deadSpace": 1
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "axeColorContrast": [
+      {
+        "width": 1440,
+        "violations": 0,
+        "violationNodes": [],
+        "incomplete": 0
+      },
+      {
+        "width": 390,
+        "violations": 0,
+        "violationNodes": [],
+        "incomplete": 0
+      }
+    ],
+    "targets": [
+      {
+        "width": 1440,
+        "actions": [
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Open brochure (opens in a new tab)\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Download brochure\"",
+            "height": 45.59
+          },
+          {
+            "name": "summary \"How we measure this page\"",
+            "height": 44
+          },
+          {
+            "name": "button \"Send my details\"",
+            "height": 44
+          }
+        ],
+        "fields": [
+          {
+            "name": "haoo-qualify-name",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-email",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-role",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-county",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-message",
+            "height": 114
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "actions": [
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Chat with HAOO on WhatsApp\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Call +254 702 188 044\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Email info@haoo.online\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Send your details instead\"",
+            "height": 44
+          },
+          {
+            "name": "a \"Start with HAOO\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Open brochure (opens in a new tab)\"",
+            "height": 45.59
+          },
+          {
+            "name": "a \"Download brochure\"",
+            "height": 45.59
+          },
+          {
+            "name": "summary \"How we measure this page\"",
+            "height": 44
+          },
+          {
+            "name": "button \"Send my details\"",
+            "height": 44
+          }
+        ],
+        "fields": [
+          {
+            "name": "haoo-qualify-name",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-email",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-preferredChannel",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-phone",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-role",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-organization",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-portfolioBand",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-county",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-timeframe",
+            "height": 44
+          },
+          {
+            "name": "haoo-qualify-message",
+            "height": 114
+          }
+        ]
+      }
+    ],
+    "pdfProbe": [
+      {
+        "browser": "playwright headless shell",
+        "userAgent": "Chrome/153.0.8010.12",
+        "pdfViewerEnabled": false,
+        "objectClientHeight": 416,
+        "fallbackOffsetHeight": 416
+      },
+      {
+        "browser": "playwright chromium headed",
+        "userAgent": "Chrome/153.0.0.0",
+        "pdfViewerEnabled": true,
+        "objectClientHeight": 416,
+        "fallbackOffsetHeight": 0
+      },
+      {
+        "browser": "/snap/bin/chromium headed",
+        "userAgent": "Chrome/152.0.0.0",
+        "pdfViewerEnabled": true,
+        "objectClientHeight": 416,
+        "fallbackOffsetHeight": 0
+      }
+    ],
+    "relationshipWording": {
+      "heroRelationship": "A ZERO-PAPER HUB Product",
+      "footerContainsSentence": true,
+      "noscriptContainsSentence": true,
+      "noscriptBlocks": 1
+    }
+  }
+}

@@ -87,6 +87,41 @@ export function isFieldRequired(field: QualifyField, values: QualifyValues): boo
   return rule.values.includes(values[rule.field] ?? '');
 }
 
+/**
+ * Which fields of one group span both columns of the paired field grid (quick task
+ * 260913-x19). The rule is structural, so it holds for any product's fields: a textarea
+ * always spans, and any other field spans only when it would otherwise sit alone in its
+ * row — an even count of half-width fields since the last spanning field, and it is the
+ * group's last field or is followed by a textarea. Order is never changed, so DOM order,
+ * Tab order and row-wise visual order stay identical.
+ */
+export function fullWidthFieldNames(fields: readonly QualifyField[]): ReadonlySet<string> {
+  const spanning = new Set<string>();
+  let halfWidthRun = 0;
+
+  fields.forEach((field, index) => {
+    const next = fields[index + 1];
+
+    if (field.control === 'textarea') {
+      spanning.add(field.name);
+      halfWidthRun = 0;
+
+      return;
+    }
+
+    if (halfWidthRun % 2 === 0 && (next === undefined || next.control === 'textarea')) {
+      spanning.add(field.name);
+      halfWidthRun = 0;
+
+      return;
+    }
+
+    halfWidthRun += 1;
+  });
+
+  return spanning;
+}
+
 /** Labels that product fields must never be allowed to override. */
 export const RESERVED_EMAIL_LABELS: ReadonlySet<string> = new Set([
   '_subject',
