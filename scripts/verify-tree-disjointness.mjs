@@ -30,8 +30,8 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { accessSync, constants, readFileSync } from 'node:fs';
+import { delimiter, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -47,6 +47,20 @@ export const DEFAULT_ALLOWLIST_PATH = resolve(SCRIPT_REPO_ROOT, 'shared-scaffold
  * for why: a claim about what is built and shipped, and the planning record is neither.
  */
 export const EXCLUDED_PREFIXES = ['.planning/'];
+
+/**
+ * The explicit form of the order `Array.prototype.sort()` already applies to strings: a
+ * comparison by UTF-16 code unit. Every list sorted in this file holds repository-relative
+ * paths, and that order is the intended one — it is what makes a run's output stable, so a
+ * run diffs against the previous run rather than reshuffling. Naming the comparator instead
+ * of omitting it leaves no reader, and no static analyser, to guess whether the default
+ * order was chosen or forgotten.
+ */
+function byCodeUnit(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
 
 /**
  * The product name, as a case-insensitive content probe. Applied to COMMENT-STRIPPED
@@ -144,7 +158,8 @@ export function parseAllowlistGrounds(text) {
     }
     if (line.length === 0 || line.startsWith('#')) continue;
     entries.push(line);
-    (byGround[ground] ??= []).push(line);
+    byGround[ground] ??= [];
+    byGround[ground].push(line);
   }
 
   return { entries, byGround };
@@ -176,7 +191,7 @@ export function stripComments(text) {
   return text
     .replace(/<!--[\s\S]*?-->/gu, ' ')
     .replace(/\/\*[\s\S]*?\*\//gu, ' ')
-    .replace(/(^|[^:])\/\/.*$/gmu, '$1');
+    .replace(/(^|[^:])\/\/[^\n]*/gu, '$1');
 }
 
 /**
@@ -257,8 +272,8 @@ export function assertTreesNonEmpty({ leftLabel, leftFiles, rightLabel, rightFil
  * story rather than revealing violations one commit at a time.
  */
 export function auditSharedPaths({ leftLabel, leftFiles, rightLabel, rightFiles, allowlist }) {
-  const left = [...new Set(leftFiles.filter((path) => !isExcluded(path)))].sort();
-  const right = [...new Set(rightFiles.filter((path) => !isExcluded(path)))].sort();
+  const left = [...new Set(leftFiles.filter((path) => !isExcluded(path)))].sort(byCodeUnit);
+  const right = [...new Set(rightFiles.filter((path) => !isExcluded(path)))].sort(byCodeUnit);
 
   // The guard runs on the POST-EXCLUSION lists, not the raw ones. A checkout holding
   // nothing but `.planning/` files is non-empty by `length` and empty by SUBJECT: every
@@ -305,7 +320,7 @@ export function auditPositiveHalves({ productSourceLeaks, carriersNamingProduct,
   const errors = [];
 
   // (a) No ZERO-PAPER HUB PRODUCT SOURCE file carries HAOO product source.
-  for (const path of [...productSourceLeaks].sort()) {
+  for (const path of [...productSourceLeaks].sort(byCodeUnit)) {
     errors.push(
       `ZERO-PAPER HUB half: ${path} is product source and ships HAOO product source — the product left this repository`,
     );
@@ -323,7 +338,7 @@ export function auditPositiveHalves({ productSourceLeaks, carriersNamingProduct,
   }
 
   // (c) No HAOO source names a home-page symbol.
-  for (const path of [...homePageSymbolFiles].sort()) {
+  for (const path of [...homePageSymbolFiles].sort(byCodeUnit)) {
     errors.push(
       `HAOO half: ${path} names a home-page symbol (${HOME_PAGE_SYMBOLS.join(', ')}) — the home page does not belong in this repository`,
     );
@@ -352,7 +367,7 @@ export function auditPositiveHalves({ productSourceLeaks, carriersNamingProduct,
 export function auditCollisionDivergence({ collisionEntries, identicalPaths }) {
   return {
     counts: { collisionEntries: collisionEntries.length, converged: identicalPaths.length },
-    errors: [...identicalPaths].sort().map(
+    errors: [...identicalPaths].sort(byCodeUnit).map(
       (path) =>
         `Ratified collision CONVERGED: ${path} is now byte-identical in both repositories — ` +
         'it was allowlisted on the ground that its two copies hold different content, and that ground no longer holds. ' +
@@ -380,10 +395,40 @@ export function auditTreeDisjointness(input) {
   return { counts: { ...paths.counts, ...divergence.counts, ...positive.counts } };
 }
 
+/**
+ * The absolute path of an executable, found by walking PATH once, here, rather than at
+ * each spawn.
+ *
+ * Spawning a bare name leaves the choice of binary to whatever PATH holds at the moment of
+ * the call. Resolving it up front makes that choice once, at a point where a missing binary
+ * can be reported as a missing binary rather than surfacing later as a failed audit, and
+ * leaves the spawn itself naming an absolute path. Returns null when the name is not on
+ * PATH; the caller turns that into an error sentence.
+ */
+export function resolveExecutable(name, pathValue = process.env.PATH ?? '') {
+  for (const directory of pathValue.split(delimiter)) {
+    if (directory.length === 0) continue;
+    const candidate = resolve(directory, name);
+    try {
+      accessSync(candidate, constants.X_OK);
+      return candidate;
+    } catch {
+      // Absent from this directory, or not executable by this user. Keep looking.
+    }
+  }
+  return null;
+}
+
+/** Resolved once: the audit spawns `git` per checkout, and PATH does not change mid-run. */
+const GIT_EXECUTABLE = resolveExecutable('git');
+
 /** `git ls-files` for a checkout. A non-repository or a bare tree yields an empty list, */
 /** which the non-empty guard then refuses — it never silently passes as "nothing shared". */
 export function trackedFiles(checkout) {
-  const result = spawnSync('git', ['-C', checkout, 'ls-files'], { encoding: 'utf8' });
+  if (!GIT_EXECUTABLE) {
+    return { files: [], error: 'git was not found on PATH' };
+  }
+  const result = spawnSync(GIT_EXECUTABLE, ['-C', checkout, 'ls-files'], { encoding: 'utf8' });
   if (result.status !== 0) {
     return { files: [], error: (result.stderr ?? '').trim() || `git ls-files failed in ${checkout}` };
   }
@@ -420,7 +465,7 @@ export function identifyCheckout(checkout) {
 
 /** The ZERO-PAPER HUB positive half's subject: PRODUCT SOURCE that ships HAOO source. */
 export function productSourceLeaksIn(checkout, files) {
-  const symbols = new RegExp(`\\b(${HAOO_PRODUCT_SYMBOLS.join('|')})\\b`, 'u');
+  const symbols = new RegExp(String.raw`\b(${HAOO_PRODUCT_SYMBOLS.join('|')})\b`, 'u');
   return files.filter((path) => {
     if (!isProductSource(path)) return false;
     const body = stripComments(readTextFile(checkout, path) ?? '');
@@ -449,7 +494,7 @@ export function convergedCollisionsIn(leftCheckout, leftFiles, rightCheckout, ri
 
 /** The HAOO positive half's subject: sources naming a home-page symbol. */
 export function homePageSymbolFilesIn(checkout, files) {
-  const pattern = new RegExp(`\\b(${HOME_PAGE_SYMBOLS.join('|')})\\b`, 'u');
+  const pattern = new RegExp(String.raw`\b(${HOME_PAGE_SYMBOLS.join('|')})\b`, 'u');
   return files
     .filter((path) => !isExcluded(path) && path.startsWith('src/'))
     .filter((path) => pattern.test(readTextFile(checkout, path) ?? ''));
