@@ -1935,7 +1935,7 @@ describe('Phase 04.2 tree disjointness auditor', () => {
       //    repository must carry both, or the convergence check silently ranges over
       //    nothing — the same empty-subject failure the guard case above exists to catch.
       const grounds = parseAllowlistGrounds(readFileSync(resolve(ROOT, 'shared-scaffold.txt'), 'utf8'));
-      expect(grounds.entries.length, 'the ratified allowlist is 28 entries').toBe(28);
+      expect(grounds.entries.length, 'the ratified allowlist is 29 entries').toBe(29);
       expect(grounds.byGround.collision.length, 'Ground B is non-empty').toBeGreaterThan(0);
       expect(
         grounds.byGround.scaffold.length + grounds.byGround.collision.length,
