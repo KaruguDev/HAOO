@@ -63,6 +63,41 @@ function byCodeUnit(a, b) {
 }
 
 /**
+ * GROUND A'S IDENTITY SUB-LIST — the entries that must be BYTE-IDENTICAL on both sides.
+ *
+ * Ground A is "owned by the repository rather than either half", which is NOT the same as
+ * "the same bytes". Most of it differs per side on purpose: `package.json` carries each
+ * repository's own scripts, `CNAME` names each host, and `scripts/assert-phase1-contracts.mjs`
+ * is narrowed per side to its own suites and markers. Exactly two entries carry a stronger
+ * ratification, quoted from `shared-scaffold.txt`:
+ *
+ *   shared-scaffold.txt              "this list itself, which MUST be byte-identical on
+ *                                     both sides"
+ *   scripts/verify-tree-disjointness.mjs
+ *                                    "the disjointness auditor, which MUST be byte-identical
+ *                                     on both sides so neither repository can drift into a
+ *                                     private definition of separation"
+ *
+ * WHY THE SET IS HERE AND NOT A THIRD `# @ground:`. `shared-scaffold.txt` is a ratified
+ * document — twenty-eight entries on two grounds, with its source of truth in the split
+ * contract in the HAOO planning record — and its own header says the two-ground distinction
+ * is load-bearing and must not be collapsed. Adding a ground would be an amendment to that
+ * document and its source, which is a decision for the owner, not a repair to a check. So
+ * the set lives with the ASSERTION instead. The cost of that split is that this list and
+ * the allowlist could drift apart; `auditByteIdentity` closes it by refusing any entry here
+ * that is not also an allowlist entry.
+ *
+ * WHY THIS EXISTS AT ALL. The auditor asserted, per Ground B entry, that two copies had NOT
+ * converged — and asserted nothing about Ground A at all. A change applied to the auditor in
+ * ONE repository therefore passed every check while the two definitions of separation drifted
+ * apart, which is the precise failure the second entry above was ratified to prevent.
+ */
+export const BYTE_IDENTICAL_PATHS = [
+  'scripts/verify-tree-disjointness.mjs',
+  'shared-scaffold.txt',
+];
+
+/**
  * The product name, as a case-insensitive content probe. Applied to COMMENT-STRIPPED
  * content — see `stripComments`.
  */
@@ -384,7 +419,8 @@ export function auditTreeDisjointness(input) {
   const paths = auditSharedPaths(input);
   const positive = auditPositiveHalves(input);
   const divergence = auditCollisionDivergence(input);
-  const errors = [...paths.errors, ...divergence.errors, ...positive.errors];
+  const identity = auditByteIdentity(input);
+  const errors = [...paths.errors, ...divergence.errors, ...identity.errors, ...positive.errors];
 
   if (errors.length > 0) {
     throw new Error(
@@ -392,7 +428,7 @@ export function auditTreeDisjointness(input) {
     );
   }
 
-  return { counts: { ...paths.counts, ...divergence.counts, ...positive.counts } };
+  return { counts: { ...paths.counts, ...divergence.counts, ...identity.counts, ...positive.counts } };
 }
 
 /**
@@ -492,6 +528,75 @@ export function convergedCollisionsIn(leftCheckout, leftFiles, rightCheckout, ri
   });
 }
 
+/**
+ * The mirror of `convergedCollisionsIn`, for the opposite requirement: Ground A identity
+ * entries whose two copies have DRIFTED APART.
+ *
+ * A path missing from one side is reported separately rather than as divergence. The two
+ * are different failures and read differently in the output: one repository has deleted or
+ * renamed a ratified file, versus both still carry it and their contents no longer agree.
+ */
+export function divergedIdenticalsIn(leftCheckout, leftFiles, rightCheckout, rightFiles, paths) {
+  const diverged = [];
+  const missing = [];
+
+  for (const path of paths) {
+    if (!leftFiles.includes(path) || !rightFiles.includes(path)) {
+      missing.push(path);
+      continue;
+    }
+    const left = readFileSync(resolve(leftCheckout, path));
+    const right = readFileSync(resolve(rightCheckout, path));
+    if (!left.equals(right)) diverged.push(path);
+  }
+
+  return { diverged, missing };
+}
+
+/**
+ * Ground A's identity half. Three findings, each naming what it actually is.
+ *
+ * The allowlist cross-check runs FIRST and unconditionally: an entry named here but absent
+ * from `shared-scaffold.txt` means the two sources have drifted, and every identity finding
+ * below it would then be reported against a set nobody ratified.
+ */
+export function auditByteIdentity({ byteIdenticalPaths, allowlist, divergedIdenticals, missingIdenticals }) {
+  const errors = [];
+
+  for (const path of [...byteIdenticalPaths].sort(byCodeUnit)) {
+    if (!allowlist.includes(path)) {
+      errors.push(
+        `Ground A identity list names ${path}, which is NOT an entry in the shared-scaffold allowlist — ` +
+          'the auditor is asserting byte-identity for a path the ratified list does not carry. ' +
+          'Reconcile the two rather than deleting the assertion.',
+      );
+    }
+  }
+
+  for (const path of [...missingIdenticals].sort(byCodeUnit)) {
+    errors.push(
+      `Ratified identical file MISSING: ${path} is ratified as byte-identical on both sides but is ` +
+        'absent from one of the two trees — it has been deleted or renamed in one repository only.',
+    );
+  }
+
+  for (const path of [...divergedIdenticals].sort(byCodeUnit)) {
+    errors.push(
+      `Ratified identical file DIVERGED: ${path} is ratified as byte-identical on both sides and its ` +
+        'two copies no longer agree. A change was applied to one repository and not the other; mirror ' +
+        'it rather than relaxing the requirement.',
+    );
+  }
+
+  return {
+    counts: {
+      byteIdenticalEntries: byteIdenticalPaths.length,
+      diverged: divergedIdenticals.length + missingIdenticals.length,
+    },
+    errors,
+  };
+}
+
 /** The HAOO positive half's subject: sources naming a home-page symbol. */
 export function homePageSymbolFilesIn(checkout, files) {
   const pattern = new RegExp(String.raw`\b(${HOME_PAGE_SYMBOLS.join('|')})\b`, 'u');
@@ -541,6 +646,8 @@ function main() {
   const zph = firstId.side === 'zph' ? { path: first, ...firstTracked } : { path: second, ...secondTracked };
   const haoo = firstId.side === 'haoo' ? { path: first, ...firstTracked } : { path: second, ...secondTracked };
 
+  const identity = divergedIdenticalsIn(zph.path, zph.files, haoo.path, haoo.files, BYTE_IDENTICAL_PATHS);
+
   const result = auditTreeDisjointness({
     leftLabel: `ZERO-PAPER HUB (${zph.path})`,
     leftFiles: zph.files,
@@ -548,6 +655,9 @@ function main() {
     rightFiles: haoo.files,
     allowlist,
     collisionEntries,
+    byteIdenticalPaths: BYTE_IDENTICAL_PATHS,
+    divergedIdenticals: identity.diverged,
+    missingIdenticals: identity.missing,
     identicalPaths: convergedCollisionsIn(zph.path, zph.files, haoo.path, haoo.files, collisionEntries),
     productSourceLeaks: productSourceLeaksIn(zph.path, zph.files),
     carriersNamingProduct: carriersNamingProductIn(zph.path, zph.files),
@@ -565,6 +675,7 @@ function main() {
       `  allowlist subtracted:   ${c.allowlistSubtracted}\n` +
       `  violations:             ${c.violations}\n` +
       `  ratified collisions:    ${c.collisionEntries} (converged: ${c.converged})\n` +
+      `  ratified identicals:    ${c.byteIdenticalEntries} (diverged: ${c.diverged})\n` +
       `  ZPH product source shipping HAOO source: ${c.productSourceLeaks}\n` +
       `  ZPH named carriers present: ${c.carriersPresent} of ${c.carriersExpected}\n` +
       `  HAOO files naming a home-page symbol: ${c.homePageSymbolHits}`,
