@@ -1,3 +1,4 @@
+import { requireIdentity } from '../products/copy';
 import type { ProductQualifyForm, QualifyField } from '../products/types';
 
 export type QualifyValues = Record<string, string>;
@@ -32,6 +33,43 @@ export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> 
   failed: "We couldn't send your details.",
   blocked: "We couldn't send your details.",
 };
+
+/**
+ * Every DOM id the qualification form owns, namespaced by the product slug — the same
+ * pattern `contentAnchorId` and `mobileNavigationId` already use. The form is built for
+ * reuse, so two product forms can legitimately coexist on one page (a comparison page, a
+ * combined landing page). Unnamespaced ids would silently cross-wire them: `label[for]`
+ * binds to the first match, `aria-describedby` on the second form's submit button would
+ * point at the first form's notice, and an error-summary link would jump the visitor into
+ * the wrong form's control.
+ *
+ * They live here, beside the validator, rather than in a component, because the form's
+ * markup is split across `QualifyForm`, `QualifyFormBody` and `QualifyFormField` and all
+ * three must agree on identity. One definition is what makes that agreement automatic.
+ */
+export function qualifyId(slug: string, suffix: string) {
+  return `${requireIdentity(slug, 'slug')}-qualify-${suffix}`;
+}
+
+export function fieldId(slug: string, field: QualifyField) {
+  return qualifyId(slug, field.name);
+}
+
+export function errorId(slug: string, field: QualifyField) {
+  return qualifyId(slug, `${field.name}-error`);
+}
+
+export function helpId(slug: string, field: QualifyField) {
+  return qualifyId(slug, `${field.name}-help`);
+}
+
+export function collectionNoteId(slug: string) {
+  return qualifyId(slug, 'collection-note');
+}
+
+export function honeypotId(slug: string) {
+  return qualifyId(slug, 'website');
+}
 
 /**
  * Request budget. `fetch` has no default timeout in any browser, so a request that never

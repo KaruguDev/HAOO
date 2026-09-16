@@ -182,6 +182,14 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
   // neither. It renders labelled controls and nothing else, so the extraction moves markup
   // OUT of the file that needs those capabilities and into one that must never acquire them.
   'src/components/QualifyFormField.tsx': FULL_BOUNDARY,
+  // The collecting-state subtree, split out of `QualifyForm`. It owns the `<form>` element,
+  // so the form-markup group cannot apply to it — but it issues no request and knows no
+  // provider, so both of those prohibitions do, which its parent cannot carry.
+  'src/components/QualifyFormBody.tsx': [
+    ...ALWAYS_FORBIDDEN,
+    ...NETWORK_FORBIDDEN,
+    ...PROVIDER_FORBIDDEN,
+  ],
   'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };

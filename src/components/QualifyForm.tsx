@@ -9,22 +9,16 @@ import {
   qualifyBlockedBody,
   qualifyContactActionLabels,
   qualifyConfirmationBody,
-  requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
-import QualifyFormField from './QualifyFormField';
-import MeasurementDisclosure from './MeasurementDisclosure';
+import QualifyFormBody from './QualifyFormBody';
 import {
   buildSubmissionBody,
-  fullWidthFieldNames,
   HONEYPOT_NAME,
   isFieldRequired,
   isProviderAcceptance,
   QUALIFY_REQUEST_TIMEOUT_MS,
   QUALIFY_STATUS_MESSAGES,
-  QUALIFY_SUBMIT_LABEL,
-  QUALIFY_SUBMITTING_LABEL,
-  QUALIFY_SUMMARY_HEADING,
   validateQualifyValues,
   type QualifyErrors,
   type QualifyValues,
@@ -65,40 +59,6 @@ const focusClasses =
  */
 const scriptFocusClasses =
   'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2';
-const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] disabled:cursor-wait disabled:opacity-70 ${focusClasses}`;
-
-/**
- * Every DOM id this form owns, namespaced by the product slug — the same pattern
- * `contentAnchorId` and `mobileNavigationId` already use. This component is built for
- * reuse, so two product forms can legitimately coexist on one page (a comparison page, a
- * combined landing page). Unnamespaced ids would silently cross-wire them: `label[for]`
- * binds to the first match, `aria-describedby` on the second form's submit button would
- * point at the first form's notice, and an error-summary link would jump the visitor
- * into the wrong form's control.
- */
-function qualifyId(slug: string, suffix: string) {
-  return `${requireIdentity(slug, 'slug')}-qualify-${suffix}`;
-}
-
-function fieldId(slug: string, field: QualifyField) {
-  return qualifyId(slug, field.name);
-}
-
-function errorId(slug: string, field: QualifyField) {
-  return qualifyId(slug, `${field.name}-error`);
-}
-
-function helpId(slug: string, field: QualifyField) {
-  return qualifyId(slug, `${field.name}-help`);
-}
-
-function collectionNoteId(slug: string) {
-  return qualifyId(slug, 'collection-note');
-}
-
-function honeypotId(slug: string) {
-  return qualifyId(slug, 'website');
-}
 
 /**
  * The announcement for a descriptor that has just started matching, with `{value}`
@@ -439,125 +399,22 @@ export default function QualifyForm({
           </div>
         </div>
       ) : (
-        <>
-          <p className="mb-4 text-sm font-normal leading-[1.4] text-[#5F6B84]">
-            All fields are required unless marked optional.
-          </p>
-          <form
-            noValidate
-            onSubmit={handleSubmit}
-            onFocus={handleQualifyStart}
-            onChange={handleQualifyStart}
-            className="relative rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
-          >
-          <div
-            aria-hidden="true"
-            className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
-          >
-            <label htmlFor={honeypotId(slug)}>Leave this field blank</label>
-            <input
-              id={honeypotId(slug)}
-              type="text"
-              name={HONEYPOT_NAME}
-              tabIndex={-1}
-              autoComplete="off"
-              value={values[HONEYPOT_NAME] ?? ''}
-              onChange={(event) => setValue(HONEYPOT_NAME, event.target.value)}
-            />
-          </div>
-
-          {submitted && invalidFields.length > 0 ? (
-            <div
-              ref={summaryRef}
-              tabIndex={-1}
-              className={`mb-8 rounded-2xl border-2 border-[#B00020] bg-[#FFF5F5] p-4 ${scriptFocusClasses}`}
-            >
-              <div role="alert">
-                <h3 className="text-base font-semibold leading-6 text-[#18275F]">
-                  {QUALIFY_SUMMARY_HEADING}
-                </h3>
-                <ul className="mt-2 list-none p-0">
-                  {invalidFields.map((field) => (
-                    <li key={field.name} className="mt-1 first:mt-0">
-                      <a
-                        href={`#${fieldId(slug, field)}`}
-                        className={`text-sm font-semibold leading-[1.4] text-[#B00020] underline ${focusClasses}`}
-                      >
-                        {errors[field.name]}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ) : null}
-
-          {qualify.groups.map((group) => {
-            const fields = group.fieldNames
-              .map((name) => qualify.fields.find((candidate) => candidate.name === name))
-              .filter((field): field is QualifyField => field !== undefined);
-            const spanning = fullWidthFieldNames(fields);
-
-            return (
-              <fieldset key={group.legend} className="mb-8 border-0 p-0 last:mb-0">
-                <legend className="mb-4 text-base font-semibold leading-6 text-[#18275F]">
-                  {group.legend}
-                </legend>
-                {/* Paired from md by the product-generic rule; DOM order is visual order (260913-x19). */}
-                <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-5">
-                  {fields.map((field) => (
-                    <QualifyFormField
-                      key={field.name}
-                      field={field}
-                      value={values[field.name] ?? ''}
-                      error={errors[field.name]}
-                      required={isFieldRequired(field, values)}
-                      disabled={state === 'submitting'}
-                      spansBothColumns={spanning.has(field.name)}
-                      fieldId={fieldId(slug, field)}
-                      helpId={helpId(slug, field)}
-                      errorId={errorId(slug, field)}
-                      controlClassName={controlClasses}
-                      onValueChange={setValue}
-                    />
-                  ))}
-                </div>
-              </fieldset>
-            );
-          })}
-
-            {qualify.collectionNote ? (
-              <div
-                id={collectionNoteId(slug)}
-                className="mt-8 rounded-lg border border-[#DFE4F0] bg-[#FBFCFF] p-4 text-sm font-normal leading-[1.4] text-[#5F6B84]"
-              >
-                <p>{qualify.collectionNote.purpose}</p>
-                <p className="mt-3">{qualify.collectionNote.processor}</p>
-                <p className="mt-3">{qualify.collectionNote.pageContext}</p>
-              </div>
-            ) : null}
-
-            {measurementEventNames && measurementDisclosure && clearMeasurementContext ? (
-              <MeasurementDisclosure
-                slug={slug}
-                events={measurementEventNames}
-                disclosure={measurementDisclosure}
-                clearContext={clearMeasurementContext}
-              />
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={state === 'submitting'}
-              aria-describedby={
-                qualify.collectionNote ? collectionNoteId(slug) : undefined
-              }
-              className={`mt-8 inline-flex w-full min-h-11 items-center justify-center rounded-lg bg-[#4054C6] px-5 py-3 text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] disabled:cursor-wait disabled:opacity-70 md:w-auto ${focusClasses}`}
-            >
-              {state === 'submitting' ? QUALIFY_SUBMITTING_LABEL : QUALIFY_SUBMIT_LABEL}
-            </button>
-          </form>
-        </>
+        <QualifyFormBody
+          qualify={qualify}
+          slug={slug}
+          values={values}
+          errors={errors}
+          submitted={submitted}
+          invalidFields={invalidFields}
+          state={state}
+          summaryRef={summaryRef}
+          onSubmit={handleSubmit}
+          onQualifyStart={handleQualifyStart}
+          onValueChange={setValue}
+          measurementEventNames={measurementEventNames}
+          measurementDisclosure={measurementDisclosure}
+          clearMeasurementContext={clearMeasurementContext}
+        />
       )}
 
       {state === 'failed' || state === 'blocked' ? (
