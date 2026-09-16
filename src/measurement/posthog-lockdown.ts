@@ -347,6 +347,46 @@ function reduceWebAnalyticsValue(key: string, value: unknown): WebAnalyticsReduc
   return { copy: true, value };
 }
 
+/**
+ * Writes every admitted web-analytics property, reduced, into the outgoing set.
+ *
+ * A property absent from the payload, or holding a value that cannot be copied or cannot be
+ * reduced, is simply not written — the outgoing set is built up from nothing rather than
+ * filtered down from what arrived, which is the property this whole module rests on.
+ */
+function copyWebAnalyticsProperties(
+  received: Record<string, unknown>,
+  properties: Record<string, unknown>,
+): void {
+  for (const key of WEB_ANALYTICS_PROPERTIES) {
+    if (!hasOwnKey(received, key)) continue;
+    const value = received[key];
+    if (!isCopyableValue(value)) continue;
+
+    const reduced = reduceWebAnalyticsValue(key, value);
+    if (reduced.copy) properties[key] = reduced.value;
+  }
+}
+
+/**
+ * Writes campaign values from the CALLER's record, re-validated on the way in.
+ *
+ * Never from the payload: a campaign value the SDK supplied in the capture is not copied,
+ * which is why this reads `campaign` and never `received`.
+ */
+function copyCampaignProperties(
+  campaign: Readonly<Record<string, string>>,
+  properties: Record<string, unknown>,
+): void {
+  for (const key of CAMPAIGN_PROPERTIES) {
+    if (!hasOwnKey(campaign, key)) continue;
+    const value: unknown = campaign[key];
+    if (typeof value === 'string' && CAMPAIGN_VALUE.test(value)) {
+      properties[key] = value;
+    }
+  }
+}
+
 export function reduceCapture(
   result: CaptureResult | null,
   allowedEvents: readonly string[],
@@ -380,22 +420,8 @@ export function reduceCapture(
     properties[key] = received[key];
   }
 
-  for (const key of WEB_ANALYTICS_PROPERTIES) {
-    if (!hasOwnKey(received, key)) continue;
-    const value = received[key];
-    if (!isCopyableValue(value)) continue;
-
-    const reduced = reduceWebAnalyticsValue(key, value);
-    if (reduced.copy) properties[key] = reduced.value;
-  }
-
-  for (const key of CAMPAIGN_PROPERTIES) {
-    if (!hasOwnKey(campaign, key)) continue;
-    const value: unknown = campaign[key];
-    if (typeof value === 'string' && CAMPAIGN_VALUE.test(value)) {
-      properties[key] = value;
-    }
-  }
+  copyWebAnalyticsProperties(received, properties);
+  copyCampaignProperties(campaign, properties);
 
   // The surviving envelope is a fresh object carrying the vendor's own transport
   // reference and the event name, with the reduced property set written over the one it

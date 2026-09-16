@@ -12,6 +12,7 @@ import {
   requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
+import QualifyFormField from './QualifyFormField';
 import MeasurementDisclosure from './MeasurementDisclosure';
 import {
   buildSubmissionBody,
@@ -400,105 +401,6 @@ export default function QualifyForm({
     void submitValues();
   }
 
-  function renderControl(field: QualifyField, required: boolean) {
-    const describedBy = [
-      field.help ? helpId(slug, field) : '',
-      errors[field.name] ? errorId(slug, field) : '',
-    ]
-      .filter((token) => token !== '')
-      .join(' ');
-    const shared = {
-      id: fieldId(slug, field),
-      name: field.name,
-      value: values[field.name] ?? '',
-      required,
-      'aria-required': required,
-      'aria-invalid': errors[field.name] ? true : undefined,
-      'aria-describedby': describedBy === '' ? undefined : describedBy,
-      autoComplete: field.autoComplete,
-      // The request body was serialised from the values captured when the submission
-      // started, so an edit accepted during the request window would be absent from the
-      // request already in flight and then destroyed with the form subtree on success.
-      // Locking the controls makes that window visibly read-only rather than silently
-      // discarding a correction the visitor believes was sent.
-      disabled: state === 'submitting',
-      className: controlClasses,
-    } as const;
-
-    if (field.control === 'select') {
-      return (
-        <select
-          {...shared}
-          onChange={(event) => setValue(field.name, event.target.value)}
-        >
-          <option value="">{field.placeholderOption}</option>
-          {(field.options ?? []).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
-    if (field.control === 'textarea') {
-      return (
-        <textarea
-          {...shared}
-          rows={field.rows}
-          maxLength={field.maxLength}
-          onChange={(event) => setValue(field.name, event.target.value)}
-        />
-      );
-    }
-
-    return (
-      <input
-        {...shared}
-        type={field.control}
-        maxLength={field.maxLength}
-        onChange={(event) => setValue(field.name, event.target.value)}
-      />
-    );
-  }
-
-  function renderField(field: QualifyField, spansBothColumns: boolean) {
-    const required = isFieldRequired(field, values);
-    const message = errors[field.name];
-
-    return (
-      <div key={field.name} className={spansBothColumns ? 'md:col-span-2' : undefined}>
-        <label
-          htmlFor={fieldId(slug, field)}
-          className="mb-1 block text-sm font-semibold leading-[1.4] text-[#18275F]"
-        >
-          {field.label}
-          {required ? null : (
-            <span className="font-normal text-[#5F6B84]"> (optional)</span>
-          )}
-        </label>
-        {field.help ? (
-          <p
-            id={helpId(slug, field)}
-            className="mb-1 text-sm font-normal leading-[1.4] text-[#5F6B84]"
-          >
-            {field.help}
-          </p>
-        ) : null}
-        {renderControl(field, required)}
-        {message ? (
-          <p
-            id={errorId(slug, field)}
-            className="mt-1 text-sm font-semibold leading-[1.4] text-[#B00020]"
-          >
-            <span className="sr-only">Error: </span>
-            {message}
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
   // A live requiredness announcement outranks an already-read terminal message, because
   // `state` never returns to `idle` once a submission has been attempted and the form
   // remains editable afterwards. Only `submitting` is absolute: nothing may displace the
@@ -603,7 +505,22 @@ export default function QualifyForm({
                 </legend>
                 {/* Paired from md by the product-generic rule; DOM order is visual order (260913-x19). */}
                 <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-5">
-                  {fields.map((field) => renderField(field, spanning.has(field.name)))}
+                  {fields.map((field) => (
+                    <QualifyFormField
+                      key={field.name}
+                      field={field}
+                      value={values[field.name] ?? ''}
+                      error={errors[field.name]}
+                      required={isFieldRequired(field, values)}
+                      disabled={state === 'submitting'}
+                      spansBothColumns={spanning.has(field.name)}
+                      fieldId={fieldId(slug, field)}
+                      helpId={helpId(slug, field)}
+                      errorId={errorId(slug, field)}
+                      controlClassName={controlClasses}
+                      onValueChange={setValue}
+                    />
+                  ))}
                 </div>
               </fieldset>
             );

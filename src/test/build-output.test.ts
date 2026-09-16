@@ -176,6 +176,12 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...MEASUREMENT_PRIVACY_FORBIDDEN,
   ],
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+  // The field renderer, split out of `QualifyForm` — and held to the FULL boundary its
+  // parent cannot be. `QualifyForm` is exempt from the network and form-markup groups
+  // because it legitimately calls `fetch` and owns the `<form>` element; this file does
+  // neither. It renders labelled controls and nothing else, so the extraction moves markup
+  // OUT of the file that needs those capabilities and into one that must never acquire them.
+  'src/components/QualifyFormField.tsx': FULL_BOUNDARY,
   'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
