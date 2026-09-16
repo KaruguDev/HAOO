@@ -1,7 +1,7 @@
 # shared-scaffold.txt — the closed list of paths that legitimately exist in BOTH
 # `KaruguDev/ZERO-PAPERHUB` and `KaruguDev/HAOO`.
 #
-# TWENTY-EIGHT ENTRIES, ON TWO DIFFERENT GROUNDS. The distinction is load-bearing and is
+# TWENTY-NINE ENTRIES, ON TWO DIFFERENT GROUNDS. The distinction is load-bearing and is
 # marked machine-readably by the `# @ground:` directives below. Do not collapse it.
 #
 # WHY THIS FILE EXISTS
@@ -45,13 +45,17 @@
 # ─────────────────────────────────────────────────────────────────────────────────────
 # @ground: scaffold
 #
-# GROUND A — SHARED TOOLCHAIN SCAFFOLDING (23 entries)
+# GROUND A — SHARED TOOLCHAIN SCAFFOLDING (24 entries)
 #
 # Files the REPOSITORY owns rather than either product half. Each is genuinely the same
 # kind of file doing the same job on both sides; several are deliberately identical in
 # content. Recorded as a decision by plan 04.2-01 (nineteen entries) and extended to
 # twenty-three by the owner on 2026-09-06 after plan 04.2-08's check measured four the
 # original enumeration had missed. All four qualify under the rule as it already stood.
+# EXTENDED to twenty-four on 2026-09-16, when both repositories were put under SonarQube:
+# the analyser's configuration file is toolchain configuration, on exactly the ground the
+# rule already names. It is added because the analyser reads it from the repository root
+# on both sides — never because "both halves need it".
 # ─────────────────────────────────────────────────────────────────────────────────────
 
 # the manifest — scripts, dependencies and engines, per repository
@@ -108,6 +112,11 @@ shared-scaffold.txt
 # RATIFIED 2026-09-06 — the disjointness auditor, which MUST be byte-identical on both
 # sides so neither repository can drift into a private definition of separation
 scripts/verify-tree-disjointness.mjs
+# RATIFIED 2026-09-16 — the SonarQube analysis configuration each repository is scanned
+# with. Listed as a PATH, not a value, in the same way as CNAME: the two copies name their
+# own project key, their own sources and their own exclusions, and NEITHER carries a host
+# or a token — both come from the environment. Not required to be byte-identical.
+sonar-project.properties
 
 # ─────────────────────────────────────────────────────────────────────────────────────
 # @ground: collision

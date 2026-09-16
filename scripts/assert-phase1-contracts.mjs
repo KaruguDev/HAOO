@@ -1,6 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
+// Borrowed rather than copied. The lookup is defined once, in the auditor, and both
+// repositories carry both scripts as ratified shared scaffolding, so the import resolves
+// on either side. A second copy here would be a second thing to keep in step.
+import { resolveExecutable } from './verify-tree-disjointness.mjs';
+
 /**
  * assert-phase1-contracts.mjs — the Phase 1 contract gate. It asserts that the named Phase 1
  * contract suites are GREEN, and that the green is real rather than an empty or broken run.
@@ -93,7 +98,8 @@ export function phase1ContractFailure({ status, signal = null, error, output }) 
   }
 
   if (status !== 0) {
-    return `Phase 1 contract gate failed: the contract suites exited ${status ?? `on signal ${signal}`}.`;
+    const exitDescription = status ?? `on signal ${signal}`;
+    return `Phase 1 contract gate failed: the contract suites exited ${exitDescription}.`;
   }
 
   const greenCaseLines = output
@@ -111,8 +117,17 @@ export function phase1ContractFailure({ status, signal = null, error, output }) 
 }
 
 function main() {
+  // Resolved before the spawn so a missing npm is reported as a missing npm, rather than
+  // as a contract suite that mysteriously failed to run.
+  const npm = resolveExecutable('npm');
+  if (!npm) {
+    console.error('Phase 1 contract gate could not start Vitest: npm was not found on PATH.');
+    process.exitCode = 1;
+    return;
+  }
+
   const result = spawnSync(
-    'npm',
+    npm,
     ['test', '--', '--run', ...suites, '--reporter=verbose'],
     {
       encoding: 'utf8',

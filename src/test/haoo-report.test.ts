@@ -1538,7 +1538,7 @@ describe('credentialed CLI', () => {
    * so the message names the rename instead.
    */
   it('finds a removed-variable table naming every renamed input', () => {
-    expect(removedVariablePairs.length).toBe(4);
+    expect(removedVariablePairs).toHaveLength(4);
     for (const pair of removedVariablePairs) {
       expect(pair.removed).not.toBe(pair.replacement);
       expect(pair.replacement).toMatch(/POSTHOG/);

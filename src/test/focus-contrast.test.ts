@@ -47,7 +47,21 @@ export const RING_COLOR_TOKENS: Readonly<Record<string, string>> = {
  * question, and a focus-bearing component outside this list is exactly the silent gap the list
  * exists to prevent. Added PER FILE: MIN_FOCUS_CONTRAST, RING_COLOR_TOKENS, DEFAULT_RING_OFFSET,
  * the extractor and the `pairs.length > 0` guard are all byte-unchanged, so the seven entries
- * are measured exactly as strictly as the six were. The component itself is not touched.
+ * are measured exactly as strictly as the seven were. The component itself is not touched.
+ *
+ * WIDENED from seven entries to eight when `src/components/QualifyFormBody.tsx` was split
+ * out of `QualifyForm`. The collecting-state subtree took the error-summary container and
+ * the submit control with it, and it declares its own `focusClasses` and
+ * `scriptFocusClasses` — so without registration those rings would leave this list's sight
+ * simply by being moved to another file, which is the silent gap the paragraph above
+ * describes. Added PER FILE: MIN_FOCUS_CONTRAST, RING_COLOR_TOKENS, DEFAULT_RING_OFFSET, the
+ * extractor and the `pairs.length > 0` guard are byte-unchanged.
+ *
+ * `src/components/QualifyFormField.tsx`, split out in the same work, is deliberately NOT
+ * here and its absence is not an oversight: it declares no focus utility at all. Its control
+ * classes arrive as the `controlClassName` prop, so the ring it paints is the one measured in
+ * this file at `QualifyFormBody`. Registering it would fail the `pairs.length > 0` guard,
+ * which is the guard doing its job rather than a reason to weaken it.
  */
 export const FOCUS_SOURCES = [
   'src/pages/ProductPage.tsx',
@@ -55,6 +69,7 @@ export const FOCUS_SOURCES = [
   'src/components/OnboardingChoices.tsx',
   'src/components/BrochurePanel.tsx',
   'src/components/QualifyForm.tsx',
+  'src/components/QualifyFormBody.tsx',
   'src/components/QualifyFallback.tsx',
   'src/components/MeasurementDisclosure.tsx',
 ] as const;
@@ -261,8 +276,13 @@ describe('Phase 1 focus indicator contrast contracts', () => {
     const SCRIPT_FOCUS_LITERAL =
       "'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2'";
     const scriptFocusTargets = [
-      // The confirmation heading and the error-summary container.
-      ['src/components/QualifyForm.tsx', 2],
+      // The confirmation heading. This file carried two until the collecting-state subtree
+      // was split into `QualifyFormBody`, which took the error-summary container with it;
+      // the pair is still two targets, now counted one per file rather than moved out of
+      // sight.
+      ['src/components/QualifyForm.tsx', 1],
+      // The error-summary container.
+      ['src/components/QualifyFormBody.tsx', 1],
       // The failure heading.
       ['src/components/QualifyFallback.tsx', 1],
     ] as const;

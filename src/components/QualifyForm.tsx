@@ -9,21 +9,16 @@ import {
   qualifyBlockedBody,
   qualifyContactActionLabels,
   qualifyConfirmationBody,
-  requireIdentity,
 } from '../products/copy';
 import QualifyFallback from './QualifyFallback';
-import MeasurementDisclosure from './MeasurementDisclosure';
+import QualifyFormBody from './QualifyFormBody';
 import {
   buildSubmissionBody,
-  fullWidthFieldNames,
   HONEYPOT_NAME,
   isFieldRequired,
   isProviderAcceptance,
   QUALIFY_REQUEST_TIMEOUT_MS,
   QUALIFY_STATUS_MESSAGES,
-  QUALIFY_SUBMIT_LABEL,
-  QUALIFY_SUBMITTING_LABEL,
-  QUALIFY_SUMMARY_HEADING,
   validateQualifyValues,
   type QualifyErrors,
   type QualifyValues,
@@ -64,40 +59,6 @@ const focusClasses =
  */
 const scriptFocusClasses =
   'focus:outline-none focus:ring-2 focus:ring-[#4054C6] focus:ring-offset-2';
-const controlClasses = `w-full min-h-11 rounded-lg border border-[#6E7A94] bg-white px-3 py-2 text-base font-normal leading-6 text-[#18275F] hover:border-[#5F6B84] disabled:cursor-wait disabled:opacity-70 ${focusClasses}`;
-
-/**
- * Every DOM id this form owns, namespaced by the product slug — the same pattern
- * `contentAnchorId` and `mobileNavigationId` already use. This component is built for
- * reuse, so two product forms can legitimately coexist on one page (a comparison page, a
- * combined landing page). Unnamespaced ids would silently cross-wire them: `label[for]`
- * binds to the first match, `aria-describedby` on the second form's submit button would
- * point at the first form's notice, and an error-summary link would jump the visitor
- * into the wrong form's control.
- */
-function qualifyId(slug: string, suffix: string) {
-  return `${requireIdentity(slug, 'slug')}-qualify-${suffix}`;
-}
-
-function fieldId(slug: string, field: QualifyField) {
-  return qualifyId(slug, field.name);
-}
-
-function errorId(slug: string, field: QualifyField) {
-  return qualifyId(slug, `${field.name}-error`);
-}
-
-function helpId(slug: string, field: QualifyField) {
-  return qualifyId(slug, `${field.name}-help`);
-}
-
-function collectionNoteId(slug: string) {
-  return qualifyId(slug, 'collection-note');
-}
-
-function honeypotId(slug: string) {
-  return qualifyId(slug, 'website');
-}
 
 /**
  * The announcement for a descriptor that has just started matching, with `{value}`
@@ -133,6 +94,46 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
   }
 
   return seeded;
+}
+
+/**
+ * The error set after one field edit: the edited field's own verdict, plus the verdict for
+ * every field whose requiredness depends on it.
+ *
+ * Lifted out of the `setErrors` updater unchanged, and pure — previous errors and the freshly
+ * validated set in, the next error set out. Dependents are reconciled in BOTH directions: a
+ * field this edit stopped requiring drops its now-unreachable message, and one it just started
+ * requiring gains its message here rather than at the next submit, because the summary is
+ * presented as the authoritative problem list and must not under-report. Either way a field
+ * keeps any message it still earns on its own, and its typed value.
+ */
+function reconcileErrors(
+  previous: QualifyErrors,
+  fresh: QualifyErrors,
+  name: string,
+  fields: readonly QualifyField[],
+): QualifyErrors {
+  const next = { ...previous };
+
+  if (fresh[name]) {
+    next[name] = fresh[name];
+  } else {
+    delete next[name];
+  }
+
+  for (const field of fields) {
+    if (field.requiredWhen?.field !== name) {
+      continue;
+    }
+
+    if (fresh[field.name]) {
+      next[field.name] = fresh[field.name];
+    } else {
+      delete next[field.name];
+    }
+  }
+
+  return next;
 }
 
 export default function QualifyForm({
@@ -245,34 +246,7 @@ export default function QualifyForm({
 
     const fresh = validateQualifyValues(nextValues, qualify);
 
-    setErrors((previous) => {
-      const next = { ...previous };
-
-      if (fresh[name]) {
-        next[name] = fresh[name];
-      } else {
-        delete next[name];
-      }
-
-      // Dependents are reconciled in both directions. A field this edit stopped
-      // requiring drops its now-unreachable message; one it just started requiring gains
-      // its message here rather than at the next submit, because the summary is
-      // presented as the authoritative problem list and must not under-report. Either
-      // way the field keeps any message it still earns on its own, and its typed value.
-      for (const field of qualify.fields) {
-        if (field.requiredWhen?.field !== name) {
-          continue;
-        }
-
-        if (fresh[field.name]) {
-          next[field.name] = fresh[field.name];
-        } else {
-          delete next[field.name];
-        }
-      }
-
-      return next;
-    });
+    setErrors((previous) => reconcileErrors(previous, fresh, name, qualify.fields));
   }
 
   /**
@@ -387,105 +361,6 @@ export default function QualifyForm({
     void submitValues();
   }
 
-  function renderControl(field: QualifyField, required: boolean) {
-    const describedBy = [
-      field.help ? helpId(slug, field) : '',
-      errors[field.name] ? errorId(slug, field) : '',
-    ]
-      .filter((token) => token !== '')
-      .join(' ');
-    const shared = {
-      id: fieldId(slug, field),
-      name: field.name,
-      value: values[field.name] ?? '',
-      required,
-      'aria-required': required,
-      'aria-invalid': errors[field.name] ? true : undefined,
-      'aria-describedby': describedBy === '' ? undefined : describedBy,
-      autoComplete: field.autoComplete,
-      // The request body was serialised from the values captured when the submission
-      // started, so an edit accepted during the request window would be absent from the
-      // request already in flight and then destroyed with the form subtree on success.
-      // Locking the controls makes that window visibly read-only rather than silently
-      // discarding a correction the visitor believes was sent.
-      disabled: state === 'submitting',
-      className: controlClasses,
-    } as const;
-
-    if (field.control === 'select') {
-      return (
-        <select
-          {...shared}
-          onChange={(event) => setValue(field.name, event.target.value)}
-        >
-          <option value="">{field.placeholderOption}</option>
-          {(field.options ?? []).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
-    if (field.control === 'textarea') {
-      return (
-        <textarea
-          {...shared}
-          rows={field.rows}
-          maxLength={field.maxLength}
-          onChange={(event) => setValue(field.name, event.target.value)}
-        />
-      );
-    }
-
-    return (
-      <input
-        {...shared}
-        type={field.control}
-        maxLength={field.maxLength}
-        onChange={(event) => setValue(field.name, event.target.value)}
-      />
-    );
-  }
-
-  function renderField(field: QualifyField, spansBothColumns: boolean) {
-    const required = isFieldRequired(field, values);
-    const message = errors[field.name];
-
-    return (
-      <div key={field.name} className={spansBothColumns ? 'md:col-span-2' : undefined}>
-        <label
-          htmlFor={fieldId(slug, field)}
-          className="mb-1 block text-sm font-semibold leading-[1.4] text-[#18275F]"
-        >
-          {field.label}
-          {required ? null : (
-            <span className="font-normal text-[#5F6B84]"> (optional)</span>
-          )}
-        </label>
-        {field.help ? (
-          <p
-            id={helpId(slug, field)}
-            className="mb-1 text-sm font-normal leading-[1.4] text-[#5F6B84]"
-          >
-            {field.help}
-          </p>
-        ) : null}
-        {renderControl(field, required)}
-        {message ? (
-          <p
-            id={errorId(slug, field)}
-            className="mt-1 text-sm font-semibold leading-[1.4] text-[#B00020]"
-          >
-            <span className="sr-only">Error: </span>
-            {message}
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
   // A live requiredness announcement outranks an already-read terminal message, because
   // `state` never returns to `idle` once a submission has been attempted and the form
   // remains editable afterwards. Only `submitting` is absolute: nothing may displace the
@@ -524,110 +399,22 @@ export default function QualifyForm({
           </div>
         </div>
       ) : (
-        <>
-          <p className="mb-4 text-sm font-normal leading-[1.4] text-[#5F6B84]">
-            All fields are required unless marked optional.
-          </p>
-          <form
-            noValidate
-            onSubmit={handleSubmit}
-            onFocus={handleQualifyStart}
-            onChange={handleQualifyStart}
-            className="relative rounded-2xl border border-[#DFE4F0] bg-white p-6 md:p-8"
-          >
-          <div
-            aria-hidden="true"
-            className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
-          >
-            <label htmlFor={honeypotId(slug)}>Leave this field blank</label>
-            <input
-              id={honeypotId(slug)}
-              type="text"
-              name={HONEYPOT_NAME}
-              tabIndex={-1}
-              autoComplete="off"
-              value={values[HONEYPOT_NAME] ?? ''}
-              onChange={(event) => setValue(HONEYPOT_NAME, event.target.value)}
-            />
-          </div>
-
-          {submitted && invalidFields.length > 0 ? (
-            <div
-              ref={summaryRef}
-              tabIndex={-1}
-              className={`mb-8 rounded-2xl border-2 border-[#B00020] bg-[#FFF5F5] p-4 ${scriptFocusClasses}`}
-            >
-              <div role="alert">
-                <h3 className="text-base font-semibold leading-6 text-[#18275F]">
-                  {QUALIFY_SUMMARY_HEADING}
-                </h3>
-                <ul className="mt-2 list-none p-0">
-                  {invalidFields.map((field) => (
-                    <li key={field.name} className="mt-1 first:mt-0">
-                      <a
-                        href={`#${fieldId(slug, field)}`}
-                        className={`text-sm font-semibold leading-[1.4] text-[#B00020] underline ${focusClasses}`}
-                      >
-                        {errors[field.name]}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ) : null}
-
-          {qualify.groups.map((group) => {
-            const fields = group.fieldNames
-              .map((name) => qualify.fields.find((candidate) => candidate.name === name))
-              .filter((field): field is QualifyField => field !== undefined);
-            const spanning = fullWidthFieldNames(fields);
-
-            return (
-              <fieldset key={group.legend} className="mb-8 border-0 p-0 last:mb-0">
-                <legend className="mb-4 text-base font-semibold leading-6 text-[#18275F]">
-                  {group.legend}
-                </legend>
-                {/* Paired from md by the product-generic rule; DOM order is visual order (260913-x19). */}
-                <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-5">
-                  {fields.map((field) => renderField(field, spanning.has(field.name)))}
-                </div>
-              </fieldset>
-            );
-          })}
-
-            {qualify.collectionNote ? (
-              <div
-                id={collectionNoteId(slug)}
-                className="mt-8 rounded-lg border border-[#DFE4F0] bg-[#FBFCFF] p-4 text-sm font-normal leading-[1.4] text-[#5F6B84]"
-              >
-                <p>{qualify.collectionNote.purpose}</p>
-                <p className="mt-3">{qualify.collectionNote.processor}</p>
-                <p className="mt-3">{qualify.collectionNote.pageContext}</p>
-              </div>
-            ) : null}
-
-            {measurementEventNames && measurementDisclosure && clearMeasurementContext ? (
-              <MeasurementDisclosure
-                slug={slug}
-                events={measurementEventNames}
-                disclosure={measurementDisclosure}
-                clearContext={clearMeasurementContext}
-              />
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={state === 'submitting'}
-              aria-describedby={
-                qualify.collectionNote ? collectionNoteId(slug) : undefined
-              }
-              className={`mt-8 inline-flex w-full min-h-11 items-center justify-center rounded-lg bg-[#4054C6] px-5 py-3 text-sm font-semibold leading-[1.4] text-white hover:bg-[#3345A7] active:bg-[#29388A] disabled:cursor-wait disabled:opacity-70 md:w-auto ${focusClasses}`}
-            >
-              {state === 'submitting' ? QUALIFY_SUBMITTING_LABEL : QUALIFY_SUBMIT_LABEL}
-            </button>
-          </form>
-        </>
+        <QualifyFormBody
+          qualify={qualify}
+          slug={slug}
+          values={values}
+          errors={errors}
+          submitted={submitted}
+          invalidFields={invalidFields}
+          state={state}
+          summaryRef={summaryRef}
+          onSubmit={handleSubmit}
+          onQualifyStart={handleQualifyStart}
+          onValueChange={setValue}
+          measurementEventNames={measurementEventNames}
+          measurementDisclosure={measurementDisclosure}
+          clearMeasurementContext={clearMeasurementContext}
+        />
       )}
 
       {state === 'failed' || state === 'blocked' ? (
@@ -644,10 +431,16 @@ export default function QualifyForm({
 
       {/* Mounted unconditionally from first render and kept outside the form card: the
           card is replaced on success, so a region inside it would unmount at the exact
-          moment it needs to announce. Only the text changes — never the role. */}
-      <p role="status" className="mt-4 min-h-[1.5rem] text-sm font-normal leading-[1.4] text-[#5F6B84]">
+          moment it needs to announce. Only the text changes — never the role.
+
+          `<output>` rather than a `role="status"` paragraph: the role is unchanged, since
+          `<output>` carries `status` implicitly, and it is announced across more assistive
+          technologies. `block` is explicit because `<output>` is inline by default and the
+          reserved `min-h-[1.5rem]` would not apply to an inline box — that reservation is
+          what stops the form shifting when the first message arrives. */}
+      <output className="mt-4 block min-h-[1.5rem] text-sm font-normal leading-[1.4] text-[#5F6B84]">
         {statusMessage}
-      </p>
+      </output>
     </div>
   );
 }

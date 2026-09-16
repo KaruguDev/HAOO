@@ -167,37 +167,56 @@ function parseTables(markdown) {
   return tables;
 }
 
+/**
+ * Every finding for ONE required table: the table missing outright, a missing capability
+ * row, a row whose decision disagrees with the contract, and an OPT-OUT carrying no reason.
+ *
+ * Lifted out of `auditPhase4Coverage` unchanged, so the audit itself reads as "collect the
+ * findings, table by table". A missing table returns its single finding and stops, exactly
+ * as the `continue` did: there are no rows to report anything else about.
+ */
+function auditRequiredTable(heading, requiredRows, rows) {
+  if (!rows) {
+    return [`${heading}: required table is missing`];
+  }
+
+  const errors = [];
+
+  for (const [capability, expectedDecision] of requiredRows) {
+    const row = rows.get(capability);
+    if (!row) {
+      errors.push(`${heading}: missing capability row "${capability}"`);
+    } else if (row.decision !== expectedDecision) {
+      errors.push(
+        `${heading} / ${capability}: expected ${expectedDecision}, found ${row.decision || '(blank)'}`,
+      );
+    }
+  }
+
+  for (const [capability, row] of rows) {
+    if (row.decision === 'OPT-OUT' && row.reason.trim() === '') {
+      errors.push(`${heading} / ${capability}: OPT-OUT reason is blank`);
+    }
+  }
+
+  return errors;
+}
+
 export function auditPhase4Coverage(markdown) {
   const errors = [];
   const tables = parseTables(markdown);
 
   for (const [heading, requiredRows] of Object.entries(REQUIRED_TABLES)) {
-    const rows = tables.get(heading);
-    if (!rows) {
-      errors.push(`${heading}: required table is missing`);
-      continue;
-    }
-
-    for (const [capability, expectedDecision] of requiredRows) {
-      const row = rows.get(capability);
-      if (!row) {
-        errors.push(`${heading}: missing capability row "${capability}"`);
-      } else if (row.decision !== expectedDecision) {
-        errors.push(
-          `${heading} / ${capability}: expected ${expectedDecision}, found ${row.decision || '(blank)'}`,
-        );
-      }
-    }
-
-    for (const [capability, row] of rows) {
-      if (row.decision === 'OPT-OUT' && row.reason.trim() === '') {
-        errors.push(`${heading} / ${capability}: OPT-OUT reason is blank`);
-      }
-    }
+    errors.push(...auditRequiredTable(heading, requiredRows, tables.get(heading)));
   }
 
+  // `[^\n]*\n` rather than `\s+`: the heading is consumed to the end of its own line, so
+  // there is exactly one way to match it. The predecessor let `\s+` and the lazy capture
+  // compete for the same run of whitespace, which is the overlap that made it backtrack
+  // super-linearly. The section text is unchanged apart from leading blank lines, which no
+  // boundary check below looks at.
   const operationalBoundary = markdown.match(
-    /## Operational boundary\s+([\s\S]*?)(?=\n## |$)/u,
+    /## Operational boundary[^\n]*\n([\s\S]*?)(?=\n## |$)/u,
   )?.[1] ?? '';
   const boundaryChecks = [
     [
@@ -338,8 +357,10 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
-  });
+  }
 }

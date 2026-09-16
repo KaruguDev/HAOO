@@ -427,11 +427,19 @@ interface StatusRegionReading {
   readonly minHeight: string;
 }
 
-/** Every `role="status"` region in the document, in DOM order, with where it sits. */
+/**
+ * Every status live region in the document, in DOM order, with where it sits.
+ *
+ * BOTH spellings are collected. `<output>` carries the status role IMPLICITLY, so the
+ * attribute-only query this used to run reported a region built that way as ABSENT rather
+ * than as present and correct — a false failure about the one property FS-2 exists to
+ * assert. `role` is reported as the EFFECTIVE role for the same reason: the invariants below
+ * ask whether a region IS a status region, never which markup was used to make it one.
+ */
 async function readStatusRegions(page: Page): Promise<readonly StatusRegionReading[]> {
   return page.evaluate(() =>
-    Array.from(document.querySelectorAll('[role="status"]')).map((element) => ({
-      role: element.getAttribute('role'),
+    Array.from(document.querySelectorAll('[role="status"], output')).map((element) => ({
+      role: element.getAttribute('role') ?? (element.tagName === 'OUTPUT' ? 'status' : null),
       text: (element.textContent ?? '').replace(/\s+/gu, ' ').trim(),
       insideForm: element.closest('form') !== null,
       minHeight: getComputedStyle(element).minHeight,
@@ -1609,7 +1617,7 @@ test.describe('FS-1 — the four states FS-0 confines to the local preview mirro
         contract: 'UI-SPEC FS-2',
         target: `preview (${surface.id})`,
         observationFsO1:
-          'the document carries two role="status" regions in every state that renders the form: the submission region outside the form card, and the measurement disclosure\'s clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2\'s "exactly one" is true of the submission region and false of the document.',
+          'the document carries two status live regions in every state that renders the form — both <output> elements, which carry the status role implicitly rather than through a role attribute: the submission region outside the form card, and the measurement disclosure\'s clear-context region inside it. The success state leaves one, because the form card carrying the second was replaced. FS-2\'s "exactly one" is true of the submission region and false of the document.',
       },
     });
   });

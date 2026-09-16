@@ -111,12 +111,16 @@ export default function MeasurementDisclosure<EventName extends string>({
           >
             {disclosure.clearLabel}
           </button>
-          <p
-            role="status"
-            className={`mt-2 min-h-[1.5rem] text-sm font-normal leading-[1.4] ${clearStatus === disclosure.clearBlocked ? 'text-[#B00020]' : 'text-[#18275F]'}`}
+          {/* `<output>` rather than a `role="status"` paragraph: it carries the same
+              implicit status role with wider assistive-technology support. `block` is
+              explicit because `<output>` is inline by default, and the reserved
+              `min-h-[1.5rem]` — which keeps the layout from shifting when the message
+              appears — does not apply to an inline box. */}
+          <output
+            className={`mt-2 block min-h-[1.5rem] text-sm font-normal leading-[1.4] ${clearStatus === disclosure.clearBlocked ? 'text-[#B00020]' : 'text-[#18275F]'}`}
           >
             {clearStatus}
-          </p>
+          </output>
         </div>
       </div>
     </details>

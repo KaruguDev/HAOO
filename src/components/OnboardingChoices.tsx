@@ -31,6 +31,13 @@ export default function OnboardingChoices({
 }: OnboardingChoicesProps) {
   const onDark = position === 'opening' || position === 'closing';
 
+  // Lifted out of the class attribute below rather than left inline: the tone branch is
+  // itself two template literals, so inlining it nests a template literal inside a
+  // template literal — the point at which these class strings stop being readable.
+  const selfOnboardingToneClasses = onDark
+    ? `border-white text-white hover:bg-white/10 ${focusDark}`
+    : `border-[#4054C6] text-[#4054C6] hover:bg-white ${focusLight}`;
+
   function handleWhatsappContact() {
     track(product.measurement.interactionEvents.assistedWhatsapp);
   }
@@ -75,7 +82,7 @@ export default function OnboardingChoices({
       <div className={`rounded-2xl border p-6 md:p-8 ${onDark ? 'border-[#DBE2FF] bg-[#18275F] text-white' : 'border-[#DFE4F0] bg-[#E9EDFF] text-[#18275F]'}`}>
         <h2 className="mb-4 text-[28px] font-extrabold leading-[1.2]">Ready to begin?</h2>
         <p className={`mb-6 text-base font-normal leading-6 ${onDark ? 'text-[#DBE2FF]' : 'text-[#5F6B84]'}`}>{selfOnboardingLead(product.name)}</p>
-        <a href={product.contacts.selfOnboardingHref} onClick={handleSelfOnboarding} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-center text-sm font-semibold leading-[1.4] ${onDark ? `border-white text-white hover:bg-white/10 ${focusDark}` : `border-[#4054C6] text-[#4054C6] hover:bg-white ${focusLight}`}`}>
+        <a href={product.contacts.selfOnboardingHref} onClick={handleSelfOnboarding} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-center text-sm font-semibold leading-[1.4] ${selfOnboardingToneClasses}`}>
           {selfOnboardingActionLabel(product.name)}
           <ArrowUpRight aria-hidden="true" size={18} />
         </a>

@@ -176,6 +176,20 @@ const PRODUCT_SOURCE_BOUNDARY: Readonly<Record<string, readonly RegExp[]>> = {
     ...MEASUREMENT_PRIVACY_FORBIDDEN,
   ],
   'src/components/QualifyForm.tsx': [...ALWAYS_FORBIDDEN, ...PROVIDER_FORBIDDEN],
+  // The field renderer, split out of `QualifyForm` — and held to the FULL boundary its
+  // parent cannot be. `QualifyForm` is exempt from the network and form-markup groups
+  // because it legitimately calls `fetch` and owns the `<form>` element; this file does
+  // neither. It renders labelled controls and nothing else, so the extraction moves markup
+  // OUT of the file that needs those capabilities and into one that must never acquire them.
+  'src/components/QualifyFormField.tsx': FULL_BOUNDARY,
+  // The collecting-state subtree, split out of `QualifyForm`. It owns the `<form>` element,
+  // so the form-markup group cannot apply to it — but it issues no request and knows no
+  // provider, so both of those prohibitions do, which its parent cannot carry.
+  'src/components/QualifyFormBody.tsx': [
+    ...ALWAYS_FORBIDDEN,
+    ...NETWORK_FORBIDDEN,
+    ...PROVIDER_FORBIDDEN,
+  ],
   'src/components/qualify-form.logic.ts': FULL_BOUNDARY,
   'src/components/QualifyFallback.tsx': FULL_BOUNDARY,
 };
@@ -1284,7 +1298,7 @@ describe('Phase 1 static build contracts', () => {
       'lastSeenDay',
     ]);
     expect(MEASUREMENT_TRACK_ARGUMENT_COUNT).toBe(1);
-    expect(measurement.track.length).toBe(MEASUREMENT_TRACK_ARGUMENT_COUNT);
+    expect(measurement.track).toHaveLength(MEASUREMENT_TRACK_ARGUMENT_COUNT);
     expect(source).toMatch(/function track\(event: EventName\): boolean/);
     expect(source).toMatch(/eventSink\?\.\(event\)/);
     expect(source).not.toMatch(/eventSink\?\.\(event\s*,/);
@@ -1935,7 +1949,7 @@ describe('Phase 04.2 tree disjointness auditor', () => {
       //    repository must carry both, or the convergence check silently ranges over
       //    nothing — the same empty-subject failure the guard case above exists to catch.
       const grounds = parseAllowlistGrounds(readFileSync(resolve(ROOT, 'shared-scaffold.txt'), 'utf8'));
-      expect(grounds.entries.length, 'the ratified allowlist is 28 entries').toBe(28);
+      expect(grounds.entries.length, 'the ratified allowlist is 29 entries').toBe(29);
       expect(grounds.byGround.collision.length, 'Ground B is non-empty').toBeGreaterThan(0);
       expect(
         grounds.byGround.scaffold.length + grounds.byGround.collision.length,

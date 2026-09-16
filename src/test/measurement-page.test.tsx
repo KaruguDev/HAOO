@@ -1783,7 +1783,7 @@ describe('network payload regression', () => {
     // the provider writes nothing to the browser at all and the only new key is this
     // project's own.
     expect(storageKeys()).toEqual([CONTEXT_KEY]);
-    expect(window.sessionStorage.length).toBe(0);
+    expect(window.sessionStorage).toHaveLength(0);
     expect(document.cookie).toBe('');
     expect(client.deliveredPayloads().length).toBeGreaterThan(0);
   });
