@@ -135,6 +135,46 @@ function seedValues(qualify: ProductQualifyForm): QualifyValues {
   return seeded;
 }
 
+/**
+ * The error set after one field edit: the edited field's own verdict, plus the verdict for
+ * every field whose requiredness depends on it.
+ *
+ * Lifted out of the `setErrors` updater unchanged, and pure — previous errors and the freshly
+ * validated set in, the next error set out. Dependents are reconciled in BOTH directions: a
+ * field this edit stopped requiring drops its now-unreachable message, and one it just started
+ * requiring gains its message here rather than at the next submit, because the summary is
+ * presented as the authoritative problem list and must not under-report. Either way a field
+ * keeps any message it still earns on its own, and its typed value.
+ */
+function reconcileErrors(
+  previous: QualifyErrors,
+  fresh: QualifyErrors,
+  name: string,
+  fields: readonly QualifyField[],
+): QualifyErrors {
+  const next = { ...previous };
+
+  if (fresh[name]) {
+    next[name] = fresh[name];
+  } else {
+    delete next[name];
+  }
+
+  for (const field of fields) {
+    if (field.requiredWhen?.field !== name) {
+      continue;
+    }
+
+    if (fresh[field.name]) {
+      next[field.name] = fresh[field.name];
+    } else {
+      delete next[field.name];
+    }
+  }
+
+  return next;
+}
+
 export default function QualifyForm({
   contacts,
   measurementEvents,
@@ -245,34 +285,7 @@ export default function QualifyForm({
 
     const fresh = validateQualifyValues(nextValues, qualify);
 
-    setErrors((previous) => {
-      const next = { ...previous };
-
-      if (fresh[name]) {
-        next[name] = fresh[name];
-      } else {
-        delete next[name];
-      }
-
-      // Dependents are reconciled in both directions. A field this edit stopped
-      // requiring drops its now-unreachable message; one it just started requiring gains
-      // its message here rather than at the next submit, because the summary is
-      // presented as the authoritative problem list and must not under-report. Either
-      // way the field keeps any message it still earns on its own, and its typed value.
-      for (const field of qualify.fields) {
-        if (field.requiredWhen?.field !== name) {
-          continue;
-        }
-
-        if (fresh[field.name]) {
-          next[field.name] = fresh[field.name];
-        } else {
-          delete next[field.name];
-        }
-      }
-
-      return next;
-    });
+    setErrors((previous) => reconcileErrors(previous, fresh, name, qualify.fields));
   }
 
   /**
@@ -644,10 +657,16 @@ export default function QualifyForm({
 
       {/* Mounted unconditionally from first render and kept outside the form card: the
           card is replaced on success, so a region inside it would unmount at the exact
-          moment it needs to announce. Only the text changes — never the role. */}
-      <p role="status" className="mt-4 min-h-[1.5rem] text-sm font-normal leading-[1.4] text-[#5F6B84]">
+          moment it needs to announce. Only the text changes — never the role.
+
+          `<output>` rather than a `role="status"` paragraph: the role is unchanged, since
+          `<output>` carries `status` implicitly, and it is announced across more assistive
+          technologies. `block` is explicit because `<output>` is inline by default and the
+          reserved `min-h-[1.5rem]` would not apply to an inline box — that reservation is
+          what stops the form shifting when the first message arrives. */}
+      <output className="mt-4 block min-h-[1.5rem] text-sm font-normal leading-[1.4] text-[#5F6B84]">
         {statusMessage}
-      </p>
+      </output>
     </div>
   );
 }

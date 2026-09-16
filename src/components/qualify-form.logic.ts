@@ -39,7 +39,11 @@ export const QUALIFY_STATUS_MESSAGES: Readonly<Record<SubmissionState, string>> 
  */
 export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
 export const HONEYPOT_NAME = '_honey';
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// The final segment excludes `.` as well as whitespace and `@`. That is not a narrowing:
+// the preceding `[^\s@]+` is greedy, so `\.` already bound to the LAST dot and the segment
+// after it could never contain one. Spelling it out removes the overlap between the two
+// classes, which is what made the pattern backtrack super-linearly on a long near-match.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@.]+$/;
 
 /**
  * Whether a parsed provider response body reports that the provider accepted the
@@ -213,6 +217,54 @@ export function buildSubmissionBody(
   return body;
 }
 
+/**
+ * The verdict for ONE field: its message, or null when the field is acceptable.
+ *
+ * Lifted out of `validateQualifyValues` unchanged. The ORDER of these checks is
+ * load-bearing — required-and-empty is decided before length, length before shape, and an
+ * empty optional field is accepted before either can fire — so they stay in one place and
+ * in one sequence rather than being distributed. What changes is only that each verdict is
+ * returned instead of written into a shared object, which is what lets the caller be a
+ * three-line loop.
+ */
+function fieldError(
+  field: ProductQualifyForm['fields'][number],
+  values: QualifyValues,
+): string | null {
+  const raw = values[field.name] ?? '';
+  const value = raw.trim();
+
+  if (isFieldRequired(field, values) && value === '') {
+    return field.requiredMessage;
+  }
+
+  if (value === '') {
+    return null;
+  }
+
+  if (typeof field.maxLength === 'number' && raw.length > field.maxLength) {
+    return field.lengthMessage ?? field.formatMessage ?? field.requiredMessage;
+  }
+
+  if (field.control === 'select') {
+    const allowed = (field.options ?? []).map((option) => option.value);
+    return allowed.includes(raw) ? null : field.formatMessage ?? field.requiredMessage;
+  }
+
+  let pattern: RegExp | null = null;
+  if (field.formatPattern) {
+    pattern = new RegExp(field.formatPattern);
+  } else if (field.control === 'email') {
+    pattern = EMAIL_PATTERN;
+  }
+
+  if (pattern && !pattern.test(value)) {
+    return field.formatMessage ?? field.lengthMessage ?? field.requiredMessage;
+  }
+
+  return null;
+}
+
 /** Validate controlled form state before admitting a provider request. */
 export function validateQualifyValues(
   values: QualifyValues,
@@ -221,43 +273,9 @@ export function validateQualifyValues(
   const errors: QualifyErrors = {};
 
   for (const field of qualify.fields) {
-    const raw = values[field.name] ?? '';
-    const value = raw.trim();
-
-    if (isFieldRequired(field, values) && value === '') {
-      errors[field.name] = field.requiredMessage;
-      continue;
-    }
-
-    if (value === '') {
-      continue;
-    }
-
-    if (typeof field.maxLength === 'number' && raw.length > field.maxLength) {
-      errors[field.name] =
-        field.lengthMessage ?? field.formatMessage ?? field.requiredMessage;
-      continue;
-    }
-
-    if (field.control === 'select') {
-      const allowed = (field.options ?? []).map((option) => option.value);
-
-      if (!allowed.includes(raw)) {
-        errors[field.name] = field.formatMessage ?? field.requiredMessage;
-      }
-
-      continue;
-    }
-
-    const pattern = field.formatPattern
-      ? new RegExp(field.formatPattern)
-      : field.control === 'email'
-        ? EMAIL_PATTERN
-        : null;
-
-    if (pattern && !pattern.test(value)) {
-      errors[field.name] =
-        field.formatMessage ?? field.lengthMessage ?? field.requiredMessage;
+    const message = fieldError(field, values);
+    if (message !== null) {
+      errors[field.name] = message;
     }
   }
 

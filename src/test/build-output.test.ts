@@ -1284,7 +1284,7 @@ describe('Phase 1 static build contracts', () => {
       'lastSeenDay',
     ]);
     expect(MEASUREMENT_TRACK_ARGUMENT_COUNT).toBe(1);
-    expect(measurement.track.length).toBe(MEASUREMENT_TRACK_ARGUMENT_COUNT);
+    expect(measurement.track).toHaveLength(MEASUREMENT_TRACK_ARGUMENT_COUNT);
     expect(source).toMatch(/function track\(event: EventName\): boolean/);
     expect(source).toMatch(/eventSink\?\.\(event\)/);
     expect(source).not.toMatch(/eventSink\?\.\(event\s*,/);

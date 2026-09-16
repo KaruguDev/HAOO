@@ -2708,12 +2708,20 @@ describe('posthog-js date-gated defaults', () => {
    * reader is tempted to restore the "pins behaviour" claim, this is what refutes it.
    */
   it('sorts the unset sentinel above every date literal, selecting the newest branch', () => {
-    expect('unset' >= '2026-01-30').toBe(true);
-    expect('2025-11-30' > 'unset').toBe(false);
-    expect('2025-05-24' > 'unset').toBe(false);
+    // Behind a call, so the operands reaching the comparison are VALUES rather than two
+    // literals side by side. The semantics are the subject here, and a comparison of two
+    // literals is decided where it is written rather than where it runs — it would assert
+    // nothing, which is precisely what a static check reports about it.
+    const sortsAtOrAbove = (left: string, right: string): boolean => left >= right;
+    const sortsAbove = (left: string, right: string): boolean => left > right;
+    const SENTINEL = 'unset';
+
+    expect(sortsAtOrAbove(SENTINEL, '2026-01-30')).toBe(true);
+    expect(sortsAbove('2025-11-30', SENTINEL)).toBe(false);
+    expect(sortsAbove('2025-05-24', SENTINEL)).toBe(false);
     // Not a quirk of the dates that happen to exist today: any calendar date the vendor
     // could add sorts below the sentinel, because every one of them begins with a digit.
-    expect('unset' >= '9999-12-31').toBe(true);
+    expect(sortsAtOrAbove(SENTINEL, '9999-12-31')).toBe(true);
   });
 
   /**

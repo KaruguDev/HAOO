@@ -466,6 +466,53 @@ function allTimeHeading(
   return resolvedStart === null ? label : `${label} · since ${resolvedStart}`;
 }
 
+/** The refusal reasons the report may return, derived from the result type itself. */
+type ReportFailureReason = Extract<GenerateHaooReportResult, { ok: false }>['reason'];
+
+/**
+ * The bounded periods, or the reason one of them could not be trusted.
+ *
+ * Lifted out of `generateHaooReport` unchanged, including the rule that matters most: every
+ * range is queried AND validated before anything is rendered, so a report claiming four
+ * periods is never written when one of them failed.
+ */
+async function buildBoundedPeriods(
+  options: GenerateHaooReportOptions,
+  today: string,
+): Promise<
+  { readonly ok: true; readonly periods: ReportPeriodModel[] }
+  | { readonly ok: false; readonly reason: ReportFailureReason }
+> {
+  const periods: ReportPeriodModel[] = [];
+
+  for (const days of BOUNDED_PERIOD_DAYS) {
+    const windows = periodWindows(days, today);
+
+    const current = await queryRange(options, windows.current);
+    if (!current.ok) return { ok: false, reason: `invalid-current-${days}` };
+
+    const previous = await queryRange(options, windows.previous);
+    if (!previous.ok) return { ok: false, reason: `invalid-previous-${days}` };
+
+    const id = `last-${days}-days` as ReportPeriodId;
+    const label = REPORT_PERIOD_LABELS[id];
+
+    periods.push({
+      id,
+      days,
+      label,
+      heading: `${label} · ${windows.current.start} to ${windows.current.end}`,
+      comparisonLine: comparisonLine(days, windows.previous),
+      window: windows.current,
+      empty: totalOf(current.counts) === 0,
+      counts: current.counts,
+      previousCounts: previous.counts,
+    });
+  }
+
+  return { ok: true, periods };
+}
+
 export async function generateHaooReport(
   options: GenerateHaooReportOptions,
 ): Promise<GenerateHaooReportResult> {
@@ -479,36 +526,14 @@ export async function generateHaooReport(
   try {
     const generatedAt = options.now();
     const today = reportDay(generatedAt, REPORT_TIMEZONE);
-    const periods: ReportPeriodModel[] = [];
 
     // Query and validate every range before rendering anything: a report that claims
     // four periods must never be written when one of them failed. The rejection union
     // collapsed to a single member with the timezone migration, so a refusal is now
     // always named by which query it was rather than by which kind of disagreement.
-    for (const days of BOUNDED_PERIOD_DAYS) {
-      const windows = periodWindows(days, today);
-
-      const current = await queryRange(options, windows.current);
-      if (!current.ok) return { ok: false, reason: `invalid-current-${days}` };
-
-      const previous = await queryRange(options, windows.previous);
-      if (!previous.ok) return { ok: false, reason: `invalid-previous-${days}` };
-
-      const id = `last-${days}-days` as ReportPeriodId;
-      const label = REPORT_PERIOD_LABELS[id];
-
-      periods.push({
-        id,
-        days,
-        label,
-        heading: `${label} · ${windows.current.start} to ${windows.current.end}`,
-        comparisonLine: comparisonLine(days, windows.previous),
-        window: windows.current,
-        empty: totalOf(current.counts) === 0,
-        counts: current.counts,
-        previousCounts: previous.counts,
-      });
-    }
+    const bounded = await buildBoundedPeriods(options, today);
+    if (!bounded.ok) return { ok: false, reason: bounded.reason };
+    const periods = bounded.periods;
 
     const allTime = await queryRange(options, 'all');
     if (!allTime.ok) return { ok: false, reason: 'invalid-all-time' };

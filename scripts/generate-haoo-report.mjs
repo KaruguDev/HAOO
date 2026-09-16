@@ -95,7 +95,7 @@ const projectId = (process.env.POSTHOG_PROJECT_ID ?? '').trim();
  * else is a misconfiguration whether or not it is hostile. The trim above is part of the
  * same rule — a trailing newline from a shell heredoc would otherwise reach the URL.
  */
-const PROJECT_ID_SHAPE = /^[0-9]+$/u;
+const PROJECT_ID_SHAPE = /^\d+$/u;
 
 /**
  * Every environment variable this migration removed, paired with the variable that

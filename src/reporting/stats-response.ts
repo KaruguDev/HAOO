@@ -23,6 +23,35 @@ import { isPlainObject } from './untrusted.ts';
 export const HOGQL_EXPECTED_COLUMNS = ['event', 'occurrences'] as const;
 
 /**
+ * Every row of a HogQL result set as a goal-to-count map, or null if ANY row is refusable.
+ *
+ * Lifted out of `parseGoalCounts` unchanged, including the refusal on the first bad row.
+ * Each `return null` here means the same thing it meant inline: a partially trusted
+ * response would silently change a stage total, so no row is kept if one is wrong.
+ */
+function readGoalRows(
+  results: readonly unknown[],
+  allowed: ReadonlySet<string>,
+): Map<string, number> | null {
+  const seen = new Map<string, number>();
+
+  for (const row of results) {
+    if (!Array.isArray(row) || row.length !== 2) return null;
+
+    const goal = row[0];
+    if (typeof goal !== 'string' || !allowed.has(goal)) return null;
+    if (seen.has(goal)) return null;
+
+    const count = row[1];
+    if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return null;
+
+    seen.set(goal, count);
+  }
+
+  return seen;
+}
+
+/**
  * Reads a HogQL aggregate response into one integer per allowlisted event name.
  *
  * An event absent from the response is a real zero for the period and is filled with `0`.
@@ -46,21 +75,8 @@ export function parseGoalCounts(
 
     if (!Array.isArray(body.results)) return null;
 
-    const allowed = new Set(allowedGoals);
-    const seen = new Map<string, number>();
-
-    for (const row of body.results) {
-      if (!Array.isArray(row) || row.length !== 2) return null;
-
-      const goal = row[0];
-      if (typeof goal !== 'string' || !allowed.has(goal)) return null;
-      if (seen.has(goal)) return null;
-
-      const count = row[1];
-      if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return null;
-
-      seen.set(goal, count);
-    }
+    const seen = readGoalRows(body.results, new Set(allowedGoals));
+    if (seen === null) return null;
 
     const counts: Record<string, number> = {};
     for (const goal of allowedGoals) {

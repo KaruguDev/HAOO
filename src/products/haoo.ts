@@ -766,7 +766,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
           'Enter a phone number so we can reach you on the channel you chose',
         autoComplete: 'tel',
         maxLength: 30,
-        formatPattern: '^(?=(?:[^0-9]*[0-9]){7,})\\+?[0-9 ()-]+$',
+        formatPattern: String.raw`^(?=(?:[^0-9]*[0-9]){7,})\+?[0-9 ()-]+$`,
         formatMessage: 'Enter a phone number using digits, spaces, or +',
         lengthMessage: 'Shorten your phone number to 30 characters or fewer',
         requiredWhen: {

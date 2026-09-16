@@ -1585,7 +1585,7 @@ describe('Phase 2 qualified enquiry pure contracts', () => {
   it('counts length in the same UTF-16 code units the native maxLength attribute uses', () => {
     const overBound = 'a'.repeat(81);
 
-    expect(overBound.length).toBe(81);
+    expect(overBound).toHaveLength(81);
     expect(
       validateQualifyValues(
         { ...emptyValues(), ...requiredValues(), name: overBound },

@@ -290,6 +290,63 @@ function parseWebAddress(value: string): URL | null {
  * from `campaign`, re-validated against lowercase letters, digits and hyphens, 1 to 32
  * characters; a campaign value the SDK supplied in the payload is never copied.
  */
+function hasOwnKey(target: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(target, key);
+}
+
+/**
+ * The transport envelope's fixed obligations: every required property present, and the
+ * three cookieless values exactly as this project locked them.
+ *
+ * Lifted out of `reduceCapture` unchanged. A `false` here means precisely the refusal the
+ * inline guards meant — the whole capture is dropped, never partially admitted.
+ */
+function transportEnvelopeValid(received: Record<string, unknown>): boolean {
+  for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
+    if (!hasOwnKey(received, key)) return false;
+  }
+
+  return (
+    received.distinct_id === COOKIELESS_DISTINCT_ID
+    && received.$cookieless_mode === true
+    && received.$process_person_profile === false
+  );
+}
+
+/**
+ * Whether one web-analytics property is copied, and as what.
+ *
+ * A discriminated result rather than a bare value: "copy this, and the value happens to be
+ * undefined" and "do not copy this at all" are different answers, and a sentinel return
+ * would collapse them into one. The reductions themselves are unchanged — `$current_url`
+ * keeps origin and path, `$referrer` keeps its origin or the literal `$direct`, and a value
+ * that cannot be reduced is dropped rather than passed through.
+ */
+type WebAnalyticsReduction =
+  | { readonly copy: false }
+  | { readonly copy: true; readonly value: unknown };
+
+const DROP: WebAnalyticsReduction = { copy: false };
+
+function reduceWebAnalyticsValue(key: string, value: unknown): WebAnalyticsReduction {
+  if (key === '$current_url') {
+    if (typeof value !== 'string') return DROP;
+    const parsed = parseWebAddress(value);
+    return parsed === null
+      ? DROP
+      : { copy: true, value: `${parsed.origin}${parsed.pathname}` };
+  }
+
+  if (key === '$referrer') {
+    if (value === '$direct') return { copy: true, value };
+    if (typeof value !== 'string') return DROP;
+    const parsed = parseWebAddress(value);
+    return parsed === null ? DROP : { copy: true, value: parsed.origin };
+  }
+
+  return { copy: true, value };
+}
+
 export function reduceCapture(
   result: CaptureResult | null,
   allowedEvents: readonly string[],
@@ -297,28 +354,26 @@ export function reduceCapture(
 ): CaptureResult | null {
   if (result === null || typeof result !== 'object') return null;
 
+  // Narrowed to a string once rather than comparing an `unknown` against each entry in
+  // turn: `===` against a list of strings can only ever match when the value IS a string,
+  // so the guard admits and rejects exactly what the two scans did, and the lookups become
+  // plain membership tests.
   const event: unknown = result.event;
   const admitted =
-    allowedEvents.some((allowed) => allowed === event)
-    || SDK_PAGE_EVENTS.some((page) => page === event);
+    typeof event === 'string'
+    && (allowedEvents.includes(event)
+      // `SDK_PAGE_EVENTS` is a tuple of two literals, so its own `includes` accepts only
+      // those two names. Widened to `readonly string[]` for the membership test: whether an
+      // arbitrary string is one of them is exactly the question being asked, and a signature
+      // that refuses to let it be asked is why this was a `.some` scan to begin with.
+      || (SDK_PAGE_EVENTS as readonly string[]).includes(event));
   if (!admitted) return null;
 
   const source: unknown = result.properties;
   if (typeof source !== 'object' || source === null) return null;
   const received = source as Record<string, unknown>;
-  const hasOwn = (target: object, key: string) =>
-    Object.prototype.hasOwnProperty.call(target, key);
 
-  for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
-    if (!hasOwn(received, key)) return null;
-  }
-  if (
-    received.distinct_id !== COOKIELESS_DISTINCT_ID
-    || received.$cookieless_mode !== true
-    || received.$process_person_profile !== false
-  ) {
-    return null;
-  }
+  if (!transportEnvelopeValid(received)) return null;
 
   const properties: Record<string, unknown> = {};
   for (const key of TRANSPORT_REQUIRED_PROPERTIES) {
@@ -326,33 +381,16 @@ export function reduceCapture(
   }
 
   for (const key of WEB_ANALYTICS_PROPERTIES) {
-    if (!hasOwn(received, key)) continue;
+    if (!hasOwnKey(received, key)) continue;
     const value = received[key];
     if (!isCopyableValue(value)) continue;
 
-    if (key === '$current_url') {
-      if (typeof value !== 'string') continue;
-      const parsed = parseWebAddress(value);
-      if (parsed !== null) properties[key] = `${parsed.origin}${parsed.pathname}`;
-      continue;
-    }
-
-    if (key === '$referrer') {
-      if (value === '$direct') {
-        properties[key] = value;
-        continue;
-      }
-      if (typeof value !== 'string') continue;
-      const parsed = parseWebAddress(value);
-      if (parsed !== null) properties[key] = parsed.origin;
-      continue;
-    }
-
-    properties[key] = value;
+    const reduced = reduceWebAnalyticsValue(key, value);
+    if (reduced.copy) properties[key] = reduced.value;
   }
 
   for (const key of CAMPAIGN_PROPERTIES) {
-    if (!hasOwn(campaign, key)) continue;
+    if (!hasOwnKey(campaign, key)) continue;
     const value: unknown = campaign[key];
     if (typeof value === 'string' && CAMPAIGN_VALUE.test(value)) {
       properties[key] = value;

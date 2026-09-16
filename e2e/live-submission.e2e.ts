@@ -450,7 +450,13 @@ test.describe('LIVE SUBMISSION — one real submission through the shipped form 
           (h.textContent ?? '').trim(),
         );
         const active = document.activeElement;
-        const regions = Array.from(document.querySelectorAll('[role="status"]')).map((element) => ({
+        // `<output>` as well as the explicit attribute: the submission region carries the
+        // status role implicitly, so an attribute-only query counts it as absent and would
+        // record an empty `submissionRegionTexts` on a page that is behaving correctly —
+        // evidence that reads as a dead form rather than a working one.
+        const regions = Array.from(
+          document.querySelectorAll('[role="status"], output'),
+        ).map((element) => ({
           text: (element.textContent ?? '').replace(/\s+/gu, ' ').trim(),
           insideForm: element.closest('form') !== null,
         }));

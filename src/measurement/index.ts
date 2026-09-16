@@ -98,12 +98,14 @@ function visitBand(ordinal: number): VisitBand {
 }
 
 function exactKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
-  const actual = Object.keys(value).sort();
-  // Sort the expectation once, not once per key: the callback ran on every stored record
-  // read, and the comparison is against a fixed list that cannot change mid-loop.
-  const wanted = [...expected].sort();
-  return actual.length === wanted.length
-    && actual.every((key, index) => key === wanted[index]);
+  // Set membership rather than sorting both sides and comparing positionally. The question
+  // is whether two KEY SETS are equal, and `Object.keys` cannot report a key twice, so
+  // equal lengths plus every actual key being expected is exactly that — with no ordering
+  // for the two sides to agree on, and one pass per read instead of two sorts.
+  const actual = Object.keys(value);
+  if (actual.length !== expected.length) return false;
+  const wanted = new Set(expected);
+  return actual.every((key) => wanted.has(key));
 }
 
 function parseContext(
