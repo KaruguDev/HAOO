@@ -1,4 +1,4 @@
-import { ArrowUpRight, Mail, MessageCircle, Phone } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, ClipboardList, Mail, MessageCircle, Phone } from 'lucide-react';
 import {
   qualifyEntryPointLabel,
   selfOnboardingActionLabel,
@@ -73,8 +73,15 @@ export default function OnboardingChoices({
             {product.contacts.email}
           </a>
         </div>
-        <a href="#qualify" className={`mt-4 inline-flex min-h-11 items-center rounded-lg px-2 text-left text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
+        <div aria-hidden="true" className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-[#5F6B84]">
+          <span className="h-px flex-1 bg-[#DFE4F0]" />
+          or
+          <span className="h-px flex-1 bg-[#DFE4F0]" />
+        </div>
+        <a href="#qualify" className={`mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#C9D2F2] bg-[#E9EDFF] px-4 py-3 text-center text-sm font-semibold leading-[1.4] text-[#4054C6] hover:bg-[#DBE2FF] active:bg-[#C9D2F2] ${focusLight}`}>
+          <ClipboardList aria-hidden="true" size={18} />
           {qualifyEntryPointLabel(product.name)}
+          <ArrowDown aria-hidden="true" size={16} />
         </a>
       </div>
 
