@@ -25,6 +25,10 @@ const EXPECTED_ROW_LIMIT = 100;
 const EXPECTED_CUTOVER_DAY = '2026-09-06';
 const EXPECTED_EVENTS = [
   'haoo_page_view',
+  'haoo_reach_benefits',
+  'haoo_reach_capabilities',
+  'haoo_reach_brochure',
+  'haoo_reach_qualify',
   'haoo_brochure_preview',
   'haoo_brochure_open',
   'haoo_brochure_download',

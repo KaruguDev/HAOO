@@ -50,7 +50,7 @@ import {
  * Every count this report renders is an occurrence of a browser action recorded through
  * the Phase 3 closed allowlist. The suite below pins three things that prose cannot:
  * that the report dictionary and the Phase 3 event tuple are exhaustive against each
- * other in both directions (so an eleventh event can never render as a blank row), that
+ * other in both directions (so a fifteenth event can never render as a blank row), that
  * an untrusted provider response is refused rather than partially rendered (threat
  * T-04-04), and that the generated document never carries a credential, a script
  * element, an external resource, or a word that claims more than a browser observed
@@ -85,6 +85,10 @@ interface EventLabelRow {
 
 const EVENT_LABEL_TABLE: readonly EventLabelRow[] = [
   { event: 'haoo_page_view', stage: 'discovery', label: 'HAOO page views' },
+  { event: 'haoo_reach_benefits', stage: 'discovery', label: 'Benefits section views' },
+  { event: 'haoo_reach_capabilities', stage: 'discovery', label: 'Capabilities section views' },
+  { event: 'haoo_reach_brochure', stage: 'discovery', label: 'Brochure section views' },
+  { event: 'haoo_reach_qualify', stage: 'discovery', label: 'Send your details section views' },
   {
     event: 'haoo_brochure_preview',
     stage: 'brochure-interest',
@@ -198,6 +202,10 @@ function goalRows(counts: Partial<Record<HaooMeasurementEvent, number>>) {
 
 const INDEPENDENT_GOAL_FILTER = [
   'haoo_page_view',
+  'haoo_reach_benefits',
+  'haoo_reach_capabilities',
+  'haoo_reach_brochure',
+  'haoo_reach_qualify',
   'haoo_brochure_preview',
   'haoo_brochure_open',
   'haoo_brochure_download',
@@ -224,7 +232,7 @@ type SubmittedQuery =
 const INDEPENDENT_TIMEZONE = 'Africa/Nairobi';
 
 /**
- * Comfortably above the ten allowlisted names, so an eleventh name could never be
+ * Comfortably above the fourteen allowlisted names, so a fifteenth name could never be
  * truncated by the provider's default page into a silently wrong zero.
  */
 const INDEPENDENT_ROW_LIMIT = 100;
@@ -615,10 +623,10 @@ describe('report dictionary', () => {
       HAOO_REPORT_EVENTS.map((event, index) => [event, index + 1]),
     );
 
-    expect(stageTotals('discovery', counts)).toBe(1);
-    expect(stageTotals('brochure-interest', counts)).toBe(2 + 3 + 4);
-    expect(stageTotals('qualification', counts)).toBe(5 + 6);
-    expect(stageTotals('assisted-and-self-onboarding', counts)).toBe(7 + 8 + 9 + 10);
+    expect(stageTotals('discovery', counts)).toBe(1 + 2 + 3 + 4 + 5);
+    expect(stageTotals('brochure-interest', counts)).toBe(6 + 7 + 8);
+    expect(stageTotals('qualification', counts)).toBe(9 + 10);
+    expect(stageTotals('assisted-and-self-onboarding', counts)).toBe(11 + 12 + 13 + 14);
   });
 });
 

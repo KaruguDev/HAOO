@@ -9,12 +9,14 @@ import {
   fullWidthFieldNames,
   isFieldRequired,
   QUALIFY_REQUEST_TIMEOUT_MS,
+  QUALIFY_SUBMIT_MIN_ELAPSED_MS,
   RESERVED_EMAIL_LABELS,
   QUALIFY_STATUS_MESSAGES,
   QUALIFY_SUBMIT_LABEL,
   QUALIFY_SUBMITTING_LABEL,
   QUALIFY_SUMMARY_HEADING,
   isProviderAcceptance,
+  shouldRecordQualifySubmit,
   validateQualifyValues,
 } from '../components/qualify-form.logic';
 import { CONTEXT_RECORD_KEYS, createMeasurement } from '../measurement';
@@ -2711,5 +2713,26 @@ describe('Phase 4 engagement summary sentence matrix', () => {
     ]) {
       expect(produced, sentence).toContain(sentence);
     }
+  });
+});
+
+describe('qualification submit signal gate', () => {
+  const base = { decided: false, honeypot: '', startedAt: 1000, now: 4000 } as const;
+
+  it('holds the minimum elapsed time at 3000 ms', () => {
+    expect(QUALIFY_SUBMIT_MIN_ELAPSED_MS).toBe(3000);
+  });
+
+  it.each([
+    ['exactly the 3000 ms boundary', {}, true],
+    ['2999 ms elapsed', { now: 3999 }, false],
+    ['a decision already made for this form', { decided: true }, false],
+    ['a filled honeypot', { honeypot: 'x' }, false],
+    ['a whitespace-only honeypot', { honeypot: ' ' }, false],
+    ['no recorded start', { startedAt: null }, false],
+    ['a clock that moved backwards', { now: 0 }, false],
+    ['a non-finite clock', { now: Number.NaN }, false],
+  ] as const)('records the submit for %s: %s', (_case, overrides, expected) => {
+    expect(shouldRecordQualifySubmit({ ...base, ...overrides })).toBe(expected);
   });
 });

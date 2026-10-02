@@ -12,6 +12,7 @@ import BrochurePanel from '../components/BrochurePanel';
 import OnboardingChoices from '../components/OnboardingChoices';
 import ProductHeader from '../components/ProductHeader';
 import QualifyForm from '../components/QualifyForm';
+import { useSectionReach } from '../components/useSectionReach';
 import {
   PRODUCT_SECTION_LINKS,
   brochureLead,
@@ -90,6 +91,8 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
     measurement.track(product.measurement.pageViewEvent);
   }, [measurement, product.measurement.pageViewEvent]);
 
+  const reachRefs = useSectionReach(product.measurement.sectionReachEvents, measurement.track);
+
   function handleMeasurementDisclosureLink() {
     const disclosure = document.getElementById(measurementDisclosureId(product.slug));
 
@@ -157,7 +160,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           </div>
         </section>
 
-        <section id="benefits" aria-label="Benefits" className="scroll-mt-4 py-12 md:py-16">
+        <section ref={reachRefs.benefits} id="benefits" aria-label="Benefits" className="scroll-mt-4 py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={sectionHeadingClasses}>Benefits</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8">
@@ -177,7 +180,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           </div>
         </section>
 
-        <section id="capabilities" aria-label="Capabilities" className="scroll-mt-4 bg-white py-12 md:py-16">
+        <section ref={reachRefs.capabilities} id="capabilities" aria-label="Capabilities" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={sectionHeadingClasses}>Capabilities</h2>
             <ul className="mt-6 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
@@ -242,7 +245,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           />
         </div>
 
-        <section id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
+        <section ref={reachRefs.brochure} id="brochure" aria-label="Brochure" className="scroll-mt-4 bg-white py-12 md:py-16">
           <div className={containerClasses}>
             <h2 className={sectionHeadingClasses}>Brochure</h2>
             <p className={`mt-4 max-w-[680px] ${bodyClasses}`}>{brochureLead(product.name)}</p>
@@ -260,7 +263,7 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           </div>
         </section>
 
-        <section id="qualify" aria-label="Send your details" className="scroll-mt-4 py-12 md:py-16">
+        <section ref={reachRefs.qualify} id="qualify" aria-label="Send your details" className="scroll-mt-4 py-12 md:py-16">
           {/* Two columns from xl (PD-3: at lg a paired label wrapped and split its row): the lead column stays in view beside the form (260913-x19). */}
           <div className={`${containerClasses} xl:grid xl:grid-cols-12 xl:gap-x-12`}>
             {/* top-32 (128px) clears the 88-104px fixed header. */}

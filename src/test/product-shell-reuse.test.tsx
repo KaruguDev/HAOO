@@ -135,6 +135,12 @@ function syntheticProduct(
         assistedEmail: 'zenith_page_view',
         selfOnboarding: 'zenith_page_view',
       },
+      sectionReachEvents: {
+        benefits: 'zenith_page_view',
+        capabilities: 'zenith_page_view',
+        brochure: 'zenith_page_view',
+        qualify: 'zenith_page_view',
+      },
       interactionFlags: [
         'brochureViewed',
         'brochureDownloaded',

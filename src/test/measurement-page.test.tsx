@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { StrictMode, act, type ReactElement } from 'react';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import ProductPage from '../pages/ProductPage';
+import { SECTION_REACH_ROOT_MARGIN } from '../components/useSectionReach';
+import { QUALIFY_SUBMIT_MIN_ELAPSED_MS } from '../components/qualify-form.logic';
 import { createMeasurement } from '../measurement';
 import {
   POSTHOG_REFUSAL,
@@ -118,6 +120,10 @@ const ATTACHED_SUMMARY_BOUNDARY =
 
 const SIGNAL_DISCLOSURES = [
   'That you viewed this HAOO page.',
+  'That the Benefits section came into view.',
+  'That the Capabilities section came into view.',
+  'That the Brochure section came into view.',
+  'That the Send your details section came into view.',
   'That the brochure preview became available.',
   'That you opened the brochure.',
   'That you downloaded the brochure.',
@@ -152,16 +158,110 @@ function fillValidQualification() {
   }
 }
 
+/**
+ * Moves `Date.now()` forward by `ms` from its current reading. Only the wall clock is
+ * mocked: `waitFor` and the 15 s request timeout keep their real timers. The `afterEach`
+ * `vi.restoreAllMocks()` restores the real clock.
+ */
+function advanceClock(ms: number) {
+  const base = Date.now();
+  vi.spyOn(Date, 'now').mockReturnValue(base + ms);
+}
+
 function clickWithoutNavigation(link: HTMLElement) {
   link.addEventListener('click', (event) => event.preventDefault(), { once: true });
   fireEvent.click(link);
+}
+
+/** One constructed test observer: its callback, its options and its live target set. */
+interface StubObserver {
+  readonly callback: IntersectionObserverCallback;
+  readonly options: IntersectionObserverInit | undefined;
+  readonly targets: Set<Element>;
+  readonly observe: Mock<(target: Element) => void>;
+  readonly unobserve: Mock<(target: Element) => void>;
+  readonly disconnect: Mock<() => void>;
+}
+
+type EntryOverrides = Partial<Pick<IntersectionObserverEntry, 'isIntersecting' | 'intersectionRatio'>>;
+
+interface IntersectionObserverStub {
+  readonly instances: readonly StubObserver[];
+  /** Report `target` to every observer currently observing it, intersecting by default. */
+  intersect(target: Element, overrides?: EntryOverrides): void;
+  /** Whether any observer is currently observing `target`. */
+  observed(target: Element): boolean;
+}
+
+/**
+ * Stubs the global IntersectionObserver with a class that keeps every instance and its
+ * live target set. The page owns more than one observer (the brochure preview and the
+ * section reach), so an entry is routed to whichever observer holds its target rather
+ * than to the last one constructed. `throwWhen` makes the constructor throw for the
+ * options it matches, leaving every other observer working.
+ */
+function installIntersectionObserverStub(
+  throwWhen?: (options: IntersectionObserverInit | undefined) => boolean,
+): IntersectionObserverStub {
+  const instances: StubObserver[] = [];
+
+  class TestIntersectionObserver implements StubObserver {
+    readonly root = null;
+    readonly rootMargin: string;
+    readonly thresholds = [0];
+    readonly callback: IntersectionObserverCallback;
+    readonly options: IntersectionObserverInit | undefined;
+    readonly targets = new Set<Element>();
+    readonly observe = vi.fn((target: Element) => {
+      this.targets.add(target);
+    });
+    readonly unobserve = vi.fn((target: Element) => {
+      this.targets.delete(target);
+    });
+    readonly disconnect = vi.fn(() => {
+      this.targets.clear();
+    });
+    readonly takeRecords = () => [];
+
+    constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+      if (throwWhen?.(options)) {
+        throw new Error('IntersectionObserver is unavailable for these options');
+      }
+
+      this.callback = callback;
+      this.options = options;
+      this.rootMargin = options?.rootMargin ?? '0px';
+      instances.push(this);
+    }
+  }
+
+  vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
+
+  return {
+    instances,
+    intersect(target, overrides = {}) {
+      const entry = {
+        target,
+        isIntersecting: true,
+        intersectionRatio: 1,
+        ...overrides,
+      } as unknown as IntersectionObserverEntry;
+
+      for (const instance of instances.filter((candidate) => candidate.targets.has(target))) {
+        instance.callback([entry], instance as unknown as IntersectionObserver);
+      }
+    },
+    observed(target) {
+      return instances.some((instance) => instance.targets.has(target));
+    },
+  };
 }
 
 describe('Phase 3 HAOO page-view measurement tracer', () => {
   it('rebinds measurement and resets private product state when product changes', async () => {
     const firstSink = vi.fn();
     const secondSink = vi.fn();
-    const intersectionCallbacks: IntersectionObserverCallback[] = [];
+    const stub = installIntersectionObserverStub();
     // An accepting provider response (HTTP 200 and FormSubmit's `{"success":"true"}`), so
     // the absent confirmation below is owed to the product change, not to a refused send.
     // Since L2-O1 a bare `{ ok: true }` would itself end in `failed`.
@@ -172,21 +272,6 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     });
     const fetchSpy = vi.fn(() => firstRequest);
     vi.stubGlobal('fetch', fetchSpy);
-    class TestIntersectionObserver {
-      readonly root = null;
-      readonly rootMargin = '0px';
-      readonly thresholds = [0];
-
-      constructor(callback: IntersectionObserverCallback) {
-        intersectionCallbacks.push(callback);
-      }
-
-      disconnect = vi.fn();
-      observe = vi.fn();
-      takeRecords = () => [];
-      unobserve = vi.fn();
-    }
-    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
     const secondEvents = HAOO_MEASUREMENT_EVENTS.map((event) => (
       event.replace(/^haoo_/, 'other_')
     ));
@@ -212,6 +297,12 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
         events: secondEvents,
         pageViewEvent: 'other_page_view',
         interactionEvents: secondInteractionEvents,
+        sectionReachEvents: {
+          benefits: 'other_reach_benefits',
+          capabilities: 'other_reach_capabilities',
+          brochure: 'other_reach_brochure',
+          qualify: 'other_reach_qualify',
+        },
         interactionEventFlags: {
           other_brochure_preview: 'brochureViewed',
           other_brochure_open: 'brochureViewed',
@@ -244,13 +335,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     const firstPreview = within(screen.getByRole('region', { name: 'Brochure' }))
       .getByRole('img', { name: HAOO_PRODUCT.brochure.previewImageAlt });
     fireEvent.load(firstPreview);
-    act(() => {
-      intersectionCallbacks.at(-1)?.([{
-        target: firstPreview,
-        isIntersecting: true,
-        intersectionRatio: 1,
-      } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
-    });
+    act(() => stub.intersect(firstPreview));
     fillValidQualification();
     fireEvent.change(screen.getByLabelText('Full name'), {
       target: { value: 'First Product Private Answer' },
@@ -278,13 +363,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
     const secondPreview = within(screen.getByRole('region', { name: 'Brochure' }))
       .getByRole('img', { name: HAOO_PRODUCT.brochure.previewImageAlt });
     fireEvent.load(secondPreview);
-    act(() => {
-      intersectionCallbacks.at(-1)?.([{
-        target: secondPreview,
-        isIntersecting: true,
-        intersectionRatio: 1,
-      } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
-    });
+    act(() => stub.intersect(secondPreview));
 
     expect(secondSink.mock.calls).toEqual([
       ['other_page_view'],
@@ -419,26 +498,7 @@ describe('Phase 3 HAOO page-view measurement tracer', () => {
 describe('Phase 3 HAOO journey measurement expansion', () => {
   it('measures only a loaded, visible brochure preview and every deliberate action', () => {
     const eventSink = vi.fn();
-    let intersectionCallback: IntersectionObserverCallback | undefined;
-    const disconnect = vi.fn();
-    const observe = vi.fn();
-
-    class TestIntersectionObserver {
-      readonly root = null;
-      readonly rootMargin = '0px';
-      readonly thresholds = [0];
-
-      constructor(callback: IntersectionObserverCallback) {
-        intersectionCallback = callback;
-      }
-
-      disconnect = disconnect;
-      observe = observe;
-      takeRecords = () => [];
-      unobserve = vi.fn();
-    }
-
-    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
+    const stub = installIntersectionObserverStub();
 
     render(
       <StrictMode>
@@ -463,8 +523,8 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     });
 
     expect(object).not.toBeNull();
-    expect(observe).toHaveBeenCalledWith(preview);
-    expect(observe).toHaveBeenCalledWith(object);
+    expect(stub.observed(preview)).toBe(true);
+    expect(stub.observed(object!)).toBe(true);
 
     // A hidden resource may load, and an HTTP/error object may still dispatch load.
     // Neither is evidence that the visitor saw a usable preview.
@@ -473,15 +533,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     fireEvent.load(preview);
     expect(eventSink).not.toHaveBeenCalled();
 
-    act(() => {
-      intersectionCallback?.([
-        {
-          target: preview,
-          isIntersecting: true,
-          intersectionRatio: 1,
-        } as unknown as IntersectionObserverEntry,
-      ], {} as IntersectionObserver);
-    });
+    act(() => stub.intersect(preview));
 
     fireEvent.load(preview);
     clickWithoutNavigation(open);
@@ -496,7 +548,8 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
       ['haoo_brochure_download'],
       ['haoo_brochure_download'],
     ]);
-    expect(disconnect).toHaveBeenCalled();
+    expect(stub.instances.some((instance) => instance.disconnect.mock.calls.length > 0))
+      .toBe(true);
   });
 
   it('measures brochure actions without changing recovery or native destinations when the sink throws', () => {
@@ -636,7 +689,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     }
   });
 
-  it('measures qualification start once and only validation-admitted submit attempts', async () => {
+  it('measures qualification start once and the validation-admitted submit once per form instance', async () => {
     const eventSink = vi.fn();
     const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
       Promise.reject(new Error('network unavailable'))
@@ -665,6 +718,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
 
     fillValidQualification();
     eventSink.mockClear();
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS);
     fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
@@ -681,10 +735,66 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     await screen.findByRole('button', { name: 'Try sending again' });
     fireEvent.click(screen.getByRole('button', { name: 'Try sending again' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
-    expect(eventSink.mock.calls).toEqual([
-      ['haoo_qualify_submit'],
-      ['haoo_qualify_submit'],
-    ]);
+    expect(eventSink.mock.calls).toEqual([['haoo_qualify_submit']]);
+  });
+
+  function sentBody(fetchSpy: Mock, call: number): Record<string, string> {
+    return JSON.parse(String((fetchSpy.mock.calls[call][1] as RequestInit).body)) as Record<string, string>;
+  }
+
+  function submitCalls(eventSink: Mock): readonly unknown[][] {
+    return eventSink.mock.calls.filter(([event]) => event === 'haoo_qualify_submit');
+  }
+
+  it('sends a fast first send unchanged, records no submit, and keeps every retry unrecorded', async () => {
+    const eventSink = vi.fn();
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+    fillValidQualification();
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(eventSink).toHaveBeenCalledWith('haoo_qualify_start');
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 0)['Full name']).toBe('Jane Wanjiru');
+    expect(sentBody(fetchSpy, 0)._honey).toBe('');
+
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS + 1);
+    fireEvent.click(await screen.findByRole('button', { name: 'Try sending again' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 1)).toEqual(sentBody(fetchSpy, 0));
+  });
+
+  it('sends a honeypot-filled form unchanged and records no submit', async () => {
+    const eventSink = vi.fn();
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+    fillValidQualification();
+    fireEvent.change(screen.getByLabelText('Leave this field blank'), {
+      target: { value: 'https://spam.example' },
+    });
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS + 1);
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(eventSink).toHaveBeenCalledWith('haoo_qualify_start');
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 0)['Full name']).toBe('Jane Wanjiru');
+    expect(sentBody(fetchSpy, 0)._honey).toBe('https://spam.example');
   });
 
   it('keeps qualification validation, retained values, retry, and outcome independent of measurement failure', async () => {
@@ -1521,8 +1631,8 @@ describe('network payload regression', () => {
   }
 
   /**
-   * Render the product page with the provider configured and drive every one of the ten
-   * event paths a visitor can reach.
+   * Render the product page with the provider configured and drive every one of the
+   * fourteen event paths a visitor can reach.
    *
    * The client is wrapped rather than passed bare so the address bar can be sampled at
    * the exact moment the provider is initialized. That is what proves campaign cleanup
@@ -1535,11 +1645,15 @@ describe('network payload regression', () => {
    * would deliver nothing at all. `init` is the strictly later of the two moments and is
    * still strictly before a sink exists, so the ordering claim is unchanged.
    *
-   * The ten paths this drives, and the interaction that drives each — written as a map
-   * for a reader auditing exhaustiveness, never as the expected set, which is derived
-   * from the exported tuple so an eleventh allowlisted name fails rather than passes:
+   * The fourteen paths this drives, and the interaction that drives each — written as a
+   * map for a reader auditing exhaustiveness, never as the expected set, which is derived
+   * from the exported tuple so a fifteenth allowlisted name fails rather than passes:
    *
    * - `haoo_page_view` — the render itself
+   * - `haoo_reach_benefits` — the Benefits section intersecting
+   * - `haoo_reach_capabilities` — the Capabilities section intersecting
+   * - `haoo_reach_brochure` — the Brochure section intersecting
+   * - `haoo_reach_qualify` — the Send your details section intersecting
    * - `haoo_brochure_preview` — the preview intersecting and then loading
    * - `haoo_brochure_open` — the open-in-new-tab link
    * - `haoo_brochure_download` — the download link
@@ -1548,7 +1662,8 @@ describe('network payload regression', () => {
    * - `haoo_assisted_email` — the email contact link
    * - `haoo_self_onboarding` — the self-onboarding link
    * - `haoo_qualify_start` — first focus of the qualification form
-   * - `haoo_qualify_submit` — a validation-admitted send
+   * - `haoo_qualify_submit` — a validation-admitted send at least
+   *   `QUALIFY_SUBMIT_MIN_ELAPSED_MS` after the recorded start
    */
   async function runConfiguredJourney(initialUrl: string): Promise<JourneyRun> {
     window.history.replaceState({}, '', initialUrl);
@@ -1564,22 +1679,7 @@ describe('network payload regression', () => {
       },
     };
 
-    let intersectionCallback: IntersectionObserverCallback | undefined;
-    class TestIntersectionObserver {
-      readonly root = null;
-      readonly rootMargin = '0px';
-      readonly thresholds = [0];
-
-      constructor(callback: IntersectionObserverCallback) {
-        intersectionCallback = callback;
-      }
-
-      disconnect = vi.fn();
-      observe = vi.fn();
-      takeRecords = () => [];
-      unobserve = vi.fn();
-    }
-    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
+    const stub = installIntersectionObserverStub();
     const fetchSpy = vi.fn(() => Promise.resolve({ ok: true, json: async () => ({ success: 'true' }) }));
     vi.stubGlobal('fetch', fetchSpy);
 
@@ -1595,15 +1695,10 @@ describe('network payload regression', () => {
       name: HAOO_PRODUCT.brochure.previewImageAlt,
     });
 
-    act(() => {
-      intersectionCallback?.([
-        {
-          target: preview,
-          isIntersecting: true,
-          intersectionRatio: 1,
-        } as unknown as IntersectionObserverEntry,
-      ], {} as IntersectionObserver);
-    });
+    for (const name of ['Benefits', 'Capabilities', 'Brochure', 'Send your details']) {
+      act(() => stub.intersect(screen.getByRole('region', { name })));
+    }
+    act(() => stub.intersect(preview));
     fireEvent.load(preview);
     clickWithoutNavigation(within(brochure).getByRole('link', {
       name: /Open brochure.*new tab/i,
@@ -1624,6 +1719,7 @@ describe('network payload regression', () => {
     fireEvent.focus(screen.getByLabelText('Full name'));
     fillValidQualification();
     fireEvent.focus(screen.getByLabelText('Email address'));
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS);
     fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
 
@@ -1635,11 +1731,11 @@ describe('network payload regression', () => {
     return payloads.flatMap((payload) => Object.values(payload.properties).map(String));
   }
 
-  it('puts exactly the ten HAOO names on the wire from visitor actions and nothing else', async () => {
+  it('puts exactly the fourteen HAOO names on the wire from visitor actions and nothing else', async () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
     const payloads = client.deliveredPayloads();
 
-    // Derived from the exported tuple, never restated: an eleventh allowlisted name with
+    // Derived from the exported tuple, never restated: a fifteenth allowlisted name with
     // no journey path is a failure here rather than an untested event.
     expect(new Set(payloads.map((payload) => payload.event)))
       .toEqual(new Set(HAOO_MEASUREMENT_EVENTS));
@@ -1682,7 +1778,7 @@ describe('network payload regression', () => {
     })).not.toBeNull();
   });
 
-  it('delivers exactly one automatic $pageview and one $pageleave beside the ten HAOO names', async () => {
+  it('delivers exactly one automatic $pageview and one $pageleave beside the fourteen HAOO names', async () => {
     const { client } = await runConfiguredJourney('/products/haoo/');
     const fromVisitorActions = client.deliveredPayloads().length;
 
@@ -1890,4 +1986,114 @@ describe('provider failure isolation', () => {
       expect(warn.mock.calls).toEqual([[POSTHOG_REFUSAL.foreignClient]]);
     },
   );
+});
+
+describe('section reach measurement', () => {
+  const REACH_REGIONS = ['Benefits', 'Capabilities', 'Brochure', 'Send your details'] as const;
+
+  function reachRegion(name: (typeof REACH_REGIONS)[number]): HTMLElement {
+    return screen.getByRole('region', { name });
+  }
+
+  function reachCalls(eventSink: Mock): readonly unknown[][] {
+    return eventSink.mock.calls.filter(([event]) => String(event).startsWith('haoo_reach_'));
+  }
+
+  function reachObservers(stub: IntersectionObserverStub): readonly StubObserver[] {
+    return stub.instances.filter((instance) => (
+      instance.options?.rootMargin === SECTION_REACH_ROOT_MARGIN
+    ));
+  }
+
+  it('records each section once per page load under StrictMode, in the order it came into view', () => {
+    const eventSink = vi.fn();
+    const stub = installIntersectionObserverStub();
+
+    render(
+      <StrictMode>
+        <ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />
+      </StrictMode>,
+    );
+    eventSink.mockClear();
+
+    for (const name of ['Send your details', 'Benefits', 'Brochure', 'Capabilities'] as const) {
+      act(() => stub.intersect(reachRegion(name)));
+    }
+    for (const name of REACH_REGIONS) {
+      act(() => stub.intersect(reachRegion(name)));
+    }
+
+    expect(eventSink.mock.calls).toEqual([
+      ['haoo_reach_qualify'],
+      ['haoo_reach_benefits'],
+      ['haoo_reach_brochure'],
+      ['haoo_reach_capabilities'],
+    ]);
+  });
+
+  it('records nothing for a non-intersecting entry or one with no visible area', () => {
+    const eventSink = vi.fn();
+    const stub = installIntersectionObserverStub();
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    act(() => stub.intersect(reachRegion('Benefits'), { isIntersecting: false }));
+    act(() => stub.intersect(reachRegion('Capabilities'), { intersectionRatio: 0 }));
+
+    expect(reachCalls(eventSink)).toEqual([]);
+  });
+
+  it('observes exactly the four sections with the named root margin and stops once all are reached', () => {
+    const eventSink = vi.fn();
+    const stub = installIntersectionObserverStub();
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    const observers = reachObservers(stub);
+    expect(observers).toHaveLength(1);
+    const [observer] = observers;
+    const sections = REACH_REGIONS.map(reachRegion);
+
+    expect(observer.options).toEqual({ rootMargin: SECTION_REACH_ROOT_MARGIN, threshold: 0 });
+    expect(observer.targets).toEqual(new Set(sections));
+
+    for (const section of sections) {
+      act(() => stub.intersect(section));
+    }
+
+    expect(observer.targets.size).toBe(0);
+    expect(observer.disconnect).toHaveBeenCalled();
+    expect(reachCalls(eventSink)).toHaveLength(4);
+  });
+
+  it('renders and records the page view without IntersectionObserver, and records no reach', () => {
+    const eventSink = vi.fn();
+    vi.stubGlobal('IntersectionObserver', undefined);
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    expect(screen.getByRole('button', { name: 'Send my details' })).toBeTruthy();
+    expect(eventSink).toHaveBeenCalledWith('haoo_page_view');
+    expect(reachCalls(eventSink)).toEqual([]);
+  });
+
+  it('keeps the page and form working when the reach observer cannot be constructed', () => {
+    const eventSink = vi.fn();
+    const stub = installIntersectionObserverStub((options) => (
+      options?.rootMargin === SECTION_REACH_ROOT_MARGIN
+    ));
+
+    expect(() => render(
+      <ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />,
+    )).not.toThrow();
+
+    for (const name of REACH_REGIONS) {
+      act(() => stub.intersect(reachRegion(name)));
+    }
+
+    expect(reachObservers(stub)).toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Send my details' })).toBeTruthy();
+    expect(eventSink).toHaveBeenCalledWith('haoo_page_view');
+    expect(reachCalls(eventSink)).toEqual([]);
+  });
 });

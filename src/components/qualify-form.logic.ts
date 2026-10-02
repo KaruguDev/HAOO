@@ -77,6 +77,48 @@ export function honeypotId(slug: string) {
  */
 export const QUALIFY_REQUEST_TIMEOUT_MS = 15_000;
 export const HONEYPOT_NAME = '_honey';
+
+/**
+ * The least time, from the recorded form start, after which a validated send is counted
+ * as the qualification submit signal.
+ *
+ * The automated sends observed in PostHog (project 589225, quick task 261003-0cx) arrived
+ * 69 to 210 ms after the recorded start; the fastest human took 25 s. A human cannot pass
+ * validation in under 3 s, because four required selects (preferred channel, role,
+ * portfolio size, timeframe) carry `autoComplete="off"`: autofill cannot complete them,
+ * and each needs a deliberate choice after the first-field focus that starts the clock.
+ * 3 000 ms sits more than ten times above the slowest automated gap and about eight
+ * times below the fastest human.
+ *
+ * This gates only the analytics signal. The send itself is never delayed or refused.
+ */
+export const QUALIFY_SUBMIT_MIN_ELAPSED_MS = 3_000;
+
+export interface QualifySubmitSignalInput {
+  /** Whether this form instance has already decided, at an earlier validated send. */
+  readonly decided: boolean;
+  /** The honeypot value from the same snapshot that built the submitted body. */
+  readonly honeypot: string;
+  /** When the form start was recorded, or null when it never was. */
+  readonly startedAt: number | null;
+  readonly now: number;
+}
+
+/**
+ * Whether a validated send should record the submit signal: only the first decision for a
+ * form instance, with an empty honeypot, at least `QUALIFY_SUBMIT_MIN_ELAPSED_MS` after a
+ * recorded start. Any non-empty honeypot, whitespace included, is a filled trap, and an
+ * elapsed time that is negative or not finite records nothing.
+ */
+export function shouldRecordQualifySubmit(input: QualifySubmitSignalInput): boolean {
+  if (input.decided || input.honeypot !== '' || input.startedAt === null) {
+    return false;
+  }
+
+  const elapsed = input.now - input.startedAt;
+
+  return Number.isFinite(elapsed) && elapsed >= QUALIFY_SUBMIT_MIN_ELAPSED_MS;
+}
 // The final segment excludes `.` as well as whitespace and `@`. That is not a narrowing:
 // the preceding `[^\s@]+` is greedy, so `\.` already bound to the LAST dot and the segment
 // after it could never contain one. Spelling it out removes the overlap between the two
