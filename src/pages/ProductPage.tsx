@@ -3,6 +3,8 @@ import {
   Building2,
   ClipboardCheck,
   type LucideIcon,
+  Mail,
+  Phone,
   Store,
   Wallet,
   Wrench,
@@ -343,9 +345,15 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
           </div>
           <div className="mt-8 border-t border-white/15 pt-6">
             <p className="flex flex-wrap items-center justify-center gap-x-1 text-center">
-              <a className={footerLinkClasses} href={product.contacts.phoneHref}>{product.contacts.phoneDisplay}</a>
+              <a className={`${footerLinkClasses} gap-2`} href={product.contacts.phoneHref}>
+                <Phone aria-hidden="true" size={16} />
+                {product.contacts.phoneDisplay}
+              </a>
               <span aria-hidden="true">{'\u00B7'}</span>
-              <a className={footerLinkClasses} href={product.contacts.emailHref}>{product.contacts.email}</a>
+              <a className={`${footerLinkClasses} gap-2`} href={product.contacts.emailHref}>
+                <Mail aria-hidden="true" size={16} />
+                {product.contacts.email}
+              </a>
               {/* Below sm the relationship sentence takes its own row, so no separator dangles at a wrap. */}
               <span aria-hidden="true" className="hidden sm:inline">{'\u00B7'}</span>
               <span className="basis-full px-2 sm:basis-auto">{parentRelationshipLine(product.name)}</span>

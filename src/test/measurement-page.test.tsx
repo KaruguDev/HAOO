@@ -1088,7 +1088,9 @@ describe('Phase 3 HAOO measurement disclosure', () => {
     expect(contactLine).toHaveLength(1);
     expect(contactLine[0].contains(links[7])).toBe(true);
     expect(contactLine[0].contains(links[8])).toBe(true);
-    expect(contactLine[0].querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
+    expect(contactLine[0].querySelectorAll('span[aria-hidden="true"]')).toHaveLength(2);
+    expect(links[7].querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(1);
+    expect(links[8].querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(1);
 
     for (const link of links) {
       expect(link.className).toContain('min-h-11');

@@ -64,16 +64,15 @@ export default function OnboardingChoices({
           {whatsappActionLabel(product.name)}
         </a>
         <div className="mt-4 grid gap-1">
-          <a href={product.contacts.phoneHref} onClick={handlePhoneContact} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
+          <a href={product.contacts.phoneHref} aria-label={`Call ${product.contacts.phoneDisplay}`} onClick={handlePhoneContact} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
             <Phone aria-hidden="true" size={18} />
-            Call {product.contacts.phoneDisplay}
+            {product.contacts.phoneDisplay}
           </a>
-          <a href={product.contacts.emailHref} onClick={handleEmailContact} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
+          <a href={product.contacts.emailHref} aria-label={`Email ${product.contacts.email}`} onClick={handleEmailContact} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
             <Mail aria-hidden="true" size={18} />
-            Email {product.contacts.email}
+            {product.contacts.email}
           </a>
         </div>
-        <p className="mt-4 text-sm font-normal leading-[1.4] text-[#5F6B84]">These contact links leave the ZERO-PAPER HUB product page.</p>
         <a href="#qualify" className={`mt-4 inline-flex min-h-11 items-center rounded-lg px-2 text-left text-sm font-semibold leading-[1.4] text-[#4054C6] hover:underline ${focusLight}`}>
           {qualifyEntryPointLabel(product.name)}
         </a>
@@ -86,7 +85,6 @@ export default function OnboardingChoices({
           {selfOnboardingActionLabel(product.name)}
           <ArrowUpRight aria-hidden="true" size={18} />
         </a>
-        <p className={`mt-4 text-sm font-normal leading-[1.4] ${onDark ? 'text-[#DBE2FF]' : 'text-[#5F6B84]'}`}>Opens {product.contacts.selfOnboardingDisplay} outside ZERO-PAPER HUB.</p>
       </div>
     </section>
   );
