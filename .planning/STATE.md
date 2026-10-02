@@ -1,13 +1,13 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Submit a Qualified HAOO Enquiry
 status: planning
 stopped_at: Phase 05 complete, ready to plan Phase 2
-last_updated: "2026-09-13T14:41:36.956Z"
-last_activity: 2026-09-13
+last_updated: "2026-10-02T21:37:08.294Z"
+last_activity: 2026-09-14
 last_activity_desc: Phase 05 complete, transitioned to Phase 2
-state_head: e530e3a88adba3944059653f34b020e3d104cbba
+state_head: c7630817a5857c866d2925e172c223c072a2b72a
 progress:
   total_phases: 7
   completed_phases: 4
@@ -31,14 +31,14 @@ Phase: 2 — Submit a Qualified HAOO Enquiry
 Plan: Not started
 Total Plans in Phase: 7
 Status: Ready to plan
-Last activity: 2026-09-14 - Completed quick task 260913-x19: Optimize space use across HAOO page sections
+Last activity: 2026-10-03 - Completed quick task 261003-0cx: Fix funnel measurement: filter bot form submits and record section reach
 
 - **Phase 05 closed:** UAT 6/6 passed (tests 3 and 4 automated with Playwright against https://www.haoo.online/), 05-VERIFICATION.md passed, 05-SECURITY.md 88/88 threats closed.
 - **Carried beyond Phase 5:** the Kenya DPA 2019 sign-off stays an owner-accepted, unresolved risk (see Blockers/Concerns).
 - **Earlier phases not yet marked complete:** 2, 3, 4 and 04.1 show In Progress in ROADMAP.md although their plans are summarised.
 - **Nothing pushed:** HAOO local main is ahead of origin by docs/evidence commits only.
 
-Progress: 70/72 plans summarised across the milestone; 3 of 7 phases (1, 04.2, 5) marked complete in ROADMAP.md
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
@@ -324,6 +324,7 @@ None yet.
 | 260913-p4u | Enable PostHog Web Analytics via cookieless mode | 2026-09-13 | 4c43be8 | [260913-p4u-enable-posthog-web-analytics-via-cookiel](./quick/260913-p4u-enable-posthog-web-analytics-via-cookiel/) |
 | 260913-vbl | Restyle HAOO header and footer to ZERO-PAPER HUB style | 2026-09-13 | 3275988 | [260913-vbl-restyle-haoo-header-and-footer-to-zero-p](./quick/260913-vbl-restyle-haoo-header-and-footer-to-zero-p/) |
 | 260913-x19 | Optimize space use across HAOO page sections | 2026-09-14 | 5539165 | [260913-x19-optimize-space-use-across-haoo-page-sect](./quick/260913-x19-optimize-space-use-across-haoo-page-sect/) |
+| 261003-0cx | Fix funnel measurement: filter bot form submits and record section reach | 2026-10-02 | c763081 | [261003-0cx-fix-funnel-measurement-filter-bot-form-s](./quick/261003-0cx-fix-funnel-measurement-filter-bot-form-s/) |
 
 ### Roadmap Evolution
 
