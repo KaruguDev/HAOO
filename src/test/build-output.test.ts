@@ -737,10 +737,8 @@ describe('Phase 1 static build contracts', () => {
       expect(hrefs.slice(0, expectedHrefs.length)).toEqual(expectedHrefs);
       expect(markup).toContain('HAOO is a ZERO-PAPER HUB Product.');
       expect(markup).toContain(HAOO_PRODUCT.assistedInvitation);
-      expect(markup).toContain('These contact links leave the ZERO-PAPER HUB product page.');
-      expect(markup).toContain(
-        `The self-onboarding link opens ${HAOO_PRODUCT.contacts.selfOnboardingDisplay} outside ZERO-PAPER HUB.`,
-      );
+      expect(markup).not.toContain('These contact links leave the ZERO-PAPER HUB product page.');
+      expect(markup).not.toContain('outside ZERO-PAPER HUB');
 
       const whatsappUrl = new URL(hrefs[0]);
       const decodedStarterText = whatsappUrl.searchParams.get('text');
