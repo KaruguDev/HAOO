@@ -23,6 +23,10 @@ export const ENGAGEMENT_SUMMARY_LABEL = 'HAOO engagement context';
 
 export const HAOO_MEASUREMENT_EVENTS = [
   'haoo_page_view',
+  'haoo_reach_benefits',
+  'haoo_reach_capabilities',
+  'haoo_reach_brochure',
+  'haoo_reach_qualify',
   'haoo_brochure_preview',
   'haoo_brochure_open',
   'haoo_brochure_download',
@@ -228,6 +232,12 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     assistedEmail: 'haoo_assisted_email',
     selfOnboarding: 'haoo_self_onboarding',
   },
+  sectionReachEvents: {
+    benefits: 'haoo_reach_benefits',
+    capabilities: 'haoo_reach_capabilities',
+    brochure: 'haoo_reach_brochure',
+    qualify: 'haoo_reach_qualify',
+  },
   interactionFlags: [
     'brochureViewed',
     'brochureDownloaded',
@@ -257,6 +267,11 @@ export const HAOO_MEASUREMENT: ProductMeasurement<HaooMeasurementEvent> = {
     signalsHeading: 'Signals this page can count',
     signalLines: {
       haoo_page_view: 'That you viewed this HAOO page.',
+      // Added 2026-10-03 (quick task 261003-0cx), executor-drafted; owed an owner read before the next deploy.
+      haoo_reach_benefits: 'That the Benefits section came into view.',
+      haoo_reach_capabilities: 'That the Capabilities section came into view.',
+      haoo_reach_brochure: 'That the Brochure section came into view.',
+      haoo_reach_qualify: 'That the Send your details section came into view.',
       haoo_brochure_preview: 'That the brochure preview became available.',
       haoo_brochure_open: 'That you opened the brochure.',
       haoo_brochure_download: 'That you downloaded the brochure.',

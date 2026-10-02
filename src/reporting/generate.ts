@@ -204,16 +204,16 @@ function directoryOf(path: string): string {
 }
 
 /**
- * The row limit every aggregate carries, comfortably above the ten allowlisted names.
+ * The row limit every aggregate carries, comfortably above the fourteen allowlisted names.
  *
  * The provider's default page is 100 rows and `OFFSET` paging is not supported for
- * programmatic requests, so a truncated page would not be detectable as truncation -- an
- * eleventh allowlisted name would simply arrive as a silently wrong zero. Stating the
+ * programmatic requests, so a truncated page would not be detectable as truncation -- a
+ * fifteenth allowlisted name would simply arrive as a silently wrong zero. Stating the
  * limit makes the absence of truncation a property of the query rather than a default.
  */
 const REPORT_ROW_LIMIT = 100;
 
-/** The ten allowlisted names as SQL string literals, written once from the allowlist. */
+/** The fourteen allowlisted names as SQL string literals, written once from the allowlist. */
 function eventNameLiterals(): string {
   return HAOO_REPORT_EVENTS.map((event) => `'${event}'`).join(', ');
 }

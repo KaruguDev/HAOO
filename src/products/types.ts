@@ -167,6 +167,13 @@ export interface MeasurementProviderConfig {
   readonly apiHost: string;
 }
 
+/**
+ * The four page sections whose arrival in view is counted, at most once each per page load.
+ * Each maps to its own bare event name, so no section property ever has to cross the
+ * provider's fixed payload allowlist.
+ */
+export type ProductReachSection = 'benefits' | 'capabilities' | 'brochure' | 'qualify';
+
 export interface ProductMeasurementDisclosure<EventName extends string> {
   readonly summary: string;
   readonly intro: string;
@@ -242,6 +249,11 @@ export interface ProductMeasurement<EventName extends string = string> {
     readonly assistedEmail: EventName;
     readonly selfOnboarding: EventName;
   };
+  /**
+   * Required, not optional: a product that forgets to name its section reach events must
+   * fail typecheck rather than silently render a page that measures no reach.
+   */
+  readonly sectionReachEvents: Readonly<Record<ProductReachSection, EventName>>;
   readonly interactionFlags: readonly string[];
   readonly interactionEventFlags: Readonly<Partial<Record<EventName, string>>>;
   readonly provider: MeasurementProvider;

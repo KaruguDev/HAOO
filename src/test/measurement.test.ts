@@ -142,9 +142,13 @@ afterEach(() => {
 });
 
 describe('closed event-name contract', () => {
-  it('accepts exactly the ten configured ASCII literals as bare sink calls', () => {
+  it('accepts exactly the fourteen configured ASCII literals as bare sink calls', () => {
     expect(HAOO_MEASUREMENT_EVENTS).toEqual([
       'haoo_page_view',
+      'haoo_reach_benefits',
+      'haoo_reach_capabilities',
+      'haoo_reach_brochure',
+      'haoo_reach_qualify',
       'haoo_brochure_preview',
       'haoo_brochure_open',
       'haoo_brochure_download',
@@ -170,6 +174,22 @@ describe('closed event-name contract', () => {
 
     expect(eventSink.mock.calls).toEqual(HAOO_MEASUREMENT_EVENTS.map((event) => [event]));
     expect(eventSink.mock.calls.every((call) => call.length === 1)).toBe(true);
+  });
+
+  it('maps exactly the four reach sections onto closed reach names that set no browser flag', () => {
+    expect(HAOO_MEASUREMENT.sectionReachEvents).toEqual({
+      benefits: 'haoo_reach_benefits',
+      capabilities: 'haoo_reach_capabilities',
+      brochure: 'haoo_reach_brochure',
+      qualify: 'haoo_reach_qualify',
+    });
+
+    const flagged = Object.keys(HAOO_MEASUREMENT.interactionEventFlags);
+
+    for (const event of Object.values(HAOO_MEASUREMENT.sectionReachEvents)) {
+      expect(HAOO_MEASUREMENT_EVENTS, event).toContain(event);
+      expect(flagged, event).not.toContain(event);
+    }
   });
 
   it.each([
@@ -404,6 +424,10 @@ describe('bounded visit and time transitions', () => {
 describe('disclosed idempotent interaction reducer', () => {
   const eventFlags: readonly [HaooMeasurementEvent, keyof ReturnType<typeof storedContext>['flags'] | null][] = [
     ['haoo_page_view', null],
+    ['haoo_reach_benefits', null],
+    ['haoo_reach_capabilities', null],
+    ['haoo_reach_brochure', null],
+    ['haoo_reach_qualify', null],
     ['haoo_brochure_preview', 'brochureViewed'],
     ['haoo_brochure_open', 'brochureViewed'],
     ['haoo_brochure_download', 'brochureDownloaded'],
@@ -1394,7 +1418,7 @@ describe('fail-closed provider initialization', () => {
    *
    * `04.1-VERIFICATION.md` adjudicated code-review blocker CR-02 as CONFIRMED: a client a
    * third party leaves on `window` was ADOPTED on the presence of one callable `init`,
-   * handed the public project key and all ten first-party event names, and could echo the
+   * handed the public project key and all fourteen first-party event names, and could echo the
    * configuration object it was given so the readback passed. `MeasurementDisclosure.tsx`
    * names PostHog in the United States as the sole processor of that data (D-10), which
    * was not true of an adopted global.

@@ -10,7 +10,7 @@ import type { HaooMeasurementEvent } from '../products/haoo.ts';
  * refactor.
  *
  * The maps are typed `Readonly<Record<HaooMeasurementEvent, ...>>` against the Phase 3
- * closed tuple, so adding an eleventh event to `HAOO_MEASUREMENT_EVENTS` or dropping a
+ * closed tuple, so adding a fifteenth event to `HAOO_MEASUREMENT_EVENTS` or dropping a
  * label fails `npm run typecheck` before it fails a contract test.
  *
  * This module is loaded by `scripts/generate-haoo-report.mjs` through Node's native
@@ -21,6 +21,10 @@ import type { HaooMeasurementEvent } from '../products/haoo.ts';
 /** UI-SPEC "Event labels (exactly one per closed event name)". */
 const REPORT_EVENT_LABELS: Readonly<Record<HaooMeasurementEvent, string>> = {
   haoo_page_view: 'HAOO page views',
+  haoo_reach_benefits: 'Benefits section views',
+  haoo_reach_capabilities: 'Capabilities section views',
+  haoo_reach_brochure: 'Brochure section views',
+  haoo_reach_qualify: 'Send your details section views',
   haoo_brochure_preview: 'Brochure preview became available',
   haoo_brochure_open: 'Brochure open clicks',
   haoo_brochure_download: 'Brochure download clicks',
@@ -45,6 +49,10 @@ export type ReportStageId = (typeof REPORT_STAGE_ORDER)[number];
 /** Exactly one stage per event. Stage membership is derived from this map, never listed twice. */
 const REPORT_EVENT_STAGES: Readonly<Record<HaooMeasurementEvent, ReportStageId>> = {
   haoo_page_view: 'discovery',
+  haoo_reach_benefits: 'discovery',
+  haoo_reach_capabilities: 'discovery',
+  haoo_reach_brochure: 'discovery',
+  haoo_reach_qualify: 'discovery',
   haoo_brochure_preview: 'brochure-interest',
   haoo_brochure_open: 'brochure-interest',
   haoo_brochure_download: 'brochure-interest',
@@ -57,7 +65,7 @@ const REPORT_EVENT_STAGES: Readonly<Record<HaooMeasurementEvent, ReportStageId>>
 };
 
 /**
- * The ten allowlisted goal names in Phase 3 tuple order, derived from the label map so
+ * The fourteen allowlisted goal names in Phase 3 tuple order, derived from the label map so
  * the literals are written once. Object literal key order is insertion order for
  * non-numeric string keys, and the record type guarantees the set is exhaustive.
  */
@@ -80,9 +88,10 @@ function eventsInStage(stage: ReportStageId): readonly HaooMeasurementEvent[] {
 export const REPORT_STAGES: Readonly<Record<ReportStageId, ReportStage>> = {
   discovery: {
     label: 'Discovery',
+    // Replaced 2026-10-03 (quick task 261003-0cx), executor-drafted; owed an owner read before the next deploy.
     clarifier:
-      'How many times the HAOO page was recorded as viewed. Repeat views by the same '
-      + 'browser count more than once.',
+      'Total of the page views and section views listed below. A section counts at most once '
+      + 'per page load, and repeat views by the same browser count again.',
     events: eventsInStage('discovery'),
   },
   'brochure-interest': {
