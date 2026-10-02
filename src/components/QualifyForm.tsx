@@ -19,6 +19,7 @@ import {
   isProviderAcceptance,
   QUALIFY_REQUEST_TIMEOUT_MS,
   QUALIFY_STATUS_MESSAGES,
+  shouldRecordQualifySubmit,
   validateQualifyValues,
   type QualifyErrors,
   type QualifyValues,
@@ -177,6 +178,10 @@ export default function QualifyForm({
   // are visual and assistive feedback, never the guard that admits a request.
   const inFlightRef = useRef(false);
   const startRecordedRef = useRef(false);
+  // When the start was recorded, and whether the first validated send has already decided
+  // the submit signal for this form instance. Both feed only the analytics call.
+  const startedAtRef = useRef<number | null>(null);
+  const submitDecidedRef = useRef(false);
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const confirmationRef = useRef<HTMLHeadingElement | null>(null);
   const failureRef = useRef<HTMLHeadingElement | null>(null);
@@ -201,6 +206,7 @@ export default function QualifyForm({
     if (startRecordedRef.current) return;
 
     startRecordedRef.current = true;
+    startedAtRef.current = Date.now();
     track(measurementEvents.start);
   }
 
@@ -318,7 +324,17 @@ export default function QualifyForm({
     const timeout = setTimeout(() => controller.abort(), QUALIFY_REQUEST_TIMEOUT_MS);
 
     try {
-      track(measurementEvents.submit);
+      // Decided once, at the first validated send, and held for the form instance, so a
+      // retry or re-send never records a second submit. Only the analytics call is
+      // conditional: the request below is identical either way.
+      const recordSubmit = shouldRecordQualifySubmit({
+        decided: submitDecidedRef.current,
+        honeypot: submittedValues[HONEYPOT_NAME] ?? '',
+        startedAt: startedAtRef.current,
+        now: Date.now(),
+      });
+      submitDecidedRef.current = true;
+      if (recordSubmit) track(measurementEvents.submit);
       const response = await fetch(qualify.endpoint, {
         method: 'POST',
         headers: {

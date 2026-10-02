@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import ProductPage from '../pages/ProductPage';
 import { SECTION_REACH_ROOT_MARGIN } from '../components/useSectionReach';
+import { QUALIFY_SUBMIT_MIN_ELAPSED_MS } from '../components/qualify-form.logic';
 import { createMeasurement } from '../measurement';
 import {
   POSTHOG_REFUSAL,
@@ -155,6 +156,16 @@ function fillValidQualification() {
   for (const [label, value] of values) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   }
+}
+
+/**
+ * Moves `Date.now()` forward by `ms` from its current reading. Only the wall clock is
+ * mocked: `waitFor` and the 15 s request timeout keep their real timers. The `afterEach`
+ * `vi.restoreAllMocks()` restores the real clock.
+ */
+function advanceClock(ms: number) {
+  const base = Date.now();
+  vi.spyOn(Date, 'now').mockReturnValue(base + ms);
 }
 
 function clickWithoutNavigation(link: HTMLElement) {
@@ -678,7 +689,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     }
   });
 
-  it('measures qualification start once and only validation-admitted submit attempts', async () => {
+  it('measures qualification start once and the validation-admitted submit once per form instance', async () => {
     const eventSink = vi.fn();
     const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
       Promise.reject(new Error('network unavailable'))
@@ -707,6 +718,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
 
     fillValidQualification();
     eventSink.mockClear();
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS);
     fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
@@ -723,10 +735,66 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     await screen.findByRole('button', { name: 'Try sending again' });
     fireEvent.click(screen.getByRole('button', { name: 'Try sending again' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
-    expect(eventSink.mock.calls).toEqual([
-      ['haoo_qualify_submit'],
-      ['haoo_qualify_submit'],
-    ]);
+    expect(eventSink.mock.calls).toEqual([['haoo_qualify_submit']]);
+  });
+
+  function sentBody(fetchSpy: Mock, call: number): Record<string, string> {
+    return JSON.parse(String((fetchSpy.mock.calls[call][1] as RequestInit).body)) as Record<string, string>;
+  }
+
+  function submitCalls(eventSink: Mock): readonly unknown[][] {
+    return eventSink.mock.calls.filter(([event]) => event === 'haoo_qualify_submit');
+  }
+
+  it('sends a fast first send unchanged, records no submit, and keeps every retry unrecorded', async () => {
+    const eventSink = vi.fn();
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+    fillValidQualification();
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(eventSink).toHaveBeenCalledWith('haoo_qualify_start');
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 0)['Full name']).toBe('Jane Wanjiru');
+    expect(sentBody(fetchSpy, 0)._honey).toBe('');
+
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS + 1);
+    fireEvent.click(await screen.findByRole('button', { name: 'Try sending again' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 1)).toEqual(sentBody(fetchSpy, 0));
+  });
+
+  it('sends a honeypot-filled form unchanged and records no submit', async () => {
+    const eventSink = vi.fn();
+    const fetchSpy = vi.fn<(input: string, init?: RequestInit) => Promise<never>>(() => (
+      Promise.reject(new Error('network unavailable'))
+    ));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    render(<ProductPage product={HAOO_PRODUCT} measurementAdapters={{ eventSink }} />);
+
+    fireEvent.focus(screen.getByLabelText('Full name'));
+    fillValidQualification();
+    fireEvent.change(screen.getByLabelText('Leave this field blank'), {
+      target: { value: 'https://spam.example' },
+    });
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS + 1);
+    fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(eventSink).toHaveBeenCalledWith('haoo_qualify_start');
+    expect(submitCalls(eventSink)).toEqual([]);
+    expect(sentBody(fetchSpy, 0)['Full name']).toBe('Jane Wanjiru');
+    expect(sentBody(fetchSpy, 0)._honey).toBe('https://spam.example');
   });
 
   it('keeps qualification validation, retained values, retry, and outcome independent of measurement failure', async () => {
@@ -1594,7 +1662,8 @@ describe('network payload regression', () => {
    * - `haoo_assisted_email` — the email contact link
    * - `haoo_self_onboarding` — the self-onboarding link
    * - `haoo_qualify_start` — first focus of the qualification form
-   * - `haoo_qualify_submit` — a validation-admitted send
+   * - `haoo_qualify_submit` — a validation-admitted send at least
+   *   `QUALIFY_SUBMIT_MIN_ELAPSED_MS` after the recorded start
    */
   async function runConfiguredJourney(initialUrl: string): Promise<JourneyRun> {
     window.history.replaceState({}, '', initialUrl);
@@ -1650,6 +1719,7 @@ describe('network payload regression', () => {
     fireEvent.focus(screen.getByLabelText('Full name'));
     fillValidQualification();
     fireEvent.focus(screen.getByLabelText('Email address'));
+    advanceClock(QUALIFY_SUBMIT_MIN_ELAPSED_MS);
     fireEvent.click(screen.getByRole('button', { name: 'Send my details' }));
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
 
