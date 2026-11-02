@@ -542,6 +542,29 @@ export const KENYAN_COUNTY_OPTIONS: readonly QualifyOption[] = toOptions([
   'Outside Kenya',
 ]);
 
+/**
+ * Hero candidates. From `lg` the hero is a 4:5 column showing the whole image, and it is the
+ * desktop LCP element, so `index.html` preloads exactly this first source (same media,
+ * srcset and sizes, asserted in `build-output.test.ts`). Below `lg` it is a full-width 4:3
+ * box anchored to the bottom, so phones get a matching pre-cropped 4:3 set instead of
+ * downloading the full portrait image only to crop it away.
+ */
+export const HAOO_HERO_SOURCES = [
+  {
+    media: '(min-width: 1024px)',
+    type: 'image/webp',
+    srcSet:
+      '/brochure/haoo-hero-480.webp 480w, /brochure/haoo-hero-800.webp 800w, /brochure/haoo-hero-1122.webp 1122w',
+    sizes: '(min-width: 1280px) 390px, 30vw',
+  },
+  {
+    type: 'image/webp',
+    srcSet:
+      '/brochure/haoo-hero-wide-480.webp 480w, /brochure/haoo-hero-wide-720.webp 720w, /brochure/haoo-hero-wide-960.webp 960w',
+    sizes: 'calc(100vw - 32px)',
+  },
+] as const;
+
 export const HAOO_PRODUCT: ProductDefinition = {
   slug: 'haoo',
   name: 'HAOO',
@@ -628,9 +651,7 @@ export const HAOO_PRODUCT: ProductDefinition = {
       alt: 'Property manager outside a modern apartment building',
       width: 1122,
       height: 1402,
-      webpSrcSet:
-        '/brochure/haoo-hero-480.webp 480w, /brochure/haoo-hero-800.webp 800w, /brochure/haoo-hero-1122.webp 1122w',
-      sizes: '(min-width: 1024px) 400px, calc(100vw - 32px)',
+      sources: HAOO_HERO_SOURCES,
     },
   },
   contacts: {

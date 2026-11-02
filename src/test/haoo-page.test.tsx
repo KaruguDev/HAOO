@@ -177,7 +177,7 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(within(brochure).getByText(
       'You can still open the HAOO brochure in a new tab or download the PDF.',
     )).toBeTruthy();
-    expect(brochure.querySelector('object[type="application/pdf"]')).not.toBeNull();
+    expect(brochure.querySelector('object')).not.toBeNull();
 
     const openLink = within(brochure).getByRole('link', { name: /Open brochure.*new tab/i });
     expect(openLink.getAttribute('href')).toBe(HAOO_PRODUCT.brochure.pdfHref);
@@ -185,6 +185,75 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     const downloadLink = within(brochure).getByRole('link', { name: 'Download brochure' });
     expect(downloadLink.hasAttribute('download')).toBe(true);
     expect(within(brochure).getByText('PDF · 2.1 MB')).toBeTruthy();
+  });
+
+  it('loads the desktop PDF embed only once it nears the viewport', () => {
+    const observed: { target: Element; callback: IntersectionObserverCallback; margin?: string }[] = [];
+    class RecordingObserver {
+      constructor(
+        private readonly callback: IntersectionObserverCallback,
+        private readonly options?: IntersectionObserverInit,
+      ) {}
+      observe(target: Element) {
+        observed.push({ target, callback: this.callback, margin: this.options?.rootMargin });
+      }
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    }
+    vi.stubGlobal('IntersectionObserver', RecordingObserver);
+    try {
+      renderPage();
+      const pdfObject = brochureRegion().querySelector('object')!;
+
+      // Present, labelled and carrying its fallback, but nothing is fetched yet.
+      expect(pdfObject.getAttribute('aria-label')).toBe('HAOO brochure preview');
+      expect(pdfObject.hasAttribute('data')).toBe(false);
+      expect(pdfObject.hasAttribute('type')).toBe(false);
+      expect(pdfObject.textContent).toContain(FALLBACK_HEADING);
+
+      const loader = observed.find((entry) => entry.target === pdfObject && entry.margin === '600px 0px');
+      expect(loader).toBeDefined();
+      act(() => {
+        loader!.callback(
+          [{ target: pdfObject, isIntersecting: true, intersectionRatio: 0 } as unknown as IntersectionObserverEntry],
+          {} as IntersectionObserver,
+        );
+      });
+      // Replaced by a fresh element, which the visibility observer picks up again.
+      const loaded = brochureRegion().querySelector('object')!;
+      expect(loaded.getAttribute('data')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+      expect(loaded.getAttribute('type')).toBe('application/pdf');
+      expect(loaded.getAttribute('aria-label')).toBe('HAOO brochure preview');
+      expect(observed.some((entry) => entry.target === loaded && entry.margin === undefined)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('loads the desktop PDF embed straight away when no observer can be built', () => {
+    // Only the embed loader's observer fails; every other observer on the page still works.
+    class ThrowingObserver {
+      constructor(_callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        if (options?.rootMargin === '600px 0px') throw new Error('unavailable');
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    }
+    vi.stubGlobal('IntersectionObserver', ThrowingObserver);
+    try {
+      renderPage();
+      expect(brochureRegion().querySelector('object')?.getAttribute('data'))
+        .toBe(HAOO_PRODUCT.brochure.pdfHref);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('publishes the original brochure PDF facts from centralized product data', () => {
@@ -223,9 +292,9 @@ describe('Phase 1 semantic HAOO page contracts', () => {
       .toBe(HAOO_PRODUCT.brochure.previewImageWebpSrcSet);
     expect(preview.parentElement?.parentElement?.className).toContain('lg:hidden');
 
-    const pdfObject = brochure.querySelector('object[type="application/pdf"]');
+    const pdfObject = brochure.querySelector('object');
     expect(pdfObject).not.toBeNull();
-    expect(pdfObject!.getAttribute('data')).toBe(HAOO_PRODUCT.brochure.pdfHref);
+    // `data` is assigned only once the embed nears the viewport (see the lazy-embed case).
     expect(pdfObject!.parentElement?.className).toContain('hidden');
     expect(pdfObject!.parentElement?.className).toContain('lg:block');
     expect(pdfObject!.textContent).toContain(FALLBACK_HEADING);
@@ -348,8 +417,18 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(hero.className).toContain('lg:aspect-[4/5]');
     expect(hero.className).toContain('object-cover');
     expect(hero.parentElement?.tagName).toBe('PICTURE');
-    expect(hero.parentElement?.querySelector('source[type="image/webp"]')?.getAttribute('srcset'))
-      .toBe(HAOO_PRODUCT.media.hero?.webpSrcSet);
+    // Desktop gets the full 4:5 image; below lg a pre-cropped 4:3 set matches the box.
+    const heroSources = Array.from(hero.parentElement?.querySelectorAll('source') ?? []);
+    expect(heroSources.map((source) => [
+      source.getAttribute('media'),
+      source.getAttribute('srcset'),
+      source.getAttribute('sizes'),
+    ])).toEqual(HAOO_PRODUCT.media.hero?.sources?.map((source) => [
+      source.media ?? null,
+      source.srcSet,
+      source.sizes,
+    ]));
+    expect(heroSources[heroSources.length - 1]?.getAttribute('srcset')).toContain('haoo-hero-wide-');
     expect(hero.parentElement?.parentElement?.textContent).toBe('');
 
     const [whatsapp] = screen.getAllByRole('link', { name: 'Chat with HAOO on WhatsApp' });
@@ -599,7 +678,7 @@ describe('Quick task 260913-x19 space use', () => {
   it('lets the brochure object fallback fill the embed frame as one centred card', () => {
     renderPage();
 
-    const pdfObject = brochureRegion().querySelector('object[type="application/pdf"]');
+    const pdfObject = brochureRegion().querySelector('object');
     const fallback = pdfObject?.firstElementChild ?? null;
     expect(classTokens(fallback)).toEqual(expect.arrayContaining(['h-full', 'justify-center']));
     expect(fallback?.textContent).toContain(FALLBACK_HEADING);

@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/brochure/haoo-logo.png" />
     <link rel="preload" href="/fonts/noto-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <!--
+      The hero is the desktop LCP image but is only rendered after the app script runs, so it
+      is preloaded here at high priority. Desktop only (phones paint the heading first), and
+      it must mirror the first hero <source> in src/products/haoo.ts exactly so the browser
+      reuses this request instead of downloading a second candidate.
+    -->
+    <link rel="preload" as="image" type="image/webp" media="(min-width: 1024px)" imagesrcset="/brochure/haoo-hero-480.webp 480w, /brochure/haoo-hero-800.webp 800w, /brochure/haoo-hero-1122.webp 1122w" imagesizes="(min-width: 1280px) 390px, 30vw" fetchpriority="high" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HAOO Property Management | ZERO-PAPER HUB</title>
     <meta name="description" content="Run the business, not the paperwork, with HAOO, a property-management platform for landlords and property managers in Kenya. Choose assisted or self-onboarding." />

@@ -133,13 +133,15 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
             {product.media.hero ? (
               <div className="lg:col-span-1">
                 <picture className="block">
-                  {product.media.hero.webpSrcSet ? (
+                  {product.media.hero.sources?.map((source) => (
                     <source
-                      type="image/webp"
-                      srcSet={product.media.hero.webpSrcSet}
-                      sizes={product.media.hero.sizes}
+                      key={`${source.media ?? 'default'}|${source.type}`}
+                      media={source.media}
+                      type={source.type}
+                      srcSet={source.srcSet}
+                      sizes={source.sizes}
                     />
-                  ) : null}
+                  ))}
                   <img
                     src={product.media.hero.href}
                     alt={product.media.hero.alt}

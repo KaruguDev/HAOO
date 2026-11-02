@@ -17,15 +17,24 @@ export interface ProductCapability extends ProductStoryItem {
   readonly icon: ProductCapabilityIcon;
 }
 
+/**
+ * One `<picture>` candidate set. Sources are tried in order; the first whose `media`
+ * matches (or that has none) wins, so a narrower art-directed crop can precede the default.
+ */
+export interface ProductImageSource {
+  readonly media?: string;
+  readonly type: string;
+  readonly srcSet: string;
+  readonly sizes: string;
+}
+
 export interface ProductImage {
   readonly href: string;
   readonly alt: string;
   readonly width: number;
   readonly height: number;
-  /** Optional resized WebP candidates; `href` stays the universal fallback. */
-  readonly webpSrcSet?: string;
-  /** Rendered-width hint paired with `webpSrcSet`. */
-  readonly sizes?: string;
+  /** Optional resized/re-encoded candidates; `href` stays the universal fallback. */
+  readonly sources?: readonly ProductImageSource[];
 }
 
 export interface ProductMedia {

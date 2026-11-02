@@ -29,6 +29,8 @@ interface BrochurePanelProps {
 const FALLBACK_HEADING = 'Brochure preview unavailable';
 const PREVIEW_ERROR =
   "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
+/** How far ahead of the viewport the desktop PDF embed starts loading. */
+const EMBED_LOAD_MARGIN = '600px 0px';
 const NEW_TAB_DISCLOSURE = 'Opening the brochure leaves this page in a new browser tab.';
 
 const focusClasses =
@@ -48,6 +50,7 @@ export default function BrochurePanel({
   track,
 }: BrochurePanelProps) {
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [embedRequested, setEmbedRequested] = useState(false);
   const previewRecorded = useRef(false);
   const mobilePreviewRef = useRef<HTMLImageElement | null>(null);
   const desktopPreviewRef = useRef<HTMLObjectElement | null>(null);
@@ -106,7 +109,32 @@ export default function BrochurePanel({
     previews.forEach((preview) => observer.observe(preview));
 
     return () => observer.disconnect();
-  }, [showPreview, recordVisiblePreview]);
+  }, [showPreview, embedRequested, recordVisiblePreview]);
+
+  /**
+   * The desktop embed pulls in the whole 2.1 MB PDF and the browser's PDF viewer, and a page
+   * holding that viewer — even an empty `<object type="application/pdf">` — is excluded from
+   * the back/forward cache. So the `<object>` is rendered from the start (labelled, observed,
+   * showing its branded fallback) and is replaced by one carrying the PDF `type` and `data`
+   * once it comes within reach of the viewport. Without a usable observer it loads straight away.
+   */
+  useEffect(() => {
+    const embed = desktopPreviewRef.current;
+    if (embedRequested || embed === null) return;
+
+    let observer: IntersectionObserver;
+    try {
+      observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) setEmbedRequested(true);
+      }, { rootMargin: EMBED_LOAD_MARGIN });
+    } catch {
+      setEmbedRequested(true);
+      return;
+    }
+
+    observer.observe(embed);
+    return () => observer.disconnect();
+  }, [embedRequested]);
 
   function handleBrochureOpen() {
     track(events.open);
@@ -151,9 +179,12 @@ export default function BrochurePanel({
         {/* Desktop embed attempt with a branded child fallback (D-08). */}
         <div className="hidden lg:block">
           <object
+            // A fresh element once requested: Chrome does not re-evaluate an <object> whose
+            // type/data are set after it has already fallen back to its children.
+            key={embedRequested ? 'pdf-embed' : 'pdf-placeholder'}
             ref={desktopPreviewRef}
-            data={brochure.pdfHref}
-            type="application/pdf"
+            data={embedRequested ? brochure.pdfHref : undefined}
+            type={embedRequested ? 'application/pdf' : undefined}
             aria-label={`${productName} brochure preview`}
             onLoad={handleObjectLoad}
             className="aspect-[1287/909] w-full rounded-2xl border border-[#DFE4F0] bg-white"
