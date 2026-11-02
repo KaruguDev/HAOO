@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PostHogClient, PostHogScope } from '../measurement/posthog';
 import {
   DEFERRED_EVENT_LIMIT,
-  POSTHOG_SETTLE_DELAY_MS,
-  scheduleWhenEngagedOrSettled,
+  scheduleOnFirstInteraction,
 } from '../measurement/posthog-deferred';
 import { POSTHOG_REFUSAL } from '../measurement/posthog-refusal';
 import { APPROVED_ANALYTICS_HOSTS } from '../../config/approved-analytics-hosts';
@@ -13,7 +12,7 @@ import { createPostHogVendorClient } from './fixtures/posthog-capture-contract';
 
 /**
  * Quick task 261102-psi: the PostHog adapter and SDK left the critical path. They are
- * fetched on the visitor's first interaction or shortly after load; events tracked before
+ * fetched on the visitor's first interaction; events tracked before
  * then are held (allowlisted names only, bounded) and replayed in order once every adapter
  * gate has passed. This file never imports `../measurement/posthog` statically, so each
  * case starts with the adapter unloaded.
@@ -193,10 +192,10 @@ describe('deferred PostHog loading', () => {
   });
 });
 
-describe('scheduleWhenEngagedOrSettled', () => {
+describe('scheduleOnFirstInteraction', () => {
   it('starts on the first interaction, exactly once', () => {
     const start = vi.fn();
-    scheduleWhenEngagedOrSettled(start);
+    scheduleOnFirstInteraction(start);
 
     expect(start).not.toHaveBeenCalled();
     window.dispatchEvent(new Event('scroll'));
@@ -204,16 +203,14 @@ describe('scheduleWhenEngagedOrSettled', () => {
     expect(start).toHaveBeenCalledTimes(1);
   });
 
-  it('starts after the settle delay once the page has loaded, with no interaction', () => {
+  it('never starts on its own, however long the page sits idle after load', () => {
     vi.useFakeTimers();
     const start = vi.fn();
-    // jsdom documents are already `complete`, so the settle timer starts immediately.
-    scheduleWhenEngagedOrSettled(start);
+    scheduleOnFirstInteraction(start);
+    window.dispatchEvent(new Event('load'));
 
-    vi.advanceTimersByTime(POSTHOG_SETTLE_DELAY_MS - 1);
+    vi.advanceTimersByTime(60_000);
     expect(start).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(1);
-    expect(start).toHaveBeenCalledTimes(1);
 
     window.dispatchEvent(new Event('keydown'));
     expect(start).toHaveBeenCalledTimes(1);

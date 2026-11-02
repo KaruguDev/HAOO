@@ -105,15 +105,15 @@ profile.
 `src/measurement/posthog.ts` imports `posthog-js` in a value position, so the SDK
 is bound by a production module and the vendor chunk (`posthog-sdk`) ships in
 every build. Since quick task 261102-psi that adapter, with the SDK it binds, is
-itself fetched on demand by `src/measurement/posthog-deferred.ts`: on the visitor's
-first interaction, or three seconds after the page has loaded, whichever comes
-first. This took ~95 KB (gzip) off the critical path after PageSpeed flagged it.
+itself fetched on demand by `src/measurement/posthog-deferred.ts`, on the visitor's
+first interaction (pointer, key, touch, scroll, wheel or mouse move) and only then.
+This took ~95 KB (gzip) off the critical path after PageSpeed flagged it.
 Events tracked before then are held (allowlisted event names only, at most 50, in
 order) and replayed once the adapter is through every gate. The adapter does not
 refuse at an empty global slot: it falls back to the bound module, sends the
 lockdown, and re-reads the merged configuration before any sink exists. A visitor
-who leaves within those three seconds without interacting sends no automatic
-`$pageview`.
+who leaves without any interaction is never counted: no automatic `$pageview` is
+sent for them.
 
 **Events are delivered only when `VITE_HAOO_MEASUREMENT_PROVIDER` is set to `posthog`.**
 Plan `04.1-11` resolved the hold this paragraph used to describe: the processor

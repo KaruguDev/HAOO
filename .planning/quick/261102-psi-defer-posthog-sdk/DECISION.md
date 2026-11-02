@@ -19,9 +19,11 @@ emission buffer.
   module itself, with its lockdown and the SDK it binds, is now fetched on demand by
   `src/measurement/posthog-deferred.ts` (`import('./posthog')`). The vendor chunk keeps
   its `posthog-sdk` name and ships in every build.
-- Fetch timing (`scheduleWhenEngagedOrSettled`): first `pointerdown`, `keydown`,
-  `touchstart`, `scroll`, `wheel` or `mousemove`, or 3 s after `window.load`,
-  whichever comes first.
+- Fetch timing (`scheduleOnFirstInteraction`): first `pointerdown`, `keydown`,
+  `touchstart`, `scroll`, `wheel` or `mousemove`, and only then. The first version also
+  fetched 3 s after `window.load`, but live PageSpeed's run outlasted that timer and
+  still reported the SDK as unused and legacy JavaScript, so the owner chose
+  interaction-only (follow-up, same day).
 - `createDeferredPostHogEventSink` holds tracked events until the adapter is through
   every gate in `createPostHogEventSink`, then replays them in order. It holds only
   closed-allowlist event **names** (no properties, identifiers or form values, so MEAS-02
@@ -39,7 +41,8 @@ emission buffer.
 
 - The SDK leaves the critical path. The automatic `$pageview` is sent when the SDK
   initializes, so it is delayed rather than dropped.
-- **Known undercount:** a visitor who leaves within ~3 s of load without any
-  interaction sends no `$pageview`. Expect a small drop in page-view counts relative to
-  the eager build. Read week-over-week comparisons across 2026-11-02 with that in mind.
+- **Known undercount:** a visitor who leaves without any interaction (no scroll, tap,
+  key or pointer movement) sends no `$pageview`. Expect a drop in page-view counts
+  relative to the eager build, mostly from zero-interaction bounces. Read week-over-week
+  comparisons across 2026-11-02 with that in mind.
 - `README.md` describes the on-demand load.
