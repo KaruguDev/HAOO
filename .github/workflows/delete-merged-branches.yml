@@ -1,0 +1,80 @@
+name: Delete merged branches
+
+# Repository standard: a branch is deleted once its pull request is merged.
+# - On every merged pull request, its head branch is deleted.
+# - "Run workflow" (workflow_dispatch) sweeps every branch already fully merged
+#   into the default branch and not the head of an open pull request.
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  delete-merged-head:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the merged head branch
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const ref = context.payload.pull_request.head.ref;
+            if (ref === context.payload.repository.default_branch) {
+              core.info(`Not deleting the default branch ${ref}.`);
+              return;
+            }
+            try {
+              await github.rest.git.deleteRef({ ...context.repo, ref: `heads/${ref}` });
+              core.info(`Deleted ${ref}.`);
+            } catch (error) {
+              if (error.status === 404 || error.status === 422) {
+                core.info(`${ref} is already gone.`);
+              } else {
+                throw error;
+              }
+            }
+
+  sweep-merged-branches:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete every branch fully merged into the default branch
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: repo } = await github.rest.repos.get(context.repo);
+            const base = repo.default_branch;
+            const branches = await github.paginate(github.rest.repos.listBranches, context.repo);
+            const openPulls = await github.paginate(github.rest.pulls.list, { ...context.repo, state: 'open' });
+            const openHeads = new Set(
+              openPulls
+                .filter((pull) => pull.head.repo && pull.head.repo.full_name === repo.full_name)
+                .map((pull) => pull.head.ref),
+            );
+
+            for (const branch of branches) {
+              const name = branch.name;
+              if (name === base || branch.protected) continue;
+              if (openHeads.has(name)) {
+                core.info(`Keeping ${name}: it heads an open pull request.`);
+                continue;
+              }
+              const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+                ...context.repo,
+                basehead: `${base}...${name}`,
+              });
+              if (comparison.ahead_by > 0) {
+                core.info(`Keeping ${name}: ${comparison.ahead_by} commit(s) not in ${base}.`);
+                continue;
+              }
+              await github.rest.git.deleteRef({ ...context.repo, ref: `heads/${name}` });
+              core.info(`Deleted ${name} (fully merged into ${base}).`);
+            }
