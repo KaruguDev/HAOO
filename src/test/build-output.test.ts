@@ -706,6 +706,15 @@ describe('Phase 1 static build contracts', () => {
     expect(built).not.toMatch(/\bInter\b/);
   });
 
+  it('modulepreloads the entry script so the document starts no critical request chain', () => {
+    const built = readFileSync(BUILT_HTML, 'utf8');
+    const entry = /<script type="module" crossorigin src="(\/assets\/[^"]+\.js)"><\/script>/.exec(built);
+    expect(entry, 'built index.html has no module entry script').not.toBeNull();
+    const preload = `<link rel="modulepreload" crossorigin href="${entry![1]}">`;
+    expect(built.split(preload)).toHaveLength(2);
+    expect(built.indexOf(preload)).toBeLessThan(built.indexOf(entry![0]));
+  });
+
   it('preloads the desktop hero exactly as the first hero <source> requests it', () => {
     const [desktop] = HAOO_HERO_SOURCES;
     const preload =

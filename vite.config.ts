@@ -4,12 +4,19 @@ import { resolve } from 'node:path';
 import { approvedAnalyticsHostsForProvider } from './config/approved-analytics-hosts';
 
 /**
- * Inline the built stylesheet into `index.html` (quick task 261102-psi).
+ * Inline the built stylesheet into `index.html`, and modulepreload the entry script
+ * (quick task 261102-psi).
  *
  * The single ~5 KB (gzip) stylesheet was the page's only render-blocking request, which
  * PageSpeed reported as "Render blocking requests" and a link in the network dependency
- * chain. Inlining it removes that round trip before first paint. Build-only: the dev
- * server keeps its normal HMR stylesheet handling.
+ * chain. Inlining it removes that round trip before first paint.
+ *
+ * The entry script then remained the one critical request the document starts itself,
+ * which PageSpeed's "Network dependency tree" insight reports as a chain. A
+ * `modulepreload` for it in `<head>` (as Vite already emits for the React chunk) lets the
+ * request start from the preload rather than from the parser reaching the script tag;
+ * the browser reuses that response for the script. Build-only: the dev server keeps its
+ * normal HMR handling.
  */
 function inlineStylesheet(): Plugin {
   return {
@@ -35,6 +42,14 @@ function inlineStylesheet(): Plugin {
             : new TextDecoder().decode(output.source);
           inlined = inlined.replace(link, () => `<style>${css}</style>`);
           delete bundle[fileName];
+        }
+
+        const entry = /<script type="module" crossorigin src="(\/assets\/[^"]+\.js)"><\/script>/.exec(inlined);
+        if (entry !== null && !inlined.includes(`<link rel="modulepreload" crossorigin href="${entry[1]}">`)) {
+          inlined = inlined.replace(
+            entry[0],
+            () => `<link rel="modulepreload" crossorigin href="${entry[1]}">\n    ${entry[0]}`,
+          );
         }
         return inlined;
       },
