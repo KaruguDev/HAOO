@@ -19,7 +19,7 @@ import {
   MEASUREMENT_TRACK_ARGUMENT_COUNT,
   createMeasurement,
 } from '../measurement';
-import { HAOO_PRODUCT } from '../products/haoo';
+import { HAOO_HERO_SOURCES, HAOO_PRODUCT } from '../products/haoo';
 import { qualifyCollectionNotePageContext } from '../products/copy';
 import { buildSubmissionBody } from '../components/qualify-form.logic';
 import {
@@ -700,6 +700,22 @@ describe('Phase 1 static build contracts', () => {
       expect(built).toContain(fontPath);
       expect(built).toContain('font-display:swap');
       expect(built).not.toMatch(/\bInter\b/);
+    }
+  });
+
+  it('preloads the desktop hero exactly as the first hero <source> requests it', () => {
+    const [desktop] = HAOO_HERO_SOURCES;
+    const preload =
+      `<link rel="preload" as="image" type="${desktop.type}" media="${desktop.media}" ` +
+      `imagesrcset="${desktop.srcSet}" imagesizes="${desktop.sizes}" fetchpriority="high" />`;
+    expect(readFileSync(SOURCE_HTML, 'utf8')).toContain(preload);
+    expect(readFileSync(BUILT_HTML, 'utf8')).toContain(`imagesrcset="${desktop.srcSet}"`);
+
+    for (const source of HAOO_HERO_SOURCES) {
+      for (const candidate of source.srcSet.split(',')) {
+        const path = candidate.trim().split(' ')[0];
+        expect(existsSync(resolve(DIST, `.${path}`)), path).toBe(true);
+      }
     }
   });
 

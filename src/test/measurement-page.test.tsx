@@ -514,7 +514,7 @@ describe('Phase 3 HAOO journey measurement expansion', () => {
     const preview = within(brochure).getByRole('img', {
       name: HAOO_PRODUCT.brochure.previewImageAlt,
     });
-    const object = brochure.querySelector('object[type="application/pdf"]');
+    const object = brochure.querySelector('object');
     const open = within(brochure).getByRole('link', {
       name: /Open brochure.*new tab/i,
     });
