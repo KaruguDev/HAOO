@@ -11,9 +11,8 @@ import { POSTHOG_REFUSAL } from './posthog-refusal';
  * D4 recorded, and together they are ~95 KB (gzip) that PageSpeed reported as
  * critical-path, unused and legacy JavaScript. This module is the only part the page loads
  * up front: it decides the gates that need no SDK, holds tracked event names, and fetches
- * the adapter (and with it the SDK) on the visitor's first interaction or shortly after
- * load. Once the adapter has been evaluated, every later call takes its synchronous path
- * unchanged.
+ * the adapter (and with it the SDK) on the visitor's first interaction. Once the adapter
+ * has been evaluated, every later call takes its synchronous path unchanged.
  */
 
 type EventSinkFactory = <EventName extends string>(
@@ -28,7 +27,7 @@ export interface PostHogAdapterModule {
 
 /** Timing and loading seams, injected by tests; production uses the defaults below. */
 export interface DeferredLoadAdapters {
-  /** Receives `start` and must call it at most once. Defaults to `scheduleWhenEngagedOrSettled`. */
+  /** Receives `start` and must call it at most once. Defaults to `scheduleOnFirstInteraction`. */
   readonly scheduleLoad?: (start: () => void) => void;
   /** Fetches the adapter module. Defaults to a dynamic import of `./posthog`. */
   readonly loadAdapter?: () => Promise<PostHogAdapterModule>;
@@ -47,41 +46,34 @@ function importAdapter(): Promise<PostHogAdapterModule> {
 
 /** Events held while the SDK loads. Allowlisted names only, so this bounds memory, not privacy. */
 export const DEFERRED_EVENT_LIMIT = 50;
-/** Delay after the window `load` event before fetching the SDK when the visitor has not interacted. */
-export const POSTHOG_SETTLE_DELAY_MS = 3000;
 const ENGAGEMENT_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel', 'mousemove'] as const;
 
 /**
- * Starts the fetch on the visitor's first interaction, or `POSTHOG_SETTLE_DELAY_MS` after
- * the page has loaded, whichever comes first, so the vendor code never competes with first
- * paint or the app script. Starts immediately if the browser surface is unavailable.
+ * Starts the fetch on the visitor's first interaction, and only then (owner decision,
+ * 261102-psi follow-up). There is deliberately no timer fallback: a timer fired inside
+ * PageSpeed's measurement window and put the SDK back into its unused- and legacy-JavaScript
+ * findings. The cost, recorded in DECISION.md, is that a visitor who never scrolls, taps,
+ * types or moves a pointer is not counted. Starts immediately if the browser surface is
+ * unavailable.
  */
-export function scheduleWhenEngagedOrSettled(start: () => void): void {
+export function scheduleOnFirstInteraction(start: () => void): void {
   let started = false;
-  let timer: ReturnType<typeof setTimeout> | undefined;
 
   const begin = () => {
     if (started) return;
     started = true;
     try {
-      if (timer !== undefined) clearTimeout(timer);
       for (const name of ENGAGEMENT_EVENTS) window.removeEventListener(name, begin, true);
-      window.removeEventListener('load', settle);
     } catch {
       // Listener cleanup is best effort.
     }
     start();
-  };
-  const settle = () => {
-    timer = setTimeout(begin, POSTHOG_SETTLE_DELAY_MS);
   };
 
   try {
     for (const name of ENGAGEMENT_EVENTS) {
       window.addEventListener(name, begin, { capture: true, passive: true, once: true });
     }
-    if (document.readyState === 'complete') settle();
-    else window.addEventListener('load', settle, { once: true });
   } catch {
     begin();
   }
@@ -153,7 +145,7 @@ export function createDeferredPostHogEventSink<EventName extends string>(
   };
 
   try {
-    (load.scheduleLoad ?? scheduleWhenEngagedOrSettled)(start);
+    (load.scheduleLoad ?? scheduleOnFirstInteraction)(start);
   } catch {
     start();
   }
