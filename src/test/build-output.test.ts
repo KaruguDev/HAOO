@@ -675,7 +675,7 @@ describe('Phase 1 static build contracts', () => {
    * preloaded, so no stylesheet or font request leaves for a third-party origin before first
    * paint. The face is declared once, and no Google Fonts reference survives into the build.
    */
-  it('self-hosts and preloads Noto Sans with no third-party font request', () => {
+  it('self-hosts and preloads Noto Sans, inlined with no stylesheet or third-party font request', () => {
     const fontPath = '/fonts/noto-sans-latin-wght-normal.woff2';
     expect(existsSync(resolve(ROOT, `public${fontPath}`))).toBe(true);
     expect(existsSync(resolve(DIST, `.${fontPath}`))).toBe(true);
@@ -690,17 +690,20 @@ describe('Phase 1 static build contracts', () => {
     expect(readFileSync(SOURCE_HTML, 'utf8')).toContain(preload);
     expect(readFileSync(BUILT_HTML, 'utf8')).toContain(fontPath);
 
-    const stylesheets = listFiles(resolve(DIST, 'assets')).filter((file) => file.endsWith('.css'));
-    expect(stylesheets.length).toBeGreaterThan(0);
-    for (const file of stylesheets) {
-      const built = readFileSync(file, 'utf8');
-      expect(built, relative(ROOT, file)).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
-      expect(built).not.toMatch(/@import/);
-      expect(built.match(/@font-face/g) ?? []).toHaveLength(1);
-      expect(built).toContain(fontPath);
-      expect(built).toContain('font-display:swap');
-      expect(built).not.toMatch(/\bInter\b/);
-    }
+    // The stylesheet is inlined into the document at build time (quick task 261102-psi), so
+    // no separate render-blocking stylesheet request remains.
+    const builtHtml = readFileSync(BUILT_HTML, 'utf8');
+    expect(listFiles(resolve(DIST, 'assets')).filter((file) => file.endsWith('.css'))).toEqual([]);
+    expect(builtHtml).not.toMatch(/<link\b[^>]*rel="stylesheet"/);
+    const inlineStyles = builtHtml.match(/<style>[\s\S]*?<\/style>/g) ?? [];
+    expect(inlineStyles).toHaveLength(1);
+    const built = inlineStyles[0] ?? '';
+    expect(built).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+    expect(built).not.toMatch(/@import/);
+    expect(built.match(/@font-face/g) ?? []).toHaveLength(1);
+    expect(built).toContain(fontPath);
+    expect(built).toContain('font-display:swap');
+    expect(built).not.toMatch(/\bInter\b/);
   });
 
   it('preloads the desktop hero exactly as the first hero <source> requests it', () => {

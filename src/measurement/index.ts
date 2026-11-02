@@ -1,8 +1,6 @@
 import type { ProductMeasurement } from '../products/types';
-import {
-  createPostHogEventSink,
-  type PostHogAdapters,
-} from './posthog';
+import type { PostHogAdapters } from './posthog';
+import { createDeferredPostHogEventSink } from './posthog-deferred';
 
 export type VisitBand = 'first' | 'returning' | 'frequent';
 export type LastSeenBand = 'today' | 'this-week' | 'this-month' | 'earlier';
@@ -329,7 +327,7 @@ export function createMeasurement<const EventName extends string>(
     // An injected sink remains authoritative for tests and alternate adapters.
     if (eventSink === undefined) {
       try {
-        eventSink = createPostHogEventSink(config, adapters.providerAdapters, campaign);
+        eventSink = createDeferredPostHogEventSink(config, adapters.providerAdapters, campaign);
       } catch {
         // Defence in depth, and the specific defect Phase 4 verification recorded as
         // gap 1: this is the one provider call in this file, it runs inside the product
