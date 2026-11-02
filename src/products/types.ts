@@ -22,6 +22,10 @@ export interface ProductImage {
   readonly alt: string;
   readonly width: number;
   readonly height: number;
+  /** Optional resized WebP candidates; `href` stays the universal fallback. */
+  readonly webpSrcSet?: string;
+  /** Rendered-width hint paired with `webpSrcSet`. */
+  readonly sizes?: string;
 }
 
 export interface ProductMedia {
@@ -47,6 +51,8 @@ export interface ProductBrochure {
   readonly previewImageAlt: string;
   readonly previewImageWidth: number;
   readonly previewImageHeight: number;
+  /** Optional resized WebP candidates for the preview; `previewImageHref` stays the fallback. */
+  readonly previewImageWebpSrcSet?: string;
   readonly downloadName: string;
   readonly expectationLabel: string;
 }

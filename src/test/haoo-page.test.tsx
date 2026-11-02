@@ -217,7 +217,11 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(preview.getAttribute('src')).toBe(HAOO_PRODUCT.brochure.previewImageHref);
     expect(preview.getAttribute('width')).toBe('1287');
     expect(preview.getAttribute('height')).toBe('909');
-    expect(preview.parentElement?.className).toContain('lg:hidden');
+    // The <img> sits in a <picture> that offers resized WebP candidates ahead of the PNG.
+    expect(preview.parentElement?.tagName).toBe('PICTURE');
+    expect(preview.parentElement?.querySelector('source[type="image/webp"]')?.getAttribute('srcset'))
+      .toBe(HAOO_PRODUCT.brochure.previewImageWebpSrcSet);
+    expect(preview.parentElement?.parentElement?.className).toContain('lg:hidden');
 
     const pdfObject = brochure.querySelector('object[type="application/pdf"]');
     expect(pdfObject).not.toBeNull();
@@ -343,7 +347,10 @@ describe('Phase 1 semantic HAOO page contracts', () => {
     expect(hero.className).toContain('aspect-[4/3]');
     expect(hero.className).toContain('lg:aspect-[4/5]');
     expect(hero.className).toContain('object-cover');
-    expect(hero.parentElement?.textContent).toBe('');
+    expect(hero.parentElement?.tagName).toBe('PICTURE');
+    expect(hero.parentElement?.querySelector('source[type="image/webp"]')?.getAttribute('srcset'))
+      .toBe(HAOO_PRODUCT.media.hero?.webpSrcSet);
+    expect(hero.parentElement?.parentElement?.textContent).toBe('');
 
     const [whatsapp] = screen.getAllByRole('link', { name: 'Chat with HAOO on WhatsApp' });
     expect(whatsapp.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING)
@@ -599,7 +606,7 @@ describe('Quick task 260913-x19 space use', () => {
     expect(fallback?.textContent).toContain(FALLBACK_BODY);
 
     const previewImage = brochureRegion().querySelector('img');
-    expect(classTokens(previewImage?.parentElement ?? null)).toEqual(['lg:hidden']);
+    expect(classTokens(previewImage?.closest('picture')?.parentElement ?? null)).toEqual(['lg:hidden']);
   });
 });
 

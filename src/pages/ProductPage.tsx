@@ -132,15 +132,24 @@ export default function ProductPage({ product, measurementAdapters }: ProductPag
 
             {product.media.hero ? (
               <div className="lg:col-span-1">
-                <img
-                  src={product.media.hero.href}
-                  alt={product.media.hero.alt}
-                  width={product.media.hero.width}
-                  height={product.media.hero.height}
-                  loading="eager"
-                  decoding="async"
-                  className="aspect-[4/3] w-full rounded-2xl object-cover object-bottom lg:aspect-[4/5]"
-                />
+                <picture className="block">
+                  {product.media.hero.webpSrcSet ? (
+                    <source
+                      type="image/webp"
+                      srcSet={product.media.hero.webpSrcSet}
+                      sizes={product.media.hero.sizes}
+                    />
+                  ) : null}
+                  <img
+                    src={product.media.hero.href}
+                    alt={product.media.hero.alt}
+                    width={product.media.hero.width}
+                    height={product.media.hero.height}
+                    loading="eager"
+                    decoding="async"
+                    className="aspect-[4/3] w-full rounded-2xl object-cover object-bottom lg:aspect-[4/5]"
+                  />
+                </picture>
               </div>
             ) : null}
           </div>

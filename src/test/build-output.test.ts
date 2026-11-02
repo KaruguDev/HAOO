@@ -671,31 +671,34 @@ describe('Phase 1 static build contracts', () => {
   });
 
   /**
-   * Quick task 260913-vbl (OD-2). Browsers silently ignore an `@import` that follows any other
-   * rule, so the webfont import must stay the first line of the source stylesheet AND the first
-   * thing in the emitted stylesheet. One `family=` occurrence proves no second font rides along.
+   * Noto Sans is self-hosted (one variable-weight Latin WOFF2 under `public/fonts/`) and
+   * preloaded, so no stylesheet or font request leaves for a third-party origin before first
+   * paint. The face is declared once, and no Google Fonts reference survives into the build.
    */
-  it('loads Noto Sans from a first-line import in the source and the built stylesheet', () => {
-    const source = readFileSync(resolve(ROOT, 'src/index.css'), 'utf8');
-    const firstLine = source.split('\n').find((line) => line.trim() !== '') ?? '';
+  it('self-hosts and preloads Noto Sans with no third-party font request', () => {
+    const fontPath = '/fonts/noto-sans-latin-wght-normal.woff2';
+    expect(existsSync(resolve(ROOT, `public${fontPath}`))).toBe(true);
+    expect(existsSync(resolve(DIST, `.${fontPath}`))).toBe(true);
+    expect(existsSync(resolve(ROOT, 'public/fonts/NotoSans-OFL.txt'))).toBe(true);
 
-    expect(firstLine.startsWith(
-      "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap')",
-    )).toBe(true);
+    const source = readFileSync(resolve(ROOT, 'src/index.css'), 'utf8');
     expect(source).toMatch(/body\s*\{[^}]*font-family:\s*'Noto Sans', system-ui, sans-serif;/);
+    expect(source).not.toContain('fonts.googleapis.com');
+
+    const preload =
+      `<link rel="preload" href="${fontPath}" as="font" type="font/woff2" crossorigin />`;
+    expect(readFileSync(SOURCE_HTML, 'utf8')).toContain(preload);
+    expect(readFileSync(BUILT_HTML, 'utf8')).toContain(fontPath);
 
     const stylesheets = listFiles(resolve(DIST, 'assets')).filter((file) => file.endsWith('.css'));
     expect(stylesheets.length).toBeGreaterThan(0);
     for (const file of stylesheets) {
-      const built = readFileSync(file, 'utf8').trim();
-
-      // Vite minifies `@import url('…')` to `@import"…";` and hoists it to the very start.
-      expect(built.startsWith(
-        '@import"https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap";',
-      ), relative(ROOT, file)).toBe(true);
-      expect(built).toContain('family=Noto+Sans');
-      expect(built).toContain('display=swap');
-      expect(built.match(/family=/g) ?? []).toHaveLength(1);
+      const built = readFileSync(file, 'utf8');
+      expect(built, relative(ROOT, file)).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+      expect(built).not.toMatch(/@import/);
+      expect(built.match(/@font-face/g) ?? []).toHaveLength(1);
+      expect(built).toContain(fontPath);
+      expect(built).toContain('font-display:swap');
       expect(built).not.toMatch(/\bInter\b/);
     }
   });
