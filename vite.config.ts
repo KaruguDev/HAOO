@@ -1,7 +1,46 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import { approvedAnalyticsHostsForProvider } from './config/approved-analytics-hosts';
+
+/**
+ * Inline the built stylesheet into `index.html` (quick task 261102-psi).
+ *
+ * The single ~5 KB (gzip) stylesheet was the page's only render-blocking request, which
+ * PageSpeed reported as "Render blocking requests" and a link in the network dependency
+ * chain. Inlining it removes that round trip before first paint. Build-only: the dev
+ * server keeps its normal HMR stylesheet handling.
+ */
+function inlineStylesheet(): Plugin {
+  return {
+    name: 'haoo-inline-stylesheet',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        const bundle = context.bundle;
+        if (bundle === undefined) return html;
+
+        let inlined = html;
+        for (const [fileName, output] of Object.entries(bundle)) {
+          if (output.type !== 'asset' || !fileName.endsWith('.css')) continue;
+
+          const link = new RegExp(
+            `<link\\b[^>]*\\bhref="/${fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`,
+          );
+          if (!link.test(inlined)) continue;
+
+          const css = typeof output.source === 'string'
+            ? output.source
+            : new TextDecoder().decode(output.source);
+          inlined = inlined.replace(link, () => `<style>${css}</style>`);
+          delete bundle[fileName];
+        }
+        return inlined;
+      },
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -9,7 +48,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
   return {
-    plugins: [react()],
+    plugins: [react(), inlineStylesheet()],
     base: '/',
     optimizeDeps: {
       exclude: ['lucide-react'],
@@ -67,6 +106,14 @@ export default defineConfig(({ mode }) => {
          */
         output: {
           manualChunks: {
+            /**
+             * React and its scheduler in their own long-cacheable chunk (quick task
+             * 261102-psi). They change only on a dependency bump, so returning visitors keep
+             * them across content deploys, and each script stays under Lighthouse's
+             * per-script unused-JavaScript threshold: most of what that audit counted in the
+             * single app chunk was React DOM's own code paths, unused on any single page.
+             */
+            'react-vendor': ['react', 'react-dom', 'scheduler'],
             'posthog-sdk': [
               'posthog-js',
               'preact',
