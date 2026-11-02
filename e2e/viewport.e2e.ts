@@ -97,7 +97,7 @@ const HAOO_PREVIEW_RECOVERY_COPY =
   "We couldn't show the brochure preview here. Open the brochure or download the PDF instead.";
 
 /** The HAOO page's own three media files: the logo, the hero and the brochure preview. */
-const HAOO_MEDIA_PATTERN = /\/brochure\/[^/?#]+\.png(?:[?#].*)?$/;
+const HAOO_MEDIA_PATTERN = /\/brochure\/[^/?#]+\.(?:png|webp)(?:[?#].*)?$/;
 
 /**
  * The Products card, as `ZERO-PAPERHUB/src/products/registry.ts` (`HAOO_CARD`) ships it. Read
@@ -731,7 +731,7 @@ test.describe('media-absent partial states', () => {
         });
 
         expect(
-          aborted.some((url) => url.endsWith('/brochure/brochure-preview.png')),
+          aborted.some((url) => /\/brochure\/brochure-preview(?:-\d+)?\.(?:png|webp)$/.test(url)),
           `the preview image request was never made, so the unavailable state was not reached: ${aborted.join(', ')}`,
         ).toBe(true);
         expect(

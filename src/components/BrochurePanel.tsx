@@ -122,18 +122,27 @@ export default function BrochurePanel({
         {/* Compact preview below lg — never a tall inline document viewer (D-06). */}
         <div className="lg:hidden">
           {showPreview ? (
-            <img
-              ref={mobilePreviewRef}
-              src={brochure.previewImageHref}
-              alt={brochure.previewImageAlt}
-              width={brochure.previewImageWidth}
-              height={brochure.previewImageHeight}
-              loading="lazy"
-              decoding="async"
-              onLoad={handleImageLoad}
-              onError={() => setPreviewFailed(true)}
-              className="h-auto w-full rounded-2xl border border-[#DFE4F0] bg-white object-cover"
-            />
+            <picture className="block">
+              {brochure.previewImageWebpSrcSet ? (
+                <source
+                  type="image/webp"
+                  srcSet={brochure.previewImageWebpSrcSet}
+                  sizes="calc(100vw - 32px)"
+                />
+              ) : null}
+              <img
+                ref={mobilePreviewRef}
+                src={brochure.previewImageHref}
+                alt={brochure.previewImageAlt}
+                width={brochure.previewImageWidth}
+                height={brochure.previewImageHeight}
+                loading="lazy"
+                decoding="async"
+                onLoad={handleImageLoad}
+                onError={() => setPreviewFailed(true)}
+                className="h-auto w-full rounded-2xl border border-[#DFE4F0] bg-white object-cover"
+              />
+            </picture>
           ) : (
             <p className={`${surfaceClasses} text-base font-normal leading-6`}>{PREVIEW_ERROR}</p>
           )}

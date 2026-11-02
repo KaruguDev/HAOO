@@ -628,6 +628,9 @@ export const HAOO_PRODUCT: ProductDefinition = {
       alt: 'Property manager outside a modern apartment building',
       width: 1122,
       height: 1402,
+      webpSrcSet:
+        '/brochure/haoo-hero-480.webp 480w, /brochure/haoo-hero-800.webp 800w, /brochure/haoo-hero-1122.webp 1122w',
+      sizes: '(min-width: 1024px) 400px, calc(100vw - 32px)',
     },
   },
   contacts: {
@@ -647,6 +650,8 @@ export const HAOO_PRODUCT: ProductDefinition = {
     previewImageAlt: 'HAOO property-management brochure preview',
     previewImageWidth: 1287,
     previewImageHeight: 909,
+    previewImageWebpSrcSet:
+      '/brochure/brochure-preview-640.webp 640w, /brochure/brochure-preview-960.webp 960w, /brochure/brochure-preview-1287.webp 1287w',
     downloadName: 'HAOO-Marketing-Brochure.pdf',
     expectationLabel: 'PDF · 2.1 MB',
   },
